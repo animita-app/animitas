@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { FeatureCollection, Point } from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -29,6 +30,7 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [memorials, setMemorials] = useState<FeatureCollection<Point>>(EMPTY_MEMORIALS)
+  const router = useRouter()
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return
@@ -102,13 +104,45 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
           }
         })
       }
+
+      const handleClick = (event: mapboxgl.MapLayerMouseEvent) => {
+        const feature = event.features?.[0]
+        const id = feature?.properties?.id
+        if (typeof id === 'string') {
+          router.push(`/memorial/${id}`)
+        }
+      }
+
+      const handleEnter = () => {
+        mapInstance.getCanvas().style.cursor = 'pointer'
+      }
+
+      const handleLeave = () => {
+        mapInstance.getCanvas().style.cursor = ''
+      }
+
+      mapInstance.on('click', 'memorials-outer', handleClick)
+      mapInstance.on('click', 'memorials-inner', handleClick)
+      mapInstance.on('mouseenter', 'memorials-outer', handleEnter)
+      mapInstance.on('mouseenter', 'memorials-inner', handleEnter)
+      mapInstance.on('mouseleave', 'memorials-outer', handleLeave)
+      mapInstance.on('mouseleave', 'memorials-inner', handleLeave)
+
+      mapInstance.once('remove', () => {
+        mapInstance.off('click', 'memorials-outer', handleClick)
+        mapInstance.off('click', 'memorials-inner', handleClick)
+        mapInstance.off('mouseenter', 'memorials-outer', handleEnter)
+        mapInstance.off('mouseenter', 'memorials-inner', handleEnter)
+        mapInstance.off('mouseleave', 'memorials-outer', handleLeave)
+        mapInstance.off('mouseleave', 'memorials-inner', handleLeave)
+      })
     })
 
     return () => {
       map.current?.remove()
       map.current = null
     }
-  }, [accessToken, style])
+  }, [accessToken, style, router])
 
   useEffect(() => {
     let cancelled = false
