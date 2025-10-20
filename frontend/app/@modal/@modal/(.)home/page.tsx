@@ -5,31 +5,31 @@ import { useRouter } from 'next/navigation'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 import { ListSection } from '@/components/animita/list-section'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
+import { getErrorMessage } from '@/lib/utils'
 
 export default function ListMemorialsModal() {
   const router = useRouter()
   const [memorials, setMemorials] = useState<any[]>([])
+  const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function fetchMemorials() {
+    async function fetchData() {
       try {
-        const response = await fetch('/api/memorials')
-        if (!response.ok) {
-          throw new Error('Failed to fetch memorials')
-        }
-        const data = await response.json()
-        if (data && Array.isArray(data.memorials)) {
+        const data = await apiFetch('/memorials')
+        if (data?.memorials) {
           setMemorials(data.memorials)
+          setCount(data.memorials.length)
         }
       } catch (error) {
-        console.error(error)
+        console.error(getErrorMessage(error))
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMemorials()
+    fetchData()
   }, [])
 
   const handleClose = () => {
@@ -40,7 +40,7 @@ export default function ListMemorialsModal() {
     <ResponsiveDialog
       open
       onOpenChange={handleClose}
-      title="Explorar Memoriales"
+      title={`Explorar Memoriales (${count})`}
       description="Descubre los memoriales creados por la comunidad."
     >
       <div className="p-0">
