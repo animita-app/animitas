@@ -107,24 +107,66 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
+      console.log('JWT callback - user:', user)
       if (user) {
         token.sub = user.id
         token.role = (user as any).role
         token.phone = (user as any).phone
         token.displayName = (user as any).displayName
+        token.username = (user as any).username
       }
+      console.log('JWT callback - token:', token)
       return token
     },
     async session({ session, token }) {
-      const newUser = {
-        ...session.user,
-        id: token.sub,
-        role: token.role,
-        phone: token.phone,
-        displayName: token.displayName,
-      };
-      session.user = newUser;
-      return session;
+      console.log('Session callback - token.sub:', token.sub)
+      if (token.sub) {
+        try {
+          const user = await prisma.user.findUnique({
+            where: { id: token.sub as string },
+            select: {
+              id: true,
+              displayName: true,
+              username: true,
+              role: true,
+              phone: true,
+              profilePicture: true,
+              email: true,
+            },
+          })
+
+          console.log('Session callback - user from DB:', user)
+
+          if (user) {
+            session.user = {
+              ...session.user,
+              id: user.id,
+              name: user.displayName || user.username || user.email,
+              username: user.username,
+              role: user.role,
+              phone: user.phone,
+              image: user.profilePicture,
+              email: user.email,
+            } as any
+          } else {
+            console.log('User not found in DB, using token data instead')
+            session.user = {
+              ...session.user,
+              id: token.sub as string,
+              name: token.displayName as string,
+              username: token.username as string,
+              role: token.role as string,
+              phone: token.phone as string,
+              image: token.picture as string,
+              email: token.email as string,
+            } as any
+          }
+        } catch (error) {
+          console.error('Session callback error:', error)
+        }
+      }
+      console.log('Session callback - returning session:', session)
+      return session
     },
   },
 }

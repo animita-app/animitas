@@ -65,11 +65,9 @@ const onboardingSchema = z.object({
 })
 
 function StepIndicator({
-  number,
   completed,
   active,
 }: {
-  number: number
   completed?: boolean
   active?: boolean
 }) {
@@ -118,17 +116,17 @@ export default function AuthPage() {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && (session?.user as any)?.id) {
       router.push('/')
     }
-  }, [status, router])
+  }, [status, session, router])
 
   const onPhoneSubmit = async (values: z.infer<typeof phoneSchema>) => {
     setApiError('')
     const phoneWithCountry = `+56${values.phone}`
 
     try {
-      const { data, error } = await apiPost('/auth/send-code', {
+      const { data, error } = await apiPost('/api/auth/send-code', {
         phoneNumber: phoneWithCountry
       })
 
@@ -148,7 +146,7 @@ export default function AuthPage() {
     setApiError('')
 
     try {
-      const { data: checkData, error: checkError } = await apiPost('/auth/check-phone', {
+      const { data: checkData, error: checkError } = await apiPost('/api/auth/check-phone', {
         phone
       })
 
@@ -175,8 +173,8 @@ export default function AuthPage() {
 
       if (result?.ok) {
         showSuccess('Successfully logged in')
-        router.push('/')
         router.refresh()
+        router.push('/')
       }
     } catch (err) {
       const message = getErrorMessage(err)
@@ -217,7 +215,7 @@ export default function AuthPage() {
     }
 
     try {
-      const { data, error } = await apiGet(`/auth/check-username?username=${username}`)
+      const { data, error } = await apiGet(`/api/auth/check-username?username=${username}`)
       if (!error && data) {
         setUsernameAvailable(!data.taken)
       }
@@ -238,7 +236,7 @@ export default function AuthPage() {
 
     try {
       const { data: completeData, error: completeError } = await apiPost(
-        '/auth/complete-signup',
+        '/api/auth/complete-signup',
         {
           phone,
           displayName: values.displayName.trim(),
@@ -258,8 +256,8 @@ export default function AuthPage() {
 
       if (result?.ok) {
         showSuccess('Account created successfully')
-        router.push('/')
         router.refresh()
+        router.push('/')
       }
     } catch (err) {
       const message = getErrorMessage(err)
