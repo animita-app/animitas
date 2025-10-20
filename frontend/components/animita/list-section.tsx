@@ -20,8 +20,6 @@ interface ListSectionProps {
 function MemorialCard({ memorial, onClick }: { memorial: any; onClick?: () => void }) {
   const people = memorial.people || []
 
-  console.log(memorial);
-
   return (
     <Link href={`/animita/${memorial.id}`} onClick={onClick} className="block h-full">
       {memorial.primaryPerson.image !== null ? (
@@ -70,13 +68,22 @@ export function ListSection({ title, memorials, onClose }: ListSectionProps) {
         }}
         className="w-full"
       >
-        <CarouselContent className="">
-          {memorials.map((memorial, index) => (
-            <CarouselItem key={memorial.id || index} className="pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3">
-              <MemorialCard memorial={memorial} onClick={onClose} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
+          <Carousel className="relative mt-4 -mx-6">
+            <CarouselContent>
+              {memorials.map((memorial) => (
+                <CarouselItem key={memorial.id} className="pl-1 basis-3/4">
+                  <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted">
+                    <Image
+                      src={memorial.images[0].url}
+                      alt="Memorial image"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
       </Carousel>
     </section>
   )

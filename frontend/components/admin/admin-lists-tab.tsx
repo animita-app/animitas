@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { format } from 'date-fns'
+import { formatDate, getErrorMessage } from '@/lib/utils'
+import { showSuccess, showError } from '@/lib/notifications'
+import { apiPatch, apiDelete, apiGet } from '@/lib/api'
 
 interface MemorialList {
   id: string
@@ -38,9 +40,6 @@ interface PaginationState {
   pages: number
 }
 
-const formatDate = (date: string) => {
-  return format(new Date(date), 'MMM dd, yyyy')
-}
 
 export default function AdminListsTab() {
   const [lists, setLists] = useState<MemorialList[]>([])
@@ -61,14 +60,13 @@ export default function AdminListsTab() {
   const fetchLists = async (page: number = 1) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/lists?page=${page}&limit=${pagination.limit}`)
-      if (!response.ok) throw new Error('Failed to fetch lists')
-
-      const data = await response.json()
-      setLists(data.lists)
-      setPagination(data.pagination)
+      const { data } = await apiGet(`/admin/lists?page=${page}&limit=${pagination.limit}`)
+      if (data) {
+        setLists(data.lists)
+        setPagination(data.pagination)
+      }
     } catch (error) {
-      console.error('Error fetching lists:', error)
+      showError(getErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -91,35 +89,31 @@ export default function AdminListsTab() {
     if (!editingList) return
 
     try {
-      const response = await fetch('/api/admin/lists', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          listId: editingList.id,
-          data: editFormData
-        })
+      const { data, error } = await apiPatch('/admin/lists', {
+        listId: editingList.id,
+        data: editFormData
       })
 
-      if (!response.ok) throw new Error('Failed to update list')
+      if (error) throw new Error(error)
 
+      showSuccess('List updated successfully')
       setEditingList(null)
       await fetchLists(pagination.page)
     } catch (error) {
-      console.error('Error updating list:', error)
+      showError(getErrorMessage(error))
     }
   }
 
   const handleDelete = async (listId: string) => {
     try {
-      const response = await fetch(`/api/admin/lists?id=${listId}`, {
-        method: 'DELETE'
-      })
+      const { error } = await apiDelete(`/admin/lists?id=${listId}`)
 
-      if (!response.ok) throw new Error('Failed to delete list')
+      if (error) throw new Error(error)
 
+      showSuccess('List deleted successfully')
       await fetchLists(pagination.page)
     } catch (error) {
-      console.error('Error deleting list:', error)
+      showError(getErrorMessage(error))
     }
   }
 

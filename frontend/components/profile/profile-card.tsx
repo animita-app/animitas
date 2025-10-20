@@ -3,38 +3,69 @@
 import { useSession, signOut } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { getInitials } from '@/lib/utils'
+import { getInitials, getErrorMessage } from '@/lib/utils'
+import { uploadToCloudinary, getImageError, isValidImageFile } from '@/lib/image'
+import { showSuccess, showError } from '@/lib/notifications'
 import { Pencil } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { uploadToCloudinary } from '@/lib/cloudinary'
 
-export function ProfileCard() {
+interface ProfileCardProps {
+  userId?: string
+  displayName?: string
+  username?: string
+  profilePicture?: string | null
+  isOwnProfile?: boolean
+  onImageUpdate?: (url: string) => void
+}
+
+export function ProfileCard({
+  userId,
+  displayName,
+  username,
+  profilePicture,
+  isOwnProfile = true,
+  onImageUpdate
+}: ProfileCardProps) {
   const { data: session, update } = useSession()
-  const user = session?.user
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+
+  const sessionUser = session?.user as any
+  const user = {
+    displayName: displayName || sessionUser?.displayName || sessionUser?.name || 'Usuario',
+    username: username || sessionUser?.username,
+    image: profilePicture || sessionUser?.image
+  }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const imageError = getImageError(file)
+    if (imageError) {
+      showError(imageError)
+      return
+    }
+
     setUploading(true)
     try {
-      const imageUrl = await uploadToCloudinary(file)
+      const imageUrl = await uploadToCloudinary(file, { folder: 'profiles' })
 
       const response = await fetch('/api/profile', {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: imageUrl }),
+        body: JSON.stringify({ profilePicture: imageUrl })
       })
 
       if (response.ok) {
         await update({ image: imageUrl })
+        showSuccess('Profile picture updated')
+        onImageUpdate?.(imageUrl)
       } else {
-        console.error('Failed to update profile picture')
+        showError('Failed to update profile picture')
       }
     } catch (error) {
-      console.error('Failed to upload image', error)
+      showError(`Upload failed: ${getErrorMessage(error)}`)
     } finally {
       setUploading(false)
     }
@@ -44,46 +75,49 @@ export function ProfileCard() {
     await signOut({ redirect: true, callbackUrl: '/auth' })
   }
 
-  if (!user) {
-    return null // Or a loading state
-  }
-
-  const userName = (user as any)?.displayName || user?.name || 'Usuario'
-  const userUsername = (user as any)?.username
-  const userImage = user?.image
-
   return (
-    <div className="p-4 h-full">
-      <div className="h bg-red-500 flex items-center gap-4">
+    <div className="p-4 pb-8 h-full flex flex-col justify-between">
+      <div className="flex items-center gap-4">
         <div className="relative">
           <Avatar className="size-16 relative text-xl">
-            {userImage && <AvatarImage src={userImage} alt={userName} />}
-            <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+            {user.image && <AvatarImage src={user.image} alt={user.displayName} />}
+            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
           </Avatar>
-          <button
-            className="absolute bottom-0 right-0 bg-black rounded-full p-2 ml-2 mt-2"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            <Pencil className="size-4 text-white" />
-          </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleImageUpload}
-            accept="image/*"
-          />
+          {isOwnProfile && (
+            <>
+              <button
+                className="absolute bottom-0 right-0 bg-black rounded-full p-2 ml-2 mt-2"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                aria-label="Edit profile picture"
+              >
+                <Pencil className="size-4 text-white" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleImageUpload}
+                accept="image/*"
+              />
+            </>
+          )}
         </div>
         <div>
-          <h2 className="text-lg font-semibold">{userName}</h2>
-          <p className="text-muted-foreground">@{user.name}</p>
+          <h2 className="text-lg font-semibold">{user.displayName}</h2>
+          {user.username && <p className="text-muted-foreground">@{user.username}</p>}
         </div>
       </div>
 
-      <Button variant="secondary" onClick={handleLogout} className="w-full mt-auto">
-        Cerrar sesión
-      </Button>
+      {isOwnProfile && (
+        <Button
+          variant="secondary"
+          onClick={handleLogout}
+          className="w-full mt-auto"
+        >
+          Cerrar sesión
+        </Button>
+      )}
     </div>
   )
 }

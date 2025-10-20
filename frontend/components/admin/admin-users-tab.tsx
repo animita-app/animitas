@@ -13,7 +13,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { format } from 'date-fns'
+import { formatDate, getErrorMessage } from '@/lib/utils'
+import { showSuccess, showError } from '@/lib/notifications'
+import { apiPatch, apiDelete, apiGet } from '@/lib/api'
 
 interface User {
   id: string
@@ -44,10 +46,6 @@ interface PaginationState {
   pages: number
 }
 
-const formatDate = (date: string | null) => {
-  if (!date) return '-'
-  return format(new Date(date), 'MMM dd, yyyy')
-}
 
 const formatBadge = (value: string) => {
   const colors: Record<string, string> = {
@@ -77,14 +75,13 @@ export default function AdminUsersTab() {
   const fetchUsers = async (page: number = 1) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/users?page=${page}&limit=${pagination.limit}`)
-      if (!response.ok) throw new Error('Failed to fetch users')
-
-      const data = await response.json()
-      setUsers(data.users)
-      setPagination(data.pagination)
+      const { data } = await apiGet(`/admin/users?page=${page}&limit=${pagination.limit}`)
+      if (data) {
+        setUsers(data.users)
+        setPagination(data.pagination)
+      }
     } catch (error) {
-      console.error('Error fetching users:', error)
+      showError(getErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -106,35 +103,31 @@ export default function AdminUsersTab() {
     if (!editingUser) return
 
     try {
-      const response = await fetch('/api/admin/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: editingUser.id,
-          data: editFormData
-        })
+      const { data, error } = await apiPatch('/admin/users', {
+        userId: editingUser.id,
+        data: editFormData
       })
 
-      if (!response.ok) throw new Error('Failed to update user')
+      if (error) throw new Error(error)
 
+      showSuccess('User updated successfully')
       setEditingUser(null)
       await fetchUsers(pagination.page)
     } catch (error) {
-      console.error('Error updating user:', error)
+      showError(getErrorMessage(error))
     }
   }
 
   const handleDelete = async (userId: string) => {
     try {
-      const response = await fetch(`/api/admin/users?id=${userId}`, {
-        method: 'DELETE'
-      })
+      const { error } = await apiDelete(`/admin/users?id=${userId}`)
 
-      if (!response.ok) throw new Error('Failed to delete user')
+      if (error) throw new Error(error)
 
+      showSuccess('User deleted successfully')
       await fetchUsers(pagination.page)
     } catch (error) {
-      console.error('Error deleting user:', error)
+      showError(getErrorMessage(error))
     }
   }
 

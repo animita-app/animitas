@@ -8,7 +8,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { format } from 'date-fns'
+import { formatDate, getErrorMessage } from '@/lib/utils'
+import { showSuccess, showError } from '@/lib/notifications'
+import { apiPatch, apiDelete, apiGet } from '@/lib/api'
 
 interface Memorial {
   id: string
@@ -39,9 +41,6 @@ interface PaginationState {
   pages: number
 }
 
-const formatDate = (date: string) => {
-  return format(new Date(date), 'MMM dd, yyyy')
-}
 
 export default function AdminMemorialsTab() {
   const [memorials, setMemorials] = useState<Memorial[]>([])
@@ -64,14 +63,13 @@ export default function AdminMemorialsTab() {
   const fetchMemorials = async (page: number = 1) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/admin/memorials?page=${page}&limit=${pagination.limit}`)
-      if (!response.ok) throw new Error('Failed to fetch memorials')
-
-      const data = await response.json()
-      setMemorials(data.memorials)
-      setPagination(data.pagination)
+      const { data } = await apiGet(`/admin/memorials?page=${page}&limit=${pagination.limit}`)
+      if (data) {
+        setMemorials(data.memorials)
+        setPagination(data.pagination)
+      }
     } catch (error) {
-      console.error('Error fetching memorials:', error)
+      showError(getErrorMessage(error))
     } finally {
       setLoading(false)
     }
@@ -96,35 +94,31 @@ export default function AdminMemorialsTab() {
     if (!editingMemorial) return
 
     try {
-      const response = await fetch('/api/admin/memorials', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          memorialId: editingMemorial.id,
-          data: editFormData
-        })
+      const { data, error } = await apiPatch('/admin/memorials', {
+        memorialId: editingMemorial.id,
+        data: editFormData
       })
 
-      if (!response.ok) throw new Error('Failed to update memorial')
+      if (error) throw new Error(error)
 
+      showSuccess('Memorial updated successfully')
       setEditingMemorial(null)
       await fetchMemorials(pagination.page)
     } catch (error) {
-      console.error('Error updating memorial:', error)
+      showError(getErrorMessage(error))
     }
   }
 
   const handleDelete = async (memorialId: string) => {
     try {
-      const response = await fetch(`/api/admin/memorials?id=${memorialId}`, {
-        method: 'DELETE'
-      })
+      const { error } = await apiDelete(`/admin/memorials?id=${memorialId}`)
 
-      if (!response.ok) throw new Error('Failed to delete memorial')
+      if (error) throw new Error(error)
 
+      showSuccess('Memorial deleted successfully')
       await fetchMemorials(pagination.page)
     } catch (error) {
-      console.error('Error deleting memorial:', error)
+      showError(getErrorMessage(error))
     }
   }
 
