@@ -220,7 +220,6 @@ export default function AuthPage() {
         setUsernameAvailable(!data.taken)
       }
     } catch (err) {
-      console.error('Username check error:', getErrorMessage(err))
     }
   }
 

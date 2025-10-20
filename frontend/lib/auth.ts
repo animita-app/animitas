@@ -156,7 +156,6 @@ export const authOptions: NextAuthOptions = {
             } as any
           }
         } catch (error) {
-          console.error('Session callback error:', error)
         }
       }
       return session

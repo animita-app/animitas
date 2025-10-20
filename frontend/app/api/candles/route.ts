@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ candle, testimony: testimonyRecord })
   } catch (error) {
-    console.error('Error creating candle:', error)
     return NextResponse.json(
       { error: 'Failed to create candle' },
       { status: 500 }

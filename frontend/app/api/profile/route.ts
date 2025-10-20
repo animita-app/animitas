@@ -91,7 +91,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(user)
   } catch (error) {
-    console.error('Failed to fetch profile', error)
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 })
   }
 }
@@ -117,7 +116,6 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Failed to update profile picture', error)
     return NextResponse.json({ error: 'Failed to update profile picture' }, { status: 500 })
   }
 }
@@ -159,7 +157,6 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(user)
   } catch (error) {
-    console.error('Failed to update profile', error)
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
   }
 }

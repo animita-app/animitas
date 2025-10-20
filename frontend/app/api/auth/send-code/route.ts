@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
       status: result.status,
     })
   } catch (error) {
-    console.error('Send code error:', error)
 
     return NextResponse.json(
       {

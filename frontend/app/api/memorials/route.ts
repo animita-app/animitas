@@ -78,7 +78,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(userId ? mapped : { memorials: mapped })
   } catch (error) {
-    console.error('Error fetching memorials:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

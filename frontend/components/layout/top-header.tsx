@@ -15,12 +15,17 @@ export function TopHeader() {
   const user = session?.user
   const [username, setUsername] = useState<string>('')
   const [memorialName, setMemorialName] = useState<string>('')
+  const [isHydrated, setIsHydrated] = useState(false)
 
   const isInAnimita = pathname.includes('/animita/')
   const animitaId = isInAnimita ? pathname.split('/animita/')[1]?.split('/')[0] : null
 
   useEffect(() => {
-    if (!user?.id) {
+    setIsHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!user?.id || !isHydrated) {
       setUsername('')
       return
     }
@@ -39,7 +44,7 @@ export function TopHeader() {
     }
 
     fetchUsername()
-  }, [user?.id])
+  }, [user?.id, isHydrated])
 
   useEffect(() => {
     if (!isInAnimita || !animitaId) {
@@ -82,16 +87,20 @@ export function TopHeader() {
           </div>
         )}
 
-        {user && username ? (
-          <Link href={`/(${username})`}>
-            <Button variant="ghost" size="icon" className="p-1 *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
-              <Avatar className="size-8">
-                {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}
-                <AvatarFallback>{getInitials(user.name || user.email || '')}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </Link>
-        ) : user ? (
+        {isHydrated && user ? (
+          username ? (
+            <Link href={`/(${username})`}>
+              <Button variant="ghost" size="icon" className="p-1 *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
+                <Avatar className="size-8">
+                  {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}
+                  <AvatarFallback>{getInitials(user.name || user.email || '')}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </Link>
+          ) : (
+            <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
+          )
+        ) : !isHydrated && user ? (
           <div className="size-8 rounded-full bg-gray-200" />
         ) : (
           <Button size="default" asChild>

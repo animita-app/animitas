@@ -81,7 +81,6 @@ export async function GET(
 
     return NextResponse.json(list)
   } catch (error) {
-    console.error('Error fetching list:', error)
     return NextResponse.json({ error: 'Failed to fetch list' }, { status: 500 })
   }
 }
@@ -131,7 +130,6 @@ export async function PATCH(
 
     return NextResponse.json(updatedList)
   } catch (error) {
-    console.error('Error updating list:', error)
     return NextResponse.json({ error: 'Failed to update list' }, { status: 500 })
   }
 }
@@ -166,7 +164,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting list:', error)
     return NextResponse.json({ error: 'Failed to delete list' }, { status: 500 })
   }
 }

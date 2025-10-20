@@ -45,7 +45,6 @@ export async function POST(
 
     return NextResponse.json(save, { status: 201 })
   } catch (error) {
-    console.error('Error saving list:', error)
     return NextResponse.json({ error: 'Failed to save list' }, { status: 500 })
   }
 }
@@ -73,7 +72,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error unsaving list:', error)
     return NextResponse.json({ error: 'Failed to unsave list' }, { status: 500 })
   }
 }

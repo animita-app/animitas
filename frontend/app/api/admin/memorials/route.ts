@@ -61,7 +61,6 @@ export async function GET(request: Request) {
       }
     })
   } catch (error) {
-    console.error('Error fetching memorials:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -102,7 +101,6 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(memorial)
   } catch (error) {
-    console.error('Error updating memorial:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -128,7 +126,6 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error deleting memorial:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

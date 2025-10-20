@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
       exists: !!user,
     })
   } catch (error) {
-    console.error('Check phone error:', error)
     return NextResponse.json({ exists: false })
   }
 }

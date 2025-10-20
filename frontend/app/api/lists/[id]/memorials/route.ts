@@ -83,7 +83,6 @@ export async function POST(
 
     return NextResponse.json(item, { status: 201 })
   } catch (error) {
-    console.error('Error adding memorial to list:', error)
     return NextResponse.json({ error: 'Failed to add memorial to list' }, { status: 500 })
   }
 }
@@ -137,7 +136,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error removing memorial from list:', error)
     return NextResponse.json({ error: 'Failed to remove memorial from list' }, { status: 500 })
   }
 }

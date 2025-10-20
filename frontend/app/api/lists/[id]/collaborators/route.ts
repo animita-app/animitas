@@ -83,7 +83,6 @@ export async function POST(
 
     return NextResponse.json(collaborator, { status: 201 })
   } catch (error) {
-    console.error('Error adding collaborator:', error)
     return NextResponse.json({ error: 'Failed to add collaborator' }, { status: 500 })
   }
 }
@@ -129,7 +128,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error removing collaborator:', error)
     return NextResponse.json({ error: 'Failed to remove collaborator' }, { status: 500 })
   }
 }

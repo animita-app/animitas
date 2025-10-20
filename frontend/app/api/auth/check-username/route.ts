@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
       taken: !!existingUser,
     })
   } catch (error) {
-    console.error('Check username error:', error)
     return NextResponse.json({ taken: false })
   }
 }
