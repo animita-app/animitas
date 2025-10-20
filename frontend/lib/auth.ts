@@ -106,13 +106,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id
-        token.role = (user as any).role
-        token.phone = (user as any).phone
-        token.displayName = (user as any).displayName
-        token.username = (user as any).username
+    async jwt({ token, user: jwtUser }) {
+      if (jwtUser) {
+        token.sub = jwtUser.id
+        token.role = jwtUser.role
+        token.phone = jwtUser.phone
+        token.displayName = jwtUser.displayName
+        token.username = jwtUser.username
       }
       return token
     },
@@ -142,7 +142,7 @@ export const authOptions: NextAuthOptions = {
               phone: user.phone,
               image: user.profilePicture,
               email: user.email,
-            } as any
+            }
           } else {
             session.user = {
               ...session.user,
@@ -153,7 +153,7 @@ export const authOptions: NextAuthOptions = {
               phone: token.phone as string,
               image: token.picture as string,
               email: token.email as string,
-            } as any
+            }
           }
         } catch (error) {
         }

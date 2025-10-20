@@ -25,7 +25,7 @@ export function TopHeader() {
   }, [])
 
   useEffect(() => {
-    if (!user?.id || !isHydrated) {
+    if (!user || !user.id || !isHydrated) {
       setUsername('')
       return
     }
