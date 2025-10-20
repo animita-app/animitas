@@ -107,7 +107,6 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async jwt({ token, user }) {
-      console.log('JWT callback - user:', user)
       if (user) {
         token.sub = user.id
         token.role = (user as any).role
@@ -115,11 +114,9 @@ export const authOptions: NextAuthOptions = {
         token.displayName = (user as any).displayName
         token.username = (user as any).username
       }
-      console.log('JWT callback - token:', token)
       return token
     },
     async session({ session, token }) {
-      console.log('Session callback - token.sub:', token.sub)
       if (token.sub) {
         try {
           const user = await prisma.user.findUnique({
@@ -135,8 +132,6 @@ export const authOptions: NextAuthOptions = {
             },
           })
 
-          console.log('Session callback - user from DB:', user)
-
           if (user) {
             session.user = {
               ...session.user,
@@ -149,7 +144,6 @@ export const authOptions: NextAuthOptions = {
               email: user.email,
             } as any
           } else {
-            console.log('User not found in DB, using token data instead')
             session.user = {
               ...session.user,
               id: token.sub as string,
@@ -165,7 +159,6 @@ export const authOptions: NextAuthOptions = {
           console.error('Session callback error:', error)
         }
       }
-      console.log('Session callback - returning session:', session)
       return session
     },
   },
