@@ -1241,8 +1241,6 @@ async function main() {
       }
     })
   }
-
-  console.log('Database seeded with Chilean animitas 🇨🇱')
 }
 
 main()

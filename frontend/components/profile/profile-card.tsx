@@ -53,10 +53,10 @@ export function ProfileCard() {
   const userImage = user?.image
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-4">
+    <div className="p-4 h-full">
+      <div className="h bg-red-500 flex items-center gap-4">
         <div className="relative">
-          <Avatar className="size-16">
+          <Avatar className="size-16 relative text-xl">
             {userImage && <AvatarImage src={userImage} alt={userName} />}
             <AvatarFallback>{getInitials(userName)}</AvatarFallback>
           </Avatar>
@@ -77,11 +77,12 @@ export function ProfileCard() {
         </div>
         <div>
           <h2 className="text-lg font-semibold">{userName}</h2>
-          {userUsername && <p className="text-muted-foreground">@{userUsername}</p>}
+          <p className="text-muted-foreground">@{user.name}</p>
         </div>
       </div>
-      <Button onClick={handleLogout} className="mt-4">
-        Salir
+
+      <Button variant="secondary" onClick={handleLogout} className="w-full mt-auto">
+        Cerrar sesión
       </Button>
     </div>
   )
