@@ -13,38 +13,10 @@ export function TopHeader() {
   const { data: session } = useSession()
 
   const user = session?.user
-  const [username, setUsername] = useState<string>('')
   const [memorialName, setMemorialName] = useState<string>('')
-  const [isHydrated, setIsHydrated] = useState(false)
 
   const isInAnimita = pathname.includes('/animita/')
   const animitaId = isInAnimita ? pathname.split('/animita/')[1]?.split('/')[0] : null
-
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
-
-  useEffect(() => {
-    if (!user || !user.id || !isHydrated) {
-      setUsername('')
-      return
-    }
-
-    const fetchUsername = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-        const response = await fetch(`${apiUrl}/api/users/${user.id}`)
-        if (response.ok) {
-          const data = await response.json()
-          setUsername(data.username || '')
-        }
-      } catch (error) {
-        setUsername('')
-      }
-    }
-
-    fetchUsername()
-  }, [user?.id, isHydrated])
 
   useEffect(() => {
     if (!isInAnimita || !animitaId) {
@@ -87,21 +59,15 @@ export function TopHeader() {
           </div>
         )}
 
-        {isHydrated && user ? (
-          username ? (
-            <Link href={`/(${username})`}>
-              <Button variant="ghost" size="icon" className="p-1 *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
-                <Avatar className="size-8">
-                  {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}
-                  <AvatarFallback>{getInitials(user.name || user.email || '')}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </Link>
-          ) : (
-            <div className="size-8 rounded-full bg-gray-200 animate-pulse" />
-          )
-        ) : !isHydrated && user ? (
-          <div className="size-8 rounded-full bg-gray-200" />
+        {user ? (
+          <Link href="/profile">
+            <Button variant="ghost" size="icon" className="p-1 *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
+              <Avatar className="size-8">
+                {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}
+                <AvatarFallback>{getInitials(user.name || user.email || '')}</AvatarFallback>
+              </Avatar>
+            </Button>
+          </Link>
         ) : (
           <Button size="default" asChild>
             <Link href="/auth">Únete</Link>
