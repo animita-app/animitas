@@ -17,11 +17,11 @@ interface ListSectionProps {
   onClose?: () => void
 }
 
-function MemorialCard({ memorial, onClick }: { memorial: any; onClick?: () => void }) {
+function MemorialCard({ memorial }: { memorial: any }) {
   const people = memorial.people || []
 
   return (
-    <Link href={`/animita/${memorial.id}`} onClick={onClick} className="block h-full">
+    <Link href={`/animita/${memorial.id}`}>
       {memorial.primaryPerson.image !== null ? (
         <Image
           src={memorial.primaryPerson.image}
@@ -51,7 +51,7 @@ function MemorialCard({ memorial, onClick }: { memorial: any; onClick?: () => vo
   )
 }
 
-export function ListSection({ title, memorials, onClose }: ListSectionProps) {
+export function ListSection({ title, memorials }: ListSectionProps) {
   if (!memorials || memorials.length === 0) {
     return null
   }
@@ -71,15 +71,8 @@ export function ListSection({ title, memorials, onClose }: ListSectionProps) {
           <Carousel className="relative mt-4 -mx-6">
             <CarouselContent>
               {memorials.map((memorial) => (
-                <CarouselItem key={memorial.id} className="pl-1 basis-3/4">
-                  <div className="relative w-full aspect-[3/4] overflow-hidden bg-muted">
-                    <Image
-                      src={memorial.images[0].url}
-                      alt="Memorial image"
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                <CarouselItem key={memorial.id} className="pl-1">
+                  <MemorialCard memorial={memorial} />
                 </CarouselItem>
               ))}
             </CarouselContent>

@@ -30,8 +30,10 @@ import {
   FormDescription,
 } from '@/components/ui/form'
 import { AUTH_COPY } from '@/lib/auth-copy'
-import { uploadToCloudinary } from '@/lib/cloudinary'
-import { cn, getInitials } from '@/lib/utils'
+import { uploadToCloudinary, getImageError, isValidImageFile } from '@/lib/image'
+import { cn, getInitials, getErrorMessage } from '@/lib/utils'
+import { showError, showSuccess } from '@/lib/notifications'
+import { apiPost, apiGet } from '@/lib/api'
 
 type Step = 'phone' | 'code' | 'onboarding'
 
@@ -126,21 +128,19 @@ export default function AuthPage() {
     const phoneWithCountry = `+56${values.phone}`
 
     try {
-      const response = await fetch('/api/auth/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: phoneWithCountry }),
+      const { data, error } = await apiPost('/auth/send-code', {
+        phoneNumber: phoneWithCountry
       })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to send code')
-      }
+      if (error) throw new Error(error)
 
       setPhone(phoneWithCountry)
       setStep('code')
+      showSuccess('Code sent to your phone')
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Failed to send code')
+      const message = getErrorMessage(err)
+      setApiError(message)
+      showError(message)
     }
   }
 
@@ -148,15 +148,13 @@ export default function AuthPage() {
     setApiError('')
 
     try {
-      const checkResponse = await fetch('/api/auth/check-phone', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+      const { data: checkData, error: checkError } = await apiPost('/auth/check-phone', {
+        phone
       })
 
-      const checkData = await checkResponse.json()
+      if (checkError) throw new Error(checkError)
 
-      if (!checkData.exists) {
+      if (!checkData?.exists) {
         setIsNewUser(true)
         setStep('onboarding')
         return
@@ -165,21 +163,25 @@ export default function AuthPage() {
       const result = await signIn('phone', {
         phone,
         code: values.code,
-        redirect: false,
+        redirect: false
       })
 
       if (result?.error) {
         setApiError(AUTH_COPY.code.error.invalidCode)
+        showError(AUTH_COPY.code.error.invalidCode)
         codeForm.reset()
         return
       }
 
       if (result?.ok) {
+        showSuccess('Successfully logged in')
         router.push('/')
         router.refresh()
       }
     } catch (err) {
-      setApiError('Verification failed')
+      const message = getErrorMessage(err)
+      setApiError(message)
+      showError(message)
     }
   }
 
@@ -187,31 +189,40 @@ export default function AuthPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    const imageError = getImageError(file)
+    if (imageError) {
+      setApiError(imageError)
+      showError(imageError)
+      return
+    }
+
     setUploadingImage(true)
     try {
-      const url = await uploadToCloudinary(file)
+      const url = await uploadToCloudinary(file, { folder: 'profiles' })
       setProfilePicture(url)
+      showSuccess('Profile picture uploaded')
     } catch (err) {
-      setApiError(
-        err instanceof Error ? err.message : 'Failed to upload image'
-      )
+      const message = getErrorMessage(err)
+      setApiError(message)
+      showError(message)
     } finally {
       setUploadingImage(false)
     }
   }
 
   const checkUsernameAvailability = async (username: string) => {
-    if (!username || username.length < 4) {
+    if (!username || username.length < 3) {
       setUsernameAvailable(null)
       return
     }
 
     try {
-      const response = await fetch(`/api/auth/check-username?username=${username}`)
-      const data = await response.json()
-      setUsernameAvailable(!data.taken)
+      const { data, error } = await apiGet(`/auth/check-username?username=${username}`)
+      if (!error && data) {
+        setUsernameAvailable(!data.taken)
+      }
     } catch (err) {
-      console.error('Username check error:', err)
+      console.error('Username check error:', getErrorMessage(err))
     }
   }
 
@@ -219,40 +230,41 @@ export default function AuthPage() {
     setApiError('')
 
     if (usernameAvailable === false) {
-      setApiError(AUTH_COPY.onboarding.username.error.notAvailable)
+      const errorMsg = AUTH_COPY.onboarding.username.error.notAvailable
+      setApiError(errorMsg)
+      showError(errorMsg)
       return
     }
 
     try {
-      const completeResponse = await fetch('/api/auth/complete-signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const { data: completeData, error: completeError } = await apiPost(
+        '/auth/complete-signup',
+        {
           phone,
           displayName: values.displayName.trim(),
           username: values.username.trim().toLowerCase(),
-          profilePicture,
-        }),
-      })
+          profilePicture
+        }
+      )
 
-      if (!completeResponse.ok) {
-        const data = await completeResponse.json()
-        throw new Error(data.error || 'Failed to complete signup')
-      }
+      if (completeError) throw new Error(completeError)
 
       const code = codeForm.getValues('code')
       const result = await signIn('phone', {
         phone,
         code,
-        redirect: false,
+        redirect: false
       })
 
       if (result?.ok) {
+        showSuccess('Account created successfully')
         router.push('/')
         router.refresh()
       }
     } catch (err) {
-      setApiError(err instanceof Error ? err.message : 'Signup failed')
+      const message = getErrorMessage(err)
+      setApiError(message)
+      showError(message)
     }
   }
 
