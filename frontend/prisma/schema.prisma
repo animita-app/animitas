@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  FREE
+  PREMIUM
+  ADMIN
+}
+
+enum CandleDuration {
+  ONE_DAY
+  THREE_DAYS
+  SEVEN_DAYS
+}
+
+model User {
+  id              String     @id @default(cuid())
+  phone           String?    @unique
+  username        String?    @unique
+  displayName     String?
+  email           String?    @unique
+  image           String?
+  emailVerified   DateTime?
+  instagramHandle String?
+  tiktokHandle    String?
+  profilePicture  String?
+  phoneVerified   DateTime?
+  role            UserRole   @default(FREE)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  accounts             Account[]
+  sessions             Session[]
+  candles              Candle[]
+  testimonies          Testimony[]
+  candleLimits         CandleLimit[]
+  memorialsCreated     Memorial[]
+  listsCreated         MemorialList[]
+  listCollaborations   MemorialListCollaborator[]
+  savedLists           MemorialListSave[]
+  verificationCodes    VerificationCode[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Person {
+  id         String    @id @default(cuid())
+  name       String
+  image      String?
+  birthDate  DateTime?
+  deathDate  DateTime?
+  birthPlace String?
+  deathPlace String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  memorials MemorialPerson[]
+
+  @@map("people")
+}
+
+model Memorial {
+  id          String   @id @default(cuid())
+  name        String
+  lat         Float
+  lng         Float
+  story       String?  @db.Text
+  isPublic    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  people      MemorialPerson[]
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  candles     Candle[]
+  testimonies Testimony[]
+  listItems   MemorialListItem[]
+  images      MemorialImage[]
+
+  @@index([lat, lng])
+  @@map("memorials")
+}
+
+model MemorialImage {
+  id         String   @id @default(cuid())
+  memorialId String
+  url        String   @db.Text
+  uploadedAt DateTime @default(now())
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId])
+  @@map("memorial_images")
+}
+
+model MemorialPerson {
+  memorialId String
+  personId   String
+  createdAt  DateTime @default(now())
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@id([memorialId, personId])
+  @@index([memorialId])
+  @@index([personId])
+  @@map("memorial_people")
+}
+
+model Candle {
+  id              String         @id @default(cuid())
+  memorialId      String
+  userId          String
+  duration        CandleDuration
+  message         String?        @db.Text
+  isActive        Boolean        @default(true)
+  litAt           DateTime       @default(now())
+  expiresAt       DateTime
+  createdAt       DateTime       @default(now())
+  standStyle      String         @default("classic")
+  stickStyle      String         @default("smooth")
+  flameStyle      String         @default("warm")
+  backgroundColor String         @default("plain")
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId, isActive])
+  @@index([expiresAt])
+  @@map("candles")
+}
+
+model Testimony {
+  id         String   @id @default(cuid())
+  memorialId String
+  userId     String
+  content    String   @db.Text
+  images     String[]
+  isPublic   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  memorial Memorial @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([memorialId])
+  @@map("testimonies")
+}
+
+model CandleLimit {
+  id              String   @id @default(cuid())
+  userId          String
+  candlesThisWeek Int      @default(0)
+  weekStart       DateTime
+  weekEnd         DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([userId, weekEnd])
+  @@map("candle_limits")
+}
+
+model VerificationCode {
+  id        String   @id @default(cuid())
+  userId    String?
+  phone     String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([phone, expiresAt])
+  @@map("verification_codes")
+}
+
+model MemorialList {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?  @db.Text
+  thumbnailPicture String?
+  isPublic         Boolean  @default(true)
+  viewCount        Int      @default(0)
+  createdById      String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  createdBy     User                       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  items         MemorialListItem[]
+  collaborators MemorialListCollaborator[]
+  saves         MemorialListSave[]
+
+  @@index([createdById])
+  @@index([isPublic])
+  @@map("memorial_lists")
+}
+
+model MemorialListItem {
+  id         String   @id @default(cuid())
+  listId     String
+  memorialId String
+  addedById  String
+  createdAt  DateTime @default(now())
+
+  list      MemorialList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  memorial  Memorial     @relation(fields: [memorialId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, memorialId])
+  @@index([listId])
+  @@index([memorialId])
+  @@map("memorial_list_items")
+}
+
+model MemorialListCollaborator {
+  id        String   @id @default(cuid())
+  listId    String
+  userId    String
+  canEdit   Boolean  @default(true)
+  canInvite Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  list MemorialList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, userId])
+  @@index([listId])
+  @@index([userId])
+  @@map("memorial_list_collaborators")
+}
+
+model MemorialListSave {
+  id        String   @id @default(cuid())
+  listId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  list MemorialList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, userId])
+  @@index([listId])
+  @@index([userId])
+  @@map("memorial_list_saves")
+}

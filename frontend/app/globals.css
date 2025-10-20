@@ -1,0 +1,222 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Basic Colors */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+
+  /* Neutral Light */
+  --color-neutral-light-1: #FCFCFC;
+  --color-neutral-light-2: #F7F7F7;
+  --color-neutral-light-3: #F2F2F2;
+  --color-neutral-light-4: #E8E8E8;
+  --color-neutral-light-5: #E2E2E2;
+  --color-neutral-light-6: #D9D9D9;
+  --color-neutral-light-7: #CFCECC;
+  --color-neutral-light-8: #BBBBBB;
+  --color-neutral-light-9: #8D8B8C;
+  --color-neutral-light-10: #777677;
+  --color-neutral-light-11: #656364;
+  --color-neutral-light-12: #201E1F;
+
+  /* Neutral Dark */
+  --color-neutral-dark-1: #141110;
+  --color-neutral-dark-2: #1A1819;
+  --color-neutral-dark-3: #232220;
+  --color-neutral-dark-4: #2B2928;
+  --color-neutral-dark-5: #343130;
+  --color-neutral-dark-6: #3D3938;
+  --color-neutral-dark-7: #4A4745;
+  --color-neutral-dark-8: #5A5655;
+  --color-neutral-dark-9: #706C6B;
+  --color-neutral-dark-10: #7D7978;
+  --color-neutral-dark-11: #A9A6A5;
+  --color-neutral-dark-12: #F0ECEB;
+
+  /* Primary Orange */
+  --color-primary-1: #FEE9E5;
+  --color-primary-2: #FCCABE;
+  --color-primary-3: #FBA896;
+  --color-primary-4: #FA836B;
+  --color-primary-5: #F95535;
+  --color-primary-6: #E44420;
+  --color-primary-7: #C83819;
+  --color-primary-8: #A62C12;
+  --color-primary-9: #86220C;
+  --color-primary-10: #661806;
+  --color-primary-11: #470F04;
+  --color-primary-12: #2C0702;
+
+  /* Semantic Colors - Light Mode */
+  --color-background: var(--color-neutral-light-1);
+  --color-background-weak: var(--color-neutral-light-2);
+  --color-background-weaker: var(--color-neutral-light-4);
+  --color-text: var(--color-neutral-light-11);
+  --color-text-weak: var(--color-neutral-light-8);
+  --color-text-weaker: var(--color-neutral-light-8);
+  --color-text-strong: var(--color-neutral-light-12);
+  --color-text-inverted: var(--color-neutral-light-1);
+  --color-border: var(--color-neutral-light-7);
+  --color-border-weak: var(--color-neutral-light-6);
+  --color-icon: var(--color-neutral-dark-1);
+  --color-selection: var(--color-primary-2);
+  --color-accent: #00e;
+  --color-popover: rgba(255, 255, 255, 0.1);
+
+  /* Legacy support */
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-background);
+  --color-card-foreground: var(--color-text);
+  --color-muted: var(--color-background-weak);
+  --color-muted-foreground: var(--color-text-weak);
+  --color-primary: var(--color-text-strong);
+  --color-primary-foreground: var(--color-text-inverted);
+  --color-secondary: var(--color-background-weaker);
+  --color-secondary-foreground: var(--color-text);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-text-weaker);
+
+  --color-candle: oklch(0.85 0.15 80);
+  --color-memorial: oklch(0.3 0 0);
+}
+
+@custom-variant dark (&:is(.dark *));
+
+.dark {
+  /* Semantic Colors - Dark Mode */
+  --color-background: var(--color-neutral-dark-1);
+  --color-background-weak: var(--color-neutral-dark-2);
+  --color-background-weaker: var(--color-neutral-dark-3);
+  --color-text: var(--color-neutral-dark-11);
+  --color-text-weak: var(--color-neutral-dark-10);
+  --color-text-weaker: var(--color-neutral-dark-8);
+  --color-text-strong: var(--color-neutral-dark-12);
+  --color-text-inverted: var(--color-neutral-dark-1);
+  --color-border: var(--color-neutral-dark-7);
+  --color-border-weak: var(--color-neutral-dark-6);
+  --color-icon: var(--color-neutral-light-1);
+  --color-selection: var(--color-primary-2);
+  --color-accent: var(--color-primary-5);
+  --color-popover: rgba(255, 255, 255, 0.1);
+
+  /* Legacy support */
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-background);
+  --color-card-foreground: var(--color-text);
+  --color-muted: var(--color-background-weak);
+  --color-muted-foreground: var(--color-text-weak);
+  --color-primary: var(--color-text-strong);
+  --color-primary-foreground: var(--color-text-inverted);
+  --color-secondary: var(--color-background-weaker);
+  --color-secondary-foreground: var(--color-text);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: oklch(0.704 0.191 22.216);
+  --color-input: var(--color-border);
+  --color-ring: var(--color-text-weaker);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    font-feature-settings: "zero" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-mono);
+    background-color: var(--color-background);
+    color: var(--color-text-strong);
+    line-height: 1.6;
+    font-size: 0.875rem; /* text-sm */
+    text-transform: uppercase;
+  }
+}
+
+@layer components {
+  .mapboxgl-map {
+    font-family: var(--font-mono) !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .mapboxgl-canvas-container {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .mapboxgl-canvas {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .mapboxgl-popup-content {
+    padding: 0;
+    border-radius: var(--radius);
+  }
+
+  .mapboxgl-popup-close-button {
+    font-size: 20px;
+    padding: 0 8px;
+  }
+}
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
+
+.mapboxgl-ctrl-logo {
+  @apply !hidden;
+}
+
+body {
+  @apply selection:bg-[#00e] selection:text-white;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+img {
+  @apply pointer-events-none select-none;
+}
