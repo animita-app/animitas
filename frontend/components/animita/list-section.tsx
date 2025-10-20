@@ -33,7 +33,7 @@ function MemorialCard({ memorial }: { memorial: any }) {
       ) : (
         <div className="flex bg-secondary aspect-[3/4] w-full"/>
       )}
-      <div className="pt-4">
+      <div className="pt-4 w-max">
         <h3 className="font-medium truncate">{memorial.name}</h3>
         {people.map((person: any) => (
           <div key={person.id} className="flex items-center gap-2">
@@ -71,7 +71,7 @@ export function ListSection({ title, memorials }: ListSectionProps) {
           <Carousel className="relative mt-4 -mx-6">
             <CarouselContent>
               {memorials.map((memorial) => (
-                <CarouselItem key={memorial.id} className="pl-1">
+                <CarouselItem key={memorial.id} className="pl-1 basis-3/4">
                   <MemorialCard memorial={memorial} />
                 </CarouselItem>
               ))}
