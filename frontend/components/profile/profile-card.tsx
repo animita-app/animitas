@@ -4,8 +4,9 @@ import { useSession, signOut } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials, getErrorMessage } from '@/lib/utils'
-import { uploadToCloudinary, getImageError, isValidImageFile } from '@/lib/image'
+import { uploadToCloudinary, getImageError } from '@/lib/image'
 import { showSuccess, showError } from '@/lib/notifications'
+import { apiPatch } from '@/lib/api'
 import { Pencil } from 'lucide-react'
 import { useRef, useState } from 'react'
 
@@ -51,21 +52,17 @@ export function ProfileCard({
     try {
       const imageUrl = await uploadToCloudinary(file, { folder: 'profiles' })
 
-      const response = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profilePicture: imageUrl })
-      })
+      const { error } = await apiPatch('/profile', { profilePicture: imageUrl })
 
-      if (response.ok) {
+      if (error) {
+        showError(error)
+      } else {
         await update({ image: imageUrl })
         showSuccess('Profile picture updated')
         onImageUpdate?.(imageUrl)
-      } else {
-        showError('Failed to update profile picture')
       }
     } catch (error) {
-      showError(`Upload failed: ${getErrorMessage(error)}`)
+      showError(getErrorMessage(error))
     } finally {
       setUploading(false)
     }
@@ -104,7 +101,7 @@ export function ProfileCard({
           )}
         </div>
         <div>
-          <h2 className="text-lg font-semibold">{user.displayName}</h2>
+          <h2 className="text-lg font-medium">{user.displayName}</h2>
           {user.username && <p className="text-muted-foreground">@{user.username}</p>}
         </div>
       </div>
