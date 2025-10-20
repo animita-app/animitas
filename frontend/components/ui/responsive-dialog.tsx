@@ -23,9 +23,7 @@ type ResponsiveDialogProps = {
   title: string
   description?: string
   children: React.ReactNode
-  removeBorderOnExpand?: boolean
-  contentClassName?: string
-  pinSpaceTop?: boolean
+  className?: string
 }
 
 export function ResponsiveDialog({
@@ -34,9 +32,7 @@ export function ResponsiveDialog({
   title,
   description,
   children,
-  removeBorderOnExpand,
-  contentClassName,
-  pinSpaceTop,
+  className,
 }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)")
   const [drawerOpen, setDrawerOpen] = React.useState(false)
@@ -86,17 +82,14 @@ export function ResponsiveDialog({
 
   return (
     <Drawer open={drawerOpen} onOpenChange={handleDrawerOpenChange}>
-      <DrawerContent
-        className={`view-transition-fade ${removeBorderOnExpand ? "remove-border-on-expand" : ""} ${contentClassName || ""}`}
-        data-remove-border={removeBorderOnExpand}
-      >
+      <DrawerContent className={`view-transition-fade ${className || ""}`}>
         <DrawerHeader className="sr-only">
           <DrawerTitle>{title}</DrawerTitle>
           {description ? (
             <DrawerDescription>{description}</DrawerDescription>
           ) : null}
         </DrawerHeader>
-        {pinSpaceTop ? <div className="mt-12">{children}</div> : children}
+        {children}
       </DrawerContent>
     </Drawer>
   )

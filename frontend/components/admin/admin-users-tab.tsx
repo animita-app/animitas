@@ -75,7 +75,7 @@ export default function AdminUsersTab() {
   const fetchUsers = async (page: number = 1) => {
     setLoading(true)
     try {
-      const { data } = await apiGet(`/admin/users?page=${page}&limit=${pagination.limit}`)
+      const { data } = await apiGet(`/api/admin/users?page=${page}&limit=${pagination.limit}`)
       if (data) {
         setUsers(data.users)
         setPagination(data.pagination)
@@ -103,7 +103,7 @@ export default function AdminUsersTab() {
     if (!editingUser) return
 
     try {
-      const { data, error } = await apiPatch('/admin/users', {
+      const { data, error } = await apiPatch('/api/admin/users', {
         userId: editingUser.id,
         data: editFormData
       })
@@ -120,7 +120,7 @@ export default function AdminUsersTab() {
 
   const handleDelete = async (userId: string) => {
     try {
-      const { error } = await apiDelete(`/admin/users?id=${userId}`)
+      const { error } = await apiDelete(`/api/admin/users?id=${userId}`)
 
       if (error) throw new Error(error)
 

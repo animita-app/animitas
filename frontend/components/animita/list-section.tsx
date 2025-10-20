@@ -20,21 +20,17 @@ function MemorialCard({ memorial }: { memorial: any }) {
   const imageSrc = memorial.images?.[0]?.url || memorial.primaryPerson?.image
 
   return (
-    <Link href={`/animita/${memorial.id}`} className="flex flex-col gap-2 w-fit">
-      <div className="relative w-24 h-32 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
-        {imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt={memorial.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100px, 120px"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400" />
-        )}
+    <Link href={`/animita/${memorial.id}`} className="flex flex-col gap-2">
+      <div className="relative w-full aspect-[3/4] overflow-hidden bg-secondary flex-shrink-0">
+        <Image
+          src={imageSrc}
+          alt={memorial.name}
+          width={96}
+          height={128}
+          className="object-cover w-full h-full"
+        />
       </div>
-      <h3 className="font-medium text-sm truncate w-24">{truncate(memorial.name, 15)}</h3>
+      <h3 className="font-medium truncate">{truncate(memorial.name, 15)}</h3>
     </Link>
   )
 }
@@ -45,11 +41,8 @@ export function ListSection({ title, memorials }: ListSectionProps) {
   }
 
   return (
-    <section className="py-4 px-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-base font-medium">{title}</h2>
-        <span className="text-xs text-muted-foreground">{memorials.length}</span>
-      </div>
+    <section className="pb-8">
+      <h2 className="text-sm font-medium mb-4">{title}</h2>
       <Carousel
         opts={{
           align: 'start',
@@ -59,7 +52,7 @@ export function ListSection({ title, memorials }: ListSectionProps) {
       >
         <CarouselContent className="gap-3">
           {memorials.map((memorial) => (
-            <CarouselItem key={memorial.id} className="basis-auto pl-0">
+            <CarouselItem key={memorial.id} className="basis-3/5 pl-0">
               <MemorialCard memorial={memorial} />
             </CarouselItem>
           ))}

@@ -16,8 +16,6 @@ export default function MemorialModal({ params }: { params: Promise<{ id: string
       onOpenChange={() => router.back()}
       title="Detalle del memorial"
       description="Información y testimonios del memorial seleccionado"
-      removeBorderOnExpand
-      pinSpaceTop
     >
       <MemorialDetail id={id} />
     </ResponsiveDialog>

@@ -26,7 +26,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       createdBy: {
         select: {
           id: true,
-          name: true,
           displayName: true,
         },
       },
@@ -53,7 +52,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
           user: {
             select: {
               id: true,
-              name: true,
               displayName: true,
             },
           },
@@ -69,7 +67,6 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
           user: {
             select: {
               id: true,
-              name: true,
               displayName: true,
             },
           },
