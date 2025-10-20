@@ -7,6 +7,7 @@ export async function GET(
 ) {
   try {
     const { param } = await params
+
     const user = await prisma.user.findFirst({
       where: {
         OR: [
@@ -61,7 +62,7 @@ export async function GET(
     }
 
     return NextResponse.json(mappedUser)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

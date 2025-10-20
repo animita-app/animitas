@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendVerificationSMS } from '@/lib/twilio'
 import { prisma } from '@/lib/prisma'
+import { rateLimit, cleanupExpiredLimits } from '@/lib/rate-limit'
 
 function generateVerificationCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -15,6 +16,13 @@ export async function POST(request: NextRequest) {
         { error: 'Phone number is required' },
         { status: 400 }
       )
+    }
+
+    cleanupExpiredLimits()
+    const rateLimitKey = `sms:${phoneNumber}`
+    const { success, response } = rateLimit(rateLimitKey, 3, 60000)
+    if (!success) {
+      return response
     }
 
     const code = generateVerificationCode()
@@ -32,16 +40,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      sid: result.sid,
-      status: result.status,
     })
-  } catch (error) {
-
+  } catch {
     return NextResponse.json(
-      {
-        error: 'Failed to send verification code',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Failed to send verification code' },
       { status: 500 }
     )
   }

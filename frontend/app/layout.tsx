@@ -1,11 +1,7 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
-import MainLayout from './main-layout'
 import { Providers } from './providers'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ['400', '500', '600', '700'],
@@ -36,14 +32,13 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   modal,
 }: {
   children: React.ReactNode
   modal: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
   return (
     <html lang="es">
       <body className={ibmPlexMono.className}>
@@ -66,7 +61,7 @@ export default async function RootLayout({
             <rect width="100%" height="100%" filter="url(#mono-noise-filter)" fill="#000000" opacity="35%" />
           </svg>
         </div>
-        <Providers session={session} modal={modal}>
+        <Providers session={null} modal={modal}>
           {children}
         </Providers>
       </body>

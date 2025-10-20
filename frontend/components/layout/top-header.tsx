@@ -60,7 +60,7 @@ export function TopHeader() {
         )}
 
         {user ? (
-          <Link href="/profile">
+          <Link href={`/${user.username || user.id}`}>
             <Button variant="ghost" size="icon" className="p-1 *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
               <Avatar className="size-8">
                 {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}

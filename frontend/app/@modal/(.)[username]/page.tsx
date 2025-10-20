@@ -1,62 +1,44 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import type { User } from '@prisma/client'
-
 import { ProfileDetail } from '@/components/profile/profile-detail'
+import { Button } from '@/components/ui/button'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
+import { signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { use, useState, useEffect } from 'react'
 
 export default function ProfileModal({ params }: { params: Promise<{ username: string }> }) {
-  const { username } = use(params)
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
+  const { username: userId } = use(params)
+  const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`/api/profile?username=${encodeURIComponent(username)}&userId=${encodeURIComponent(username)}`)
-        if (!response.ok) throw new Error('User not found')
+        console.log('Fetching user with identifier:', userId)
+        const response = await fetch(`/api/users/${userId}`)
         const data = await response.json()
-        setUser(data.user)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load user')
+
+        if (response.ok) {
+          console.log('User fetched successfully:', data)
+          setUser(data)
+        } else {
+          console.error('API error:', response.status, data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
       } finally {
         setLoading(false)
       }
     }
 
     fetchUser()
-  }, [username])
+  }, [userId])
 
-  if (error) {
-    return (
-      <ResponsiveDialog
-        open
-        onOpenChange={() => router.back()}
-        title="Error"
-        description="Could not load profile"
-      >
-        <div className="text-red-500">{error}</div>
-      </ResponsiveDialog>
-    )
-  }
 
-  if (loading || !user) {
-    return (
-      <ResponsiveDialog
-        open
-        onOpenChange={() => router.back()}
-        title="Perfil"
-        description="Cargando perfil..."
-      >
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </ResponsiveDialog>
-    )
+  const handleLogout = async () => {
+    await signOut({ redirect: true, callbackUrl: '/' })
   }
 
   return (
@@ -66,7 +48,11 @@ export default function ProfileModal({ params }: { params: Promise<{ username: s
       title="Perfil"
       description="Perfil de usuario"
     >
-      <ProfileDetail username={user.username} user={user} onClose={() => router.back()} />
+      {/* <ProfileDetail username={user.username} onClose={() => router.back()} /> */}
+
+      <Button variant="secondary" onClick={handleLogout} >
+        Cerrar sesión
+      </Button>
     </ResponsiveDialog>
   )
 }

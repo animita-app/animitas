@@ -2,14 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Clock3, Flame, Loader, MapPin, Sparkles, Wand2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Candle3D } from './candle-3d-simple'
-import { LightCandleModal } from './light-candle-modal'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 
@@ -127,7 +124,7 @@ export function MemorialDetail({ id }: { id: string }) {
   if (isLoading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <Loader className="animate-spin text-muted-foreground" />
+        <Loader2 className="animate-spin text-muted-foreground" />
       </div>
     )
   }

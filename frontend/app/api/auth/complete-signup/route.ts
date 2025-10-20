@@ -51,13 +51,9 @@ export async function POST(request: NextRequest) {
         image: user.profilePicture,
       },
     })
-  } catch (error) {
-
+  } catch {
     return NextResponse.json(
-      {
-        error: 'Failed to complete signup',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Failed to complete signup' },
       { status: 500 }
     )
   }
