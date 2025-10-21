@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabase } from '@/lib/supabase'
-import { cookies } from 'next/headers'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
@@ -37,27 +36,53 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[COMPLETE-SIGNUP] Getting authenticated session')
-    const cookieStore = await cookies()
-    const supabaseClient = supabase
+    console.log('[COMPLETE-SIGNUP] Getting authenticated user from Supabase')
+    const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById('')
 
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
-
-    console.log('[COMPLETE-SIGNUP] Session response:', {
-      userId: session?.user?.id,
-      phone: session?.user?.phone,
-      error: sessionError,
+    console.log('[COMPLETE-SIGNUP] Auth user lookup response:', {
+      userId: authUser?.id,
+      phone: authUser?.phone,
+      error: authError,
     })
 
-    if (sessionError || !session?.user) {
-      console.error('[COMPLETE-SIGNUP] Failed to get session:', sessionError)
-      return NextResponse.json(
-        { error: 'Failed to get authenticated session' },
-        { status: 401 }
-      )
-    }
+    let userId: string
 
-    const authUser = session.user
+    if (authUser?.id) {
+      userId = authUser.id
+      console.log('[COMPLETE-SIGNUP] Using existing auth user ID:', userId)
+    } else {
+      console.log('[COMPLETE-SIGNUP] No session user, checking if user exists in Supabase')
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+
+      const existingAuthUser = users?.find(u => u.phone === phone)
+
+      if (existingAuthUser) {
+        console.log('[COMPLETE-SIGNUP] Found existing auth user:', existingAuthUser.id)
+        userId = existingAuthUser.id
+      } else {
+        console.log('[COMPLETE-SIGNUP] Creating new auth user in Supabase')
+        const { data: newAuthUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          phone,
+          phone_confirm: true,
+          user_metadata: {
+            displayName,
+            username: username || null,
+          },
+        })
+
+        console.log('[COMPLETE-SIGNUP] Create user response:', {
+          userId: newAuthUser.user?.id,
+          error: createError,
+        })
+
+        if (createError || !newAuthUser.user?.id) {
+          console.error('[COMPLETE-SIGNUP] Failed to create auth user:', createError)
+          throw new Error('Failed to create auth user')
+        }
+
+        userId = newAuthUser.user.id
+      }
+    }
 
     console.log('[COMPLETE-SIGNUP] Upserting user in database')
     const user = await prisma.user.upsert({
@@ -67,7 +92,7 @@ export async function POST(request: NextRequest) {
         username: username || undefined,
       },
       create: {
-        id: authUser.id,
+        id: userId,
         phone,
         displayName,
         username: username || undefined,

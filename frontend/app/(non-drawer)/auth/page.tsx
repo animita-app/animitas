@@ -138,52 +138,19 @@ export default function AuthPage() {
 
   const onCodeSubmit = async (values: z.infer<typeof codeSchema>) => {
     setApiError('')
-    setIsLoading(true)
+    setIsLoading(false)
 
     try {
       console.log('[AUTH] Code submission:', { phone, code: values.code })
 
-      const checkPhoneRes = await apiPost<{ exists: boolean }>('/api/auth/check-phone', { phone })
-
-      console.log('[AUTH] Check phone response:', checkPhoneRes)
-
-      if (!checkPhoneRes.data?.exists) {
-        console.log('[AUTH] New user detected, proceeding to name step without verification')
-        setCode(values.code)
-        setStep('name')
-        showSuccess('Código verificado. Por favor completa tu perfil.')
-        return
-      }
-
-      console.log('[AUTH] Existing user detected, verifying OTP')
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone,
-        token: values.code,
-        type: 'sms',
-      })
-
-      console.log('[AUTH] verifyOtp response:', { session: data.session ? 'exists' : 'missing', error })
-
-      if (error) {
-        console.error('[AUTH] Verify OTP error:', error)
-        setApiError('Código inválido o expirado')
-        showError('Código inválido o expirado')
-        return
-      }
-
-      if (data.session) {
-        console.log('[AUTH] Existing user verified and logged in, redirecting')
-        showSuccess('¡Sesión iniciada exitosamente!')
-        router.push('/')
-        router.refresh()
-      }
+      setCode(values.code)
+      setStep('name')
+      showSuccess('Código verificado. Por favor completa tu perfil.')
     } catch (err) {
       const message = getErrorMessage(err)
       console.error('[AUTH] Code submission error:', message, err)
       setApiError(message)
       showError(message)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -205,7 +172,7 @@ export default function AuthPage() {
         username: values.username,
       })
 
-      console.log('[AUTH] Verifying OTP for new user')
+      console.log('[AUTH] Verifying OTP')
       const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
         phone,
         token: code,
@@ -224,7 +191,7 @@ export default function AuthPage() {
         throw new Error('Error al crear sesión')
       }
 
-      console.log('[AUTH] OTP verified, creating user profile')
+      console.log('[AUTH] OTP verified, updating/creating user profile')
       const result = await apiPost('/api/auth/complete-signup', {
         phone,
         displayName,
@@ -241,7 +208,7 @@ export default function AuthPage() {
         throw new Error(result.error)
       }
 
-      console.log('[AUTH] Profile created successfully, redirecting')
+      console.log('[AUTH] Profile updated successfully, redirecting')
       showSuccess('¡Bienvenido!')
       router.push('/')
       router.refresh()
