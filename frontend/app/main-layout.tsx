@@ -24,7 +24,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         const centerOfAvailableSpace = modalTop + availableHeight / 2
         const viewportCenter = viewportHeight / 2
         const offset = centerOfAvailableSpace - viewportCenter
-        setCenterOffset([0, -offset])
+        setCenterOffset([0, offset])
       } catch (error) {
         setCenterOffset([0, 0])
       }
