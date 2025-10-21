@@ -7,9 +7,16 @@ This guide covers deploying the Animitas Next.js frontend to Vercel with a Postg
 ## Overview
 
 Animitas is a monorepo containing:
-- **Frontend**: Next.js 15 application (deploys to Vercel)
-- **Backend**: Express.js API (optional - can be deployed separately)
-- **Mobile**: React Native app (separate deployment)
+- **Frontend**: Next.js 15 application with built-in API routes (deploys to Vercel)
+  - Self-contained with `/api/*` endpoints connecting directly to PostgreSQL
+  - No external backend URL needed for frontend functionality
+- **Backend**: Express.js API (optional - separate service, used by mobile app or external consumers)
+- **Mobile**: React Native app (separate deployment, uses Express backend if deployed)
+
+**Architecture Note**: The frontend is **self-contained**. It doesn't need the Express backend URL because it has its own API routes. You only need the Express backend if:
+1. You're deploying a mobile app that consumes the backend API
+2. You need a separate microservice for specific tasks
+3. You want to decouple the API from the frontend
 
 This guide focuses on deploying the **frontend** to Vercel.
 
@@ -143,30 +150,31 @@ Click **Deploy**
 2. Navigate to **Settings → Environment Variables**
 3. Add the following variables:
 
-**Database**
+**Database** (Required)
 ```
-DATABASE_URL = postgresql://user:password@host:5432/dbname
+DATABASE_URL = postgresql://user:password@neon.tech/dbname?sslmode=require
 ```
+⚠️ **Important**: Use your Neon PostgreSQL connection string. Add `?sslmode=require` for SSL.
 
-**Authentication**
+**Authentication** (Required)
 ```
 NEXTAUTH_URL = https://your-vercel-domain.vercel.app
 NEXTAUTH_SECRET = (generate with: openssl rand -base64 32)
 ```
 
-**Maps & Location**
+**Maps & Location** (Required for map functionality)
 ```
 NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN = pk.eyJ...
 ```
 
-**Image Upload (Cloudinary)**
+**Image Upload (Cloudinary)** (Required for memorial images)
 ```
 CLOUDINARY_URL = cloudinary://key:secret@cloud
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = your_cloud_name
 NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET = unsigned_preset_name
 ```
 
-**SMS (Twilio)**
+**SMS (Twilio)** (Required for phone authentication)
 ```
 TWILIO_ACCOUNT_SID = AC...
 TWILIO_AUTH_TOKEN = your_token
@@ -178,6 +186,8 @@ TWILIO_PHONE_NUMBER = +1234567890
 REDIS_URL = redis://host:port
 NODE_ENV = production
 ```
+
+**⚠️ Do NOT add a backend URL variable** - The frontend has its own API routes and doesn't need one.
 
 ### 3.2 Generate NEXTAUTH_SECRET
 
@@ -320,7 +330,65 @@ NEXTAUTH_URL = https://pr-*.your-domain.vercel.app (Preview)
 
 ---
 
-## Step 8: Deploy Backend (Optional)
+## Step 8: Post-Deployment - What's Next?
+
+### 8.1 Verify Frontend is Working
+
+After your first successful deployment:
+
+1. **Visit your deployed site**: `https://your-vercel-domain.vercel.app`
+2. **Test the following**:
+   - Home page loads with map
+   - Map displays animitas (memorial pins)
+   - Click a pin → modal opens with memorial details
+   - Try creating a memorial (if auth is enabled)
+   - Verify images upload to Cloudinary
+   - Test phone authentication (SMS verification)
+
+### 8.2 Run Database Migrations on Production
+
+If you haven't already, run migrations on your Neon database:
+
+```bash
+# Set the production database URL
+export DATABASE_URL="postgresql://user:password@neon.tech/dbname?sslmode=require"
+
+# Run migrations
+npx prisma migrate deploy
+
+# Optional: Seed initial data
+npx prisma db seed
+```
+
+### 8.3 About the Express Backend (Optional)
+
+You deployed an Express backend, but your **Next.js frontend doesn't use it**. The frontend has its own API routes at `/api/*`.
+
+**When to use the Express backend:**
+- Mobile app development (React Native) that needs a separate API
+- External applications consuming your API
+- Microservice architecture for scaling
+
+**To deploy Express backend (optional):**
+
+See Section 9 below for deployment options.
+
+### 8.4 Post-Deployment Checklist
+
+- [ ] Frontend deployed on Vercel
+- [ ] Neon PostgreSQL database created and connected
+- [ ] Database migrations run on production
+- [ ] All environment variables set in Vercel dashboard
+- [ ] Frontend loads and displays correctly
+- [ ] Map displays animitas pins
+- [ ] Can create/edit memorials
+- [ ] Image uploads work (Cloudinary)
+- [ ] Phone auth works (Twilio SMS)
+- [ ] Admin panel accessible (if implemented)
+
+---
+
+## Step 9: Deploy Backend (Optional)
 
 If you want to deploy the Express backend separately:
 
@@ -549,11 +617,14 @@ npx prisma migrate deploy
 
 ## Next Steps
 
-1. **Deploy Frontend**: Follow Steps 1-3
-2. **Test Thoroughly**: Use Vercel preview deployments for PRs
-3. **Deploy Backend** (if needed): Follow Step 8
-4. **Set Up CI/CD**: GitHub Actions for automated testing
-5. **Monitor**: Set up alerts and logging
+1. **Verify Frontend Deployment**: Follow Step 8 - your Next.js frontend is self-contained
+2. **Run Database Migrations**: Set DATABASE_URL and run `npx prisma migrate deploy` on Neon
+3. **Test Thoroughly**: Visit your Vercel URL and test all features
+4. **Deploy Backend** (optional): Only if you need a separate API for mobile or external apps (Step 9)
+5. **Set Up CI/CD**: GitHub Actions for automated testing
+6. **Monitor**: Set up alerts and logging in Vercel dashboard
+
+**Important**: Your frontend doesn't need a backend URL. It uses its own API routes connecting directly to Neon PostgreSQL.
 
 ---
 
