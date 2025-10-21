@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const userId = supabaseUser.id
 
     console.log('[COMPLETE-SIGNUP] Found user:', userId)
-    console.log('[COMPLETE-SIGNUP] Updating user metadata in Supabase with displayName and username')
+    console.log('[COMPLETE-SIGNUP] Updating user metadata and creating user profile')
 
     const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
       user_metadata: {
@@ -66,6 +66,26 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[COMPLETE-SIGNUP] User metadata updated successfully')
+
+    console.log('[COMPLETE-SIGNUP] Creating/updating user profile in users table')
+    const { error: upsertError } = await supabaseAdmin
+      .from('users')
+      .upsert({
+        id: userId,
+        phone: supabaseUser.phone,
+        displayName,
+        username: username || null,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'id'
+      })
+
+    if (upsertError) {
+      console.error('[COMPLETE-SIGNUP] Failed to create/update user profile:', upsertError)
+      throw new Error('Failed to create user profile: ' + upsertError.message)
+    }
+
+    console.log('[COMPLETE-SIGNUP] User profile created/updated successfully')
 
     return NextResponse.json({
       success: true,
