@@ -121,9 +121,11 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Error in /api/auth/complete-signup:', error)
+    console.error('[COMPLETE-SIGNUP] Error:', error)
+    console.error('[COMPLETE-SIGNUP] Error message:', error instanceof Error ? error.message : String(error))
+    console.error('[COMPLETE-SIGNUP] Error stack:', error instanceof Error ? error.stack : 'no stack')
     return NextResponse.json(
-      { error: 'Failed to complete signup' },
+      { error: error instanceof Error ? error.message : 'Failed to complete signup' },
       { status: 500 }
     )
   }
