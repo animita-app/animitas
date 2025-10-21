@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FeatureCollection, Point } from 'geojson'
+import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -10,6 +11,7 @@ interface MapboxMapProps {
   accessToken: string
   style?: string
   focusedMemorialId?: string | null
+  isModal?: boolean
 }
 
 const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
@@ -35,9 +37,12 @@ const CLUSTER_CONFIG = {
 
 const PROFILE_ZOOM_THRESHOLD = 8
 const TARGET_ZOOM = 15.5
+const CLUSTER_MAX_EXPANSION_ZOOM = 18
+const CLUSTER_FIT_BOUNDS_MAX_ZOOM = 16
+const SMALL_CLUSTER_THRESHOLD = 8
 const FALLBACK_PERSON_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E7EB" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="40" fill="%239CA3AF" text-anchor="middle" dy=".3em"%3E?%3C/text%3E%3C/svg%3E'
 
-export default function MapboxMap({ accessToken, style, focusedMemorialId }: MapboxMapProps) {
+export default function MapboxMap({ accessToken, style, focusedMemorialId, isModal = true }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [memorials, setMemorials] = useState<FeatureCollection<Point>>(EMPTY_MEMORIALS)
@@ -54,35 +59,69 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
       coordinates: [number, number],
       options?: {
         shouldNavigate?: boolean
+        padding?: { top?: number; bottom?: number; left?: number; right?: number }
+        instant?: boolean
       }
     ) => {
-      const { shouldNavigate = true } = options ?? {}
+      const { shouldNavigate = true, padding, instant = false } = options ?? {}
       const mapInstance = map.current
       if (!mapInstance) return
 
-      const currentZoom = mapInstance.getZoom()
-      const canViewProfile = currentZoom >= PROFILE_ZOOM_THRESHOLD
+      let finalPadding = padding
+      if (padding?.bottom && mapContainer.current) {
+        const mapHeight = mapContainer.current.clientHeight
+        const drawerHeight = padding.bottom
+        const topPadding = mapHeight - drawerHeight / 2
+        finalPadding = {
+          top: 0,
+          bottom: topPadding + 32,
+          left: padding.left ?? 0,
+          right: padding.right ?? 0
+        }
+      } else if (mapContainer.current && !padding?.bottom) {
+        finalPadding = {
+          top: 0,
+          bottom: 32,
+          left: padding?.left ?? 0,
+          right: padding?.right ?? 0
+        }
+      }
 
-      if (!canViewProfile) {
-        mapInstance.flyTo({
+      if (instant) {
+        mapInstance.jumpTo({
           center: coordinates,
           zoom: TARGET_ZOOM,
-          speed: 1.2,
-          curve: 1.4,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          essential: true
+          padding: finalPadding
         })
       } else {
-        mapInstance.easeTo({
-          center: coordinates,
-          zoom: Math.max(currentZoom, TARGET_ZOOM - 1),
-          speed: 1.2,
-          curve: 1.4,
-          bearing: mapInstance.getBearing(),
-          pitch: mapInstance.getPitch(),
-          essential: true
-        })
+        const currentZoom = mapInstance.getZoom()
+        const canViewProfile = currentZoom >= PROFILE_ZOOM_THRESHOLD
+
+        if (!canViewProfile) {
+          mapInstance.flyTo({
+            center: coordinates,
+            zoom: TARGET_ZOOM,
+            speed: 1.2,
+            curve: 1.4,
+            bearing: mapInstance.getBearing(),
+            pitch: mapInstance.getPitch(),
+            padding: finalPadding,
+            essential: true
+          })
+        } else {
+          mapInstance.easeTo({
+            center: coordinates,
+            zoom: Math.max(currentZoom, TARGET_ZOOM - 1),
+            speed: 1.2,
+            curve: 1.4,
+            bearing: mapInstance.getBearing(),
+            pitch: mapInstance.getPitch(),
+            padding: finalPadding,
+            essential: true
+          })
+        }
       }
 
       if (shouldNavigate) {
@@ -218,42 +257,92 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
         })
       }
 
-      const handleMemorialClick = (event: mapboxgl.MapLayerMouseEvent) => {
-        const feature = event.features?.[0]
+      const handleMemorialClick = (event: mapboxgl.MapMouseEvent) => {
+        const features = mapInstance.queryRenderedFeatures(event.point, {
+          layers: ['memorials-outer', 'memorials-inner']
+        })
+        const feature = features?.[0]
         if (!feature || feature.geometry.type !== 'Point') return
 
         const id = feature.properties?.id
         if (typeof id !== 'string') return
 
-        const coordinates = feature.geometry.coordinates as [number, number]
+        const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
         focusMemorial(id, coordinates)
       }
 
-      const handleClusterClick = (event: mapboxgl.MapLayerMouseEvent) => {
+      const handleClusterClick = (event: mapboxgl.MapMouseEvent) => {
         const features = mapInstance.queryRenderedFeatures(event.point, {
           layers: ['clusters']
         })
         const clusterId = features[0]?.properties?.cluster_id
+        const pointCount = features[0]?.properties?.point_count ?? 0
         if (clusterId === undefined) return
 
         const source = mapInstance.getSource('memorials') as mapboxgl.GeoJSONSource
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return
+        const clusterFeature = features[0]
+        if (!clusterFeature || clusterFeature.geometry.type !== 'Point') return
 
-          const clusterFeature = features[0]
-          if (!clusterFeature || clusterFeature.geometry.type !== 'Point') return
+        const clusterCoordinates = (clusterFeature.geometry as GeoJSON.Point).coordinates as [number, number]
 
-          const targetZoom = Math.max(zoom ?? mapInstance.getZoom() + 1, TARGET_ZOOM - 1)
-          mapInstance.flyTo({
-            center: clusterFeature.geometry.coordinates as [number, number],
-            zoom: targetZoom,
-            speed: 1.2,
-            curve: 1.4,
-            bearing: mapInstance.getBearing(),
-            pitch: mapInstance.getPitch(),
-            essential: true
+        if (pointCount <= SMALL_CLUSTER_THRESHOLD) {
+          source.getClusterLeaves(clusterId, pointCount, 0, (err, leaves) => {
+            if (err || !leaves || leaves.length === 0) {
+              source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+                if (err) return
+                const targetZoom = Math.min(
+                  Math.max(zoom ?? mapInstance.getZoom() + 1, TARGET_ZOOM - 1),
+                  CLUSTER_MAX_EXPANSION_ZOOM
+                )
+                mapInstance.flyTo({
+                  center: clusterCoordinates,
+                  zoom: targetZoom,
+                  speed: 1.2,
+                  curve: 1.4,
+                  essential: true
+                })
+              })
+              return
+            }
+
+            const bounds = new mapboxgl.LngLatBounds()
+            leaves.forEach((leaf) => {
+              if (leaf.geometry.type === 'Point') {
+                bounds.extend((leaf.geometry as GeoJSON.Point).coordinates as [number, number])
+              }
+            })
+
+            const zoom = mapInstance.getZoom()
+            const targetZoom = Math.min(zoom + 2, CLUSTER_FIT_BOUNDS_MAX_ZOOM)
+            const center = bounds.getCenter()
+
+            mapInstance.flyTo({
+              center,
+              zoom: targetZoom,
+              speed: 1.2,
+              curve: 1.4,
+              duration: 1000,
+              essential: true
+            })
           })
-        })
+        } else {
+          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (err) return
+            const targetZoom = Math.min(
+              Math.max(zoom ?? mapInstance.getZoom() + 1, TARGET_ZOOM - 1),
+              CLUSTER_MAX_EXPANSION_ZOOM
+            )
+            mapInstance.flyTo({
+              center: clusterCoordinates,
+              zoom: targetZoom,
+              speed: 1.2,
+              curve: 1.4,
+              bearing: mapInstance.getBearing(),
+              pitch: mapInstance.getPitch(),
+              essential: true
+            })
+          })
+        }
       }
 
       const handleZoomChange = () => {
@@ -398,14 +487,18 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
       if (typeof memorialId !== 'string') continue
 
       const coordinates = feature.geometry.coordinates as [number, number]
+      const memorialName = typeof properties.name === 'string' ? properties.name : ''
+      const people = Array.isArray(properties.people) ? properties.people : []
+      const personName = people[0]?.name || ''
+      const personImage = people[0]?.image || null
       const displayName =
-        typeof properties.name === 'string' && properties.name
-          ? properties.name
-          : 'Memorial'
+        memorialName || (personName ? `ANIMITA DE ${personName.toUpperCase()}` : 'Memorial')
       const imageUrl =
-        typeof properties.primaryPersonImage === 'string' && properties.primaryPersonImage
-          ? properties.primaryPersonImage
-          : FALLBACK_PERSON_IMAGE
+        memorialName
+          ? typeof properties.primaryPersonImage === 'string' && properties.primaryPersonImage
+            ? properties.primaryPersonImage
+            : FALLBACK_PERSON_IMAGE
+          : personImage || FALLBACK_PERSON_IMAGE
 
       activeIds.add(memorialId)
 
@@ -496,9 +589,20 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
     focusMemorial(
       focusedMemorialId,
       feature.geometry.coordinates as [number, number],
-      { shouldNavigate: false }
+      { shouldNavigate: false, instant: !isModal }
     )
-  }, [focusedMemorialId, memorials, isMapReady, focusMemorial])
+  }, [focusedMemorialId, memorials, isMapReady, focusMemorial, isModal])
+
+  useEffect(() => {
+    const handleFocusMemorial = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const { memorialId, coordinates, padding } = customEvent.detail
+      focusMemorial(memorialId, coordinates, { shouldNavigate: false, padding })
+    }
+
+    window.addEventListener('focusMemorial', handleFocusMemorial)
+    return () => window.removeEventListener('focusMemorial', handleFocusMemorial)
+  }, [focusMemorial])
 
   return <div ref={mapContainer} className="h-full w-full" />
 }
