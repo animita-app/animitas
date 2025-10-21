@@ -68,7 +68,7 @@ export default function MemorialPage() {
         setActiveSnapPoint={setSnap}
         drawerHeight={drawerHeight}
       >
-        <MemorialDetail id={id} drawerHeight={drawerHeight} />
+        <MemorialDetail id={id} />
       </ResponsiveDialog>
     </div>
   )
