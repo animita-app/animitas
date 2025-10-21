@@ -15,6 +15,8 @@ export default function MemorialPage() {
   const { id } = params
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(true)
+  const [snap, setSnap] = useState<string | number | null>('720px')
+  const snapPoints = ['720px', 1]
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || FALLBACK_MAPBOX_TOKEN
 
   const handleDialogChange = (nextOpen: boolean) => {
@@ -25,7 +27,7 @@ export default function MemorialPage() {
   }
 
   return (
-    <div className="h-screen md:max-w-3/4 flex flex-col">
+    <div className="h-svh md:max-w-3/4 flex flex-col">
       <main className="flex-1 relative h-full">
         <MapboxMap
           accessToken={mapboxToken}
@@ -38,7 +40,9 @@ export default function MemorialPage() {
         onOpenChange={handleDialogChange}
         title="Detalle del memorial"
         description="Información y testimonios del memorial seleccionado"
-        className="data-[vaul-drawer-direction=top]:!h-[calc(100svh-320px)]"
+        snapPoints={snapPoints}
+        activeSnapPoint={snap}
+        setActiveSnapPoint={setSnap}
       >
         <MemorialDetail id={id} />
       </ResponsiveDialog>
