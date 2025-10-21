@@ -117,17 +117,17 @@ export default function AuthPage() {
 
     try {
       console.log('[AUTH] Phone submission:', { phone: phoneWithCountry })
-      const { data, error } = await apiPost('/api/auth/send-code', {
-        phoneNumber: phoneWithCountry
+      const { data, error } = await supabase.auth.signInWithOtp({
+        phone: phoneWithCountry,
       })
 
-      console.log('[AUTH] Send code response:', { data, error })
+      console.log('[AUTH] signInWithOtp response:', { data, error })
 
-      if (error) throw new Error(error)
+      if (error) throw new Error(error.message)
 
       setPhone(phoneWithCountry)
       setStep('code')
-      showSuccess('Code sent to your phone')
+      showSuccess('Código enviado a tu teléfono')
     } catch (err) {
       const message = getErrorMessage(err)
       console.error('[AUTH] Phone submission error:', message, err)
@@ -142,11 +142,23 @@ export default function AuthPage() {
 
     try {
       console.log('[AUTH] Code submission:', { phone, code: values.code })
-      const checkPhoneRes = await apiPost<{ exists: boolean }>('/api/auth/check-phone', { phone })
 
-      console.log('[AUTH] Check phone response:', checkPhoneRes)
+      const { data, error } = await supabase.auth.verifyOtp({
+        phone,
+        token: values.code,
+        type: 'sms',
+      })
 
-      if (!checkPhoneRes.data?.exists) {
+      console.log('[AUTH] verifyOtp response:', { session: data.session ? 'exists' : 'missing', error })
+
+      if (error) {
+        console.error('[AUTH] Verify OTP error:', error)
+        setApiError('Código inválido o expirado')
+        showError('Código inválido o expirado')
+        return
+      }
+
+      if (!data.session?.user) {
         console.log('[AUTH] New user detected, proceeding to name step')
         setCode(values.code)
         setStep('name')
@@ -154,27 +166,21 @@ export default function AuthPage() {
         return
       }
 
-      console.log('[AUTH] Existing user, attempting sign in')
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: phone,
-        password: values.code,
-      })
+      console.log('[AUTH] Existing user verified, checking profile')
+      const checkPhoneRes = await apiPost<{ exists: boolean }>('/api/auth/check-phone', { phone })
 
-      console.log('[AUTH] Sign in response:', { data, error })
-
-      if (error) {
-        console.error('[AUTH] Sign in error:', error)
-        setApiError('Código inválido o expirado')
-        showError('Código inválido o expirado')
+      if (!checkPhoneRes.data?.exists) {
+        console.log('[AUTH] User verified but profile incomplete, proceeding to name step')
+        setCode(values.code)
+        setStep('name')
+        showSuccess('Código verificado. Por favor completa tu perfil.')
         return
       }
 
-      if (data.session) {
-        console.log('[AUTH] Sign in successful, redirecting')
-        showSuccess('¡Sesión iniciada exitosamente!')
-        router.push('/')
-        router.refresh()
-      }
+      console.log('[AUTH] Existing user with complete profile, redirecting')
+      showSuccess('¡Sesión iniciada exitosamente!')
+      router.push('/')
+      router.refresh()
     } catch (err) {
       const message = getErrorMessage(err)
       console.error('[AUTH] Code submission error:', message, err)
@@ -201,14 +207,12 @@ export default function AuthPage() {
         phone,
         displayName,
         username: values.username,
-        code: code ? '***' : 'missing',
       })
 
       const result = await apiPost('/api/auth/complete-signup', {
         phone,
         displayName,
         username: values.username,
-        code,
       })
 
       console.log('[AUTH] Complete signup response:', {
@@ -221,33 +225,10 @@ export default function AuthPage() {
         throw new Error(result.error)
       }
 
-      console.log('[AUTH] Signup completed successfully, attempting sign in')
-      showSuccess('¡Registro completado! Iniciando sesión...')
-
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: phone,
-        password: code,
-      })
-
-      console.log('[AUTH] Final sign in response:', {
-        session: signInData?.session ? 'exists' : 'missing',
-        error: signInError,
-      })
-
-      if (signInError) {
-        console.error('[AUTH] Final sign in error:', signInError)
-        throw new Error('Error al iniciar sesión')
-      }
-
-      if (signInData.session) {
-        console.log('[AUTH] Complete signup flow successful, redirecting')
-        showSuccess('¡Bienvenido!')
-        router.push('/')
-        router.refresh()
-      } else {
-        console.error('[AUTH] No session after sign in')
-        throw new Error('Error al iniciar sesión')
-      }
+      console.log('[AUTH] Profile updated successfully, redirecting')
+      showSuccess('¡Bienvenido!')
+      router.push('/')
+      router.refresh()
     } catch (err) {
       const message = getErrorMessage(err)
       console.error('[AUTH] Username submission error:', message, err)

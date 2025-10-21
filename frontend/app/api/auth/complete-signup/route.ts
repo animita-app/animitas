@@ -1,25 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
+import { cookies } from 'next/headers'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, displayName, username, image, code } =
-      await request.json()
+    const { phone, displayName, username } = await request.json()
 
     console.log('[COMPLETE-SIGNUP] Request received:', {
       phone,
       displayName,
       username: username || 'not provided',
-      image: image ? 'provided' : 'not provided',
-      code: code ? '***' : 'missing',
     })
 
-    if (!phone || !displayName || !code) {
+    if (!phone || !displayName) {
       return NextResponse.json(
-        { error: 'Missing required fields: phone, displayName, code' },
+        { error: 'Missing required fields: phone, displayName' },
         { status: 400 }
       )
     }
@@ -39,33 +37,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[COMPLETE-SIGNUP] Creating auth user with Supabase')
-    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: phone,
-      password: code,
-      user_metadata: {
-        displayName,
-        username: username || null,
-        image: image || null,
-        phone,
-      },
+    console.log('[COMPLETE-SIGNUP] Getting authenticated session')
+    const cookieStore = await cookies()
+    const supabaseClient = supabase
+
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
+
+    console.log('[COMPLETE-SIGNUP] Session response:', {
+      userId: session?.user?.id,
+      phone: session?.user?.phone,
+      error: sessionError,
     })
 
-    console.log('[COMPLETE-SIGNUP] Supabase response:', {
-      userId: authUser.user?.id,
-      error: authError,
-    })
-
-    if (authError || !authUser.user) {
-      console.error('[COMPLETE-SIGNUP] Auth creation failed:', {
-        error: authError,
-        user: authUser.user ? 'exists' : 'missing',
-      })
+    if (sessionError || !session?.user) {
+      console.error('[COMPLETE-SIGNUP] Failed to get session:', sessionError)
       return NextResponse.json(
-        { error: authError?.message || 'Failed to create auth user' },
-        { status: 500 }
+        { error: 'Failed to get authenticated session' },
+        { status: 401 }
       )
     }
+
+    const authUser = session.user
 
     console.log('[COMPLETE-SIGNUP] Upserting user in database')
     const user = await prisma.user.upsert({
@@ -73,20 +65,16 @@ export async function POST(request: NextRequest) {
       update: {
         displayName,
         username: username || undefined,
-        image: image || undefined,
-        email: phone,
       },
       create: {
-        id: authUser.user.id,
+        id: authUser.id,
         phone,
         displayName,
         username: username || undefined,
-        image: image || undefined,
-        email: phone,
       },
     })
 
-    console.log('[COMPLETE-SIGNUP] User successfully created:', {
+    console.log('[COMPLETE-SIGNUP] User successfully updated/created:', {
       id: user.id,
       phone: user.phone,
       username: user.username,
@@ -99,7 +87,6 @@ export async function POST(request: NextRequest) {
         phone: user.phone,
         displayName: user.displayName,
         username: user.username,
-        image: user.image,
       },
     })
   } catch (error) {
