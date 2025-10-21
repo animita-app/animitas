@@ -36,22 +36,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[COMPLETE-SIGNUP] Looking up user by phone via admin API')
-    const { data: existingAuthUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByPhoneNumber(phone)
+    console.log('[COMPLETE-SIGNUP] Looking up user in database by phone')
+    const existingDbUser = await prisma.user.findUnique({
+      where: { phone },
+    })
 
-    console.log('[COMPLETE-SIGNUP] User lookup response:', {
-      userId: existingAuthUser?.user?.id,
-      phone: existingAuthUser?.user?.phone,
-      error: lookupError,
+    console.log('[COMPLETE-SIGNUP] Database user lookup:', {
+      userId: existingDbUser?.id,
+      phone: existingDbUser?.phone,
     })
 
     let userId: string
 
-    if (existingAuthUser?.id) {
-      console.log('[COMPLETE-SIGNUP] Found existing auth user:', existingAuthUser.id)
-      userId = existingAuthUser.id
+    if (existingDbUser?.id) {
+      console.log('[COMPLETE-SIGNUP] Found existing user in database:', existingDbUser.id)
+      userId = existingDbUser.id
 
-      console.log('[COMPLETE-SIGNUP] Updating user metadata with displayName and username')
+      console.log('[COMPLETE-SIGNUP] Updating user metadata in Supabase with displayName and username')
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         user_metadata: {
           displayName,
@@ -63,34 +64,30 @@ export async function POST(request: NextRequest) {
         console.error('[COMPLETE-SIGNUP] Failed to update user metadata:', updateError)
         throw new Error('Failed to update user metadata')
       }
-    } else if (lookupError) {
-      console.log('[COMPLETE-SIGNUP] User not found, creating new auth user')
-      const { data: newAuthUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        phone,
-        phone_confirm: true,
-        user_metadata: {
-          displayName,
-          username: username || null,
-        },
-      })
 
-      console.log('[COMPLETE-SIGNUP] Create user response:', {
-        userId: newAuthUser.user?.id,
-        error: createError,
-      })
-
-      if (createError || !newAuthUser.user?.id) {
-        console.error('[COMPLETE-SIGNUP] Failed to create auth user:', createError)
-        throw new Error('Failed to create auth user')
-      }
-
-      userId = newAuthUser.user.id
+      console.log('[COMPLETE-SIGNUP] User metadata updated successfully')
     } else {
-      console.error('[COMPLETE-SIGNUP] Unexpected state: user not found and no lookup error')
-      throw new Error('Failed to find or create user')
+      console.log('[COMPLETE-SIGNUP] User not found in database, skipping auth metadata update')
+      console.log('[COMPLETE-SIGNUP] Will create/update user in database in next step')
+      userId = ''
     }
 
-    console.log('[COMPLETE-SIGNUP] Upserting user in database')
+    if (!userId) {
+      console.log('[COMPLETE-SIGNUP] No userId found, attempting to get from Supabase')
+      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+
+      const supabaseUser = users?.find(u => u.phone === phone)
+
+      if (supabaseUser?.id) {
+        console.log('[COMPLETE-SIGNUP] Found user in Supabase:', supabaseUser.id)
+        userId = supabaseUser.id
+      } else {
+        console.error('[COMPLETE-SIGNUP] Could not find user ID in Supabase or database')
+        throw new Error('Could not find user ID')
+      }
+    }
+
+    console.log('[COMPLETE-SIGNUP] Upserting user in database with userId:', userId)
     const user = await prisma.user.upsert({
       where: { phone },
       update: {
