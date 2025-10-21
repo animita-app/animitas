@@ -21,7 +21,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         const targetCenterY = HEADER_HEIGHT + (MODAL_SNAP_POINT_PX - HEADER_HEIGHT) / 2
         const viewportCenterY = viewportHeight / 2
         const pixelOffset = targetCenterY - viewportCenterY
-        setCenterOffset([0, pixelOffset * 0.6])
+        setCenterOffset([0, pixelOffset * -0.6])
       } catch (error) {
         setCenterOffset([0, 0])
       }
