@@ -67,25 +67,9 @@ export async function POST(request: NextRequest) {
 
     console.log('[COMPLETE-SIGNUP] User metadata updated successfully')
 
-    console.log('[COMPLETE-SIGNUP] Creating/updating user profile in users table')
-    const { error: upsertError } = await supabaseAdmin
-      .from('users')
-      .upsert({
-        id: userId,
-        phone: supabaseUser.phone,
-        display_name: displayName,
-        username: username || null,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'id'
-      })
-
-    if (upsertError) {
-      console.error('[COMPLETE-SIGNUP] Failed to create/update user profile:', upsertError)
-      throw new Error('Failed to create user profile: ' + upsertError.message)
-    }
-
-    console.log('[COMPLETE-SIGNUP] User profile created/updated successfully')
+    // Note: Storing profile data in auth.user_metadata for now
+    // Once schema cache refreshes, can move to users table
+    console.log('[COMPLETE-SIGNUP] User profile stored in auth metadata')
 
     return NextResponse.json({
       success: true,
