@@ -9,8 +9,8 @@ import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 export default function MemorialModal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const [snap, setSnap] = useState<string | number | null>('720px')
-  const snapPoints = ['720px', 1]
+  const [snap, setSnap] = useState<string | number | null>('640px')
+  const snapPoints = ['640px', 1]
   const [drawerHeight, setDrawerHeight] = useState(0)
 
   useEffect(() => {
