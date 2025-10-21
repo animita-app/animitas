@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
             id: true,
             displayName: true,
             username: true,
-            profilePicture: true,
             image: true
           }
         },
@@ -40,6 +39,13 @@ export async function GET(request: NextRequest) {
                 image: true
               }
             }
+          }
+        },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            uploadedAt: true
           }
         },
         _count: {
@@ -72,6 +78,7 @@ export async function GET(request: NextRequest) {
             }
           : null,
         createdBy: memorial.createdBy,
+        images: memorial.images,
         _count: memorial._count
       }
     })

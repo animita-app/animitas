@@ -64,6 +64,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
 
       const currentZoom = mapInstance.getZoom()
       const canViewProfile = currentZoom >= PROFILE_ZOOM_THRESHOLD
+      const offset = centerOffset && centerOffset[0] !== undefined && centerOffset[1] !== undefined
+        ? centerOffset
+        : [0, 0]
 
       if (!canViewProfile) {
         mapInstance.flyTo({
@@ -73,7 +76,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
           curve: 1.4,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          offset: centerOffset,
+          offset,
           essential: true
         })
       } else {
@@ -84,7 +87,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
           curve: 1.4,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          offset: centerOffset,
+          offset,
           essential: true
         })
       }
@@ -335,7 +338,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
 
         setMemorials(geojson)
       } catch (error) {
-        console.error('No se pudieron cargar las animitas', error)
       }
     }
 

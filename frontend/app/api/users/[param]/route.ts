@@ -22,10 +22,6 @@ export async function GET(
         displayName: true,
         email: true,
         image: true,
-        profilePicture: true,
-        role: true,
-        phoneVerified: true,
-        emailVerified: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -48,10 +44,7 @@ export async function GET(
       username: user.username,
       displayName: user.displayName,
       email: user.email,
-      profilePicture: user.profilePicture || user.image,
-      role: user.role,
-      phoneVerified: user.phoneVerified,
-      emailVerified: user.emailVerified,
+      image: user.image,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       stats: {

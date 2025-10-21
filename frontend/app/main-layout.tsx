@@ -16,12 +16,16 @@ export default function MainLayout({ children, modal }: { children: React.ReactN
 
   useEffect(() => {
     const calculateOffset = () => {
-      const viewportHeight = window.innerHeight
-      const availableHeight = viewportHeight - HEADER_HEIGHT - DRAWER_HEIGHT
-      const viewportCenter = viewportHeight / 2
-      const availableCenter = HEADER_HEIGHT + availableHeight / 2
-      const offset = availableCenter - viewportCenter
-      setCenterOffset([0, -offset])
+      try {
+        const viewportHeight = window.innerHeight
+        const availableHeight = viewportHeight - HEADER_HEIGHT - DRAWER_HEIGHT
+        const viewportCenter = viewportHeight / 2
+        const availableCenter = HEADER_HEIGHT + availableHeight / 2
+        const offset = availableCenter - viewportCenter
+        setCenterOffset([0, -offset])
+      } catch (error) {
+        setCenterOffset([0, 0])
+      }
     }
 
     calculateOffset()
