@@ -27,10 +27,11 @@ export async function GET(req: NextRequest) {
         select: {
           id: true,
           name: true,
-          primaryPerson: {
+          images: {
             select: {
-              image: true
-            }
+              url: true
+            },
+            take: 1
           },
           _count: {
             select: {
@@ -75,9 +76,6 @@ export async function GET(req: NextRequest) {
         displayName: true,
         email: true,
         image: true,
-        role: true,
-        phoneVerified: true,
-        emailVerified: true,
         createdAt: true,
         updatedAt: true,
       }
@@ -143,9 +141,6 @@ export async function PATCH(req: NextRequest) {
         displayName: true,
         email: true,
         image: true,
-        role: true,
-        phoneVerified: true,
-        emailVerified: true,
         createdAt: true,
         updatedAt: true,
       }
