@@ -36,52 +36,56 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[COMPLETE-SIGNUP] Getting authenticated user from Supabase')
-    const { data: { user: authUser }, error: authError } = await supabase.auth.admin.getUserById('')
+    console.log('[COMPLETE-SIGNUP] Looking up user by phone in Supabase')
+    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
 
-    console.log('[COMPLETE-SIGNUP] Auth user lookup response:', {
-      userId: authUser?.id,
-      phone: authUser?.phone,
-      error: authError,
+    console.log('[COMPLETE-SIGNUP] List users response:', {
+      totalUsers: users?.length,
+      error: listError,
     })
+
+    const existingAuthUser = users?.find(u => u.phone === phone)
 
     let userId: string
 
-    if (authUser?.id) {
-      userId = authUser.id
-      console.log('[COMPLETE-SIGNUP] Using existing auth user ID:', userId)
-    } else {
-      console.log('[COMPLETE-SIGNUP] No session user, checking if user exists in Supabase')
-      const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    if (existingAuthUser?.id) {
+      console.log('[COMPLETE-SIGNUP] Found existing auth user:', existingAuthUser.id)
+      userId = existingAuthUser.id
 
-      const existingAuthUser = users?.find(u => u.phone === phone)
+      console.log('[COMPLETE-SIGNUP] Updating user metadata with displayName and username')
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: {
+          displayName,
+          username: username || null,
+        },
+      })
 
-      if (existingAuthUser) {
-        console.log('[COMPLETE-SIGNUP] Found existing auth user:', existingAuthUser.id)
-        userId = existingAuthUser.id
-      } else {
-        console.log('[COMPLETE-SIGNUP] Creating new auth user in Supabase')
-        const { data: newAuthUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-          phone,
-          phone_confirm: true,
-          user_metadata: {
-            displayName,
-            username: username || null,
-          },
-        })
-
-        console.log('[COMPLETE-SIGNUP] Create user response:', {
-          userId: newAuthUser.user?.id,
-          error: createError,
-        })
-
-        if (createError || !newAuthUser.user?.id) {
-          console.error('[COMPLETE-SIGNUP] Failed to create auth user:', createError)
-          throw new Error('Failed to create auth user')
-        }
-
-        userId = newAuthUser.user.id
+      if (updateError) {
+        console.error('[COMPLETE-SIGNUP] Failed to update user metadata:', updateError)
+        throw new Error('Failed to update user metadata')
       }
+    } else {
+      console.log('[COMPLETE-SIGNUP] Creating new auth user in Supabase')
+      const { data: newAuthUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        phone,
+        phone_confirm: true,
+        user_metadata: {
+          displayName,
+          username: username || null,
+        },
+      })
+
+      console.log('[COMPLETE-SIGNUP] Create user response:', {
+        userId: newAuthUser.user?.id,
+        error: createError,
+      })
+
+      if (createError || !newAuthUser.user?.id) {
+        console.error('[COMPLETE-SIGNUP] Failed to create auth user:', createError)
+        throw new Error('Failed to create auth user')
+      }
+
+      userId = newAuthUser.user.id
     }
 
     console.log('[COMPLETE-SIGNUP] Upserting user in database')
