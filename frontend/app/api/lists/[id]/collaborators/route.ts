@@ -51,7 +51,7 @@ export async function POST(
     const existingCollaborator = await prisma.memorialListCollaborator.findUnique({
       where: {
         listId_userId: {
-          listId: params.id,
+          listId: id,
           userId: collaboratorUserId,
         },
       },
@@ -63,7 +63,7 @@ export async function POST(
 
     const collaborator = await prisma.memorialListCollaborator.create({
       data: {
-        listId: params.id,
+        listId: id,
         userId: collaboratorUserId,
         canEdit,
         canInvite,
@@ -73,8 +73,6 @@ export async function POST(
           select: {
             id: true,
             displayName: true,
-            name: true,
-            profilePicture: true,
             image: true,
           },
         },
@@ -89,7 +87,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -105,8 +103,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Collaborator user ID is required' }, { status: 400 })
     }
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!list) {
@@ -120,7 +119,7 @@ export async function DELETE(
     await prisma.memorialListCollaborator.delete({
       where: {
         listId_userId: {
-          listId: params.id,
+          listId: id,
           userId: collaboratorUserId,
         },
       },

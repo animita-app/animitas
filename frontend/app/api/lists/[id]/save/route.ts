@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -14,8 +14,9 @@ export async function POST(
 
     const userId = (session.user as any).id
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!list) {
@@ -25,7 +26,7 @@ export async function POST(
     const existingSave = await prisma.memorialListSave.findUnique({
       where: {
         listId_userId: {
-          listId: params.id,
+          listId: id,
           userId,
         },
       },
@@ -37,7 +38,7 @@ export async function POST(
 
     const save = await prisma.memorialListSave.create({
       data: {
-        listId: params.id,
+        listId: id,
         userId,
       },
     })
@@ -50,7 +51,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -60,10 +61,11 @@ export async function DELETE(
 
     const userId = (session.user as any).id
 
+    const { id } = await params
     await prisma.memorialListSave.delete({
       where: {
         listId_userId: {
-          listId: params.id,
+          listId: id,
           userId,
         },
       },

@@ -6,7 +6,6 @@ export class StorageManager {
       const serialized = JSON.stringify(value)
       storage.setItem(key, serialized)
     } catch (error) {
-      console.error(`Failed to set ${key}:`, getErrorMessage(error))
     }
   }
 
@@ -16,7 +15,6 @@ export class StorageManager {
       if (!item) return null
       return JSON.parse(item) as T
     } catch (error) {
-      console.error(`Failed to get ${key}:`, getErrorMessage(error))
       return null
     }
   }
@@ -25,7 +23,6 @@ export class StorageManager {
     try {
       storage.removeItem(key)
     } catch (error) {
-      console.error(`Failed to remove ${key}:`, getErrorMessage(error))
     }
   }
 
@@ -33,7 +30,6 @@ export class StorageManager {
     try {
       storage.clear()
     } catch (error) {
-      console.error('Failed to clear storage:', getErrorMessage(error))
     }
   }
 

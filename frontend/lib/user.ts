@@ -1,4 +1,4 @@
-import { Session } from 'next-auth'
+
 import { apiFetch } from './api'
 
 export interface UserProfile {

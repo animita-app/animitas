@@ -49,7 +49,7 @@ export function TopHeader() {
   }, [isInAnimita, animitaId])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[999999]">
+    <header className="fixed top-0 left-0 right-0 z-30">
       <div className="w-full flex h-16 items-center justify-between p-4">
         <Link href="/" className="text-sm">
           [ÁNIMA]

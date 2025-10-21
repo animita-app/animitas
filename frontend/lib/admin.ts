@@ -1,5 +1,5 @@
-import { getSession } from 'next-auth/react'
 import type { Session } from 'next-auth'
+import { auth } from '@/lib/auth'
 
 const ADMIN_USERNAMES = ['icarus', 'admin']
 
@@ -9,7 +9,7 @@ export async function isAdmin(session: Session | null): Promise<boolean> {
 }
 
 export async function getAdminSession(): Promise<Session | null> {
-  const session = await getSession()
+  const session = await auth()
   if (!session) return null
 
   const admin = await isAdmin(session)

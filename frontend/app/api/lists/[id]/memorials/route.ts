@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -19,8 +19,9 @@ export async function POST(
       return NextResponse.json({ error: 'Memorial ID is required' }, { status: 400 })
     }
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         collaborators: {
           where: { userId },
@@ -50,7 +51,7 @@ export async function POST(
     const existingItem = await prisma.memorialListItem.findUnique({
       where: {
         listId_memorialId: {
-          listId: params.id,
+          listId: id,
           memorialId,
         },
       },
@@ -62,7 +63,7 @@ export async function POST(
 
     const item = await prisma.memorialListItem.create({
       data: {
-        listId: params.id,
+        listId: id,
         memorialId,
         addedById: userId,
       },
@@ -88,7 +89,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -104,8 +105,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Memorial ID is required' }, { status: 400 })
     }
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         collaborators: {
           where: { userId },
@@ -127,7 +129,7 @@ export async function DELETE(
     await prisma.memorialListItem.delete({
       where: {
         listId_memorialId: {
-          listId: params.id,
+          listId: id,
           memorialId,
         },
       },

@@ -36,8 +36,6 @@ const CLUSTER_CONFIG = {
 
 const PROFILE_ZOOM_THRESHOLD = 8
 const TARGET_ZOOM = 15.5
-const FALLBACK_PERSON_IMAGE =
-  'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80'
 
 export default function MapboxMap({ accessToken, style, focusedMemorialId, centerOffset }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -313,7 +311,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
             id: string
             name: string
             coordinates: [number, number]
-            primaryPerson: { id: string; name: string; image: string | null } | null
+            primaryPersonImage: string | null
           }>
         } = await response.json()
 
@@ -330,8 +328,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
             properties: {
               id: memorial.id,
               name: memorial.name,
-              primaryPersonName: memorial.primaryPerson?.name ?? null,
-              primaryPersonImage: memorial.primaryPerson?.image ?? null
+              primaryPersonImage: memorial.primaryPersonImage
             }
           }))
         }
@@ -391,11 +388,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
 
       const coordinates = feature.geometry.coordinates as [number, number]
       const displayName =
-        typeof properties.primaryPersonName === 'string' && properties.primaryPersonName
-          ? properties.primaryPersonName
-          : typeof properties.name === 'string' && properties.name
-            ? properties.name
-            : 'Memorial'
+        typeof properties.name === 'string' && properties.name
+          ? properties.name
+          : 'Memorial'
       const imageUrl =
         typeof properties.primaryPersonImage === 'string' && properties.primaryPersonImage
           ? properties.primaryPersonImage

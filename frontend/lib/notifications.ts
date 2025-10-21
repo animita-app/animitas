@@ -104,9 +104,8 @@ export function copyToClipboard(text: string): Promise<boolean> {
       showSuccess('Copied to clipboard')
       return true
     })
-    .catch((error) => {
+    .catch(() => {
       showError('Failed to copy to clipboard')
-      console.error('Copy failed:', error)
       return false
     })
 }
@@ -132,7 +131,6 @@ export function shareContent(data: {
   return navigator.share(data).catch((error) => {
     if (error.name !== 'AbortError') {
       showError('Failed to share')
-      console.error('Share failed:', error)
     }
   })
 }

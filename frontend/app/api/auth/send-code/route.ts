@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     cleanupExpiredLimits()
     const rateLimitKey = `sms:${phoneNumber}`
     const { success, response } = rateLimit(rateLimitKey, 3, 60000)
+
     if (!success) {
       return response
     }
@@ -36,12 +37,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const result = await sendVerificationSMS(phoneNumber, code)
+    await sendVerificationSMS(phoneNumber, code)
 
     return NextResponse.json({
       success: true,
     })
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: 'Failed to send verification code' },
       { status: 500 }

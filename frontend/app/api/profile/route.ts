@@ -1,4 +1,3 @@
-import { getServerSession } from 'next-auth/next'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
@@ -76,7 +75,6 @@ export async function GET(req: NextRequest) {
         displayName: true,
         email: true,
         image: true,
-        profilePicture: true,
         role: true,
         phoneVerified: true,
         emailVerified: true,
@@ -127,12 +125,11 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { profilePicture, ...otherData } = await req.json()
+  const { image, ...otherData } = await req.json()
 
   const updateData: any = { ...otherData }
-  if (profilePicture) {
-    updateData.profilePicture = profilePicture
-    updateData.image = profilePicture
+  if (image) {
+    updateData.image = image
   }
 
   try {
@@ -146,7 +143,6 @@ export async function PATCH(req: NextRequest) {
         displayName: true,
         email: true,
         image: true,
-        profilePicture: true,
         role: true,
         phoneVerified: true,
         emailVerified: true,

@@ -27,21 +27,10 @@ module.exports = {
     await queryInterface.bulkInsert('users', [
       {
         id: userId1,
-        email: 'dev@animitas.cl',
+        email: 'hola@',
         display_name: 'Equipo Animita',
         account_type: 'free',
         free_candles_remaining: 1,
-        candles_reset_at: timestamp,
-        metadata: JSON.stringify({ source: 'seed' }),
-        created_at: timestamp,
-        updated_at: timestamp,
-      },
-      {
-        id: userId2,
-        email: 'investigador@animitas.cl',
-        display_name: 'Investigadora Patrimonio',
-        account_type: 'researcher',
-        free_candles_remaining: 3,
         candles_reset_at: timestamp,
         metadata: JSON.stringify({ source: 'seed' }),
         created_at: timestamp,

@@ -28,7 +28,6 @@ export async function uploadToCloudinary(file: File): Promise<string> {
 
     return data.secure_url
   } catch (error) {
-    console.error('Cloudinary upload error:', error)
     throw error
   }
 }

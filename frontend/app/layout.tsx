@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { CreateMemorialButton } from '@/components/create-memorial-button'
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ['400', '500', '600', '700'],
@@ -63,6 +64,7 @@ export default function RootLayout({
         </div>
         <Providers session={null} modal={modal}>
           {children}
+          <CreateMemorialButton />
         </Providers>
       </body>
     </html>

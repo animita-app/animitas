@@ -27,7 +27,6 @@ export const sendVerificationSMS = async (
       status: message.status,
     }
   } catch (error) {
-    console.error('Error sending verification SMS:', error)
     throw error
   }
 }

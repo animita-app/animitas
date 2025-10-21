@@ -52,6 +52,7 @@ type MemorialDetailResponse = {
     people: Array<{
       id: string
       name: string
+      username: string
       image: string | null
       birthDate: string | null
       deathDate: string | null
@@ -99,7 +100,6 @@ export function MemorialDetail({ id }: { id: string }) {
         if (cancelled) return
         setMemorial(payload.memorial)
       } catch (err) {
-        console.error(err)
         if (!cancelled) setError('No pudimos mostrar los detalles. Intenta nuevamente.')
       } finally {
         if (!cancelled) setIsLoading(false)
@@ -215,13 +215,13 @@ export function MemorialDetail({ id }: { id: string }) {
 
 
       <div className="flex items-center gap-3 pb-3 pt-3 border-b border-b-border-weak">
-        <Image
+        {/* <Image
           src={mainImage}
           alt={memorial.name}
           width={32}
           height={32}
           className="size-8 object-cover object-center rounded-full"
-        />
+        /> */}
 
         <p className="text-sm">
           {memorial.createdBy?.displayName ?? 'Memorial colectivo'}

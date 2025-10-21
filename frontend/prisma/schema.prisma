@@ -64,6 +64,7 @@ model Person {
 
 model Memorial {
   id          String   @id @default(cuid())
+  slug        String   @unique
   name        String
   lat         Float
   lng         Float

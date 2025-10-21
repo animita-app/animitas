@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    const { phone, displayName, username, profilePicture } =
+    const { phone, displayName, username, image } =
       await request.json()
 
     if (!phone || !displayName || !username) {
@@ -29,15 +29,13 @@ export async function POST(request: NextRequest) {
       update: {
         displayName,
         username,
-        profilePicture: profilePicture || undefined,
-        phoneVerified: new Date(),
+        image: image || undefined,
       },
       create: {
         phone,
         displayName,
         username,
-        profilePicture: profilePicture || undefined,
-        phoneVerified: new Date(),
+        image: image || undefined,
       },
     })
 
@@ -48,10 +46,10 @@ export async function POST(request: NextRequest) {
         phone: user.phone,
         displayName: user.displayName,
         username: user.username,
-        image: user.profilePicture,
+        image: user.image,
       },
     })
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: 'Failed to complete signup' },
       { status: 500 }

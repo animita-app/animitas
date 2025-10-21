@@ -2,7 +2,7 @@ import { uploadToCloudinary, getImageError } from './image'
 import { showSuccess, showError } from './notifications'
 import { apiPatch } from './api'
 import { getErrorMessage } from './utils'
-import { Session } from 'next-auth'
+
 
 export async function handleProfileImageUpload(
   file: File,

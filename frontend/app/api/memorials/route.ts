@@ -26,26 +26,14 @@ export async function GET(request: NextRequest) {
             image: true
           }
         },
-        people: {
-          orderBy: {
-            createdAt: 'asc'
-          },
-          take: 1,
-          include: {
-            person: {
-              select: {
-                id: true,
-                name: true,
-                image: true
-              }
-            }
-          }
-        },
         images: {
           select: {
             id: true,
             url: true,
             uploadedAt: true
+          },
+          orderBy: {
+            uploadedAt: 'asc'
           }
         },
         _count: {
@@ -59,10 +47,11 @@ export async function GET(request: NextRequest) {
     })
 
     const mapped = memorials.map((memorial) => {
-      const primaryPerson = memorial.people[0]?.person ?? null
+      const firstImage = memorial.images[0]?.url ?? null
 
       return {
         id: memorial.id,
+        slug: memorial.slug,
         name: memorial.name,
         lat: memorial.lat,
         lng: memorial.lng,
@@ -70,20 +59,14 @@ export async function GET(request: NextRequest) {
         isPublic: memorial.isPublic,
         createdAt: memorial.createdAt,
         coordinates: [memorial.lng, memorial.lat] as [number, number],
-        primaryPerson: primaryPerson
-          ? {
-              id: primaryPerson.id,
-              name: primaryPerson.name,
-              image: primaryPerson.image
-            }
-          : null,
+        primaryPersonImage: firstImage,
         createdBy: memorial.createdBy,
         images: memorial.images,
         _count: memorial._count
       }
     })
 
-    return NextResponse.json(userId ? mapped : { memorials: mapped })
+    return NextResponse.json({ memorials: mapped })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

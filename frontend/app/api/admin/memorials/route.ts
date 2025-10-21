@@ -1,7 +1,6 @@
-import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { canAccessAdmin } from '@/lib/admin'
 
 export async function GET(request: Request) {

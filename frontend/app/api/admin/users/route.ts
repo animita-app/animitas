@@ -1,7 +1,6 @@
-import { auth } from '@/lib/auth'
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 import { canAccessAdmin } from '@/lib/admin'
 
 export async function GET(request: Request) {
@@ -28,12 +27,7 @@ export async function GET(request: Request) {
           username: true,
           displayName: true,
           email: true,
-          profilePicture: true,
-          role: true,
-          phoneVerified: true,
-          emailVerified: true,
-          instagramHandle: true,
-          tiktokHandle: true,
+          image: true,
           createdAt: true,
           updatedAt: true,
           _count: {
@@ -91,7 +85,6 @@ export async function PATCH(request: Request) {
         username: true,
         displayName: true,
         email: true,
-        role: true,
         createdAt: true,
         updatedAt: true
       }

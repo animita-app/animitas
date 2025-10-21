@@ -4,21 +4,20 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
     const userId = (session?.user as any)?.id
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         createdBy: {
           select: {
             id: true,
             displayName: true,
-            name: true,
-            profilePicture: true,
             image: true,
           },
         },
@@ -42,8 +41,6 @@ export async function GET(
               select: {
                 id: true,
                 displayName: true,
-                name: true,
-                profilePicture: true,
                 image: true,
               },
             },
@@ -73,7 +70,7 @@ export async function GET(
 
     if (!isCreator && !isCollaborator && userId) {
       await prisma.memorialList.update({
-        where: { id: params.id },
+        where: { id },
         data: { viewCount: { increment: 1 } },
       })
     }
@@ -86,7 +83,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -97,8 +94,9 @@ export async function PATCH(
     const userId = (session.user as any).id
     const { name, description, thumbnailPicture, isPublic } = await request.json()
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         collaborators: {
           where: { userId },
@@ -118,7 +116,7 @@ export async function PATCH(
     }
 
     const updatedList = await prisma.memorialList.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(description !== undefined && { description }),
@@ -135,7 +133,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -145,8 +143,9 @@ export async function DELETE(
 
     const userId = (session.user as any).id
 
+    const { id } = await params
     const list = await prisma.memorialList.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!list) {
@@ -158,7 +157,7 @@ export async function DELETE(
     }
 
     await prisma.memorialList.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

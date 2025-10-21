@@ -1,14 +1,14 @@
-const { PrismaClient } = require('@prisma/client')
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('Seed skipped - no data to seed')
+  console.log('🌱 Database seed started (empty - populate from UI)\n')
 }
 
 main()
-  .catch((error) => {
-    console.error('Error during Prisma seed', error)
+  .catch((e) => {
+    console.error(e)
     process.exit(1)
   })
   .finally(async () => {
