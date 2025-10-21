@@ -1,9 +1,11 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import { PrismaAdapter } from '@auth/prisma-adapter'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import sql from '../lib/neon'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     Credentials({
       id: 'sms',
@@ -17,21 +19,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid SMS credentials')
         }
 
-        const verificationCodes = await sql`SELECT * FROM "VerificationCode" WHERE phone = ${credentials.phone as string} AND code = ${credentials.code as string} AND "expiresAt" > NOW() LIMIT 1`
-        const verificationCode = verificationCodes[0]
+        const verificationCode = await prisma.verificationCode.findFirst({
+          where: {
+            phone: credentials.phone as string,
+            code: credentials.code as string,
+            expiresAt: { gt: new Date() },
+          },
+        })
 
         if (!verificationCode) {
           throw new Error('Invalid or expired code')
         }
 
-        const users = await sql`SELECT * FROM "User" WHERE phone = ${credentials.phone as string} LIMIT 1`
-        const user = users[0]
+        const user = await prisma.user.findUnique({
+          where: { phone: credentials.phone as string },
+        })
 
         if (!user) {
           throw new Error('User not found')
         }
 
-        await sql`DELETE FROM "VerificationCode" WHERE id = ${verificationCode.id}`
+        await prisma.verificationCode.delete({
+          where: { id: verificationCode.id },
+        })
 
         return {
           id: user.id,
@@ -52,8 +62,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid credentials')
         }
 
-        const users = await sql`SELECT * FROM "User" WHERE email = ${credentials.email as string} LIMIT 1`
-        const user = users[0]
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+        })
 
         if (!user || !user.password) {
           throw new Error('Invalid credentials')
