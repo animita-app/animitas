@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
 
-import { prisma } from '@/lib/prisma'
-
 export async function GET() {
-  const count = await prisma.memorial.count({
-    where: {
-      isPublic: true
-    }
-  })
+  console.log('[MEMORIALS-COUNT] GET endpoint called - use Supabase instead')
 
-  return NextResponse.json({ count })
+  return NextResponse.json({
+    count: 0,
+    message: 'Prisma removed - implement using Supabase'
+  })
 }
