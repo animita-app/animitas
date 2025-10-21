@@ -17,7 +17,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 
-type ResponsiveDialogProps = {
+export interface ResponsiveDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
@@ -27,6 +27,7 @@ type ResponsiveDialogProps = {
   snapPoints?: (string | number)[]
   activeSnapPoint?: string | number | null
   setActiveSnapPoint?: (point: string | number | null) => void
+  drawerHeight?: number
 }
 
 export function ResponsiveDialog({
@@ -39,6 +40,7 @@ export function ResponsiveDialog({
   snapPoints,
   activeSnapPoint,
   setActiveSnapPoint,
+  drawerHeight,
 }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)")
   const [drawerOpen, setDrawerOpen] = React.useState(open)
@@ -100,7 +102,9 @@ export function ResponsiveDialog({
             <DrawerDescription>{description}</DrawerDescription>
           ) : null}
         </DrawerHeader>
-        {children}
+        {React.isValidElement(children)
+          ? React.cloneElement(children, { drawerHeight } as React.Attributes)
+          : children}
       </DrawerContent>
     </Drawer>
   )
