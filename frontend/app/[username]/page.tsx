@@ -1,45 +1,50 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState } from 'react'
-import MapboxMap from '@/components/map/mapbox-map'
-import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
-
-const FALLBACK_MAPBOX_TOKEN =
-  'pk.eyJ1IjoiaWNhcnVzbWluZCIsImEiOiJjbWc4c2puMDIwYWxqMmxwczF0cWY2azZyIn0.YiZOCFkJJbVqu5lJwv9akQ'
-
+import { useEffect, useState } from 'react'
+import { ProfileDetail } from '@/components/profile/profile-detail'
 
 export default function UserProfilePage() {
-  const params = useParams<{ id: string }>()
-  const { id } = params
-  const router = useRouter()
-  const [dialogOpen, setDialogOpen] = useState(true)
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || FALLBACK_MAPBOX_TOKEN
+  const params = useParams<{ username: string }>()
+  const { username } = params
 
-  const handleDialogChange = (nextOpen: boolean) => {
-    setDialogOpen(nextOpen)
-    if (!nextOpen) {
-      router.push('/')
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/users/${username}`)
+
+        if (!response.ok) {
+          throw new Error('User not found')
+        }
+
+        const userData = await response.json()
+        setUser(userData)
+      } catch (err) {
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchUser()
+  }, [username])
+
+  if (loading) {
+    return <div className="p-8">Loading...</div>
+  }
+
+  if (!user) {
+    return <div className="p-8">User not found</div>
   }
 
   return (
-    <div className="h-screen md:max-w-3/4 flex flex-col">
-      <main className="flex-1 relative h-full">
-        <MapboxMap
-          accessToken={mapboxToken}
-          focusedMemorialId={id}
-        />
-      </main>
-
-      <ResponsiveDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogChange}
-        title="Perfil"
-        description="Perfil de usuario"
-      >
-        <MemorialDetail id={id} />
-      </ResponsiveDialog>
+    <div className="min-h-screen p-6">
+      <div className="max-w-2xl mx-auto">
+        <ProfileDetail user={user} />
+      </div>
     </div>
   )
 }
