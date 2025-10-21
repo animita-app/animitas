@@ -1,14 +1,7 @@
 import type { Metadata } from 'next'
-import { IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { CreateMemorialButton } from '@/components/create-memorial-button'
-
-const ibmPlexMono = IBM_Plex_Mono({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-mono',
-})
 
 export const metadata: Metadata = {
   title: 'ánima',
@@ -39,7 +32,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={ibmPlexMono.variable}>
+      <body>
         <div className="pointer-events-none fixed inset-0 z-[999999]">
           <svg className="h-full w-full" preserveAspectRatio="none">
             <filter id="mono-noise-filter">
