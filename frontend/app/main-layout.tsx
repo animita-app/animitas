@@ -18,13 +18,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const calculateOffset = () => {
       try {
         const viewportHeight = window.innerHeight
-        const modalTop = HEADER_HEIGHT
-        const modalBottom = MODAL_SNAP_POINT_PX
-        const availableHeight = modalBottom - modalTop
-        const centerOfAvailableSpace = modalTop + availableHeight / 2
-        const viewportCenter = viewportHeight / 2
-        const offset = centerOfAvailableSpace - viewportCenter
-        setCenterOffset([0, offset])
+        const targetCenterY = HEADER_HEIGHT + (MODAL_SNAP_POINT_PX - HEADER_HEIGHT) / 2
+        const viewportCenterY = viewportHeight / 2
+        const pixelOffset = targetCenterY - viewportCenterY
+        setCenterOffset([0, pixelOffset * 0.5])
       } catch (error) {
         setCenterOffset([0, 0])
       }
