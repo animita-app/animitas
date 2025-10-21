@@ -116,12 +116,9 @@ export default function AuthPage() {
     const phoneWithCountry = `+56${values.phone}`
 
     try {
-      console.log('[AUTH] Phone submission:', { phone: phoneWithCountry })
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: phoneWithCountry,
       })
-
-      console.log('[AUTH] signInWithOtp response:', { data, error })
 
       if (error) throw new Error(error.message)
 
@@ -141,8 +138,6 @@ export default function AuthPage() {
     setIsLoading(false)
 
     try {
-      console.log('[AUTH] Code submission:', { phone, code: values.code })
-
       setCode(values.code)
       setStep('name')
       showSuccess('Código verificado. Por favor completa tu perfil.')
@@ -155,7 +150,6 @@ export default function AuthPage() {
   }
 
   const onNameSubmit = async (values: z.infer<typeof nameSchema>) => {
-    console.log('[AUTH] Name submission:', { displayName: values.displayName })
     setDisplayName(values.displayName)
     setStep('username')
     setApiError('')
@@ -166,20 +160,11 @@ export default function AuthPage() {
     setIsLoading(true)
 
     try {
-      console.log('[AUTH] Username submission start:', {
-        phone,
-        displayName,
-        username: values.username,
-      })
-
-      console.log('[AUTH] Verifying OTP')
       const { data: otpData, error: otpError } = await supabase.auth.verifyOtp({
         phone,
         token: code,
         type: 'sms',
       })
-
-      console.log('[AUTH] verifyOtp response:', { session: otpData.session ? 'exists' : 'missing', error: otpError })
 
       if (otpError) {
         console.error('[AUTH] OTP verification failed:', otpError)
@@ -191,16 +176,10 @@ export default function AuthPage() {
         throw new Error('Error al crear sesión')
       }
 
-      console.log('[AUTH] OTP verified, updating/creating user profile')
       const result = await apiPost('/api/auth/complete-signup', {
         phone,
         displayName,
         username: values.username,
-      })
-
-      console.log('[AUTH] Complete signup response:', {
-        data: result.data,
-        error: result.error,
       })
 
       if (result.error) {
@@ -208,7 +187,6 @@ export default function AuthPage() {
         throw new Error(result.error)
       }
 
-      console.log('[AUTH] Profile updated successfully, redirecting')
       showSuccess('¡Bienvenido!')
       router.push('/')
       router.refresh()

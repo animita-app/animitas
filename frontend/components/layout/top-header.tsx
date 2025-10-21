@@ -6,12 +6,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getInitials } from '@/lib/utils'
+import { cn, getInitials } from '@/lib/utils'
+import { useFetchUser } from '@/hooks/use-fetch-user'
 
 export function TopHeader() {
   const pathname = usePathname()
   const { user } = useAuth()
   const [memorialName, setMemorialName] = useState<string>('')
+  const username = user?.user_metadata?.username
+  const { user: userData } = useFetchUser(username || null)
 
   const isInAnimita = pathname.includes('/animita/')
   const animitaId = isInAnimita ? pathname.split('/animita/')[1]?.split('/')[0] : null
@@ -57,12 +60,18 @@ export function TopHeader() {
           </div>
         )}
 
-        {user ? (
+        {user && user.user_metadata?.username ? (
           <Link href={`/user/${user.user_metadata.username}`}>
-            <Button variant="ghost" size="icon" className="group hover:!bg-border rounded-full *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
-              <Avatar className="size-8 group-hover:bg-border">
-                {user.user_metadata?.image && <AvatarImage src={user.user_metadata.image} alt={(user.user_metadata?.displayName || user.email || '') + "1"} />}
-                <AvatarFallback>{getInitials(user.user_metadata?.displayName || user.email || '')}</AvatarFallback>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "p-0 group hover:!bg-border rounded-full *:*:!bg-transparent",
+                userData?.image ? "" : "*:text-black *:*:border *:*:!border-black"
+              )}>
+              <Avatar className="group-hover:bg-border">
+                {userData?.image && <AvatarImage src={userData.image} alt={userData.display_name || user.email || ''} className="object-cover" />}
+                <AvatarFallback>{getInitials(userData?.display_name || user.user_metadata?.displayName || user.email || '')}</AvatarFallback>
               </Avatar>
             </Button>
           </Link>

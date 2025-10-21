@@ -307,6 +307,17 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
             name: string
             coordinates: [number, number]
             primaryPersonImage: string | null
+            images: Array<{ id: string; url: string }>
+            people: Array<{
+              id: string
+              name: string
+              image: string | null
+              birthDate: string | null
+              deathDate: string | null
+            }>
+            candles: number
+            story: string | null
+            createdAt: string
           }>
         } = await response.json()
 
@@ -323,7 +334,12 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
             properties: {
               id: memorial.id,
               name: memorial.name,
-              primaryPersonImage: memorial.primaryPersonImage
+              primaryPersonImage: memorial.primaryPersonImage,
+              images: memorial.images,
+              people: memorial.people,
+              candles: memorial.candles,
+              story: memorial.story,
+              createdAt: memorial.createdAt
             }
           }))
         }

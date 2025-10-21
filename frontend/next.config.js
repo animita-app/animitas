@@ -3,10 +3,16 @@ const nextConfig = {
   images: {
     domains: [
       'localhost',
-      // 'res.cloudinary.com', // Removed Cloudinary domain
       'images.mapillary.com',
       'streetviewpixels-pa.googleapis.com',
-      'lqkwpjkibpkfoilfpfxz.supabase.co' // Added Supabase domain
+      'lqkwpjkibpkfoilfpfxz.supabase.co',
+      '*.supabase.co',
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
     ],
   },
   env: {

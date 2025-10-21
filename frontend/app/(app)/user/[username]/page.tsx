@@ -1,36 +1,30 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { ProfileDetail } from '@/components/profile/profile-detail'
+import { useFetchUser } from '@/hooks/use-fetch-user'
 
 export default function UserProfilePage() {
   const params = useParams<{ username: string }>()
-  const { username } = params
+  const { user, loading, error } = useFetchUser(params.username)
 
-  const [user, setUser] = useState<any>(null)
-  const [, setLoading] = useState(true)
+  if (loading) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-muted-foreground">Cargando perfil...</div>
+      </div>
+    )
+  }
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/users/${username}`)
-
-        if (!response.ok) {
-          throw new Error('Usuario no encontrado')
-        }
-
-        const userData = await response.json()
-        setUser(userData)
-      } catch (err) {
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUser()
-  }, [username])
+  if (error || !user) {
+    return (
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive">{error || 'Usuario no encontrado'}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen p-6">
