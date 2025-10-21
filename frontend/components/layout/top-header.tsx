@@ -58,7 +58,7 @@ export function TopHeader() {
         )}
 
         {user ? (
-          <Link href={`/${user.user_metadata?.username || user.email}`}>
+          <Link href={`/user/${user.user_metadata.username}`}>
             <Button variant="ghost" size="icon" className="group hover:!bg-border rounded-full *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
               <Avatar className="size-8 group-hover:bg-border">
                 {user.user_metadata?.image && <AvatarImage src={user.user_metadata.image} alt={(user.user_metadata?.displayName || user.email || '') + "1"} />}

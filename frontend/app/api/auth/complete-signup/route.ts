@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       .upsert({
         id: userId,
         phone: supabaseUser.phone,
-        displayName,
+        display_name: displayName,
         username: username || null,
         updated_at: new Date().toISOString(),
       }, {
