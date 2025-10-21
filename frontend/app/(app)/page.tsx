@@ -28,8 +28,8 @@ async function getMemorials() {
 
 export default function MapaPage() {
   const [memorials, setMemorials] = useState<any[]>([])
-  const [snap, setSnap] = useState<string | number | null>('128px')
-  const snapPoints = ['128px', 1]
+  const [snap, setSnap] = useState<string | number | null>('144px')
+  const snapPoints = ['144px', 1]
 
   useEffect(() => {
     getMemorials().then(data => setMemorials(data))

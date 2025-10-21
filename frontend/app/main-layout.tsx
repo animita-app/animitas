@@ -6,7 +6,7 @@ import MapboxMap from '@/components/map/mapbox-map'
 import { TopHeader } from '@/components/layout/top-header'
 
 const HEADER_HEIGHT = 64
-const DRAWER_HEIGHT = 128
+const MODAL_SNAP_POINT_PX = 720
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,10 +18,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     const calculateOffset = () => {
       try {
         const viewportHeight = window.innerHeight
-        const availableHeight = viewportHeight - HEADER_HEIGHT - DRAWER_HEIGHT
+        const spaceBelowModal = viewportHeight - MODAL_SNAP_POINT_PX
+        const availableSpaceAboveModal = HEADER_HEIGHT + MODAL_SNAP_POINT_PX
         const viewportCenter = viewportHeight / 2
-        const availableCenter = HEADER_HEIGHT + availableHeight / 2
-        const offset = availableCenter - viewportCenter
+        const centerOfAvailableSpace = HEADER_HEIGHT + (MODAL_SNAP_POINT_PX - HEADER_HEIGHT) / 2
+        const offset = centerOfAvailableSpace - viewportCenter
         setCenterOffset([0, -offset])
       } catch (error) {
         setCenterOffset([0, 0])

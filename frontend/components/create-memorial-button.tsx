@@ -10,7 +10,7 @@ export function CreateMemorialButton() {
   if (pathname.startsWith("/create-memorial") || pathname.startsWith("/auth")) return null;
 
   return (
-    <Button className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[999] bg-black text-white hover:bg-black/80" asChild>
+    <Button className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[999] bg-black text-white hover:bg-black/80" asChild>
       <Link href="/create-memorial">
         + Crear Animita
       </Link>
