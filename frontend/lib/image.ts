@@ -1,59 +1,25 @@
 import { getErrorMessage } from './utils'
-
-interface CloudinaryResponse {
-  secure_url: string
-  public_id: string
-  width: number
-  height: number
-  bytes: number
-}
+import { uploadImageToSupabase } from './supabase'
 
 interface ImageUploadOptions {
-  folder?: string
-  resourceType?: 'image' | 'video' | 'auto'
-  quality?: 'auto' | string
-  transformation?: Record<string, any>[]
+  folder?: string // Supabase bucket path prefix
 }
 
-export async function uploadToCloudinary(
+export async function uploadImage(
   file: File,
   options: ImageUploadOptions = {}
 ): Promise<string> {
+  if (!isValidImageFile(file)) {
+    throw new Error(getImageError(file) || 'Invalid image file.')
+  }
+
+  const bucket = 'base' // User specified 'base' bucket
+  const folder = options.folder || 'animitas/images' // Default folder in Supabase
+  const fileName = `${folder}/${Date.now()}-${file.name}`
+
   try {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
-
-    if (!cloudName || !uploadPreset) {
-      throw new Error('Cloudinary configuration missing')
-    }
-
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', uploadPreset)
-    formData.append('folder', options.folder || 'animitas')
-
-    if (options.resourceType) {
-      formData.append('resource_type', options.resourceType)
-    }
-
-    if (options.quality) {
-      formData.append('quality', options.quality)
-    }
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData
-      }
-    )
-
-    if (!response.ok) {
-      throw new Error('Upload failed')
-    }
-
-    const data: CloudinaryResponse = await response.json()
-    return data.secure_url
+    const imageUrl = await uploadImageToSupabase(file, bucket, fileName)
+    return imageUrl
   } catch (error) {
     throw new Error(`Image upload failed: ${getErrorMessage(error)}`)
   }
@@ -141,26 +107,6 @@ export function compressImage(
   })
 }
 
-export function cloudinaryUrl(
-  publicId: string,
-  options: Record<string, any> = {}
-): string {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-  if (!cloudName) return ''
-
-  const transformations = Object.entries(options)
-    .map(([key, value]) => `${key}_${value}`)
-    .join(',')
-
-  const transform = transformations ? `/${transformations}` : ''
-  return `https://res.cloudinary.com/${cloudName}/image/upload${transform}/${publicId}`
-}
-
-export function thumbnailUrl(imageUrl: string, width: number = 200): string {
-  if (!imageUrl.includes('cloudinary.com')) return imageUrl
-
-  const parts = imageUrl.split('/upload/')
-  if (parts.length !== 2) return imageUrl
-
-  return `${parts[0]}/upload/w_${width},h_${width},c_fill,q_auto/${parts[1]}`
-}
+// The cloudinaryUrl and thumbnailUrl functions are no longer needed as we are using Supabase Storage.
+// Supabase provides direct public URLs for uploaded files.
+// If any existing code relies on these, it will need to be updated to use the direct Supabase URLs.

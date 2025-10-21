@@ -3,9 +3,10 @@ const nextConfig = {
   images: {
     domains: [
       'localhost',
-      'res.cloudinary.com',
+      // 'res.cloudinary.com', // Removed Cloudinary domain
       'images.mapillary.com',
-      'streetviewpixels-pa.googleapis.com'
+      'streetviewpixels-pa.googleapis.com',
+      'lqkwpjkibpkfoilfpfxz.supabase.co' // Added Supabase domain
     ],
   },
   env: {

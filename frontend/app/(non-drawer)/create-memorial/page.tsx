@@ -1,187 +1,159 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { InfoStep } from '@/components/create-memorial/info-step'
-import { LocationStep } from '@/components/create-memorial/location-step'
-import { StoryStep } from '@/components/create-memorial/story-step'
-import { SummaryStep } from '@/components/create-memorial/summary-step'
+import { useRouter } from 'next/navigation'
+import { useCreateMemorialForm, Step } from '@/hooks/use-create-memorial-form'
 import { StepIndicator } from '@/components/create-memorial/step-indicator'
-import { useCreateMemorialForm } from '@/hooks/use-create-memorial-form'
-import { uploadToCloudinary } from '@/lib/cloudinary'
-import { getErrorMessage } from '@/lib/utils'
-import { showError, showSuccess } from '@/lib/notifications'
+import { InfoStep } from '@/components/create-memorial/info-step'
+import { StoryStep } from '@/components/create-memorial/story-step'
+import { LocationStep } from '@/components/create-memorial/location-step'
+import { SummaryStep } from '@/components/create-memorial/summary-step'
+import { uploadImage } from '@/lib/image'
+import { showError } from '@/lib/notifications'
+import { Button } from '@/components/ui/button'
+import { SubmitHandler, FieldValues } from 'react-hook-form' // Import SubmitHandler and FieldValues
 
 export default function CreateMemorialPage() {
+  const router = useRouter()
   const {
     step,
-    apiError,
+    setStep,
     isLoading,
-    uploadingIndex,
-    setUploadingIndex,
-    memorialData,
+    apiError,
     infoForm,
     locationForm,
     storyForm,
-    fields,
-    append,
-    remove,
     onInfoSubmit,
     onLocationSubmit,
     onStorySubmit,
     onImagesSubmit,
     goToPreviousStep,
+    memorialData,
+    setMemorialData,
+    uploadingIndex,
+    setUploadingIndex,
+    fields,
+    append,
+    remove,
   } = useCreateMemorialForm()
 
-  const handlePersonImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, personIndex: number) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleImageUploadForPerson = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setUploadingIndex(personIndex)
+    setUploadingIndex(index);
     try {
-      const url = await uploadToCloudinary(file)
-      const currentPeople = infoForm.getValues('people')
-      currentPeople[personIndex].image = url
-      infoForm.setValue('people', currentPeople)
-      showSuccess('Foto subida exitosamente')
+      const url = await uploadImage(file, { folder: 'persons' });
+      setMemorialData((prev) => {
+        const newPeople = [...prev.people];
+        newPeople[index] = { ...newPeople[index], image: url };
+        return { ...prev, people: newPeople };
+      });
+      infoForm.setValue(`people.${index}.image`, url);
     } catch (error) {
-      showError(getErrorMessage(error))
+      showError('Failed to upload image.');
     } finally {
-      setUploadingIndex(null)
-      e.target.value = ''
+      setUploadingIndex(null);
+    }
+  };
+
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 'info':
+        return (
+          <InfoStep
+            form={infoForm}
+            fields={fields}
+            append={append}
+            remove={remove}
+            onSubmit={onInfoSubmit}
+            onImageUpload={handleImageUploadForPerson}
+            uploadingIndex={uploadingIndex}
+            apiError={apiError}
+          />
+        )
+      case 'location':
+        return (
+          <LocationStep
+            form={locationForm}
+            onSubmit={onLocationSubmit}
+            apiError={apiError}
+          />
+        )
+      case 'story':
+        return (
+          <StoryStep
+            form={storyForm}
+            onSubmit={onStorySubmit}
+            apiError={apiError}
+          />
+        )
+      case 'images':
+        return (
+          <SummaryStep
+            memorialData={memorialData}
+            onPrev={goToPreviousStep}
+            onSubmit={onImagesSubmit}
+            isLoading={isLoading}
+            apiError={apiError}
+          />
+        )
+      default:
+        return null
     }
   }
 
-  const stepNumber = step === 'info' ? 1 : step === 'location' ? 2 : step === 'story' ? 3 : step === 'images' ? 4 : 5
-  const totalSteps = 4
+  const getStepNumber = (currentStep: Step) => {
+    switch (currentStep) {
+      case 'info': return 1
+      case 'location': return 2
+      case 'story': return 3
+      case 'images': return 4
+      default: return 1
+    }
+  }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="fixed z-40 inset-0 flex flex-col min-h-screen bg-background">
-        <div className="max-w-md mx-auto w-full p-8 flex-1 flex flex-col overflow-hidden">
-          <div className="flex items-center justify-between gap-4 mb-8">
-            <span className="text-xs text-muted-foreground">
-              Paso {stepNumber} de {totalSteps}
-            </span>
-            <div className="flex gap-2">
-              {[1, 2, 3, 4].map((i) => (
-                <StepIndicator
-                  key={i}
-                  completed={stepNumber > i}
-                  active={stepNumber === i}
-                />
-              ))}
-            </div>
-          </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6 text-center">Create New Memorial</h1>
 
-          <div className="mb-8">
-            <h1 className="text-xl font-medium mb-2">
-              {step === 'info' && 'Información de la Persona'}
-              {step === 'location' && 'Ubicación'}
-              {step === 'story' && 'Historia'}
-              {step === 'images' && 'Resumen'}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {step === 'info' && 'Agrega los datos de las personas recordadas'}
-              {step === 'location' && 'Indica las coordenadas donde se encuentra'}
-              {step === 'story' && 'Comparte una historia sobre la animita (opcional)'}
-              {step === 'images' && 'Revisa los datos antes de crear'}
-            </p>
-          </div>
+      <StepIndicator currentStep={getStepNumber(step)} goToStep={(num) => {
+        switch (num) {
+          case 1: setStep('info'); break;
+          case 2: setStep('location'); break;
+          case 3: setStep('story'); break;
+          case 4: setStep('images'); break;
+        }
+      }} />
 
-          <div className="flex-1 flex flex-col justify-start overflow-y-auto">
-            {step === 'info' && (
-              <InfoStep
-                form={infoForm as any}
-                fields={fields as any}
-                append={append as any}
-                remove={remove as any}
-                onSubmit={onInfoSubmit}
-                uploadingIndex={uploadingIndex}
-                onImageUpload={handlePersonImageUpload}
-                apiError={apiError}
-              />
-            )}
+      <div className="space-y-8">
+        {renderStepContent()}
 
-            {step === 'location' && (
-              <LocationStep
-                form={locationForm}
-                onSubmit={onLocationSubmit}
-                apiError={apiError}
-              />
-            )}
-
-            {step === 'story' && (
-              <StoryStep
-                form={storyForm}
-                onSubmit={onStorySubmit}
-                apiError={apiError}
-              />
-            )}
-
-            {step === 'images' && (
-              <SummaryStep
-                memorialData={memorialData}
-                apiError={apiError}
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="fixed bottom-0 inset-x-0 p-6 max-w-md mx-auto space-y-2">
-          {step === 'info' && (
-            <Button type="submit" form="info-form" className="w-full rounded-none">
-              Siguiente
+        <div className="flex justify-between mt-8">
+          {step !== 'info' && (
+            <Button type="button" variant="outline" onClick={goToPreviousStep}>
+              Previous
             </Button>
           )}
-          {step === 'location' && (
-            <>
-              <Button type="submit" form="location-form" className="w-full rounded-none">
-                Siguiente
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full rounded-none"
-                onClick={goToPreviousStep}
-              >
-                Atrás
-              </Button>
-            </>
-          )}
-          {step === 'story' && (
-            <>
-              <Button type="submit" form="story-form" className="w-full rounded-none">
-                Siguiente
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full rounded-none"
-                onClick={goToPreviousStep}
-              >
-                Atrás
-              </Button>
-            </>
+          {step !== 'images' && (
+            <Button
+              type="button"
+              onClick={() => {
+                if (step === 'info') infoForm.handleSubmit(onInfoSubmit as SubmitHandler<FieldValues>)();
+                else if (step === 'location') locationForm.handleSubmit(onLocationSubmit as SubmitHandler<FieldValues>)();
+                else if (step === 'story') storyForm.handleSubmit(onStorySubmit as SubmitHandler<FieldValues>)();
+              }}
+            >
+              Next
+            </Button>
           )}
           {step === 'images' && (
-            <>
-              <Button
-                onClick={onImagesSubmit}
-                className="w-full rounded-none"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creando...' : 'Crear Animita'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full rounded-none"
-                onClick={goToPreviousStep}
-                disabled={isLoading}
-              >
-                Atrás
-              </Button>
-            </>
+            <Button type="submit" disabled={isLoading} onClick={() => onImagesSubmit()}>
+              {isLoading ? 'Creating...' : 'Create Memorial'}
+            </Button>
           )}
         </div>
       </div>

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { createSlugFromParts } from '@/lib/slug'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth()
+    const session = await getSession()
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -46,14 +47,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const generateSlug = (memorialName: string, id: string): string => {
-      const baseSlug = memorialName
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/^-+|-+$/g, '')
-      return `${baseSlug}-${id.substring(0, 8)}`
+    const generateUniqueSlug = async (baseSlug: string): Promise<string> => {
+      let slug = baseSlug
+      let counter = 1
+
+      while (await prisma.memorial.findUnique({ where: { slug } })) {
+        slug = `${baseSlug}-${counter}`
+        counter++
+      }
+
+      return slug
     }
 
     const person = await prisma.person.create({
@@ -62,8 +65,8 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    const tempId = Math.random().toString(36).substring(2, 10)
-    const slug = generateSlug(name, tempId)
+    const baseSlug = createSlugFromParts(name, personName)
+    const slug = await generateUniqueSlug(baseSlug)
 
     const memorial = await prisma.memorial.create({
       data: {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
@@ -45,8 +46,8 @@ export default function MapaPage() {
       <DrawerContent>
         <DrawerHeader className="text-center pt-2 *:font-medium">
           <DrawerTitle>{memorials.length} animitas</DrawerTitle>
+          <DrawerDescription className="sr-only">Todas las animitas</DrawerDescription>
         </DrawerHeader>
-
       </DrawerContent>
     </Drawer>
   )

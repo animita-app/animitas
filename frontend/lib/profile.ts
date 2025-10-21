@@ -1,4 +1,4 @@
-import { uploadToCloudinary, getImageError } from './image'
+import { uploadImage, getImageError } from './image'
 import { showSuccess, showError } from './notifications'
 import { apiPatch } from './api'
 import { getErrorMessage } from './utils'
@@ -15,8 +15,8 @@ export async function handleProfileImageUpload(
   }
 
   try {
-    const imageUrl = await uploadToCloudinary(file, { folder: 'profiles' })
-    const { error } = await apiPatch('/profile', { profilePicture: imageUrl })
+    const imageUrl = await uploadImage(file, { folder: 'users' })
+    const { error } = await apiPatch('/profile', { image: imageUrl })
 
     if (error) {
       showError(error)
@@ -41,7 +41,7 @@ export function getUserDisplayInfo(
   return {
     displayName: user?.displayName || sessionUser?.displayName || sessionUser?.name || 'Usuario',
     username: user?.username || sessionUser?.username || '',
-    image: user?.profilePicture || user?.image || sessionUser?.image || null
+    image: user?.image || sessionUser?.image || null
   }
 }
 

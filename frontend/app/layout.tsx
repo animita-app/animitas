@@ -52,7 +52,7 @@ export default function RootLayout({
             <rect width="100%" height="100%" filter="url(#mono-noise-filter)" fill="#000000" opacity="35%" />
           </svg>
         </div>
-        <Providers session={null}>
+        <Providers>
           {children}
           <CreateMemorialButton />
         </Providers>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useForm, useFieldArray, UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { showError, showSuccess } from '@/lib/notifications'
@@ -17,7 +17,7 @@ const personSchema = z.object({
 })
 
 const infoSchema = z.object({
-  customMemorialName: z.boolean().default(false),
+  customMemorialName: z.boolean(), // Removed .default(false)
   customName: z.string().optional(),
   people: z.array(personSchema).min(1, 'Agrega al menos una persona'),
 })
@@ -66,14 +66,21 @@ export function useCreateMemorialForm() {
     people: [],
   })
 
-  const infoForm = useForm({
+  // Define the type for defaultValues explicitly
+  type InfoFormDefaultValues = {
+    customMemorialName: boolean;
+    customName?: string;
+    people: { name: string; birthDate?: Date; deathDate?: Date; image?: string }[];
+  }
+
+  const infoForm = useForm<z.infer<typeof infoSchema>>({
     resolver: zodResolver(infoSchema),
     defaultValues: {
-      customMemorialName: false,
+      customMemorialName: false, // Explicitly set default here
       customName: '',
       people: [{ name: '', birthDate: undefined, deathDate: undefined, image: undefined }],
-    },
-  } as any)
+    } as InfoFormDefaultValues,
+  })
 
   const { fields, append, remove } = useFieldArray({
     control: infoForm.control,
@@ -82,12 +89,12 @@ export function useCreateMemorialForm() {
 
   const locationForm = useForm<z.infer<typeof locationSchema>>({
     resolver: zodResolver(locationSchema),
-    defaultValues: { latitude: '', longitude: '' },
+    defaultValues: { latitude: '', longitude: '' } as z.infer<typeof locationSchema>,
   })
 
   const storyForm = useForm<z.infer<typeof storySchema>>({
     resolver: zodResolver(storySchema),
-    defaultValues: { story: '' },
+    defaultValues: { story: '' } as z.infer<typeof storySchema>,
   })
 
   const onInfoSubmit = async (values: z.infer<typeof infoSchema>) => {

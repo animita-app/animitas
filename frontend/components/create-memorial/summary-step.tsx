@@ -10,10 +10,13 @@ interface MemorialFormData {
 
 interface SummaryStepProps {
   memorialData: MemorialFormData
+  onPrev: () => void
+  onSubmit: () => Promise<void>
+  isLoading: boolean
   apiError: string
 }
 
-export function SummaryStep({ memorialData, apiError }: SummaryStepProps) {
+export function SummaryStep({ memorialData, onPrev, onSubmit, isLoading, apiError }: SummaryStepProps) {
   return (
     <div className="space-y-4 w-full max-w-sm">
       <div className="space-y-2">

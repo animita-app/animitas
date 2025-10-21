@@ -16,7 +16,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <TopHeader />
-      <div className="h-screen w-screen md:w-3/4 relative">
+      <div className="h-screen w-screen relative">
         <MapboxMap accessToken={mapboxToken} />
         {children}
       </div>

@@ -3,7 +3,8 @@
 import { ProfileDetail } from '@/components/profile/profile-detail'
 import { Button } from '@/components/ui/button'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
-import { signOut } from 'next-auth/react'
+import { Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { use, useState, useEffect } from 'react'
 
@@ -35,13 +36,27 @@ export default function ProfileModal({ params }: { params: Promise<{ username: s
   }, [username])
 
   const handleLogout = async () => {
-    await signOut({ redirect: true, callbackUrl: '/' })
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  if (loading) {
+    return (
+      <ResponsiveDialog
+        open={true}
+        onOpenChange={() => router.back()}
+        title="Perfil"
+        description="Perfil de usuario"
+      >
+        <Loader2 className="animate-spin text-muted-foreground m-auto" />
+      </ResponsiveDialog>
+    )
   }
 
   if (!user) {
     return (
       <ResponsiveDialog
-        open
+        open={true}
         onOpenChange={() => router.back()}
         title="Perfil"
         description="Perfil de usuario"
@@ -56,7 +71,7 @@ export default function ProfileModal({ params }: { params: Promise<{ username: s
 
   return (
     <ResponsiveDialog
-      open
+      open={true}
       onOpenChange={() => router.back()}
       title="Perfil"
       description="Perfil de usuario"

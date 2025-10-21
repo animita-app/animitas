@@ -1,4 +1,4 @@
-import { Session } from 'next-auth'
+import type { Session } from '@supabase/supabase-js'
 import { apiFetch } from './api'
 
 export interface UserProfile {
@@ -18,18 +18,20 @@ export interface UserProfile {
 export function getUserFromSession(session: Session | null): UserProfile | null {
   if (!session?.user) return null
 
+  const metadata = session.user.user_metadata || {}
+
   return {
-    id: (session.user as any).id || '',
-    phone: (session.user as any).phone || null,
-    username: (session.user as any).username || null,
-    displayName: (session.user as any).displayName || null,
+    id: session.user.id || '',
+    phone: metadata.phone || session.user.phone || null,
+    username: metadata.username || null,
+    displayName: metadata.displayName || null,
     email: session.user.email || null,
-    profilePicture: session.user.image || (session.user as any).profilePicture || null,
-    role: (session as any).role || 'FREE',
-    phoneVerified: (session.user as any).phoneVerified || null,
-    emailVerified: (session.user as any).emailVerified || null,
-    createdAt: (session.user as any).createdAt || new Date().toISOString(),
-    updatedAt: (session.user as any).updatedAt || new Date().toISOString()
+    profilePicture: metadata.image || null,
+    role: metadata.role || 'FREE',
+    phoneVerified: session.user.phone_confirmed_at ? new Date(session.user.phone_confirmed_at).toISOString() : null,
+    emailVerified: session.user.email_confirmed_at ? new Date(session.user.email_confirmed_at).toISOString() : null,
+    createdAt: session.user.created_at || new Date().toISOString(),
+    updatedAt: session.user.updated_at || new Date().toISOString()
   }
 }
 
@@ -73,11 +75,11 @@ export async function updateUserRole(userId: string, role: string): Promise<User
 }
 
 export function isAdmin(session: Session | null): boolean {
-  return (session as any)?.role === 'ADMIN'
+  return session?.user?.user_metadata?.role === 'ADMIN'
 }
 
 export function isPremium(session: Session | null): boolean {
-  const role = (session as any)?.role
+  const role = session?.user?.user_metadata?.role
   return role === 'PREMIUM' || role === 'ADMIN'
 }
 

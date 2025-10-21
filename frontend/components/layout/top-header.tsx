@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/use-auth'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -10,14 +10,8 @@ import { getInitials } from '@/lib/utils'
 
 export function TopHeader() {
   const pathname = usePathname()
-  const { data: session, update } = useSession()
-
-  const user = session?.user
+  const { user } = useAuth()
   const [memorialName, setMemorialName] = useState<string>('')
-
-  useEffect(() => {
-    update()
-  }, [])
 
   const isInAnimita = pathname.includes('/animita/')
   const animitaId = isInAnimita ? pathname.split('/animita/')[1]?.split('/')[0] : null
@@ -64,11 +58,11 @@ export function TopHeader() {
         )}
 
         {user ? (
-          <Link href={`/${user.username}`}>
+          <Link href={`/${user.user_metadata?.username || user.email}`}>
             <Button variant="ghost" size="icon" className="group hover:!bg-border rounded-full *:*:!bg-transparent *:text-black *:*:border *:*:!border-black">
               <Avatar className="size-8 group-hover:bg-border">
-                {user.image && <AvatarImage src={user.image} alt={(user.name || user.email || '') + "1"} />}
-                <AvatarFallback>{getInitials(user.name || user.email || '')}</AvatarFallback>
+                {user.user_metadata?.image && <AvatarImage src={user.user_metadata.image} alt={(user.user_metadata?.displayName || user.email || '') + "1"} />}
+                <AvatarFallback>{getInitials(user.user_metadata?.displayName || user.email || '')}</AvatarFallback>
               </Avatar>
             </Button>
           </Link>

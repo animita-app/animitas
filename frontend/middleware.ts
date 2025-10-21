@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { createServerClient } from '@supabase/ssr'
 
-const publicRoutes = ['/auth', '/api/auth/register']
+const publicRoutes = ['/auth', '/api/auth/register', '/api/auth/send-code', '/api/auth/check-phone', '/api/auth/check-username']
 const authRoutes = ['/auth']
 const protectedRoutes = ['/create-memorial']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const secret = process.env.NEXTAUTH_SECRET
 
-  // Allow API routes to pass through without authentication check
   if (pathname.startsWith('/api')) {
     return NextResponse.next()
   }
@@ -17,20 +15,45 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.includes(pathname)
   const isAuthRoute = authRoutes.includes(pathname)
 
-  const token = await getToken({ req: request, secret })
+  let supabaseResponse = NextResponse.next({
+    request,
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            )
+          } catch {}
+        },
+      },
+    }
+  )
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
   if (isAuthRoute) {
-    if (token) {
+    if (session) {
       return NextResponse.redirect(new URL('/', request.url))
     }
-    return NextResponse.next()
+    return supabaseResponse
   }
 
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   )
 
-  if (!token && isProtectedRoute) {
+  if (!session && isProtectedRoute) {
     let callbackUrl = pathname
     if (request.nextUrl.search) {
       callbackUrl += request.nextUrl.search
@@ -39,7 +62,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/auth?callbackUrl=${encodedCallbackUrl}`, request.url))
   }
 
-  return NextResponse.next()
+  return supabaseResponse
 }
 
 export const config = {
