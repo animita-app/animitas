@@ -27,7 +27,6 @@ export async function GET(
         _count: {
           select: {
             memorialsCreated: true,
-            listsCreated: true,
             candles: true
           }
         }
@@ -49,7 +48,6 @@ export async function GET(
       updatedAt: user.updatedAt,
       stats: {
         memorialsCreated: user._count.memorialsCreated,
-        listsCreated: user._count.listsCreated,
         candles: user._count.candles
       }
     }

@@ -56,7 +56,6 @@ export const API_ENDPOINTS = {
   ADMIN: {
     USERS: '/api/admin/users',
     MEMORIALS: '/api/admin/memorials',
-    LISTS: '/api/admin/lists'
   }
 } as const
 
@@ -150,8 +149,7 @@ export const ROUTES = {
     CREATE_MEMORIAL: '/memorial/create',
     ADMIN: '/admin',
     ADMIN_USERS: '/admin?tab=users',
-    ADMIN_MEMORIALS: '/admin?tab=memorials',
-    ADMIN_LISTS: '/admin?tab=lists'
+    ADMIN_MEMORIALS: '/admin?tab=memorials'
   }
 } as const
 

@@ -42,23 +42,7 @@ export async function GET(req: NextRequest) {
         }
       })
 
-      const lists = await prisma.memorialList.findMany({
-        where: { createdById: user.id },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          thumbnailPicture: true,
-          _count: {
-            select: {
-              items: true,
-              saves: true
-            }
-          }
-        }
-      })
-
-      return NextResponse.json({ user, memorials, lists })
+      return NextResponse.json({ user, memorials })
     }
 
     const session = await auth()

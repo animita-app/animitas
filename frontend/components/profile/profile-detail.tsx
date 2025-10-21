@@ -17,7 +17,6 @@ interface ProfileDetailProps {
     image?: string
     stats?: {
       memorialsCreated: number
-      listsCreated: number
       candles: number
     }
     createdAt?: string
@@ -52,10 +51,7 @@ export function ProfileDetail({ user }: ProfileDetailProps) {
             <p className="text-lg font-semibold">{user.stats.memorialsCreated}</p>
             <p className="text-muted-foreground">Memorials</p>
           </div>
-          <div className="text-center">
-            <p className="text-lg font-semibold">{user.stats.listsCreated}</p>
-            <p className="text-muted-foreground">Lists</p>
-          </div>
+
           <div className="text-center">
             <p className="text-lg font-semibold">{user.stats.candles}</p>
             <p className="text-muted-foreground">Candles</p>

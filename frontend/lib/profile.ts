@@ -47,18 +47,11 @@ export function getUserDisplayInfo(
 
 export interface ProfileStats {
   memorialsCreated: number
-  listsCreated: number
   candles: number
 }
 
 export async function fetchUserMemorials(userId: string) {
   const response = await fetch(`/api/memorials?userId=${userId}`)
   if (!response.ok) throw new Error('Failed to fetch memorials')
-  return response.json()
-}
-
-export async function fetchUserLists(userId: string) {
-  const response = await fetch(`/api/lists?userId=${userId}`)
-  if (!response.ok) throw new Error('Failed to fetch lists')
   return response.json()
 }

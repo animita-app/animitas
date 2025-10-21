@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ListSection } from '@/components/animita/list-section'
 import {
   Drawer,
   DrawerContent,
@@ -47,11 +46,7 @@ export default function MapaPage() {
         <DrawerHeader className="text-center pt-2 *:font-medium">
           <DrawerTitle>{memorials.length} animitas</DrawerTitle>
         </DrawerHeader>
-        <ListSection title="Recién añadidos" memorials={memorials} />
-        <ListSection
-          title="Más populares"
-          memorials={memorials.slice().reverse()}
-        />
+
       </DrawerContent>
     </Drawer>
   )
