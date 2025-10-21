@@ -290,7 +290,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId }: Map
       lastFocusedIdRef.current = null
       setIsMapReady(false)
     }
-  }, [accessToken, style, focusMemorial, centerOffset])
+  }, [accessToken, style, focusMemorial])
 
   useEffect(() => {
     let cancelled = false
