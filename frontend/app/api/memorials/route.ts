@@ -13,15 +13,18 @@ export async function GET(_request: NextRequest) {
     const { data: memorials, error: memorialsError } = await supabase
       .from('memorials')
       .select('*')
-      .order('createdAt', { ascending: false })
 
-    if (memorialsError || !memorials) {
+    if (memorialsError) {
+      console.log('[MEMORIALS] Error:', memorialsError)
       return NextResponse.json({ memorials: [] })
     }
 
-    if (memorials.length === 0) {
+    if (!memorials) {
+      console.log('[MEMORIALS] No memorials returned')
       return NextResponse.json({ memorials: [] })
     }
+
+    console.log('[MEMORIALS] Found', memorials.length, 'memorials')
 
     const memorialIds = memorials.map((m: any) => m.id)
 
@@ -75,7 +78,9 @@ export async function GET(_request: NextRequest) {
 
     return NextResponse.json({ memorials: enrichedMemorials })
   } catch (error) {
-    console.error('Error in /api/memorials:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

@@ -15,8 +15,8 @@ export default function MemorialPage() {
   const { id } = params
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(true)
-  const [snap, setSnap] = useState<string | number | null>('720px')
-  const snapPoints = ['720px', 1]
+  const [snap, setSnap] = useState<string | number | null>('640px')
+  const snapPoints = ['640px', 1]
   const [drawerHeight, setDrawerHeight] = useState(0)
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || FALLBACK_MAPBOX_TOKEN
 

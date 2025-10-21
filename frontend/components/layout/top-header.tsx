@@ -27,11 +27,10 @@ export function TopHeader() {
 
     const fetchMemorialData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-        const response = await fetch(`${apiUrl}/api/memorials/${animitaId}`)
+        const response = await fetch(`/api/memorials/${animitaId}`)
         if (response.ok) {
           const data = await response.json()
-          const memorial = data.memorial || data
+          const memorial = data.memorial
           const people = memorial.people || []
           const names = people.map((p: any) => p.name).filter(Boolean)
           const displayName = names.length > 0 ? names.join(', ') : memorial.name || ''

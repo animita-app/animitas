@@ -77,7 +77,7 @@ type MemorialDetailResponse = {
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1200&q=80'
 
-export function MemorialDetail({ id }: { id: string }) {
+export function MemorialDetail({ id, drawerHeight }: { id: string; drawerHeight?: number }) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'testimonios' | 'historia'>('testimonios')
   const [isLoading, setIsLoading] = useState(true)
@@ -112,6 +112,7 @@ export function MemorialDetail({ id }: { id: string }) {
       cancelled = true
     }
   }, [id])
+
 
   const mainImage = memorial?.people?.[0]?.image ?? FALLBACK_IMAGE
   const activeCandles = useMemo(
@@ -213,194 +214,22 @@ export function MemorialDetail({ id }: { id: string }) {
         </div>
       </div>
 
+      <p className="text-sm">
+        {memorial.story}
+      </p>
 
-      <div className="flex items-center gap-3 pb-3 pt-3 border-b border-b-border-weak">
-        {/* <Image
+      {/* <div className="flex items-center gap-3 pb-3 pt-3 border-b border-b-border-weak">
+        <Image
           src={mainImage}
           alt={memorial.name}
           width={32}
           height={32}
           className="size-8 object-cover object-center rounded-full"
-        /> */}
+        />
 
         <p className="text-sm">
           {memorial.createdBy?.displayName ?? 'Memorial colectivo'}
         </p>
-      </div>
-
-      {/* <LightCandleModal
-        open={showCandleModal}
-        onOpenChange={setShowCandleModal}
-        memorialId={id}
-        onSubmit={async (data) => {
-          const response = await fetch('/api/candles', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              memorialId: id,
-              ...data.candleStyle,
-              testimony: data.testimony,
-              duration: data.duration,
-              isAnonymous: data.isAnonymous,
-            }),
-          })
-
-          if (!response.ok) {
-            throw new Error('No pudimos prender la vela')
-          }
-
-          const memorialResponse = await fetch(`/api/memorials/${id}`)
-          if (memorialResponse.ok) {
-            const payload: MemorialDetailResponse = await memorialResponse.json()
-            setMemorial(payload.memorial)
-          }
-        }}
-      /> */}
-
-      {/* <div className="">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="relative h-28 w-28 overflow-hidden rounded-full border border-white/30 shadow-lg">
-            <img
-              src={mainImage}
-              alt={memorial.name}
-              className="h-full w-full object-cover object-center"
-            />
-          </div>
-          <div className="space-y-0.5">
-            <h2 className="text-2xl font-semibold tracking-tight">{memorial.name}</h2>
-            <p className="text-sm uppercase tracking-[0.3em]/70">
-              {memorial.createdBy?.name ?? 'Memorial colectivo'}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-3 text-xs uppercase tracking-[0.3em]/70">
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5" />
-              {memorial.coordinates[1].toFixed(2)}°S · {memorial.coordinates[0].toFixed(2)}°W
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Clock3 className="h-3.5 w-3.5" />
-              desde {new Date(memorial.createdAt).getFullYear()}
-            </span>
-          </div>
-
-          <Button className="mt-2 h-12 rounded-full border border-white/40 bg-white/20 px-10 text-xs uppercase tracking-[0.4em] shadow-[0_8px_30px_rgba(0,0,0,0.25)] hover:bg-white/30">
-            PRÉNDE UNA VELA
-          </Button>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <StatPill
-            icon={<Flame className="h-3.5 w-3.5" />}
-            label="Velas activas"
-            value={String(activeCandles.length)}
-          />
-          <StatPill
-            icon={<Wand2 className="h-3.5 w-3.5" />}
-            label="Velas totales"
-            value={String(totalCandles)}
-          />
-          <StatPill
-            icon={<Sparkles className="h-3.5 w-3.5" />}
-            label="Testimonios"
-            value={String(testimonies.length)}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-6 px-6 pb-10">
-        <div className="relative mt-6 overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-inner">
-          <img
-            src={mainImage}
-            alt={`Vista del memorial ${memorial.name}`}
-            className="h-64 w-full object-cover object-center"
-          />
-        </div>
-
-        <div className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 p-1 text-sm uppercase tracking-[0.35em]/70">
-          <button
-            type="button"
-            onClick={() => setActiveTab('testimonios')}
-            className={`flex-1 rounded-full py-3 transition ${
-              activeTab === 'testimonios'
-                ? 'bg-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.25)]'
-                : 'hover:bg-white/10'
-            }`}
-          >
-            Testimonios
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('historia')}
-            className={`flex-1 rounded-full py-3 transition ${
-              activeTab === 'historia'
-                ? 'bg-white/20 shadow-[0_6px_20px_rgba(0,0,0,0.25)]'
-                : 'hover:bg-white/10'
-            }`}
-          >
-            Historia
-          </button>
-        </div>
-
-        {activeCandles.length > 0 ? (
-          <div className="space-y-3 rounded-3xl border border-white/15 bg-white/6 p-5 shadow-inner">
-            {activeCandles.map((candle) => (
-              <div
-                key={candle.id}
-                className="flex items-center justify-between rounded-2xl bg-white/8 px-4 py-3 text-xs uppercase tracking-[0.3em]/80"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#ffb347] text-[#2f2b2a] shadow">
-                    <Flame className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="font-semibold">
-                    {candle.user?.name ?? 'Anónimo'}
-                  </span>
-                </div>
-                <span className="text-white">{formatCountdown(candle.expiresAt)}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-5 text-sm/70">
-            No hay velas activas por ahora. ¡Sé la primera persona en prender una!
-          </div>
-        )}
-
-        {activeTab === 'historia' ? (
-          <div className="space-y-4 rounded-3xl border border-white/10 bg-white/6 px-6 py-6 leading-relaxed/80">
-            <p>{memorial.story ?? 'Aún no registramos la historia completa de esta animita.'}</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {testimonies.length === 0 ? (
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-6 py-6 text-sm/70">
-                Sé la primera persona en dejar un testimonio para este memorial.
-              </div>
-            ) : (
-              testimonies.map((testimony) => (
-                <article
-                  key={testimony.id}
-                  className="space-y-4 rounded-3xl border border-white/12 bg-white/6 px-6 py-6 shadow-lg shadow-black/20"
-                >
-                  <header className="flex items-center justify-between text-xs uppercase tracking-[0.32em]/70">
-                    <span>{testimony.user?.name ?? 'Anónimo'}</span>
-                    <span>{formatRelative(testimony.createdAt)}</span>
-                  </header>
-                  <p className="whitespace-pre-line text-base leading-7 tracking-wide/90">
-                    {testimony.content}
-                  </p>
-                  <footer className="flex items-center gap-3 text-xs uppercase tracking-[0.3em]/60">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/8 px-3 py-1">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {testimony.hasCandle ? 'Con vela' : 'Sin vela'}
-                    </span>
-                  </footer>
-                </article>
-              ))
-            )}
-          </div>
-        )}
       </div> */}
     </>
   )

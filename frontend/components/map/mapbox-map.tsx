@@ -59,33 +59,23 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       coordinates: [number, number],
       options?: {
         shouldNavigate?: boolean
-        padding?: { top?: number; bottom?: number; left?: number; right?: number }
         instant?: boolean
       }
     ) => {
-      const { shouldNavigate = true, padding, instant = false } = options ?? {}
+      const { shouldNavigate = true, instant = false } = options ?? {}
       const mapInstance = map.current
       if (!mapInstance) return
 
-      let finalPadding = padding
-      if (padding?.bottom && mapContainer.current) {
-        const mapHeight = mapContainer.current.clientHeight
-        const drawerHeight = padding.bottom
-        const topPadding = mapHeight - drawerHeight / 2
-        finalPadding = {
-          top: 0,
-          bottom: topPadding + 32,
-          left: padding.left ?? 0,
-          right: padding.right ?? 0
-        }
-      } else if (mapContainer.current && !padding?.bottom) {
-        finalPadding = {
-          top: 0,
-          bottom: 32,
-          left: padding?.left ?? 0,
-          right: padding?.right ?? 0
-        }
+      const drawerHeight = 720/1.75;
+
+      const padding = {
+        top: 0,
+        bottom: drawerHeight,
+        left: 0,
+        right: 0
       }
+
+      mapInstance.resize()
 
       if (instant) {
         mapInstance.jumpTo({
@@ -93,7 +83,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           zoom: TARGET_ZOOM,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          padding: finalPadding
+          padding
         })
       } else {
         const currentZoom = mapInstance.getZoom()
@@ -103,22 +93,21 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           mapInstance.flyTo({
             center: coordinates,
             zoom: TARGET_ZOOM,
-            speed: 1.2,
-            curve: 1.4,
+            speed: 2,
+            curve: 1.2,
             bearing: mapInstance.getBearing(),
             pitch: mapInstance.getPitch(),
-            padding: finalPadding,
+            padding,
             essential: true
           })
         } else {
           mapInstance.easeTo({
             center: coordinates,
             zoom: Math.max(currentZoom, TARGET_ZOOM - 1),
-            speed: 1.2,
-            curve: 1.4,
+            duration: 400,
             bearing: mapInstance.getBearing(),
             pitch: mapInstance.getPitch(),
-            padding: finalPadding,
+            padding,
             essential: true
           })
         }
@@ -593,16 +582,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     )
   }, [focusedMemorialId, memorials, isMapReady, focusMemorial, isModal])
 
-  useEffect(() => {
-    const handleFocusMemorial = (event: Event) => {
-      const customEvent = event as CustomEvent
-      const { memorialId, coordinates, padding } = customEvent.detail
-      focusMemorial(memorialId, coordinates, { shouldNavigate: false, padding })
-    }
-
-    window.addEventListener('focusMemorial', handleFocusMemorial)
-    return () => window.removeEventListener('focusMemorial', handleFocusMemorial)
-  }, [focusMemorial])
 
   return <div ref={mapContainer} className="h-full w-full" />
 }
