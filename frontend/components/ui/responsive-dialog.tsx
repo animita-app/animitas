@@ -24,6 +24,9 @@ type ResponsiveDialogProps = {
   description?: string
   children: React.ReactNode
   className?: string
+  snapPoints?: (string | number)[]
+  activeSnapPoint?: string | number | null
+  setActiveSnapPoint?: (point: string | number | null) => void
 }
 
 export function ResponsiveDialog({
@@ -33,6 +36,9 @@ export function ResponsiveDialog({
   description,
   children,
   className,
+  snapPoints,
+  activeSnapPoint,
+  setActiveSnapPoint,
 }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)")
   const [drawerOpen, setDrawerOpen] = React.useState(open)
@@ -80,7 +86,13 @@ export function ResponsiveDialog({
   }
 
   return (
-    <Drawer open={drawerOpen} onOpenChange={handleDrawerOpenChange}>
+    <Drawer
+      open={drawerOpen}
+      onOpenChange={handleDrawerOpenChange}
+      snapPoints={snapPoints}
+      activeSnapPoint={activeSnapPoint}
+      setActiveSnapPoint={setActiveSnapPoint}
+    >
       <DrawerContent className={`view-transition-fade ${className || ""}`}>
         <DrawerHeader className="sr-only">
           <DrawerTitle>{title}</DrawerTitle>

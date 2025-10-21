@@ -28,8 +28,8 @@ async function getMemorials() {
 
 export default function MapaPage() {
   const [memorials, setMemorials] = useState<any[]>([])
-  const [snap, setSnap] = useState<string | number | null>('96px')
-  const snapPoints = ['96px', 1]
+  const [snap, setSnap] = useState<string | number | null>('128px')
+  const snapPoints = ['128px', 1]
 
   useEffect(() => {
     getMemorials().then(data => setMemorials(data))
@@ -44,8 +44,8 @@ export default function MapaPage() {
       setActiveSnapPoint={setSnap}
     >
       <DrawerContent>
-        <DrawerHeader className="sr-only text-center pt-2 *:font-normal">
-          <DrawerTitle>Todas las animitas</DrawerTitle>
+        <DrawerHeader className="text-center pt-2 *:font-medium">
+          <DrawerTitle>{memorials.length} animitas</DrawerTitle>
         </DrawerHeader>
         <ListSection title="Recién añadidos" memorials={memorials} />
         <ListSection
