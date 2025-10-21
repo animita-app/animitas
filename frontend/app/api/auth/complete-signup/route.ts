@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
@@ -36,15 +36,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[COMPLETE-SIGNUP] Looking up user by phone in Supabase')
-    const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+    console.log('[COMPLETE-SIGNUP] Looking up user by phone via admin API')
+    const { data: existingAuthUser, error: lookupError } = await supabaseAdmin.auth.admin.getUserByPhoneNumber(phone)
 
-    console.log('[COMPLETE-SIGNUP] List users response:', {
-      totalUsers: users?.length,
-      error: listError,
+    console.log('[COMPLETE-SIGNUP] User lookup response:', {
+      userId: existingAuthUser?.user?.id,
+      phone: existingAuthUser?.user?.phone,
+      error: lookupError,
     })
-
-    const existingAuthUser = users?.find(u => u.phone === phone)
 
     let userId: string
 
@@ -64,8 +63,8 @@ export async function POST(request: NextRequest) {
         console.error('[COMPLETE-SIGNUP] Failed to update user metadata:', updateError)
         throw new Error('Failed to update user metadata')
       }
-    } else {
-      console.log('[COMPLETE-SIGNUP] Creating new auth user in Supabase')
+    } else if (lookupError) {
+      console.log('[COMPLETE-SIGNUP] User not found, creating new auth user')
       const { data: newAuthUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
         phone,
         phone_confirm: true,
@@ -86,6 +85,9 @@ export async function POST(request: NextRequest) {
       }
 
       userId = newAuthUser.user.id
+    } else {
+      console.error('[COMPLETE-SIGNUP] Unexpected state: user not found and no lookup error')
+      throw new Error('Failed to find or create user')
     }
 
     console.log('[COMPLETE-SIGNUP] Upserting user in database')
