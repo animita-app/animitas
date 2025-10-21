@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm install",
+  "framework": "express",
+  "public": ".",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/src/server.js"
+    }
+  ]
+}
