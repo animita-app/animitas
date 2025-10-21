@@ -35,12 +35,11 @@ export function ResponsiveDialog({
   className,
 }: ResponsiveDialogProps) {
   const isDesktop = useMediaQuery("(min-width: 1024px)")
-  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  const [drawerOpen, setDrawerOpen] = React.useState(open)
 
   React.useEffect(() => {
-    if (isDesktop) return
     setDrawerOpen(open)
-  }, [open, isDesktop])
+  }, [open])
 
   const handleDrawerOpenChange = React.useCallback(
     (nextOpen: boolean) => {

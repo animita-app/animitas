@@ -35,10 +35,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  modal,
 }: {
   children: React.ReactNode
-  modal: React.ReactNode
 }) {
   return (
     <html lang="es">
@@ -62,7 +60,7 @@ export default function RootLayout({
             <rect width="100%" height="100%" filter="url(#mono-noise-filter)" fill="#000000" opacity="35%" />
           </svg>
         </div>
-        <Providers session={null} modal={modal}>
+        <Providers session={null}>
           {children}
           <CreateMemorialButton />
         </Providers>
