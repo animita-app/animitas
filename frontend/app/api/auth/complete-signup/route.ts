@@ -28,7 +28,17 @@ export async function POST(request: NextRequest) {
       error: listError,
     })
 
-    const supabaseUser = users?.find(u => u.phone === phone)
+    const normalizedPhone = phone.replace(/^\+/, '')
+    console.log('[COMPLETE-SIGNUP] Searching for phone:', normalizedPhone, 'original:', phone)
+
+    const supabaseUser = users?.find(u => {
+      const authPhone = (u.phone || '').replace(/^\+/, '')
+      return authPhone === normalizedPhone
+    })
+
+    if (users && users.length > 0) {
+      console.log('[COMPLETE-SIGNUP] Available auth users:', users.map(u => ({ id: u.id, phone: u.phone })))
+    }
 
     if (!supabaseUser) {
       console.error('[COMPLETE-SIGNUP] User not found in Supabase')
