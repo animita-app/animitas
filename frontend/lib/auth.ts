@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
+import sql from '../lib/neon'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -16,38 +17,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid SMS credentials')
         }
 
-        // const verificationCode = await prisma.verificationCode.findFirst({
-        //   where: {
-        //     phone: credentials.phone as string,
-        //     code: credentials.code as string,
-        //     expiresAt: { gt: new Date() },
-        //   },
-        // })
+        const verificationCodes = await sql`SELECT * FROM "VerificationCode" WHERE phone = ${credentials.phone as string} AND code = ${credentials.code as string} AND "expiresAt" > NOW() LIMIT 1`
+        const verificationCode = verificationCodes[0]
 
-        // if (!verificationCode) {
-        //   throw new Error('Invalid or expired code')
-        // }
+        if (!verificationCode) {
+          throw new Error('Invalid or expired code')
+        }
 
-        // const user = await prisma.user.findUnique({
-        //   where: { phone: credentials.phone as string },
-        // })
+        const users = await sql`SELECT * FROM "User" WHERE phone = ${credentials.phone as string} LIMIT 1`
+        const user = users[0]
 
-        // if (!user) {
-        //   throw new Error('User not found')
-        // }
+        if (!user) {
+          throw new Error('User not found')
+        }
 
-        // await prisma.verificationCode.delete({
-        //   where: { id: verificationCode.id },
-        // })
+        await sql`DELETE FROM "VerificationCode" WHERE id = ${verificationCode.id}`
 
-        // return {
-        //   id: user.id,
-        //   email: user.email || '',
-        //   username: user.username || '',
-        //   name: user.displayName || user.username || '',
-        //   image: user.image,
-        // } as any
-        throw new Error('SMS authentication is not configured for Edge environment')
+        return {
+          id: user.id,
+          email: user.email || '',
+          username: user.username || '',
+          name: user.displayName || user.username || '',
+          image: user.image,
+        } as any
       },
     }),
     Credentials({
@@ -60,31 +52,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid credentials')
         }
 
-        // const user = await prisma.user.findUnique({
-        //   where: { email: credentials.email as string },
-        // })
+        const users = await sql`SELECT * FROM "User" WHERE email = ${credentials.email as string} LIMIT 1`
+        const user = users[0]
 
-        // if (!user || !user.password) {
-        //   throw new Error('Invalid credentials')
-        // }
+        if (!user || !user.password) {
+          throw new Error('Invalid credentials')
+        }
 
-        // const isPasswordValid = await bcrypt.compare(
-        //   credentials.password as string,
-        //   user.password
-        // )
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password as string,
+          user.password
+        )
 
-        // if (!isPasswordValid) {
-        //   throw new Error('Invalid credentials')
-        // }
+        if (!isPasswordValid) {
+          throw new Error('Invalid credentials')
+        }
 
-        // return {
-        //   id: user.id,
-        //   email: user.email || '',
-        //   username: user.username || '',
-        //   name: user.displayName || user.username || '',
-        //   image: user.image,
-        // } as any
-        throw new Error('Email/Password authentication is not configured for Edge environment')
+        return {
+          id: user.id,
+          email: user.email || '',
+          username: user.username || '',
+          name: user.displayName || user.username || '',
+          image: user.image,
+        } as any
       },
     }),
   ],
