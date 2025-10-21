@@ -10,7 +10,6 @@ interface MapboxMapProps {
   accessToken: string
   style?: string
   focusedMemorialId?: string | null
-  centerOffset?: [number, number]
 }
 
 const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
@@ -37,7 +36,7 @@ const CLUSTER_CONFIG = {
 const PROFILE_ZOOM_THRESHOLD = 8
 const TARGET_ZOOM = 15.5
 
-export default function MapboxMap({ accessToken, style, focusedMemorialId, centerOffset }: MapboxMapProps) {
+export default function MapboxMap({ accessToken, style, focusedMemorialId }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<mapboxgl.Map | null>(null)
   const [memorials, setMemorials] = useState<FeatureCollection<Point>>(EMPTY_MEMORIALS)
@@ -62,9 +61,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
 
       const currentZoom = mapInstance.getZoom()
       const canViewProfile = currentZoom >= PROFILE_ZOOM_THRESHOLD
-      const offset = centerOffset && centerOffset[0] !== undefined && centerOffset[1] !== undefined
-        ? centerOffset
-        : [0, 0]
 
       if (!canViewProfile) {
         mapInstance.flyTo({
@@ -74,7 +70,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
           curve: 1.4,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          offset,
           essential: true
         })
       } else {
@@ -85,7 +80,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
           curve: 1.4,
           bearing: mapInstance.getBearing(),
           pitch: mapInstance.getPitch(),
-          offset,
           essential: true
         })
       }
@@ -94,7 +88,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, cente
         router.push(`/animita/${memorialId}`)
       }
     },
-    [router, centerOffset]
+    [router]
   )
 
   useEffect(() => {
