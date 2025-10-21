@@ -1,11 +1,8 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma) as any,
   providers: [
     Credentials({
       id: 'sms',
@@ -19,37 +16,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid SMS credentials')
         }
 
-        const verificationCode = await prisma.verificationCode.findFirst({
-          where: {
-            phone: credentials.phone as string,
-            code: credentials.code as string,
-            expiresAt: { gt: new Date() },
-          },
-        })
+        // const verificationCode = await prisma.verificationCode.findFirst({
+        //   where: {
+        //     phone: credentials.phone as string,
+        //     code: credentials.code as string,
+        //     expiresAt: { gt: new Date() },
+        //   },
+        // })
 
-        if (!verificationCode) {
-          throw new Error('Invalid or expired code')
-        }
+        // if (!verificationCode) {
+        //   throw new Error('Invalid or expired code')
+        // }
 
-        const user = await prisma.user.findUnique({
-          where: { phone: credentials.phone as string },
-        })
+        // const user = await prisma.user.findUnique({
+        //   where: { phone: credentials.phone as string },
+        // })
 
-        if (!user) {
-          throw new Error('User not found')
-        }
+        // if (!user) {
+        //   throw new Error('User not found')
+        // }
 
-        await prisma.verificationCode.delete({
-          where: { id: verificationCode.id },
-        })
+        // await prisma.verificationCode.delete({
+        //   where: { id: verificationCode.id },
+        // })
 
-        return {
-          id: user.id,
-          email: user.email || '',
-          username: user.username || '',
-          name: user.displayName || user.username || '',
-          image: user.image,
-        } as any
+        // return {
+        //   id: user.id,
+        //   email: user.email || '',
+        //   username: user.username || '',
+        //   name: user.displayName || user.username || '',
+        //   image: user.image,
+        // } as any
+        throw new Error('SMS authentication is not configured for Edge environment')
       },
     }),
     Credentials({
@@ -62,30 +60,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid credentials')
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        })
+        // const user = await prisma.user.findUnique({
+        //   where: { email: credentials.email as string },
+        // })
 
-        if (!user || !user.password) {
-          throw new Error('Invalid credentials')
-        }
+        // if (!user || !user.password) {
+        //   throw new Error('Invalid credentials')
+        // }
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        )
+        // const isPasswordValid = await bcrypt.compare(
+        //   credentials.password as string,
+        //   user.password
+        // )
 
-        if (!isPasswordValid) {
-          throw new Error('Invalid credentials')
-        }
+        // if (!isPasswordValid) {
+        //   throw new Error('Invalid credentials')
+        // }
 
-        return {
-          id: user.id,
-          email: user.email || '',
-          username: user.username || '',
-          name: user.displayName || user.username || '',
-          image: user.image,
-        } as any
+        // return {
+        //   id: user.id,
+        //   email: user.email || '',
+        //   username: user.username || '',
+        //   name: user.displayName || user.username || '',
+        //   image: user.image,
+        // } as any
+        throw new Error('Email/Password authentication is not configured for Edge environment')
       },
     }),
   ],
