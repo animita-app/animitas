@@ -35,6 +35,7 @@ const CLUSTER_CONFIG = {
 
 const PROFILE_ZOOM_THRESHOLD = 8
 const TARGET_ZOOM = 15.5
+const FALLBACK_PERSON_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E7EB" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="40" fill="%239CA3AF" text-anchor="middle" dy=".3em"%3E?%3C/text%3E%3C/svg%3E'
 
 export default function MapboxMap({ accessToken, style, focusedMemorialId }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)

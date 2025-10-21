@@ -119,13 +119,14 @@ export function downloadFile(url: string, filename: string): void {
   document.body.removeChild(link)
 }
 
-export function shareContent(data: {
+export async function shareContent(data: {
   title?: string
   text?: string
   url?: string
 }): Promise<void> {
   if (!navigator.share) {
-    return copyToClipboard(data.url || window.location.href)
+    await copyToClipboard(data.url || window.location.href)
+    return
   }
 
   return navigator.share(data).catch((error) => {

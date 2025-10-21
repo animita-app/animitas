@@ -42,7 +42,7 @@ interface MemorialFormData {
   customName: string
   latitude: string
   longitude: string
-  story: string
+  story?: string
   people: Array<{
     name: string
     birthDate?: Date

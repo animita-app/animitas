@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     Credentials({
       id: 'sms',
@@ -45,11 +45,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return {
           id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.displayName || user.username,
+          email: user.email || '',
+          username: user.username || '',
+          name: user.displayName || user.username || '',
           image: user.image,
-        }
+        } as any
       },
     }),
     Credentials({
@@ -81,11 +81,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         return {
           id: user.id,
-          email: user.email,
-          username: user.username,
-          name: user.displayName || user.username,
+          email: user.email || '',
+          username: user.username || '',
+          name: user.displayName || user.username || '',
           image: user.image,
-        }
+        } as any
       },
     }),
   ],

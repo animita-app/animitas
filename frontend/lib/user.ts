@@ -1,4 +1,4 @@
-
+import { Session } from 'next-auth'
 import { apiFetch } from './api'
 
 export interface UserProfile {
@@ -27,7 +27,7 @@ export function getUserFromSession(session: Session | null): UserProfile | null 
     profilePicture: session.user.image || (session.user as any).profilePicture || null,
     role: (session as any).role || 'FREE',
     phoneVerified: (session.user as any).phoneVerified || null,
-    emailVerified: session.user.emailVerified || null,
+    emailVerified: (session.user as any).emailVerified || null,
     createdAt: (session.user as any).createdAt || new Date().toISOString(),
     updatedAt: (session.user as any).updatedAt || new Date().toISOString()
   }
