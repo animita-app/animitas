@@ -39,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={ibmPlexMono.className}>
+      <body className={ibmPlexMono.variable}>
         <div className="pointer-events-none fixed inset-0 z-[999999]">
           <svg className="h-full w-full" preserveAspectRatio="none">
             <filter id="mono-noise-filter">
