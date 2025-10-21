@@ -55,7 +55,8 @@ export async function GET(
     }
 
     return NextResponse.json(mappedUser)
-  } catch {
+  } catch (error) {
+    console.error('Error in /api/users/[param]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

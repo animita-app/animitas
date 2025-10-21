@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
       success: true,
     })
   } catch (error) {
+    console.error('Error in /api/auth/send-code:', error)
     return NextResponse.json(
       { error: 'Failed to send verification code' },
       { status: 500 }

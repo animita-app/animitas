@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ memorials: mapped })
   } catch (error) {
+    console.error('Error in /api/memorials:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
