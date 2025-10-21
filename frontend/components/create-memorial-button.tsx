@@ -2,14 +2,11 @@
 
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import Link from 'next/link';
 
 export function CreateMemorialButton() {
-  const pathname = usePathname()
-  const { status } = useSession()
+  const pathname = usePathname();
 
-  if (status === 'unauthenticated') return null
   if (pathname.startsWith("/create-memorial") || pathname.startsWith("/auth")) return null;
 
   return (

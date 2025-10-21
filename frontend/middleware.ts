@@ -3,7 +3,6 @@ import { getToken } from 'next-auth/jwt'
 
 const publicRoutes = ['/auth', '/api/auth/register']
 const authRoutes = ['/auth']
-const protectedRoutes = ['/create-memorial']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -16,7 +15,6 @@ export async function middleware(request: NextRequest) {
 
   const isPublicRoute = publicRoutes.includes(pathname)
   const isAuthRoute = authRoutes.includes(pathname)
-  const isProtectedRoute = protectedRoutes.includes(pathname)
 
   const token = await getToken({ req: request, secret })
 
@@ -27,7 +25,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (!token && isProtectedRoute) {
+  if (!token && !isPublicRoute) {
     let callbackUrl = pathname
     if (request.nextUrl.search) {
       callbackUrl += request.nextUrl.search

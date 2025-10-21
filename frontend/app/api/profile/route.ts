@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
+
 export async function GET(req: NextRequest) {
   const username = req.nextUrl.searchParams.get('username')
   const userId = req.nextUrl.searchParams.get('userId')
