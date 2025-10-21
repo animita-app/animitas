@@ -2,11 +2,12 @@
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Create users table with proper foreign key to auth.users
--- Using camelCase for column names (as it was working before)
+-- Using snake_case for database columns (display_name)
+-- But auth.user_metadata stores as camelCase (displayName)
 CREATE TABLE users (
   id UUID NOT NULL PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   phone TEXT UNIQUE,
-  displayName TEXT,
+  display_name TEXT,
   username TEXT UNIQUE,
   image TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
