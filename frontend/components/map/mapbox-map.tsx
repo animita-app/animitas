@@ -1,11 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createRoot } from 'react-dom/client'
 import { useRouter } from 'next/navigation'
 import type { FeatureCollection, Point } from 'geojson'
 import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { MemorialPopup } from './memorial-popup'
 
 interface MapboxMapProps {
   accessToken: string
@@ -51,6 +53,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const profileMarkers = useRef<Map<string, mapboxgl.Marker>>(new Map())
   const profileViewState = useRef(false)
   const lastFocusedIdRef = useRef<string | null>(null)
+  const memorialDataRef = useRef<Map<string, any>>(new Map())
+  const popupRef = useRef<mapboxgl.Popup | null>(null)
   const router = useRouter()
 
   const focusMemorial = useCallback(
@@ -254,10 +258,32 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         if (!feature || feature.geometry.type !== 'Point') return
 
         const id = feature.properties?.id
-        if (typeof id !== 'string') return
+        const name = feature.properties?.name
+        if (typeof id !== 'string' || typeof name !== 'string') return
 
+        const memorial = memorialDataRef.current.get(id)
+        const images = memorial?.images || []
         const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
-        focusMemorial(id, coordinates)
+
+        if (popupRef.current) {
+          popupRef.current.remove()
+        }
+
+        const popupContainer = document.createElement('div')
+        popupContainer.className = 'bg-white rounded-lg'
+        const root = createRoot(popupContainer)
+        root.render(<MemorialPopup images={images} name={name} />)
+
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setLngLat(coordinates)
+          .setDOMContent(popupContainer)
+          .addTo(mapInstance)
+
+        popupRef.current = popup
+
+        setTimeout(() => {
+          focusMemorial(id, coordinates)
+        }, 300)
       }
 
       const handleClusterClick = (event: mapboxgl.MapMouseEvent) => {
@@ -381,19 +407,22 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
         if (cancelled) return
 
-        const features = animitas.map((animita) => ({
-          type: 'Feature' as const,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [animita.lng, animita.lat] as [number, number]
-          },
-          properties: {
-            id: animita.id,
-            name: animita.name,
-            image: animita.images[0] || null,
-            story: animita.story
+        const features = animitas.map((animita) => {
+          memorialDataRef.current.set(animita.id, animita)
+          return {
+            type: 'Feature' as const,
+            geometry: {
+              type: 'Point' as const,
+              coordinates: [animita.lng, animita.lat] as [number, number]
+            },
+            properties: {
+              id: animita.id,
+              name: animita.name,
+              image: animita.images[0] || null,
+              story: animita.story
+            }
           }
-        }))
+        })
 
         const geojson: FeatureCollection<Point> = {
           type: 'FeatureCollection',
