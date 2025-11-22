@@ -3,9 +3,20 @@ import { useRouter } from 'next/navigation'
 import { useForm, useFieldArray, UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { showError, showSuccess } from '@/lib/notifications'
 import { getErrorMessage } from '@/lib/utils'
-import { apiPost } from '@/lib/api'
+
+const showError = (msg: string) => {
+  console.error(msg)
+  alert(msg)
+}
+
+const showSuccess = (msg: string) => {
+  console.log(msg)
+}
+
+const apiPost = async <T = any,>(endpoint: string, data: any): Promise<T> => {
+  throw new Error('API calls not available in mockup mode')
+}
 
 type Step = 'info' | 'location' | 'story' | 'images'
 
@@ -131,21 +142,8 @@ export function useCreateMemorialForm() {
     setIsLoading(true)
 
     try {
-      const result = await apiPost<{ id: string }>('/api/memorials/create', {
-        name: memorialData.name,
-        personName: memorialData.people[0]?.name || 'Unknown',
-        latitude: parseFloat(memorialData.latitude),
-        longitude: parseFloat(memorialData.longitude),
-        story: memorialData.story || null,
-        images: memorialData.people.filter(p => p.image).map(p => p.image),
-      })
-
-      if (result.error) {
-        throw new Error(result.error)
-      }
-
-      showSuccess('¡Animita creada exitosamente!')
-      router.push(`/animita/${result.data?.id}`)
+      showError('La creación de nuevas animitas no está disponible en el mockup. Puedes ver las animitas existentes en el mapa.')
+      router.push('/')
     } catch (error) {
       const message = getErrorMessage(error)
       setApiError(message)

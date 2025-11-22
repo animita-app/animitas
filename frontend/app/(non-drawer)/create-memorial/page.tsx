@@ -7,10 +7,17 @@ import { InfoStep } from '@/components/create-memorial/info-step'
 import { StoryStep } from '@/components/create-memorial/story-step'
 import { LocationStep } from '@/components/create-memorial/location-step'
 import { SummaryStep } from '@/components/create-memorial/summary-step'
-import { uploadImage } from '@/lib/image'
-import { showError } from '@/lib/notifications'
 import { Button } from '@/components/ui/button'
-import { SubmitHandler, FieldValues } from 'react-hook-form' // Import SubmitHandler and FieldValues
+import type { SubmitHandler, FieldValues } from 'react-hook-form'
+
+const showError = (msg: string) => {
+  console.error(msg)
+  alert(msg)
+}
+
+const uploadImage = async (file: File, options?: Record<string, any>) => {
+  return URL.createObjectURL(file)
+}
 
 export default function CreateMemorialPage() {
   const router = useRouter()

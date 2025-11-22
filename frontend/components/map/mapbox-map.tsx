@@ -376,50 +376,28 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
     const fetchMemorials = async () => {
       try {
-        const response = await fetch('/api/memorials')
-        if (!response.ok) throw new Error(`Error ${response.status}`)
-
-        const payload: {
-          memorials: Array<{
-            id: string
-            name: string
-            coordinates: [number, number]
-            primaryPersonImage: string | null
-            images: Array<{ id: string; url: string }>
-            people: Array<{
-              id: string
-              name: string
-              image: string | null
-              birthDate: string | null
-              deathDate: string | null
-            }>
-            candles: number
-            story: string | null
-            createdAt: string
-          }>
-        } = await response.json()
+        const { getAllAnimitas } = await import('@/lib/mockService')
+        const animitas = await getAllAnimitas()
 
         if (cancelled) return
 
+        const features = animitas.map((animita) => ({
+          type: 'Feature' as const,
+          geometry: {
+            type: 'Point' as const,
+            coordinates: [animita.lng, animita.lat] as [number, number]
+          },
+          properties: {
+            id: animita.id,
+            name: animita.name,
+            image: animita.images[0] || null,
+            story: animita.story
+          }
+        }))
+
         const geojson: FeatureCollection<Point> = {
           type: 'FeatureCollection',
-          features: payload.memorials.map((memorial) => ({
-            type: 'Feature',
-            geometry: {
-              type: 'Point',
-              coordinates: memorial.coordinates
-            },
-            properties: {
-              id: memorial.id,
-              name: memorial.name,
-              primaryPersonImage: memorial.primaryPersonImage,
-              images: memorial.images,
-              people: memorial.people,
-              candles: memorial.candles,
-              story: memorial.story,
-              createdAt: memorial.createdAt
-            }
-          }))
+          features
         }
 
         setMemorials(geojson)
@@ -435,12 +413,14 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   }, [])
 
   useEffect(() => {
+    if (!isMapReady) return
     if (!map.current) return
+
     const source = map.current.getSource('memorials') as mapboxgl.GeoJSONSource | undefined
-    if (source) {
-      source.setData(memorials)
-    }
-  }, [memorials])
+    if (!source) return
+
+    source.setData(memorials)
+  }, [memorials, isMapReady])
 
   useEffect(() => {
     const mapInstance = map.current
@@ -476,18 +456,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       if (typeof memorialId !== 'string') continue
 
       const coordinates = feature.geometry.coordinates as [number, number]
-      const memorialName = typeof properties.name === 'string' ? properties.name : ''
-      const people = Array.isArray(properties.people) ? properties.people : []
-      const personName = people[0]?.name || ''
-      const personImage = people[0]?.image || null
-      const displayName =
-        memorialName || (personName ? `ANIMITA DE ${personName.toUpperCase()}` : 'Memorial')
-      const imageUrl =
-        memorialName
-          ? typeof properties.primaryPersonImage === 'string' && properties.primaryPersonImage
-            ? properties.primaryPersonImage
-            : FALLBACK_PERSON_IMAGE
-          : personImage || FALLBACK_PERSON_IMAGE
+      const displayName = typeof properties.name === 'string' ? properties.name : 'Memorial'
+      const imageUrl = typeof properties.image === 'string' ? properties.image : FALLBACK_PERSON_IMAGE
 
       activeIds.add(memorialId)
 

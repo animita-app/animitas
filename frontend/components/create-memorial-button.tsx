@@ -4,15 +4,11 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
 
 export function CreateMemorialButton() {
   const pathname = usePathname()
-  const { isAuthenticated, loading } = useAuth()
 
-  if (pathname.startsWith('/create-memorial') || pathname.startsWith('/auth')) return null
-  if (loading) return null
-  if (!isAuthenticated) return null
+  if (pathname.startsWith('/create-memorial')) return null
 
   return (
     <Button

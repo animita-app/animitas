@@ -1,20 +1,13 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { useAuth } from '@/hooks/use-auth'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn, getInitials } from '@/lib/utils'
-import { useFetchUser } from '@/hooks/use-fetch-user'
+import { getAnimitaById } from '@/lib/mockService'
 
 export function TopHeader() {
   const pathname = usePathname()
-  const { user } = useAuth()
   const [memorialName, setMemorialName] = useState<string>('')
-  const username = user?.user_metadata?.username
-  const { user: userData } = useFetchUser(username || null)
 
   const isInAnimita = pathname.includes('/animita/')
   const animitaId = isInAnimita ? pathname.split('/animita/')[1]?.split('/')[0] : null
@@ -27,14 +20,9 @@ export function TopHeader() {
 
     const fetchMemorialData = async () => {
       try {
-        const response = await fetch(`/api/memorials/${animitaId}`)
-        if (response.ok) {
-          const data = await response.json()
-          const memorial = data.memorial
-          const people = memorial.people || []
-          const names = people.map((p: any) => p.name).filter(Boolean)
-          const displayName = names.length > 0 ? names.join(', ') : memorial.name || ''
-          setMemorialName(displayName)
+        const animita = await getAnimitaById(animitaId)
+        if (animita) {
+          setMemorialName(animita.name)
         }
       } catch (error) {
         setMemorialName('')
@@ -57,27 +45,6 @@ export function TopHeader() {
               {memorialName}
             </p>
           </div>
-        )}
-
-        {user && user.user_metadata?.username ? (
-          <Link href={`/user/${user.user_metadata.username}`}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "p-0 group hover:!bg-border rounded-full *:*:!bg-transparent",
-                userData?.image ? "" : "*:text-black *:*:border *:*:!border-black"
-              )}>
-              <Avatar className="group-hover:bg-border">
-                {userData?.image && <AvatarImage src={userData.image} alt={userData.display_name || user.email || ''} className="object-cover" />}
-                <AvatarFallback>{getInitials(userData?.display_name || user.user_metadata?.displayName || user.email || '')}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </Link>
-        ) : (
-          <Button size="default" asChild>
-            <Link href="/auth">Únete</Link>
-          </Button>
         )}
       </div>
     </header>

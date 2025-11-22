@@ -1,37 +1,8 @@
-import { uploadImage, getImageError } from './image'
-import { showSuccess, showError } from './notifications'
-import { apiPatch } from './api'
-import { getErrorMessage } from './utils'
-
-
 export async function handleProfileImageUpload(
   file: File,
   onUpdate?: (url: string) => Promise<void>
 ): Promise<string | null> {
-  const imageError = getImageError(file)
-  if (imageError) {
-    showError(imageError)
-    return null
-  }
-
-  try {
-    const imageUrl = await uploadImage(file, { folder: 'users' })
-    const { error } = await apiPatch('/profile', { image: imageUrl })
-
-    if (error) {
-      showError(error)
-      return null
-    }
-
-    showSuccess('Profile picture updated')
-    if (onUpdate) {
-      await onUpdate(imageUrl)
-    }
-    return imageUrl
-  } catch (error) {
-    showError(getErrorMessage(error))
-    return null
-  }
+  throw new Error('Profile image upload not available in mockup mode')
 }
 
 export function getUserDisplayInfo(
@@ -51,7 +22,5 @@ export interface ProfileStats {
 }
 
 export async function fetchUserMemorials(userId: string) {
-  const response = await fetch(`/api/memorials?userId=${userId}`)
-  if (!response.ok) throw new Error('Failed to fetch memorials')
-  return response.json()
+  throw new Error('Fetching user memorials not available in mockup mode')
 }
