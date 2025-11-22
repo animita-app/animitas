@@ -42,7 +42,6 @@ const TARGET_ZOOM = 15.5
 const CLUSTER_MAX_EXPANSION_ZOOM = 18
 const CLUSTER_FIT_BOUNDS_MAX_ZOOM = 16
 const SMALL_CLUSTER_THRESHOLD = 8
-const FALLBACK_PERSON_IMAGE = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23E5E7EB" width="100" height="100"/%3E%3Ctext x="50" y="50" font-size="40" fill="%239CA3AF" text-anchor="middle" dy=".3em"%3E?%3C/text%3E%3C/svg%3E'
 
 export default function MapboxMap({ accessToken, style, focusedMemorialId, isModal = true }: MapboxMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -486,57 +485,26 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
       const coordinates = feature.geometry.coordinates as [number, number]
       const displayName = typeof properties.name === 'string' ? properties.name : 'Memorial'
-      const imageUrl = typeof properties.image === 'string' ? properties.image : FALLBACK_PERSON_IMAGE
 
       activeIds.add(memorialId)
 
       const existing = profileMarkers.current.get(memorialId)
       if (existing) {
         existing.setLngLat(coordinates)
-        const element = existing.getElement()
-        const labelEl = element.querySelector<HTMLElement>('[data-role="memorial-label"]')
-        if (labelEl) labelEl.textContent = displayName
-        const imageEl = element.querySelector<HTMLImageElement>('img[data-role="memorial-photo"]')
-        if (imageEl && imageEl.src !== imageUrl) {
-          imageEl.src = imageUrl
-        }
         continue
       }
 
       const markerElement = document.createElement('div')
-      markerElement.className =
-        'memorial-profile-marker flex cursor-pointer select-none flex-col items-center gap-2'
+      markerElement.className = 'cursor-pointer'
       markerElement.dataset.memorialId = memorialId
 
-      const textWrapper = document.createElement('div')
-      textWrapper.className = 'flex flex-col items-center gap-1'
-
-      const labelEl = document.createElement('div')
-      labelEl.dataset.role = 'memorial-label'
-      labelEl.textContent = displayName
-      labelEl.className =
-        'mb-2 text-xs font-semibold uppercase tracking-wide'
-
-      const avatarWrapper = document.createElement('div')
-      avatarWrapper.className =
-        'h-16 w-16 overflow-hidden rounded-full ring-offset-6 ring-2 ring-black'
-
-      const imageEl = document.createElement('img')
-      imageEl.dataset.role = 'memorial-photo'
-      imageEl.src = imageUrl
-      imageEl.alt = displayName
-      imageEl.className = 'h-full w-full object-cover'
-      avatarWrapper.appendChild(imageEl)
-
-      textWrapper.appendChild(labelEl)
-
-      markerElement.appendChild(textWrapper)
-      markerElement.appendChild(avatarWrapper)
-
-      markerElement.addEventListener('click', (event) => {
-        event.stopPropagation()
-        focusMemorial(memorialId, coordinates)
-      })
+      const memorial = memorialDataRef.current.get(memorialId)
+      const markerRoot = createRoot(markerElement)
+      markerRoot.render(
+        <div onClick={() => focusMemorial(memorialId, coordinates)}>
+          <MemorialPopup images={memorial?.images || []} name={displayName} />
+        </div>
+      )
 
       const marker = new mapboxgl.Marker({
         element: markerElement,
