@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 
 interface Particle {
   id: string
@@ -63,57 +64,54 @@ export function StickerReaction({ emoji, image, userAvatar, isActive }: StickerR
     return () => clearTimeout(timer)
   }, [isActive, emoji, image, userAvatar])
 
+  const particleVariants = {
+    initial: {
+      x: 0,
+      y: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    animate: (particle: Particle) => ({
+      x: particle.x,
+      y: -220 + particle.y,
+      opacity: 0,
+      scale: 0.4,
+      transition: {
+        duration: 1.6,
+        delay: particle.delay / 1000,
+        ease: 'easeOut',
+      },
+    }),
+  }
+
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+    <motion.div className="fixed inset-0 pointer-events-none overflow-hidden z-50" initial={{ opacity: 0 }}>
       {particles.map((particle) => (
-        <div
+        <motion.div
           key={particle.id}
-          className="absolute"
-          style={{
-            left: '50%',
-            top: '50%',
-            animation: `float-reaction 1.5s ease-out forwards`,
-            animationDelay: `${particle.delay}ms`,
-          }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+          variants={particleVariants}
+          initial="initial"
+          animate="animate"
+          custom={particle}
         >
           {particle.type === 'sticker' ? (
             particle.emoji ? (
-              <span className="text-3xl" style={{ transform: `translate(${particle.x}px, ${particle.y}px)` }}>
-                {particle.emoji}
-              </span>
+              <span className="text-4xl">{particle.emoji}</span>
             ) : particle.image ? (
-              <div style={{ transform: `translate(${particle.x}px, ${particle.y}px)` }}>
-                <Image src={particle.image} alt="sticker" width={24} height={24} className="object-contain" />
-              </div>
+              <Image src={particle.image} alt="sticker" width={28} height={28} className="object-contain" />
             ) : null
           ) : (
-            <div style={{ transform: `translate(${particle.x}px, ${particle.y}px)` }}>
-              <Image
-                src={particle.avatar!}
-                alt="avatar"
-                width={28}
-                height={28}
-                className="rounded-full border-2 border-foreground"
-              />
-            </div>
+            <Image
+              src={particle.avatar!}
+              alt="avatar"
+              width={32}
+              height={32}
+              className="rounded-full border-2 border-foreground"
+            />
           )}
-        </div>
+        </motion.div>
       ))}
-
-      {particles.length > 0 && (
-        <style>{`
-          @keyframes float-reaction {
-            0% {
-              opacity: 1;
-              transform: translate(-50%, -50%) scale(1);
-            }
-            100% {
-              opacity: 0;
-              transform: translate(-50%, -220px) scale(0.5);
-            }
-          }
-        `}</style>
-      )}
-    </div>
+    </motion.div>
   )
 }
