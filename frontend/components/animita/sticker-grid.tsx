@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 import { Badge } from '@/components/ui/badge'
+import { StickerReaction } from './sticker-reaction'
 import type { Sticker } from '@/types/mock'
 
 interface StickerGridProps {
@@ -48,12 +49,21 @@ function getStickerDisplay(type: Sticker['type']): { emoji?: string; image?: str
 
 export function StickerGrid({ stickers, onAddSticker }: StickerGridProps) {
   const [showDialog, setShowDialog] = useState(false)
+  const [reactionType, setReactionType] = useState<Sticker['type'] | null>(null)
+  const [showReaction, setShowReaction] = useState(false)
+
+  const handleAddSticker = (type: Sticker['type']) => {
+    setReactionType(type)
+    setShowReaction(true)
+    onAddSticker(type)
+    setShowDialog(false)
+  }
 
   return (
-    <div className="space-y-2 -mx-6">
+    <div className="space-y-2 -mx-6 pb-4">
       <h3 className="sr-only font-semibold text-sm">Stickers dejados ({stickers.length})</h3>
       <Carousel>
-        <CarouselContent className="-ml-0 my-4">
+        <CarouselContent className="ml-0 my-4">
           <CarouselItem className="pl-3 basis-auto">
             <button
               onClick={() => setShowDialog(true)}
@@ -95,26 +105,40 @@ export function StickerGrid({ stickers, onAddSticker }: StickerGridProps) {
         </CarouselContent>
       </Carousel>
 
-      <ResponsiveDialog open={showDialog} onOpenChange={setShowDialog} title="Dejar un sticker" description="Elige el tipo de sticker que deseas dejar">
-        <div className="grid grid-cols-7 gap-2 p-4">
+      <ResponsiveDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        title="Dejar un sticker"
+        description="Elige el tipo de sticker que deseas dejar"
+        className="!max-h-[40vh]"
+      >
+        <h3 className="text-lg pt-2 font-medium w-full text-center">
+          Mis stickers
+        </h3>
+        <div className="grid grid-cols-5 gap-4 p-0">
           {STICKER_TYPES.map(({ type, emoji, image }) => (
             <button
               key={type}
-              onClick={() => {
-                onAddSticker(type)
-                setShowDialog(false)
-              }}
-              className="flex items-center justify-center p-3 rounded-lg border-2 border-border hover:border-foreground hover:bg-muted/50 transition-all"
+              onClick={() => handleAddSticker(type)}
+              className="flex items-center justify-center"
             >
               {emoji ? (
-                <span className="text-4xl">{emoji}</span>
+                <span className="text-[50px]">{emoji}</span>
               ) : image ? (
-                <Image src={image} alt={type} width={40} height={40} className="object-contain" />
+                <Image src={image} alt={type} width={48} height={48} className="object-contain" />
               ) : null}
             </button>
           ))}
         </div>
       </ResponsiveDialog>
+
+      {reactionType && (
+        <StickerReaction
+          {...getStickerDisplay(reactionType)}
+          userAvatar={FAKE_USERS['current-user'].avatar}
+          isActive={showReaction}
+        />
+      )}
     </div>
   )
 }

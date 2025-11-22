@@ -124,7 +124,7 @@ export function MemorialDetail({ id }: { id: string }) {
       </div>
 
       <Tabs defaultValue="peticiones">
-        <TabsList>
+        <TabsList className="-ml-4">
           <TabsTrigger value="peticiones">Peticiones</TabsTrigger>
           <TabsTrigger value="historia">Historia</TabsTrigger>
         </TabsList>

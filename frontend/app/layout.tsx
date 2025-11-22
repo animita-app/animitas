@@ -54,7 +54,7 @@ export default function RootLayout({
         </div>
         <Providers>
           {children}
-          <CreateMemorialButton />
+          {/* <CreateMemorialButton /> */}
         </Providers>
       </body>
     </html>
