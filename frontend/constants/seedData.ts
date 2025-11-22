@@ -16,10 +16,10 @@ export const SEED_ANIMITAS: Animita[] = [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-astrid/astrid3.jpg",
     ],
     material: [
-      { id: "s1", type: "flower", date: "2025-10-21", userId: "user-1", message: "Por siempre en nuestros corazones" },
-      { id: "s2", type: "rose", date: "2025-10-20", userId: "user-2", message: null },
-      { id: "s3", type: "candle", date: "2025-10-19", userId: "user-3", message: "Descansa en paz" },
-      { id: "s4", type: "heart", date: "2025-10-18", userId: "user-4", message: null },
+      { id: "s1", type: "teddy", date: "2025-10-21", userId: "user-1" },
+      { id: "s2", type: "rose", date: "2025-10-20", userId: "user-2" },
+      { id: "s3", type: "candle", date: "2025-10-19", userId: "user-3" },
+      { id: "s4", type: "heart", date: "2025-10-18", userId: "user-4" },
     ] as any,
     peticiones: [
       { id: "p1", texto: "Que encuentre paz eternal", fecha: "2025-10-21", duracion: "7 dias", estado: "activa" },
@@ -43,9 +43,9 @@ export const SEED_ANIMITAS: Animita[] = [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.06@2x.png",
     ],
     material: [
-      { id: "s5", type: "rose", date: "2025-10-21", userId: "user-5", message: "Leyenda viva" },
-      { id: "s6", type: "heart", date: "2025-10-19", userId: "user-6", message: null },
-      { id: "s7", type: "candle", date: "2025-10-17", userId: "user-7", message: "Justicia divina" },
+      { id: "s5", type: "rose", date: "2025-10-21", userId: "user-5" },
+      { id: "s6", type: "heart", date: "2025-10-19", userId: "user-6" },
+      { id: "s7", type: "candle", date: "2025-10-17", userId: "user-7" },
     ] as any,
     peticiones: [
       { id: "p4", texto: "Protege a los injustamente acusados", fecha: "2025-10-21", duracion: "7 dias", estado: "activa" },
@@ -70,11 +70,11 @@ export const SEED_ANIMITAS: Animita[] = [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-romualdito/CleanShot%202025-10-20%20at%2022.26.07@2x.png",
     ],
     material: [
-      { id: "s8", type: "flower", date: "2025-10-21", userId: "user-8", message: "Misterio y devoción" },
-      { id: "s9", type: "candle", date: "2025-10-20", userId: "user-9", message: null },
-      { id: "s10", type: "heart", date: "2025-10-19", userId: "user-10", message: "Milagros concedidos" },
-      { id: "s11", type: "rose", date: "2025-10-18", userId: "user-11", message: null },
-      { id: "s12", type: "flower", date: "2025-10-16", userId: "user-12", message: "Por la gracia recibida" },
+      { id: "s8", type: "teddy", date: "2025-10-21", userId: "user-8" },
+      { id: "s9", type: "candle", date: "2025-10-20", userId: "user-9" },
+      { id: "s10", type: "heart", date: "2025-10-19", userId: "user-10" },
+      { id: "s11", type: "rose", date: "2025-10-18", userId: "user-11" },
+      { id: "s12", type: "colo-colo", date: "2025-10-16", userId: "user-12" },
     ] as any,
     peticiones: [
       { id: "p6", texto: "Concede el milagro que necesito", fecha: "2025-10-21", duracion: "7 dias", estado: "activa" },

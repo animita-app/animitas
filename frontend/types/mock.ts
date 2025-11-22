@@ -1,4 +1,4 @@
-export type StickerType = "flower" | "candle" | "rose" | "heart" | "cross";
+export type StickerType = "heart" | "candle" | "teddy" | "rose" | "colo-colo" | "u-de-chile" | "swanderers";
 export type PetitionState = "activa" | "cumplida" | "expirada";
 export type PetitionDuration = "1 dia" | "3 dias" | "7 dias";
 
