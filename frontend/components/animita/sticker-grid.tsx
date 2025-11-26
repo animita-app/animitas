@@ -185,12 +185,12 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
               <button
                 ref={triggerRef}
                 onClick={() => setShowDialog(true)}
-                className="group flex flex-col items-center justify-center gap-1"
+                className="relative group flex flex-col items-center justify-center gap-1"
               >
                 <div className="flex items-center justify-center size-20 rounded-lg">
                   <span className="text-[67px] animate-[heartbeat_5s_ease-in-out_infinite]">❤️</span>
                 </div>
-                <Badge className="max-w-20 h-5 p-0.5 shrink-0 font-normal text-[10px] pointer-events-none flex gap-1 items-center justify-center">
+                <Badge className="-mt-4 z-20 max-w-20 h-5 p-0.5 shrink-0 font-normal text-[10px] pointer-events-none flex gap-1 items-center justify-center">
                   <Image src={FAKE_USERS['current-user'].avatar} alt="Yo" width={16} height={16} className="rounded-full" />
                   <span className="text-[15px] -mt-0.5 font-normal items-center">+</span>
                 </Badge>
