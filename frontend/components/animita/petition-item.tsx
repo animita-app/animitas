@@ -47,14 +47,14 @@ export function PetitionItem({ petition }: PetitionItemProps) {
       </p>
 
       {/* Footer / Reactions */}
-      <Badge variant="secondary" className="-mx-1 !bg-background-weaker/80 w-fit gap-1 px-2 h-8 items-center font-normal">
-        <div className="flex items-center gap-0.5">
+      <Badge variant="secondary" className="-mx-1 !bg-background-weaker/80 w-fit gap-2 px-2 h-8 items-center font-normal">
+        <div className="flex items-center gap-0.5 text-lg">
           {reactionCount > 0 ?
             uniqueReactions.map((type, i) => (
               <div key={i} className="relative">
                 <StickerItem
                   type={type}
-                  className="!p-0 w-5 h-5 text-xl text-center leading-none"
+                  className="!p-0 w-5 h-5 text-lg text-center leading-none"
                 />
               </div>
             ))

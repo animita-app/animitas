@@ -10,6 +10,8 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { MarkerIcon } from './marker-icon'
 import { DirectionalIndicator } from './directional-indicator'
 import { calculateDistance, calculateBearing } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Locate } from 'lucide-react'
 
 interface MapboxMapProps {
   accessToken: string
@@ -78,7 +80,12 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       const mapInstance = map.current
       if (!mapInstance) return
 
-      const drawerHeight = 720 / 1.75;
+      // Update the ref to prevent useEffect from triggering a second (instant) focus
+      if (shouldNavigate) {
+        lastFocusedIdRef.current = memorialId
+      }
+
+      const drawerHeight = window.innerHeight * 0.5;
 
       const padding = {
         top: 0,
@@ -483,7 +490,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       lastFocusedIdRef.current = null
       setIsMapReady(false)
     }
-  }, [accessToken, style, focusMemorial, memorials, focusedMemorialId])
+  }, [accessToken, style, focusMemorial])
 
   useEffect(() => {
     let cancelled = false
@@ -656,20 +663,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
     if (!feature || feature.geometry.type !== 'Point') return
 
-    // Determine if this is the initial load or a subsequent navigation
-    // If lastFocusedIdRef.current is null, it might be the first focus action.
-    // However, we want to be careful. If the map just loaded and we have a focusedMemorialId, it's likely a direct load.
-    // We can check if we have ever focused before.
-
-    // Actually, the requirement is "only if we were previously on another route".
-    // If we load directly, isModal is false (usually, unless intercepting).
-    // But wait, if we load directly /animita/[id], isModal is false.
-    // If we navigate from /, isModal might be true or false depending on implementation (here it seems isModal prop is passed).
-
-    // The user said: "its zooming when loading http://localhost:3000/animita/animita-de-romualdito directly, dont do that, only if we were previously on another route"
-
-    // If it's a direct load, `lastFocusedIdRef.current` starts as null.
-    // So if `lastFocusedIdRef.current` is null, it's the first focus.
     const isFirstFocus = lastFocusedIdRef.current === null;
 
     lastFocusedIdRef.current = focusedMemorialId
@@ -699,6 +692,22 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           />
         </div>
       )}
+
+      {/* Reset Zoom Button */}
+      <div className="absolute bottom-8 right-4 z-10">
+        <Button
+          variant="secondary"
+          size="icon"
+          className="text-white bg-black hover:bg-black/90 h-10 w-10 rounded-full shadow-lg"
+          onClick={() => {
+            if (!map.current) return
+            map.current.fitBounds(CHILE_BOUNDS, { padding: 64, duration: 800, essential: true })
+          }}
+        >
+          <Locate className="h-5 w-5" />
+          <span className="sr-only">Reset Zoom</span>
+        </Button>
+      </div>
     </div>
   )
 }

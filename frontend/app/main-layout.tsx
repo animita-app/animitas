@@ -21,11 +21,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <>
       <TopHeader />
       <div className="h-screen w-screen relative">
-        <ViewTransition name="map-background">
-          <div className="absolute inset-0">
-            <MapboxMap accessToken={mapboxToken} focusedMemorialId={focusedMemorialId} isModal={false} />
-          </div>
-        </ViewTransition>
+        <div className="absolute inset-0">
+          <MapboxMap accessToken={mapboxToken} focusedMemorialId={focusedMemorialId} isModal={false} />
+        </div>
         <ViewTransition name="page-content">
           {children}
         </ViewTransition>

@@ -12,6 +12,7 @@ import { FAKE_USERS } from '@/constants/seedData'
 import type { Story } from './story-item'
 
 interface StoryViewerProps {
+  animitaId: string
   stories: Story[]
   initialStoryId: string
   open: boolean
@@ -54,7 +55,7 @@ function ChatList({ messages }: { messages: ChatMessage[] }) {
   }, [messages])
 
   return (
-    <div className="absolute bottom-20 max-h-[40svh] left-4 right-4 flex flex-col justify-end pointer-events-none mask-t-from-80% mask-t-to-100%">
+    <div className="absolute bottom-20 max-h-[40svh] h-full left-4 right-4 flex flex-col justify-end pointer-events-none mask-t-from-80% mask-t-to-100%">
       <div ref={scrollRef} className="flex flex-col gap-4 no-scrollbar">
         {messages.map((msg) => (
           <div key={msg.id} className="flex items-start gap-2 animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -63,7 +64,7 @@ function ChatList({ messages }: { messages: ChatMessage[] }) {
               <AvatarFallback>{msg.user.username[0]}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-xs font-medium text-white/80 leading-none mb-0.5 shadow-black/50 drop-shadow-sm">
+              <span className="text-xs font-medium leading-none mb-0.5 shadow-black/50 drop-shadow-sm">
                 {msg.user.username}
               </span>
               <span className="text-sm text-white font-normal normal-case shadow-black/50 drop-shadow-md">
@@ -77,12 +78,45 @@ function ChatList({ messages }: { messages: ChatMessage[] }) {
   )
 }
 
-export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: StoryViewerProps) {
+function ProgressBar({ active, duration, finished }: { active: boolean, duration: number, finished: boolean }) {
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    if (finished) {
+      setWidth(100)
+    } else if (active) {
+      setWidth(0)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setWidth(100)
+        })
+      })
+    } else {
+      setWidth(0)
+    }
+  }, [active, finished, duration])
+
+  return (
+    <div className="h-0.5 flex-1 bg-white/30 rounded-full overflow-hidden">
+      <div
+        className="h-full bg-white"
+        style={{
+          width: `${width}%`,
+          transition: active ? `width ${duration}ms linear` : 'none'
+        }}
+      />
+    </div>
+  )
+}
+
+export function StoryViewer({ animitaId, stories, initialStoryId, open, onOpenChange }: StoryViewerProps) {
   const [api, setApi] = useState<CarouselApi>()
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState("")
   const [viewerCount, setViewerCount] = useState(0)
+  // We don't need chatHistoryRef anymore as we use a single global chat for the session
+  // const chatHistoryRef = useRef<Record<string, ChatMessage[]>>({})
 
   // Initialize carousel to the clicked story
   useEffect(() => {
@@ -126,17 +160,33 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
     return () => clearInterval(interval)
   }, [open])
 
-  // Load user messages from local storage
+  // Load messages for the animita (global chat)
   useEffect(() => {
-    if (currentStory) {
-      const storedMessages = JSON.parse(localStorage.getItem(`story-chat-${currentStory.id}`) || '[]')
-      setMessages(storedMessages)
-    }
-  }, [currentStory])
+    if (open) {
+      const storedMessages = JSON.parse(localStorage.getItem(`animita-chat-${animitaId}`) || '[]')
 
-  // Generate fake messages if live
+      // If no stored messages, pre-populate with 3-4 random messages
+      if (storedMessages.length === 0) {
+        const initialMessages = Array.from({ length: Math.floor(Math.random() * 2) + 3 }).map(() => {
+          const userKeys = Object.keys(FAKE_USERS).filter(k => k !== 'current-user')
+          const randomUserKey = userKeys[Math.floor(Math.random() * userKeys.length)]
+          return {
+            id: Math.random().toString(36).substring(7),
+            user: FAKE_USERS[randomUserKey],
+            text: FAKE_MESSAGES[Math.floor(Math.random() * FAKE_MESSAGES.length)]
+          }
+        })
+        setMessages(initialMessages)
+        localStorage.setItem(`animita-chat-${animitaId}`, JSON.stringify(initialMessages))
+      } else {
+        setMessages(storedMessages)
+      }
+    }
+  }, [open, animitaId])
+
+  // Generate fake messages continuously
   useEffect(() => {
-    if (!open || !currentStory?.isLive) return
+    if (!open) return
 
     const generateMessage = () => {
       const userKeys = Object.keys(FAKE_USERS).filter(k => k !== 'current-user')
@@ -150,16 +200,25 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
         text: randomText
       }
 
-      setMessages(prev => [...prev.slice(-20), newMessage])
+      setMessages(prev => {
+        const newMessages = [...prev.slice(-20), newMessage]
+        return newMessages
+      })
     }
 
-    const interval = setInterval(() => {
-      if (Math.random() > 0.3) { // 70% chance to generate a message
-        generateMessage()
-      }
-    }, 1500)
+    let timeoutId: NodeJS.Timeout
 
-    return () => clearInterval(interval)
+    const scheduleNextMessage = () => {
+      const delay = Math.random() * 4000 + 1000 // 1s to 5s
+      timeoutId = setTimeout(() => {
+        generateMessage()
+        scheduleNextMessage()
+      }, delay)
+    }
+
+    scheduleNextMessage()
+
+    return () => clearTimeout(timeoutId)
   }, [open, currentStory])
 
   const handleSendMessage = () => {
@@ -172,11 +231,14 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
       isUser: true
     }
 
-    setMessages(prev => [...prev, newMessage])
+    setMessages(prev => {
+      const newMessages = [...prev, newMessage]
+      return newMessages
+    })
 
-    // Save to local storage
-    const storedMessages = JSON.parse(localStorage.getItem(`story-chat-${currentStory.id}`) || '[]')
-    localStorage.setItem(`story-chat-${currentStory.id}`, JSON.stringify([...storedMessages, newMessage]))
+    // Save to local storage (global for animita)
+    const storedMessages = JSON.parse(localStorage.getItem(`animita-chat-${animitaId}`) || '[]')
+    localStorage.setItem(`animita-chat-${animitaId}`, JSON.stringify([...storedMessages, newMessage]))
 
     setInputValue("")
   }
@@ -198,12 +260,26 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
     return () => clearTimeout(timer)
   }, [currentStory, open, api, onOpenChange])
 
-  useEffect(() => {
-    if (open) {
-      console.log('StoryViewer Open. Current Index:', currentStoryIndex)
-      console.log('Current Story:', currentStory)
+  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Ignore clicks on controls or inputs
+    if ((e.target as HTMLElement).closest('button, input')) return
+
+    const { clientX, currentTarget } = e
+    const { left, width } = currentTarget.getBoundingClientRect()
+    const x = clientX - left
+
+    if (x < width / 2) {
+      if (api?.canScrollPrev()) {
+        api.scrollPrev()
+      }
+    } else {
+      if (api?.canScrollNext()) {
+        api.scrollNext()
+      } else {
+        onOpenChange(false)
+      }
     }
-  }, [open, currentStoryIndex, currentStory])
+  }
 
   if (!currentStory) return null
 
@@ -214,35 +290,28 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
           <DialogTitle>Historias</DialogTitle>
           <DialogDescription>Viendo historia de {currentStory.user.username}</DialogDescription>
         </DialogHeader>
-        <div className="relative w-full h-full bg-black flex flex-col">
+        <div className="relative w-full h-full bg-black flex flex-col" onClick={handleTap}>
           {/* Progress Bar */}
-          <div className="absolute top-2 left-2 right-2 z-50 flex gap-1">
+          <div className="absolute top-2 left-2 right-2 z-50 flex gap-1 pointer-events-none">
             {stories.map((story, idx) => (
-              <div key={story.id} className="h-0.5 flex-1 bg-white/30 rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full bg-white transition-all duration-300",
-                    idx < currentStoryIndex ? "w-full" :
-                      idx === currentStoryIndex ? "w-full animate-progress origin-left" : "w-0"
-                  )}
-                  style={{
-                    animationDuration: story.type === 'image' ? '5s' : '10s',
-                    animationPlayState: idx === currentStoryIndex ? 'running' : 'paused'
-                  }}
-                />
-              </div>
+              <ProgressBar
+                key={story.id}
+                active={idx === currentStoryIndex}
+                finished={idx < currentStoryIndex}
+                duration={story.type === 'image' ? 5000 : 10000}
+              />
             ))}
           </div>
 
           {/* Header */}
-          <div className="absolute top-6 left-4 right-2 z-50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="absolute top-6 left-4 right-2 z-50 flex items-center justify-between pointer-events-none">
+            <div className="flex items-center gap-2 pointer-events-auto">
               <Avatar className="w-8 h-8 border border-white/20">
                 <AvatarImage src={currentStory.user.avatar} />
                 <AvatarFallback>{currentStory.user.username[0]}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-white">
+                <span className="text-xs font-medium text-white">
                   {currentStory.user.username}
                 </span>
                 <span className="text-xs text-white/70">
@@ -250,7 +319,7 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pointer-events-auto">
               {currentStory.isLive && (
                 <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full">
                   {/* <Eye className="text-white size-3" /> */}
@@ -313,7 +382,7 @@ export function StoryViewer({ stories, initialStoryId, open, onOpenChange }: Sto
           <ChatList messages={messages} />
 
           {/* Footer / Input */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 z-50 flex items-center gap-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-8">
+          <div className="absolute bottom-0 left-0 right-0 p-4 z-50 flex items-center gap-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-8" onClick={(e) => e.stopPropagation()}>
             <div className="relative flex-1">
               <Input
                 placeholder="Enviar mensaje..."

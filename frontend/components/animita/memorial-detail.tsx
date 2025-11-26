@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { getAnimitaById } from '@/lib/mockService'
 import { getAnimitaStickersByUser, getAnimitaPetitionsByUser, getUserId } from '@/lib/localStorage'
 import { PetitionForm } from './petition-form'
@@ -183,17 +184,25 @@ export function MemorialDetail({ id }: { id: string }) {
           <TabsTrigger value="historia">Historia</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="peticiones" className="space-y-3 mb-12 mt-4">
-          <div className="ml-2 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar -mx-3 scroll-pl-3 snap-x">
-            {stories.map((story) => (
-              <div key={story.id} className="snap-start shrink-0">
-                <StoryItem
-                  story={story}
-                  onClick={() => handleStoryClick(story.id)}
-                />
-              </div>
-            ))}
-          </div>
+        <TabsContent value="peticiones" className="space-y-3 mb-12 mt-2">
+          <Carousel
+            opts={{
+              align: "start",
+              dragFree: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-4 px-6 py-2">
+              {stories.map((story) => (
+                <CarouselItem key={story.id} className="pl-3 basis-auto">
+                  <StoryItem
+                    story={story}
+                    onClick={() => handleStoryClick(story.id)}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
 
           {(() => {
             const allPetitions = [...(memorial.peticiones || []), ...userPetitions]
@@ -213,7 +222,7 @@ export function MemorialDetail({ id }: { id: string }) {
           })()}
         </TabsContent>
 
-        <TabsContent value="historia" className="space-y-4 pt-3 px-0 mb-12">
+        <TabsContent value="historia" className="space-y-4 pt-3 px-5 mb-12">
           <p className="text-sm font-sans !normal-case leading-relaxed">
             {memorial.story}
           </p>
@@ -229,6 +238,7 @@ export function MemorialDetail({ id }: { id: string }) {
       />
 
       <StoryViewer
+        animitaId={id}
         stories={stories}
         initialStoryId={selectedStoryId}
         open={storyViewerOpen}

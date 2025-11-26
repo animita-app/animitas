@@ -12,7 +12,6 @@ export const FAKE_USERS: Record<string, { username: string; avatar: string }> = 
   'user-6': { username: '@lvalenzuela', avatar: '/lvalenzuela.png' },
   'user-7': { username: '@tfolch', avatar: '/tfolch.png' },
   'user-8': { username: '@svalenzuela', avatar: '/svalenzuela.jpg' },
-  'user-9': { username: '@pauline', avatar: '/vicpino.png' },
   'current-user': { username: '@pype', avatar: '/pype.png' },
 }
 
@@ -760,52 +759,39 @@ export interface MockStory {
   viewed: boolean;
 }
 
-export const generateMockStories = (): MockStory[] => {
-  // Generate random stories with unique users
-  const userKeys = Object.keys(FAKE_USERS).filter(k => k !== 'current-user');
-  // Shuffle user keys
-  const shuffledUsers = userKeys.sort(() => 0.5 - Math.random());
+export function generateMockStories(count = 5): MockStory[] {
+  const userKeys = Object.keys(FAKE_USERS).filter(k => k !== 'current-user')
+  const shuffledUsers = userKeys.sort(() => 0.5 - Math.random())
 
+  // Ensure we have at least one video for the live story
   const mediaPool = [
     { type: 'video', src: '/stories/IMG_6247.mp4' },
     { type: 'image', src: '/stories/IMG_6250.webp' },
+    { type: 'image', src: '/stories/IMG_6250%202.webp' },
     { type: 'image', src: '/stories/IMG_6260.webp' },
     { type: 'image', src: '/stories/IMG_6267.webp' },
-  ];
+  ] as const
 
-  const storyCount = Math.min(Math.floor(Math.random() * 3) + 4, shuffledUsers.length);
+  // Select one video to be the live story
+  const liveVideoIndex = mediaPool.findIndex(m => m.type === 'video')
 
-  const generatedStories: MockStory[] = Array.from({ length: storyCount }).map((_, i) => {
-    const userKey = shuffledUsers[i];
-    const randomUser = FAKE_USERS[userKey];
+  return Array.from({ length: count }).map((_, i) => {
+    const userKey = shuffledUsers[i % shuffledUsers.length]
+    const user = FAKE_USERS[userKey]
 
-    // Logic: If it's the video, make it live.
-    // We'll pick a random media, but if we pick the video, force isLive=true.
-    // OR: We ensure at least one is live and it is the video.
+    // If we run out of unique media, cycle through
+    const media = mediaPool[i % mediaPool.length]
 
-    // Let's just pick random media first.
-    const media = mediaPool[Math.floor(Math.random() * mediaPool.length)];
-
-    // If media is video, it MUST be live.
-    // If media is image, it CANNOT be live (usually).
-    const isLive = media.type === 'video';
+    // Only the specific video is live
+    const isLive = media.type === 'video'
 
     return {
       id: `story-${i}-${Date.now()}`,
       type: media.type as 'image' | 'video',
       src: media.src,
-      user: randomUser,
+      user: user,
       isLive: isLive,
       viewed: false
     };
   });
-
-  // Ensure there is at least one video/live story if we want to force it,
-  // but the user said "the video one should always be the live thing".
-  // It implies if a video is chosen, it is live.
-
-  // Sort so Live is first
-  generatedStories.sort((a, b) => (a.isLive === b.isLive ? 0 : a.isLive ? -1 : 1));
-
-  return generatedStories;
 };
