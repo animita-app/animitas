@@ -1,7 +1,7 @@
 import type { Animita } from '@/types/mock'
 import { SEED_ANIMITAS } from './seedData'
 
-export const MOCK_ANIMITAS: Animita[] = SEED_ANIMITAS
+export const MOCK_ANIMITAS: Animita[] = SEED_ANIMITAS;
 
 export const STICKER_TYPES = ["flower", "candle", "rose", "heart", "cross"] as const
 

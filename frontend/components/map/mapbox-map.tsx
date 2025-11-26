@@ -8,6 +8,7 @@ import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MemorialPopup } from './memorial-popup'
+import { MarkerIcon } from './MarkerIcon'
 
 interface MapboxMapProps {
   accessToken: string
@@ -69,7 +70,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       const mapInstance = map.current
       if (!mapInstance) return
 
-      const drawerHeight = 720/1.75;
+      const drawerHeight = 720 / 1.75;
 
       const padding = {
         top: 0,
@@ -96,8 +97,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           mapInstance.flyTo({
             center: coordinates,
             zoom: TARGET_ZOOM,
-            speed: 2,
-            curve: 1.2,
+            speed: 3, // Increased speed
+            curve: 1, // Reduced curve for faster feel
             bearing: mapInstance.getBearing(),
             pitch: mapInstance.getPitch(),
             padding,
@@ -107,7 +108,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           mapInstance.easeTo({
             center: coordinates,
             zoom: Math.max(currentZoom, TARGET_ZOOM - 1),
-            duration: 400,
+            duration: 600, // Shortened duration
             bearing: mapInstance.getBearing(),
             pitch: mapInstance.getPitch(),
             padding,
@@ -264,22 +265,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         const images = memorial?.images || []
         const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
 
-        if (popupRef.current) {
-          popupRef.current.remove()
-        }
-
-        const popupContainer = document.createElement('div')
-        popupContainer.className = 'bg-white rounded-lg'
-        const root = createRoot(popupContainer)
-        root.render(<MemorialPopup images={images} name={name} />)
-
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setLngLat(coordinates)
-          .setDOMContent(popupContainer)
-          .addTo(mapInstance)
-
-        popupRef.current = popup
-
+        // Tooltip popup removed to simplify UI
         setTimeout(() => {
           focusMemorial(id, coordinates)
         }, 300)
@@ -360,19 +346,56 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       }
 
       const handleZoomChange = () => {
-        const shouldShowProfiles = mapInstance.getZoom() >= PROFILE_ZOOM_THRESHOLD
+        const currentZoom = mapInstance.getZoom()
+        const shouldShowProfiles = currentZoom >= PROFILE_ZOOM_THRESHOLD
+
         if (profileViewState.current !== shouldShowProfiles) {
           profileViewState.current = shouldShowProfiles
           setShowProfileMarkers(shouldShowProfiles)
         }
+
+        if (shouldShowProfiles) {
+          // Calculate scale: 0.4 at zoom 8, 1.0 at zoom 15.5
+          const scale = Math.max(0.4, Math.min(1.2, 0.4 + (currentZoom - 8) * 0.08))
+
+          // Sticker scales relative to the marker scale
+          const stickerRadiusScale = Math.max(1.0, 1.0 + (15.5 - currentZoom) * 0.05)
+          const stickerSizeScale = Math.max(1.0, 1.0 + (15.5 - currentZoom) * 0.1)
+
+          profileMarkers.current.forEach((marker) => {
+            const element = marker.getElement()
+            const child = element.firstElementChild as HTMLElement
+            if (child) {
+              child.style.transform = `scale(${scale})`
+              child.style.transition = 'none'
+              child.style.transformOrigin = 'bottom center'
+              child.style.setProperty('--sticker-radius-scale', stickerRadiusScale.toString())
+              child.style.setProperty('--sticker-size-scale', stickerSizeScale.toString())
+            }
+          })
+        }
       }
 
       mapInstance.on('zoom', handleZoomChange)
+      mapInstance.on('zoomend', handleZoomChange) // Ensure final state is correct
       handleZoomChange()
 
       mapInstance.on('click', 'clusters', handleClusterClick)
       mapInstance.on('click', 'memorials-outer', handleMemorialClick)
       mapInstance.on('click', 'memorials-inner', handleMemorialClick)
+
+      // Handle background clicks to close drawer
+      mapInstance.on('click', (e) => {
+        const features = mapInstance.queryRenderedFeatures(e.point, {
+          layers: ['clusters', 'memorials-outer', 'memorials-inner']
+        })
+
+        if (features.length > 0) return
+
+        if (window.location.pathname.includes('/animita/')) {
+          router.push('/')
+        }
+      })
 
       mapInstance.once('remove', () => {
         mapInstance.off('click', 'clusters', handleClusterClick)
@@ -418,7 +441,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
               id: animita.id,
               name: animita.name,
               image: animita.images[0] || null,
-              story: animita.story
+              story: animita.story,
+              stickers: animita.stickers
             }
           }
         })
@@ -501,8 +525,18 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       const memorial = memorialDataRef.current.get(memorialId)
       const markerRoot = createRoot(markerElement)
       markerRoot.render(
-        <div onClick={() => focusMemorial(memorialId, coordinates)}>
-          <MemorialPopup images={memorial?.images || []} name={displayName} />
+        <div onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          e.nativeEvent.stopImmediatePropagation()
+          focusMemorial(memorialId, coordinates)
+        }}>
+          <MarkerIcon
+            id={memorialId}
+            name={displayName}
+            images={memorial?.images}
+            stickers={memorial?.stickers || (properties.stickers as any[])}
+          />
         </div>
       )
 
@@ -514,6 +548,22 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         .addTo(mapInstance)
 
       profileMarkers.current.set(memorialId, marker)
+
+      // Apply initial scale
+      const currentZoom = mapInstance.getZoom()
+      const scale = Math.max(0.4, Math.min(1.2, 0.4 + (currentZoom - 8) * 0.08))
+      const stickerRadiusScale = Math.max(1.0, 1.0 + (15.5 - currentZoom) * 0.05)
+      const stickerSizeScale = Math.max(1.0, 1.0 + (15.5 - currentZoom) * 0.1)
+
+      const element = marker.getElement()
+      const child = element.firstElementChild as HTMLElement
+      if (child) {
+        child.style.transform = `scale(${scale})`
+        child.style.transition = 'none'
+        child.style.transformOrigin = 'bottom center'
+        child.style.setProperty('--sticker-radius-scale', stickerRadiusScale.toString())
+        child.style.setProperty('--sticker-size-scale', stickerSizeScale.toString())
+      }
     }
 
     profileMarkers.current.forEach((marker, id) => {
@@ -525,7 +575,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
   useEffect(() => {
     if (!focusedMemorialId) {
-      lastFocusedIdRef.current = null
       return
     }
 
@@ -541,13 +590,33 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
     if (!feature || feature.geometry.type !== 'Point') return
 
+    // Determine if this is the initial load or a subsequent navigation
+    // If lastFocusedIdRef.current is null, it might be the first focus action.
+    // However, we want to be careful. If the map just loaded and we have a focusedMemorialId, it's likely a direct load.
+    // We can check if we have ever focused before.
+
+    // Actually, the requirement is "only if we were previously on another route".
+    // If we load directly, isModal is false (usually, unless intercepting).
+    // But wait, if we load directly /animita/[id], isModal is false.
+    // If we navigate from /, isModal might be true or false depending on implementation (here it seems isModal prop is passed).
+
+    // The user said: "its zooming when loading http://localhost:3000/animita/animita-de-romualdito directly, dont do that, only if we were previously on another route"
+
+    // If it's a direct load, `lastFocusedIdRef.current` starts as null.
+    // So if `lastFocusedIdRef.current` is null, it's the first focus.
+    const isFirstFocus = lastFocusedIdRef.current === null;
+
     lastFocusedIdRef.current = focusedMemorialId
+
     focusMemorial(
       focusedMemorialId,
       feature.geometry.coordinates as [number, number],
-      { shouldNavigate: false, instant: !isModal }
+      {
+        shouldNavigate: false,
+        instant: isFirstFocus // Use instant zoom if it's the first focus (direct load)
+      }
     )
-  }, [focusedMemorialId, memorials, isMapReady, focusMemorial, isModal])
+  }, [focusedMemorialId, memorials, isMapReady, focusMemorial])
 
 
   return <div ref={mapContainer} className="h-full w-full" />

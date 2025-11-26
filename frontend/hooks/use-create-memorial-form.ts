@@ -10,8 +10,7 @@ const showError = (msg: string) => {
   alert(msg)
 }
 
-const showSuccess = (msg: string) => {
-  console.log(msg)
+const log = (msg: string) => {
 }
 
 const apiPost = async <T = any,>(endpoint: string, data: any): Promise<T> => {

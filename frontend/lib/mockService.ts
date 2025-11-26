@@ -16,13 +16,17 @@ export async function getAnimitasForMap(): Promise<
     lat: number;
     lng: number;
     image?: string;
+    stickers?: any[];
   }>
 > {
-  return MOCK_ANIMITAS.map((animita) => ({
-    id: animita.id,
-    name: animita.name,
-    lat: animita.lat,
-    lng: animita.lng,
-    image: animita.images[0],
-  }));
+  return MOCK_ANIMITAS.map((animita) => {
+    return {
+      id: animita.id,
+      name: animita.name,
+      lat: animita.lat,
+      lng: animita.lng,
+      image: animita.images[0],
+      stickers: animita.stickers, // Use stickers from seed data
+    };
+  });
 }

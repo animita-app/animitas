@@ -3,43 +3,33 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { X } from 'lucide-react'
+import { Dialog, DialogContent, DialogClose, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { addPetition } from '@/lib/localStorage'
-import type { PetitionDuration } from '@/types/mock'
+import { FAKE_USERS } from '@/constants/seedData'
+
 
 interface PetitionFormProps {
   animitaId: string
+  animitaName: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onPetitionAdded?: () => void
 }
 
-const DURATIONS: Array<{ value: PetitionDuration; label: string }> = [
-  { value: '1 dia', label: '1 día' },
-  { value: '3 dias', label: '3 días' },
-  { value: '7 dias', label: '7 días' },
-]
-
-export function PetitionForm({ animitaId, open, onOpenChange, onPetitionAdded }: PetitionFormProps) {
+export function PetitionForm({ animitaId, animitaName, open, onOpenChange, onPetitionAdded }: PetitionFormProps) {
+  const user = FAKE_USERS['current-user']
   const [texto, setTexto] = useState('')
-  const [duracion, setDuracion] = useState<PetitionDuration>('3 dias')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
   const handleSubmit = async () => {
     if (!texto.trim()) return
 
     setIsSubmitting(true)
     try {
-      addPetition(animitaId, texto, duracion)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      addPetition(animitaId, texto)
       setTexto('')
-      setDuracion('3 dias')
       onOpenChange(false)
       onPetitionAdded?.()
     } finally {
@@ -47,61 +37,63 @@ export function PetitionForm({ animitaId, open, onOpenChange, onPetitionAdded }:
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Hacer una petición</DialogTitle>
-          <DialogDescription>
-            Escribe tu petición y elige por cuánto tiempo deseas que esté activa
-          </DialogDescription>
+      <DialogContent
+        showCloseButton={false}
+        className='!p-2 bg-transparent border-transparent max-w-none h-full max-h-svh flex flex-col gap-2 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-200'
+        overlayClassName="bg-black/100"
+      >
+        <DialogHeader className="sr-only">
+          <DialogTitle>Publicar reflexión</DialogTitle>
+          <DialogDescription>Publica tu reflexión en {animitaName}</DialogDescription>
         </DialogHeader>
+        {/* Header */}
+        <div className="flex items-center justify-between h-fit shrink-0">
+          <DialogClose asChild>
+            <Button variant="default" size="icon" className="rounded-full bg-neutral-800 hover:bg-neutral-700">
+              <X className="w-5 h-5" />
+            </Button>
+          </DialogClose>
 
-        <div className="space-y-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || !texto.trim()}
+            size="sm"
+            variant="outline"
+            className="rounded-full bg-white min-w-[90px]"
+          >
+            {isSubmitting ? 'Publicando...' : 'Publicar'}
+          </Button>
+        </div>
+
+        <div className="p-4 bg-background rounded-xl border flex-1 flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user.avatar} alt={user.username} />
+              <AvatarFallback>Yo</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col space-y-1">
+              <span className="text-sm font-medium leading-none lowercase">{user.username}</span>
+              <span className="text-xs text-muted-foreground uppercase">EN {animitaName}</span>
+            </div>
+          </div>
+
           <Textarea
-            placeholder="¿Qué deseas pedir?"
+            autoFocus
+            placeholder="Deja tu reflexión..."
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            className="min-h-24 resize-none text-sm"
+            onKeyDown={handleKeyDown}
+            className="flex-1 resize-none text-base border-none focus-visible:ring-0 p-0 shadow-none placeholder:text-muted-foreground/50 h-full"
           />
-
-          <div>
-            <label className="text-sm font-medium block mb-2">Duración</label>
-            <Select value={duracion} onValueChange={(value) => setDuracion(value as PetitionDuration)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {DURATIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="text-xs text-foreground/60 p-3 bg-muted rounded">
-            La petición se marcará como expirada después del tiempo seleccionado, pero permanecerá visible en el registro.
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="flex-1"
-              onClick={handleSubmit}
-              disabled={isSubmitting || !texto.trim()}
-            >
-              {isSubmitting ? 'Enviando...' : 'Hacer petición'}
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

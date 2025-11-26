@@ -34,17 +34,28 @@ export function addSticker(
   message?: string
 ): StoredSticker {
   const userId = getUserId();
+  const stickers = getAllUserStickers();
+
+  // Check if user already has a sticker for this animita
+  const existingIndex = stickers.findIndex(
+    (s) => s.animitaId === animitaId && s.userId === userId
+  );
+
   const sticker: StoredSticker = {
-    id: `sticker-${Date.now()}`,
+    id: existingIndex >= 0 ? stickers[existingIndex].id : `sticker-${Date.now()}`,
     animitaId,
     type,
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toISOString(),
     userId,
     message: message || null,
   };
 
-  const stickers = getAllUserStickers();
-  stickers.push(sticker);
+  if (existingIndex >= 0) {
+    stickers[existingIndex] = sticker;
+  } else {
+    stickers.push(sticker);
+  }
+
   localStorage.setItem(STICKERS_KEY, JSON.stringify(stickers));
 
   return sticker;
@@ -72,20 +83,24 @@ export function deleteSticker(stickerId: string): void {
 // PETITIONS
 export function addPetition(
   animitaId: string,
-  texto: string,
-  duracion: Petition["duracion"]
+  texto: string
 ): StoredPetition {
+  const userId = getUserId();
+  const petitions = getAllUserPetitions();
+
+  // Allow multiple petitions per user
   const petition: StoredPetition = {
-    id: `petition-${Date.now()}`,
+    id: `petition-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     animitaId,
     texto,
-    fecha: new Date().toISOString().split("T")[0],
-    duracion,
+    fecha: new Date().toISOString(),
     estado: "activa",
+    userId,
+    reactions: [], // Initialize empty reactions for new petition
   };
 
-  const petitions = getAllUserPetitions();
   petitions.push(petition);
+
   localStorage.setItem(PETITIONS_KEY, JSON.stringify(petitions));
 
   return petition;
@@ -100,7 +115,7 @@ export function getAllUserPetitions(): StoredPetition[] {
 
 export function getAnimitaPetitionsByUser(animitaId: string): StoredPetition[] {
   const userId = getUserId();
-  return getAllUserPetitions().filter((p) => p.animitaId === animitaId);
+  return getAllUserPetitions().filter((p) => p.animitaId === animitaId && p.userId === userId);
 }
 
 export function updatePetitionState(

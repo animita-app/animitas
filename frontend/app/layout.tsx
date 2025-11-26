@@ -33,23 +33,17 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <div className="pointer-events-none fixed inset-0 z-[999999]">
-          <svg className="h-full w-full" preserveAspectRatio="none">
-            <filter id="mono-noise-filter">
+        <div className="pointer-events-none fixed inset-0 z-50 mix-blend-overlay opacity-[0.15]">
+          <svg className="h-full w-full opacity-100" preserveAspectRatio="none">
+            <filter id="noise">
               <feTurbulence
                 type="fractalNoise"
-                baseFrequency="0.75"
-                numOctaves="5"
+                baseFrequency="0.8"
+                numOctaves="4"
                 stitchTiles="stitch"
-                result="noise"
-              />
-              <feColorMatrix
-                in="noise"
-                type="matrix"
-                values="0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0"
               />
             </filter>
-            <rect width="100%" height="100%" filter="url(#mono-noise-filter)" fill="#000000" opacity="35%" />
+            <rect width="100%" height="100%" filter="url(#noise)" />
           </svg>
         </div>
         <Providers>

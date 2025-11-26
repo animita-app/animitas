@@ -5,13 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import Image from 'next/image'
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 import { getAnimitaById } from '@/lib/mockService'
 import { getAnimitaStickersByUser, getAnimitaPetitionsByUser } from '@/lib/localStorage'
 import { PetitionForm } from './petition-form'
 import { StickerGrid } from './sticker-grid'
-import { PetitionItem } from './petition-item'
+import { PetitionItem, PetitionInput } from './petition-item'
 import { addSticker } from '@/lib/localStorage'
 import type { Animita } from '@/types/mock'
 import type { Sticker } from '@/types/mock'
@@ -22,6 +20,11 @@ export function MemorialDetail({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
   const [memorial, setMemorial] = useState<Animita | null>(null)
   const [showPetitionForm, setShowPetitionForm] = useState(false)
+  const [updateTrigger, setUpdateTrigger] = useState(0)
+
+  const handlePetitionAdded = () => {
+    setUpdateTrigger(prev => prev + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -54,11 +57,22 @@ export function MemorialDetail({ id }: { id: string }) {
   }, [id])
 
 
+  const [userStickers, setUserStickers] = useState<any[]>([])
+  const [userPetitions, setUserPetitions] = useState<any[]>([])
+
+  useEffect(() => {
+    setUserStickers(getAnimitaStickersByUser(id))
+    setUserPetitions(getAnimitaPetitionsByUser(id))
+  }, [id, updateTrigger])
+
   const birthYear = memorial?.birthDate ? new Date(memorial.birthDate).getFullYear() : null
   const deathYear = memorial?.deathDate ? new Date(memorial.deathDate).getFullYear() : null
-  const userAddedStickers = getAnimitaStickersByUser(id)
-  const allStickers = [...(memorial?.material || []), ...userAddedStickers]
-  const userPetitionsData = getAnimitaPetitionsByUser(id)
+
+  // Filter out duplicates if any (though logic should handle it, good to be safe or just merge)
+  // Actually, we should probably deduplicate based on ID if we were merging lists from server and local.
+  // But here memorial.material is mock data, userStickers is local.
+  // We should just append them.
+  const allStickers = [...(memorial?.material || []), ...userStickers]
 
   if (isLoading) {
     return (
@@ -82,12 +96,12 @@ export function MemorialDetail({ id }: { id: string }) {
   return (
     <>
       <div className="space-y-3 py-3">
-        <h2 className="normal-case text-2xl font-semibold">
+        <h2 className="px-6 normal-case !text-neutral-800 text-2xl font-semibold">
           {memorial.name}
         </h2>
 
         {(birthYear || deathYear) && (
-          <div className="-mt-1.5 space-y-2">
+          <div className="px-6 -mt-1.5">
             <span className="inline-flex gap-2 items-center text-sm text-foreground/70">
               {birthYear && birthYear}
               {(birthYear || deathYear) && ' ✝︎ '}
@@ -97,13 +111,15 @@ export function MemorialDetail({ id }: { id: string }) {
         )}
 
         <StickerGrid
+          animitaId={id}
           stickers={allStickers}
           onAddSticker={(type: Sticker['type']) => {
             addSticker(id, type)
+            setUpdateTrigger(prev => prev + 1)
           }}
         />
 
-        {memorial.images && memorial.images.length > 0 && (
+        {/* {memorial.images && memorial.images.length > 0 && (
           <Carousel className="relative mt-4 -mx-6">
             <CarouselContent>
               {memorial.images.map((imageUrl, idx) => (
@@ -120,57 +136,54 @@ export function MemorialDetail({ id }: { id: string }) {
               ))}
             </CarouselContent>
           </Carousel>
-        )}
+        )} */}
       </div>
 
-      <Tabs defaultValue="peticiones">
-        <TabsList className="-ml-4">
+      <Tabs defaultValue="peticiones" className='px-6'>
+        <TabsList className="-ml-4 mt-2">
           <TabsTrigger value="peticiones">Peticiones</TabsTrigger>
           <TabsTrigger value="historia">Historia</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="peticiones" className="space-y-3">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => setShowPetitionForm(true)}
-          >
-            Hacer una petición
-          </Button>
+        <TabsContent value="peticiones" className="space-y-3 mb-12 -mx-2">
+          {(() => {
+            const allPetitions = [...(memorial.peticiones || []), ...userPetitions]
+              .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
 
-          {userPetitionsData.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="font-semibold text-sm">Tus peticiones ({userPetitionsData.length})</h4>
-              <div className="space-y-2">
-                {userPetitionsData.map((petition) => (
-                  <PetitionItem key={petition.id} petition={petition} />
+            if (allPetitions.length === 0) return null
+
+            return (
+              <div className="space-y-2 mt-4">
+                {allPetitions.map((petition) => (
+                  <div key={petition.id} className="animate-in fade-in slide-in-from-top-4 duration-700 fill-mode-both">
+                    <PetitionItem petition={petition} />
+                  </div>
                 ))}
               </div>
-            </div>
-          )}
+            )
+          })()}
+
+          <div className="mt-6">
+            <h3 className="px-2 text-2xl font-medium text-muted-foreground/60 mb-2 normal-case">
+              Tú
+            </h3>
+            <PetitionInput onClick={() => setShowPetitionForm(true)} animitaName={memorial?.name || 'Animita'} />
+          </div>
         </TabsContent>
 
-        <TabsContent value="historia" className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Historia</h3>
-            <p className="text-sm leading-relaxed">
-              {memorial.story}
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-2">Biografía</h3>
-            <p className="text-sm leading-relaxed">
-              {memorial.biography}
-            </p>
-          </div>
+        <TabsContent value="historia" className="space-y-4 pt-3 px-0 mb-12">
+          <p className="text-sm font-sans !normal-case leading-relaxed">
+            {memorial.story}
+          </p>
         </TabsContent>
       </Tabs>
 
       <PetitionForm
         animitaId={id}
+        animitaName={memorial?.name || 'Animita'}
         open={showPetitionForm}
         onOpenChange={setShowPetitionForm}
+        onPetitionAdded={handlePetitionAdded}
       />
     </>
   )

@@ -1,7 +1,5 @@
 export type StickerType = "heart" | "candle" | "teddy" | "rose" | "colo-colo" | "u-de-chile" | "swanderers";
 export type PetitionState = "activa" | "cumplida" | "expirada";
-export type PetitionDuration = "1 dia" | "3 dias" | "7 dias";
-
 export interface Sticker {
   id: string;
   type: StickerType;
@@ -14,8 +12,9 @@ export interface Petition {
   id: string;
   texto: string;
   fecha: string;
-  duracion: PetitionDuration;
   estado: PetitionState;
+  userId: string;
+  reactions: Sticker[];
 }
 
 export interface Animita {
@@ -28,6 +27,7 @@ export interface Animita {
   birthDate: string;
   biography: string;
   images: string[];
+  stickers: Sticker[]; // Renamed/Added to match usage
   material: Sticker[];
   peticiones: Petition[];
   createdAt: string;

@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useParams } from 'next/navigation'
+import { ViewTransition } from 'react'
 import MapboxMap from '@/components/map/mapbox-map'
 import { TopHeader } from '@/components/layout/top-header'
 
@@ -20,8 +21,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <>
       <TopHeader />
       <div className="h-screen w-screen relative">
-        <MapboxMap accessToken={mapboxToken} focusedMemorialId={focusedMemorialId} isModal={false} />
-        {children}
+        <ViewTransition name="map-background">
+          <div className="absolute inset-0">
+            <MapboxMap accessToken={mapboxToken} focusedMemorialId={focusedMemorialId} isModal={false} />
+          </div>
+        </ViewTransition>
+        <ViewTransition name="page-content">
+          {children}
+        </ViewTransition>
       </div>
     </>
   )
