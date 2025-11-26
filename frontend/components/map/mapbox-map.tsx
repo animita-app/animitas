@@ -85,7 +85,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         lastFocusedIdRef.current = memorialId
       }
 
-      const drawerHeight = window.innerHeight * 0.5;
+      const drawerHeight = 720 / 1.75
 
       const padding = {
         top: 0,
@@ -109,21 +109,22 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         const canViewProfile = currentZoom >= PROFILE_ZOOM_THRESHOLD
 
         if (!canViewProfile) {
+
+
           mapInstance.flyTo({
             center: coordinates,
             zoom: TARGET_ZOOM,
-            speed: 3, // Increased speed
-            curve: 1, // Reduced curve for faster feel
-            bearing: mapInstance.getBearing(),
-            pitch: mapInstance.getPitch(),
+            speed: 4,
+            curve: 1,
             padding,
             essential: true
           })
         } else {
+
           mapInstance.easeTo({
             center: coordinates,
             zoom: Math.max(currentZoom, TARGET_ZOOM - 1),
-            duration: 600, // Shortened duration
+            duration: 150,
             bearing: mapInstance.getBearing(),
             pitch: mapInstance.getPitch(),
             padding,
@@ -278,12 +279,15 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
         const memorial = memorialDataRef.current.get(id)
         const images = memorial?.images || []
-        const coordinates = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
+
+        // Use authoritative coordinates from source data instead of rendered feature coordinates
+        // Rendered coordinates can be slightly off due to tile simplification/projection
+        const coordinates: [number, number] = memorial
+          ? [memorial.lng, memorial.lat]
+          : (feature.geometry as GeoJSON.Point).coordinates as [number, number]
 
         // Tooltip popup removed to simplify UI
-        setTimeout(() => {
-          focusMemorial(id, coordinates)
-        }, 300)
+        focusMemorial(id, coordinates)
       }
 
       const handleClusterClick = (event: mapboxgl.MapMouseEvent) => {
@@ -343,10 +347,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         } else {
           source.getClusterExpansionZoom(clusterId, (err, zoom) => {
             if (err) return
-            const targetZoom = Math.min(
-              Math.max(zoom ?? mapInstance.getZoom() + 1, TARGET_ZOOM - 1),
-              CLUSTER_MAX_EXPANSION_ZOOM
-            )
+            // Use the exact zoom level needed to break the cluster, no additional constraints
+            const targetZoom = zoom ?? mapInstance.getZoom() + 1
             mapInstance.flyTo({
               center: clusterCoordinates,
               zoom: targetZoom,
@@ -661,7 +663,13 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       return typeof properties.id === 'string' && properties.id === focusedMemorialId
     })
 
+
+
     if (!feature || feature.geometry.type !== 'Point') return
+
+    if (lastFocusedIdRef.current === focusedMemorialId) {
+      return
+    }
 
     const isFirstFocus = lastFocusedIdRef.current === null;
 
@@ -704,7 +712,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             map.current.fitBounds(CHILE_BOUNDS, { padding: 64, duration: 800, essential: true })
           }}
         >
-          <Locate className="h-5 w-5" />
+          <Locate className="!size-6 stroke-2" />
           <span className="sr-only">Reset Zoom</span>
         </Button>
       </div>

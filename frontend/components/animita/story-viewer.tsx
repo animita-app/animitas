@@ -78,6 +78,35 @@ function ChatList({ messages }: { messages: ChatMessage[] }) {
   )
 }
 
+// Separate component for video to optimize playback control
+function VideoStory({ src, isActive, storyId }: { src: string, isActive: boolean, storyId: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (isActive) {
+      video.muted = false
+      video.play().catch(() => { })
+    } else {
+      video.muted = true
+      video.pause()
+    }
+  }, [isActive])
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      className="w-full h-full object-cover"
+      playsInline
+      loop
+      muted
+    />
+  )
+}
+
 function ProgressBar({ active, duration, finished }: { active: boolean, duration: number, finished: boolean }) {
   const [width, setWidth] = useState(0)
 
@@ -348,33 +377,41 @@ export function StoryViewer({ animitaId, stories, initialStoryId, open, onOpenCh
           {/* Carousel */}
           <Carousel setApi={setApi} className="w-full h-full">
             <CarouselContent className="!h-svh ml-0">
-              {stories.map((story) => (
-                <CarouselItem key={story.id} className="pl-0 h-full relative">
-                  <div className="w-full h-full bg-red-400 flex items-center justify-center bg-zinc-900 relative">
-                    {story.type === 'image' ? (
-                      <Image
-                        src={story.src}
-                        alt="Story"
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                    ) : (
-                      <video
-                        src={story.src}
-                        className="w-full h-full object-cover"
-                        autoPlay
-                        playsInline
-                        loop
-                        muted={false} // Allow sound if user wants, but maybe start muted? No, stories usually sound on.
-                      />
-                    )}
+              {stories.map((story, idx) => {
+                // Render current story and adjacent ones for smooth transitions
+                const isActive = idx === currentStoryIndex
+                const isAdjacent = Math.abs(idx - currentStoryIndex) === 1
+                const shouldRender = isActive || isAdjacent
 
-                    {/* Gradient Overlay for text readability */}
-                    <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                  </div>
-                </CarouselItem>
-              ))}
+                return (
+                  <CarouselItem key={story.id} className="pl-0 h-full relative">
+                    {shouldRender ? (
+                      <div className="w-full h-full flex items-center justify-center bg-zinc-900 relative">
+                        {story.type === 'image' ? (
+                          <Image
+                            src={story.src}
+                            alt="Story"
+                            fill
+                            className="object-cover"
+                            priority={isActive}
+                          />
+                        ) : (
+                          <VideoStory
+                            src={story.src}
+                            isActive={isActive}
+                            storyId={story.id}
+                          />
+                        )}
+
+                        {/* Gradient Overlay for text readability */}
+                        <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full bg-zinc-900" />
+                    )}
+                  </CarouselItem>
+                )
+              })}
             </CarouselContent>
           </Carousel>
 

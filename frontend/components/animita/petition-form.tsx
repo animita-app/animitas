@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { X } from 'lucide-react'
@@ -22,6 +22,17 @@ export function PetitionForm({ animitaId, animitaName, open, onOpenChange, onPet
   const user = FAKE_USERS['current-user']
   const [texto, setTexto] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Focus textarea when dialog opens
+  useEffect(() => {
+    if (open && textareaRef.current) {
+      // Small delay to ensure dialog animation completes
+      setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+    }
+  }, [open])
   const handleSubmit = async () => {
     if (!texto.trim()) return
 
@@ -87,6 +98,7 @@ export function PetitionForm({ animitaId, animitaName, open, onOpenChange, onPet
           </div>
 
           <Textarea
+            ref={textareaRef}
             autoFocus
             placeholder="Deja tu reflexión..."
             value={texto}

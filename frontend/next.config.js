@@ -1,17 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'localhost',
-      'images.mapillary.com',
-      'streetviewpixels-pa.googleapis.com',
-      'lqkwpjkibpkfoilfpfxz.supabase.co',
-      '*.supabase.co',
-    ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**.supabase.co',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.mapillary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'streetviewpixels-pa.googleapis.com',
       },
     ],
   },

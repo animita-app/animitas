@@ -163,20 +163,20 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
     <div className="space-y-2 -mt-2">
       <h3 className="sr-only font-semibold text-sm">Stickers dejados ({stickers.length})</h3>
       <Carousel opts={{ dragFree: true }}>
-        <CarouselContent className="-ml-2 my-4">
+        <CarouselContent className="-ml-2 mt-4 mb-2">
           {reactionType ? (
             <CarouselItem className="ml-2 pl-3 basis-auto">
               <button
                 ref={triggerRef}
                 onClick={() => setShowDialog(true)}
-                className="relative group flex items-center justify-center"
+                className="group flex flex-col items-center justify-center gap-1"
               >
                 <div className="flex items-center justify-center size-20 rounded-lg">
                   <StickerItem type={reactionType} />
                 </div>
                 <UserBadge
                   user={FAKE_USERS['current-user']}
-                  className="absolute -bottom-2 left-1/2 -translate-x-1/2"
+                  className="-mt-4"
                 />
               </button>
             </CarouselItem>
@@ -185,12 +185,12 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
               <button
                 ref={triggerRef}
                 onClick={() => setShowDialog(true)}
-                className="relative group"
+                className="group flex flex-col items-center justify-center gap-1"
               >
                 <div className="flex items-center justify-center size-20 rounded-lg">
                   <span className="text-[67px] animate-[heartbeat_5s_ease-in-out_infinite]">❤️</span>
                 </div>
-                <Badge className="max-w-20 h-5 p-0.5 shrink-0 font-normal text-[10px] absolute -bottom-2 left-1/2 -translate-x-1/2 pointer-events-none flex gap-1 items-center justify-center">
+                <Badge className="max-w-20 h-5 p-0.5 shrink-0 font-normal text-[10px] pointer-events-none flex gap-1 items-center justify-center">
                   <Image src={FAKE_USERS['current-user'].avatar} alt="Yo" width={16} height={16} className="rounded-full" />
                   <span className="text-[15px] -mt-0.5 font-normal items-center">+</span>
                 </Badge>
@@ -205,13 +205,13 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
 
               return (
                 <CarouselItem key={sticker.id} className={cn("pl-2 basis-auto", index === filteredStickers.length - 1 && "pr-4")}>
-                  <div className="relative group">
+                  <div className="group flex flex-col items-center justify-center gap-1">
                     <div className="flex items-center justify-center size-20 rounded-lg">
                       <StickerItem type={sticker.type} />
                     </div>
                     <UserBadge
                       user={user}
-                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5"
+                      className="-mt-4"
                     />
                   </div>
                 </CarouselItem>

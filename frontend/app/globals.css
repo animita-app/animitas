@@ -262,5 +262,5 @@ img {
 }
 
 .animate-progress {
-  animation: progress linear both;
+  animation: progress linear forwards;
 }
