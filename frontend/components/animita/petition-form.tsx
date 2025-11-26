@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { X } from 'lucide-react'
@@ -24,15 +24,6 @@ export function PetitionForm({ animitaId, animitaName, open, onOpenChange, onPet
   const [isSubmitting, setIsSubmitting] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Focus textarea when dialog opens
-  useEffect(() => {
-    if (open && textareaRef.current) {
-      // Small delay to ensure dialog animation completes
-      setTimeout(() => {
-        textareaRef.current?.focus()
-      }, 100)
-    }
-  }, [open])
   const handleSubmit = async () => {
     if (!texto.trim()) return
 
@@ -61,6 +52,13 @@ export function PetitionForm({ animitaId, animitaName, open, onOpenChange, onPet
         showCloseButton={false}
         className='!p-2 bg-transparent border-transparent max-w-none h-full max-h-svh flex flex-col gap-2 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-200'
         overlayClassName="bg-black/100"
+        onOpenAutoFocus={(e) => {
+          e.preventDefault()
+          // Focus the textarea after a short delay to ensure it's rendered
+          setTimeout(() => {
+            textareaRef.current?.focus()
+          }, 100)
+        }}
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Publicar reflexión</DialogTitle>
