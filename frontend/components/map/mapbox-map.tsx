@@ -7,8 +7,7 @@ import type { FeatureCollection, Point } from 'geojson'
 import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { MemorialPopup } from './memorial-popup'
-import { MarkerIcon } from './MarkerIcon'
+import { MarkerIcon } from './marker-icon'
 
 interface MapboxMapProps {
   accessToken: string

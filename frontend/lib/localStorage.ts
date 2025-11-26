@@ -36,7 +36,6 @@ export function addSticker(
   const userId = getUserId();
   const stickers = getAllUserStickers();
 
-  // Check if user already has a sticker for this animita
   const existingIndex = stickers.findIndex(
     (s) => s.animitaId === animitaId && s.userId === userId
   );
@@ -70,9 +69,12 @@ export function getAllUserStickers(): StoredSticker[] {
 
 export function getAnimitaStickersByUser(animitaId: string): StoredSticker[] {
   const userId = getUserId();
-  return getAllUserStickers().filter(
+  const allStickers = getAllUserStickers();
+  const filtered = allStickers.filter(
     (s) => s.animitaId === animitaId && s.userId === userId
   );
+
+  return filtered;
 }
 
 export function deleteSticker(stickerId: string): void {
@@ -88,7 +90,6 @@ export function addPetition(
   const userId = getUserId();
   const petitions = getAllUserPetitions();
 
-  // Allow multiple petitions per user
   const petition: StoredPetition = {
     id: `petition-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     animitaId,
@@ -96,7 +97,7 @@ export function addPetition(
     fecha: new Date().toISOString(),
     estado: "activa",
     userId,
-    reactions: [], // Initialize empty reactions for new petition
+    reactions: [],
   };
 
   petitions.push(petition);

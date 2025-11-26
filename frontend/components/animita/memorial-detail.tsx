@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getAnimitaById } from '@/lib/mockService'
-import { getAnimitaStickersByUser, getAnimitaPetitionsByUser } from '@/lib/localStorage'
+import { getAnimitaStickersByUser, getAnimitaPetitionsByUser, getUserId } from '@/lib/localStorage'
 import { PetitionForm } from './petition-form'
 import { StickerGrid } from './sticker-grid'
 import { PetitionItem, PetitionInput } from './petition-item'
@@ -68,11 +68,16 @@ export function MemorialDetail({ id }: { id: string }) {
   const birthYear = memorial?.birthDate ? new Date(memorial.birthDate).getFullYear() : null
   const deathYear = memorial?.deathDate ? new Date(memorial.deathDate).getFullYear() : null
 
-  // Filter out duplicates if any (though logic should handle it, good to be safe or just merge)
-  // Actually, we should probably deduplicate based on ID if we were merging lists from server and local.
-  // But here memorial.material is mock data, userStickers is local.
-  // We should just append them.
-  const allStickers = [...(memorial?.material || []), ...userStickers]
+  const allStickersRaw = [...(memorial?.material || []), ...userStickers]
+
+  const stickerMap = new Map<string, typeof allStickersRaw[0]>()
+  allStickersRaw.forEach(sticker => {
+    if (sticker.userId) {
+      stickerMap.set(sticker.userId, sticker)
+    }
+  })
+
+  const allStickers = Array.from(stickerMap.values())
 
   if (isLoading) {
     return (
@@ -96,7 +101,7 @@ export function MemorialDetail({ id }: { id: string }) {
   return (
     <>
       <div className="space-y-3 py-3">
-        <h2 className="px-6 normal-case !text-neutral-800 text-2xl font-semibold">
+        <h2 className="px-6 text-balance normal-case !text-neutral-800 text-2xl font-semibold">
           {memorial.name}
         </h2>
 

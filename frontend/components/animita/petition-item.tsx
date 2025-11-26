@@ -47,18 +47,21 @@ export function PetitionItem({ petition }: PetitionItemProps) {
       </p>
 
       {/* Footer / Reactions */}
-      {reactionCount > 0 && (
-        <Badge variant="secondary" className="!bg-background-weaker/80 w-fit gap-1 px-2.5 h-8 items-center font-normal">
-          <div className="flex items-center gap-0.5">
-            {uniqueReactions.map((type, i) => (
+      <Badge variant="secondary" className="-mx-1 !bg-background-weaker/80 w-fit gap-1 px-2 h-8 items-center font-normal">
+        <div className="flex items-center gap-0.5">
+          {reactionCount > 0 ?
+            uniqueReactions.map((type, i) => (
               <div key={i} className="relative">
-                <StickerItem type={type} className="w-5 h-5 text-xl text-center leading-none" />
+                <StickerItem
+                  type={type}
+                  className="w-5 h-5 text-xl text-center leading-none"
+                />
               </div>
-            ))}
-          </div>
-          <span className="text-xs text-text-strong">{reactionCount}</span>
-        </Badge>
-      )}
+            ))
+          : "❤️"}
+        </div>
+        <span className="text-xs text-text-strong">{reactionCount || 0}</span>
+      </Badge>
     </div>
   )
 }

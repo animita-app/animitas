@@ -51,10 +51,10 @@ export function StickerItem({ type, className }: StickerItemProps) {
           alt={type}
           width={80}
           height={80}
-          className={cn("w-20 h-20 object-contain", className)}
+          className={cn("w-20 h-20 object-contain p-1", className)}
         />
       ) : (
-        <span className={cn("text-[67px] leading-none", className)}>❤️</span>
+        <span className={cn("text-[67px] leading-none animate-[heartbeat_5s_ease-in-out_infinite]", className)}>❤️</span>
       )}
     </>
   )
@@ -68,29 +68,15 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
   const [confettiImage, setConfettiImage] = useState<{ src: string, x: number, y: number, key: number } | null>(null)
 
   useEffect(() => {
-    // Load existing sticker for this user and animita
-    // We assume we can get animitaId from props or context, but here we might need to rely on the parent passing it or inferring it.
-    // However, StickerGrid currently takes `stickers` as prop.
-    // The user request says "global local storage... on an specific animita".
-    // We need animitaId here.
-    // Let's assume for now we can't easily get it without prop change, but wait, `onAddSticker` is passed.
-    // Maybe we should just update the local state and let the parent handle the actual persistence?
-    // BUT the user said "We need a global local storage... reacting with a sticker on sticker-grid.tsx".
-    // So I should probably add it here.
-    // But I don't have animitaId in props!
-    // I'll check if I can get it from params or if I should add it to props.
-    // The parent is `MemorialContent` or `MemorialDetail`.
-    // Let's check `MemorialDetail` usage of `StickerGrid`.
     const userId = getUserId()
+    setReactionType(null)
+
     if (userId && animitaId) {
       const userStickers = getAnimitaStickersByUser(animitaId)
-      // Since we enforce one per user, we can take the first one (or the last one if we want latest, but logic says one)
       const existingSticker = userStickers.find(s => s.userId === userId)
-      if (existingSticker) {
-        setReactionType(existingSticker.type)
-      }
+      setReactionType(existingSticker?.type || null)
     }
-  }, [animitaId])
+  }, [animitaId, stickers])
 
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [currentUserId, setCurrentUserId] = useState<string>('')
@@ -102,6 +88,7 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
   const handleAddSticker = (type: Sticker['type']) => {
     setReactionType(type)
     addSticker(animitaId, type)
+
     onAddSticker(type)
     setShowDialog(false)
 
@@ -200,7 +187,7 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
                 className="relative group"
               >
                 <div className="flex items-center justify-center size-20 rounded-lg">
-                  <span className="text-[67px]">❤️</span>
+                  <span className="text-[67px] animate-[heartbeat_5s_ease-in-out_infinite]">❤️</span>
                 </div>
                 <Badge className="max-w-20 h-5 p-0.5 shrink-0 font-normal text-[10px] absolute -bottom-2 left-1/2 -translate-x-1/2 pointer-events-none flex gap-1 items-center justify-center">
                   <Image src={FAKE_USERS['current-user'].avatar} alt="Yo" width={16} height={16} className="rounded-full" />
@@ -210,14 +197,13 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
             </CarouselItem>
           )}
 
-          {stickers
-            .filter(sticker => sticker.userId !== currentUserId)
-            .map((sticker, index) => {
-              // Use the actual user from the sticker if available, otherwise fallback to rotation
+          {(() => {
+            const filteredStickers = stickers.filter(sticker => sticker.userId !== currentUserId)
+            return filteredStickers.map((sticker, index) => {
               const user = FAKE_USERS[sticker.userId] || FAKE_USERS[FAKE_USER_KEYS[index % FAKE_USER_KEYS.length]]
 
               return (
-                <CarouselItem key={sticker.id} className={cn("pl-2 basis-auto", index === stickers.length - 1 && "mr-4")}>
+                <CarouselItem key={sticker.id} className={cn("pl-2 basis-auto", index === filteredStickers.length - 1 && "pr-4")}>
                   <div className="relative group">
                     <div className="flex items-center justify-center size-20 rounded-lg">
                       <StickerItem type={sticker.type} />
@@ -229,7 +215,8 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
                   </div>
                 </CarouselItem>
               )
-            })}
+            })
+          })()}
         </CarouselContent>
       </Carousel>
 
