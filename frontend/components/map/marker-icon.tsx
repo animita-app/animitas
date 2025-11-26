@@ -110,7 +110,7 @@ export const MarkerIcon = ({ name, images = [], stickers = [], className }: Mark
               // Add randomness
               const randX = (getStableRandom(seed + 'x') - 0.5) * 20
               const randY = (getStableRandom(seed + 'y') - 0.5) * 20
-              const randScale = (getStableRandom(seed + 's') - 1.25) * 0.15
+              const randScale = (getStableRandom(seed + 's') - 0.5) * 0.15
 
               // Z-index based on scale (larger = higher z-index)
               const zIndex = Math.round(baseScale * 40)
@@ -118,10 +118,13 @@ export const MarkerIcon = ({ name, images = [], stickers = [], className }: Mark
               return (
                 <div
                   key={i}
-                  className="absolute pointer-events-none transition-all duration-500 -mb-8"
+                  className="absolute pointer-events-none transition-all duration-500"
                   style={{
                     zIndex,
-                    transform: `translate(${x + randX}px, ${-y + randY}px) scale(${baseScale + randScale})`
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${x + randX}px), calc(-50% - ${y - randY}px)) scale(${baseScale + randScale})`,
+                    willChange: 'transform'
                   }}
                 >
                   <StickerItem type={sticker.type as any} className="drop-shadow-md" />
