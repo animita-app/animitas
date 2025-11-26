@@ -8,6 +8,8 @@ import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { MarkerIcon } from './marker-icon'
+import { DirectionalIndicator } from './directional-indicator'
+import { calculateDistance, calculateBearing } from '@/lib/utils'
 
 interface MapboxMapProps {
   accessToken: string
@@ -55,6 +57,13 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const memorialDataRef = useRef<Map<string, any>>(new Map())
   const popupRef = useRef<mapboxgl.Popup | null>(null)
   const router = useRouter()
+
+  // Directional indicator state
+  const [nearestAnimita, setNearestAnimita] = useState<{
+    name: string
+    distance: number
+    bearing: number
+  } | null>(null)
 
   const focusMemorial = useCallback(
     (
@@ -375,9 +384,65 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         }
       }
 
+      const updateNearestAnimita = () => {
+        const currentZoom = mapInstance.getZoom()
+        const shouldShowIndicator = currentZoom >= PROFILE_ZOOM_THRESHOLD
+
+        if (!shouldShowIndicator || memorials.features.length <= 1) {
+          setNearestAnimita(null)
+          return
+        }
+
+        const center = mapInstance.getCenter()
+        const centerLat = center.lat
+        const centerLng = center.lng
+
+        let nearest: { id: string; name: string; distance: number; bearing: number; lat: number; lng: number } | null = null
+
+        for (const feature of memorials.features) {
+          if (feature.geometry.type !== 'Point') continue
+
+          const properties = (feature.properties ?? {}) as Record<string, unknown>
+          const memorialId = properties.id
+          if (typeof memorialId !== 'string') continue
+
+          // Skip the currently focused memorial
+          if (focusedMemorialId && memorialId === focusedMemorialId) continue
+
+          const coords = feature.geometry.coordinates as [number, number]
+          const [lng, lat] = coords
+          const distance = calculateDistance(centerLat, centerLng, lat, lng)
+          const bearing = calculateBearing(centerLat, centerLng, lat, lng)
+
+          if (!nearest || distance < nearest.distance) {
+            nearest = {
+              id: memorialId,
+              name: typeof properties.name === 'string' ? properties.name : 'Animita',
+              distance,
+              bearing,
+              lat,
+              lng
+            }
+          }
+        }
+
+        if (nearest) {
+          setNearestAnimita({
+            name: nearest.name,
+            distance: nearest.distance,
+            bearing: nearest.bearing
+          })
+        } else {
+          setNearestAnimita(null)
+        }
+      }
+
       mapInstance.on('zoom', handleZoomChange)
       mapInstance.on('zoomend', handleZoomChange) // Ensure final state is correct
+      mapInstance.on('move', updateNearestAnimita)
+      mapInstance.on('moveend', updateNearestAnimita)
       handleZoomChange()
+      updateNearestAnimita()
 
       mapInstance.on('click', 'clusters', handleClusterClick)
       mapInstance.on('click', 'memorials-outer', handleMemorialClick)
@@ -401,6 +466,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         mapInstance.off('click', 'memorials-outer', handleMemorialClick)
         mapInstance.off('click', 'memorials-inner', handleMemorialClick)
         mapInstance.off('zoom', handleZoomChange)
+        mapInstance.off('move', updateNearestAnimita)
+        mapInstance.off('moveend', updateNearestAnimita)
         profileMarkers.current.forEach((marker) => marker.remove())
         profileMarkers.current.clear()
         profileViewState.current = false
@@ -416,7 +483,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       lastFocusedIdRef.current = null
       setIsMapReady(false)
     }
-  }, [accessToken, style, focusMemorial])
+  }, [accessToken, style, focusMemorial, memorials, focusedMemorialId])
 
   useEffect(() => {
     let cancelled = false
@@ -618,5 +685,20 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   }, [focusedMemorialId, memorials, isMapReady, focusMemorial])
 
 
-  return <div ref={mapContainer} className="h-full w-full" />
+  return (
+    <div className="relative h-full w-full">
+      <div ref={mapContainer} className="h-full w-full" />
+
+      {/* Directional Indicator */}
+      {nearestAnimita && (
+        <div className="absolute top-4 right-4 z-10 pointer-events-none">
+          <DirectionalIndicator
+            name={nearestAnimita.name}
+            distance={nearestAnimita.distance}
+            bearing={nearestAnimita.bearing}
+          />
+        </div>
+      )}
+    </div>
+  )
 }

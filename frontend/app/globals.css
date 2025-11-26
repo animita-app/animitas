@@ -250,3 +250,17 @@ img {
     transform: scale(1);
   }
 }
+
+@keyframes progress {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-progress {
+  animation: progress linear forwards;
+}

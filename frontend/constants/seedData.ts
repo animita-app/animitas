@@ -4,7 +4,7 @@ const STICKER_TYPES = ['heart', 'candle', 'teddy', 'rose', 'colo-colo', 'u-de-ch
 const USERS = ['user-2', 'user-3', 'user-4', 'user-5', 'user-6', 'user-7', 'user-8', 'user-9'];
 
 export const FAKE_USERS: Record<string, { username: string; avatar: string }> = {
-  'user-1': { username: '@paularodriguez', avatar: '/pauline.jpeg' },
+  'user-1': { username: '@pbenavides', avatar: '/pbenavides.jpg' },
   'user-2': { username: '@vicpino', avatar: '/vicpino.png' },
   'user-3': { username: '@mlarrain', avatar: '/mlarrain.png' },
   'user-4': { username: '@jkarich', avatar: '/jkarich.jpeg' },
@@ -12,7 +12,7 @@ export const FAKE_USERS: Record<string, { username: string; avatar: string }> = 
   'user-6': { username: '@lvalenzuela', avatar: '/lvalenzuela.png' },
   'user-7': { username: '@tfolch', avatar: '/tfolch.png' },
   'user-8': { username: '@svalenzuela', avatar: '/svalenzuela.jpg' },
-  'user-9': { username: '@pauline', avatar: '/pauline.jpeg' },
+  'user-9': { username: '@pauline', avatar: '/vicpino.png' },
   'current-user': { username: '@pype', avatar: '/pype.png' },
 }
 
@@ -750,3 +750,62 @@ export const SEED_ANIMITAS: Animita[] = [
 export const SEED_MOCK_STICKERS: Sticker[] = SEED_ANIMITAS.flatMap(a => a.stickers);
 
 export const SEED_MOCK_PETITIONS: Petition[] = SEED_ANIMITAS.flatMap(a => a.peticiones);
+
+export interface MockStory {
+  id: string;
+  type: 'image' | 'video';
+  src: string;
+  user: { username: string; avatar: string };
+  isLive: boolean;
+  viewed: boolean;
+}
+
+export const generateMockStories = (): MockStory[] => {
+  // Generate random stories with unique users
+  const userKeys = Object.keys(FAKE_USERS).filter(k => k !== 'current-user');
+  // Shuffle user keys
+  const shuffledUsers = userKeys.sort(() => 0.5 - Math.random());
+
+  const mediaPool = [
+    { type: 'video', src: '/stories/IMG_6247.mp4' },
+    { type: 'image', src: '/stories/IMG_6250.webp' },
+    { type: 'image', src: '/stories/IMG_6260.webp' },
+    { type: 'image', src: '/stories/IMG_6267.webp' },
+  ];
+
+  const storyCount = Math.min(Math.floor(Math.random() * 3) + 4, shuffledUsers.length);
+
+  const generatedStories: MockStory[] = Array.from({ length: storyCount }).map((_, i) => {
+    const userKey = shuffledUsers[i];
+    const randomUser = FAKE_USERS[userKey];
+
+    // Logic: If it's the video, make it live.
+    // We'll pick a random media, but if we pick the video, force isLive=true.
+    // OR: We ensure at least one is live and it is the video.
+
+    // Let's just pick random media first.
+    const media = mediaPool[Math.floor(Math.random() * mediaPool.length)];
+
+    // If media is video, it MUST be live.
+    // If media is image, it CANNOT be live (usually).
+    const isLive = media.type === 'video';
+
+    return {
+      id: `story-${i}-${Date.now()}`,
+      type: media.type as 'image' | 'video',
+      src: media.src,
+      user: randomUser,
+      isLive: isLive,
+      viewed: false
+    };
+  });
+
+  // Ensure there is at least one video/live story if we want to force it,
+  // but the user said "the video one should always be the live thing".
+  // It implies if a video is chosen, it is live.
+
+  // Sort so Live is first
+  generatedStories.sort((a, b) => (a.isLive === b.isLive ? 0 : a.isLive ? -1 : 1));
+
+  return generatedStories;
+};

@@ -10,6 +10,7 @@ import type { Sticker } from '@/types/mock'
 import { cn } from '@/lib/utils'
 import { getAnimitaStickersByUser, addSticker, getUserId } from '@/lib/localStorage'
 import { FAKE_USERS } from '@/constants/seedData'
+import { UserBadge } from '@/components/ui/user-badge'
 
 interface StickerGridProps {
   stickers: Sticker[]
@@ -173,10 +174,10 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
                 <div className="flex items-center justify-center size-20 rounded-lg">
                   <StickerItem type={reactionType} />
                 </div>
-                <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 max-w-20 w-fit normal-case bg-background-weaker text-foreground h-fit p-0.5 pr-1 shrink-0 font-normal text-[10px] pointer-events-none flex gap-1 items-center justify-center">
-                  <Image src={FAKE_USERS['current-user'].avatar} alt="Yo" width={16} height={16} className="rounded-full shrink-0" />
-                  <span className="truncate max-w-[4.5rem]">{FAKE_USERS['current-user'].username}</span>
-                </Badge>
+                <UserBadge
+                  user={FAKE_USERS['current-user']}
+                  className="absolute -bottom-2 left-1/2 -translate-x-1/2"
+                />
               </button>
             </CarouselItem>
           ) : (
@@ -208,10 +209,10 @@ export function StickerGrid({ stickers, onAddSticker, animitaId }: StickerGridPr
                     <div className="flex items-center justify-center size-20 rounded-lg">
                       <StickerItem type={sticker.type} />
                     </div>
-                    <Badge className="absolute -bottom-2 left-1/2 -translate-x-1/2 max-w-20 w-fit normal-case bg-background-weaker text-foreground h-fit p-0.5 px-1.5 shrink-0 font-normal text-[10px] pointer-events-none flex gap-1 items-center justify-center">
-                      <Image src={user.avatar} alt={user.username} width={14} height={14} className="rounded-full shrink-0" />
-                      <span className="truncate max-w-[4.5rem]">{user.username}</span>
-                    </Badge>
+                    <UserBadge
+                      user={user}
+                      className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-1.5"
+                    />
                   </div>
                 </CarouselItem>
               )

@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from 'clsx'
+  import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import { format, formatDistanceToNow, parseISO } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -104,4 +104,46 @@ export function getCoordinatesDelta(lat1: number, lng1: number, lat2: number, ln
     latDelta: Math.abs(lat1 - lat2),
     lngDelta: Math.abs(lng1 - lng2)
   }
+}
+
+/**
+ * Calculate distance between two coordinates using Haversine formula
+ * @returns distance in kilometers
+ */
+export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371 // Earth's radius in kilometers
+  const dLat = toRadians(lat2 - lat1)
+  const dLng = toRadians(lng2 - lng1)
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c
+
+  return distance
+}
+
+/**
+ * Calculate bearing (angle) from one coordinate to another
+ * @returns bearing in degrees (0° = North, 90° = East, 180° = South, 270° = West)
+ */
+export function calculateBearing(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const dLng = toRadians(lng2 - lng1)
+  const y = Math.sin(dLng) * Math.cos(toRadians(lat2))
+  const x = Math.cos(toRadians(lat1)) * Math.sin(toRadians(lat2)) -
+    Math.sin(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.cos(dLng)
+
+  const bearing = toDegrees(Math.atan2(y, x))
+  return (bearing + 360) % 360 // Normalize to 0-360
+}
+
+function toRadians(degrees: number): number {
+  return degrees * (Math.PI / 180)
+}
+
+function toDegrees(radians: number): number {
+  return radians * (180 / Math.PI)
 }

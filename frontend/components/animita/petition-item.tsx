@@ -54,7 +54,7 @@ export function PetitionItem({ petition }: PetitionItemProps) {
               <div key={i} className="relative">
                 <StickerItem
                   type={type}
-                  className="w-5 h-5 text-xl text-center leading-none"
+                  className="!p-0 w-5 h-5 text-xl text-center leading-none"
                 />
               </div>
             ))

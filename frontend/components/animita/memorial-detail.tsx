@@ -11,6 +11,9 @@ import { PetitionForm } from './petition-form'
 import { StickerGrid } from './sticker-grid'
 import { PetitionItem, PetitionInput } from './petition-item'
 import { addSticker } from '@/lib/localStorage'
+import { StoryItem, type Story } from './story-item'
+import { StoryViewer } from './story-viewer'
+import { FAKE_USERS, generateMockStories } from '@/constants/seedData'
 import type { Animita } from '@/types/mock'
 import type { Sticker } from '@/types/mock'
 
@@ -21,6 +24,29 @@ export function MemorialDetail({ id }: { id: string }) {
   const [memorial, setMemorial] = useState<Animita | null>(null)
   const [showPetitionForm, setShowPetitionForm] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
+
+  // Stories state
+  const [storyViewerOpen, setStoryViewerOpen] = useState(false)
+  const [selectedStoryId, setSelectedStoryId] = useState<string>("")
+
+  const [stories, setStories] = useState<Story[]>([])
+
+  useEffect(() => {
+    // Generate random stories
+    const generatedStories = generateMockStories()
+
+
+
+    setStories(generatedStories)
+    if (generatedStories.length > 0) {
+      setSelectedStoryId(generatedStories[0].id)
+    }
+  }, [id])
+
+  const handleStoryClick = (storyId: string) => {
+    setSelectedStoryId(storyId)
+    setStoryViewerOpen(true)
+  }
 
   const handlePetitionAdded = () => {
     setUpdateTrigger(prev => prev + 1)
@@ -144,13 +170,31 @@ export function MemorialDetail({ id }: { id: string }) {
         )} */}
       </div>
 
-      <Tabs defaultValue="peticiones" className='px-6'>
-        <TabsList className="-ml-4 mt-2">
+      <div className="mb-6 mt-4 mx-3">
+        <h3 className="px-2 text-2xl font-medium text-muted-foreground/60 mb-2 normal-case">
+          Tú
+        </h3>
+        <PetitionInput onClick={() => setShowPetitionForm(true)} animitaName={memorial?.name || 'Animita'} />
+      </div>
+
+      <Tabs defaultValue="peticiones">
+        <TabsList className="-ml-4 mt-2 px-6">
           <TabsTrigger value="peticiones">Peticiones</TabsTrigger>
           <TabsTrigger value="historia">Historia</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="peticiones" className="space-y-3 mb-12 -mx-2">
+        <TabsContent value="peticiones" className="space-y-3 mb-12 mt-4">
+          <div className="ml-2 flex gap-3 overflow-x-auto px-4 pb-2 no-scrollbar -mx-3 scroll-pl-3 snap-x">
+            {stories.map((story) => (
+              <div key={story.id} className="snap-start shrink-0">
+                <StoryItem
+                  story={story}
+                  onClick={() => handleStoryClick(story.id)}
+                />
+              </div>
+            ))}
+          </div>
+
           {(() => {
             const allPetitions = [...(memorial.peticiones || []), ...userPetitions]
               .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
@@ -158,7 +202,7 @@ export function MemorialDetail({ id }: { id: string }) {
             if (allPetitions.length === 0) return null
 
             return (
-              <div className="space-y-2 mt-4">
+              <div className="space-y-2 mt-4 px-4">
                 {allPetitions.map((petition) => (
                   <div key={petition.id} className="animate-in fade-in slide-in-from-top-4 duration-700 fill-mode-both">
                     <PetitionItem petition={petition} />
@@ -167,13 +211,6 @@ export function MemorialDetail({ id }: { id: string }) {
               </div>
             )
           })()}
-
-          <div className="mt-6">
-            <h3 className="px-2 text-2xl font-medium text-muted-foreground/60 mb-2 normal-case">
-              Tú
-            </h3>
-            <PetitionInput onClick={() => setShowPetitionForm(true)} animitaName={memorial?.name || 'Animita'} />
-          </div>
         </TabsContent>
 
         <TabsContent value="historia" className="space-y-4 pt-3 px-0 mb-12">
@@ -189,6 +226,13 @@ export function MemorialDetail({ id }: { id: string }) {
         open={showPetitionForm}
         onOpenChange={setShowPetitionForm}
         onPetitionAdded={handlePetitionAdded}
+      />
+
+      <StoryViewer
+        stories={stories}
+        initialStoryId={selectedStoryId}
+        open={storyViewerOpen}
+        onOpenChange={setStoryViewerOpen}
       />
     </>
   )
