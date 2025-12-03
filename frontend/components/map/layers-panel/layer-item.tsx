@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, MapPin, Activity, Hexagon, VectorSquare, Spline } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -11,19 +11,19 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
 
   switch (layer.geometry) {
     case 'point':
-      icon = <div className="w-2 h-2 rounded-full" style={{ backgroundColor: layer.color }} />
+      icon = <div className="size-2 rounded-full" style={{ backgroundColor: layer.color }} />
       typeLabel = 'Punto'
       break
     case 'line':
-      icon = <div className="w-4 h-1 rounded-full" style={{ backgroundColor: layer.color }} />
+      icon = <Spline size={14} style={{ color: layer.color }} />
       typeLabel = 'Línea'
       break
     case 'polygon':
-      icon = <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: layer.color }} />
+      icon = <VectorSquare size={14} style={{ color: layer.color }} />
       typeLabel = 'Polígono'
       break
     default:
-      icon = <div className="w-2 h-2 rounded-full" style={{ backgroundColor: layer.color }} />
+      icon = <div className="size-2 rounded-full" style={{ backgroundColor: layer.color }} />
       typeLabel = 'Desconocido'
   }
 
@@ -60,7 +60,7 @@ export const LayerItem = ({ layer, isElement = false, onClick, onToggleVisibilit
   >
     <div className="flex items-center gap-2">
       <LayerIcon layer={layer} />
-      <span className="text-sm font-normal text-black truncate max-w-[180px]">{layer.label}</span>
+      <span className="text-sm font-normal text-black truncate max-w-56">{layer.label}</span>
     </div>
     <Button
       variant="ghost"

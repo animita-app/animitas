@@ -37,7 +37,8 @@ export function LayersPanel({
   onGISOperationSelect,
   elements = [],
   onElementVisibilityChange,
-  onElementRemove
+  onElementRemove,
+  onLayerClick
 }: LayersPanelProps) {
   // State
   const [layers, setLayers] = useState<Layer[]>(INITIAL_LAYERS)
@@ -214,7 +215,7 @@ export function LayersPanel({
                 >
                   <ChevronLeft className="text-muted-foreground/80" />
                 </Button>
-                <CardTitle className="truncate flex-1 text-sm">{selectedLayer.label}</CardTitle>
+                <CardTitle className="truncate flex-1 text-sm max-w-56">{selectedLayer.label}</CardTitle>
               </div>
 
               <DropdownMenu>
@@ -299,26 +300,31 @@ export function LayersPanel({
               </ScrollArea>
             </Tabs>
           ) : (
-            <div className="p-3 pt-2 space-y-1">
-              {allItems.map(item => (
-                <LayerItem
-                  key={item.id}
-                  layer={item}
-                  isElement={item.source === 'search'}
-                  onClick={() => setSelectedLayer(item)}
-                  onToggleVisibility={(e) => {
-                    e.stopPropagation()
-                    toggleVisibility(item.id, item.source === 'search')
-                  }}
-                />
-              ))}
+            <ScrollArea className="h-full">
+              <div className="p-3 pt-2 space-y-1">
+                {allItems.map(item => (
+                  <LayerItem
+                    key={item.id}
+                    layer={item}
+                    isElement={item.source === 'search'}
+                    onClick={() => {
+                      setSelectedLayer(item)
+                      onLayerClick?.(item)
+                    }}
+                    onToggleVisibility={(e) => {
+                      e.stopPropagation()
+                      toggleVisibility(item.id, item.source === 'search')
+                    }}
+                  />
+                ))}
 
-              {allItems.length === 0 && (
-                <div className="text-center text-muted-foreground text-sm">
-                  No hay capas
-                </div>
-              )}
-            </div>
+                {allItems.length === 0 && (
+                  <div className="text-center text-muted-foreground text-sm">
+                    No hay capas
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           )}
         </div>
       </Card>

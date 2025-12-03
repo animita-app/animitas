@@ -1,4 +1,47 @@
-import type { FeatureCollection, Feature, Point, Polygon, LineString } from 'geojson'
+import type { FeatureCollection, Feature, Point, Polygon, LineString, MultiPolygon } from 'geojson'
+import osmtogeojson from 'osmtogeojson'
+
+// ... existing code ...
+
+export async function fetchPlaceBoundary(placeName: string): Promise<Feature<Polygon | MultiPolygon> | null> {
+  // Clean up place name (remove ", Chile" etc if present, though Mapbox usually gives full name)
+  // For Overpass, simple name is often better.
+  const cleanName = placeName.split(',')[0].trim()
+
+  const query = `
+    [out:json][timeout:10];
+    (
+      relation["name"="${cleanName}"]["boundary"="administrative"];
+      way["name"="${cleanName}"]["boundary"="administrative"];
+    );
+    out body;
+    >;
+    out skel qt;
+  `
+
+  try {
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query
+    })
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    const geojson = osmtogeojson(data)
+
+    // Find the first Polygon or MultiPolygon
+    const feature = geojson.features.find(f =>
+      f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+    ) as Feature<Polygon | MultiPolygon> | undefined
+
+    return feature || null
+  } catch (error) {
+    console.error('Error fetching boundary:', error)
+    return null
+  }
+}
+
 
 export type OverpassLayerType =
   | 'highways'

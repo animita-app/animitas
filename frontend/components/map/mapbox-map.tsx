@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Locate, ArrowUp } from 'lucide-react'
 import { MOCK_SITES, MOCK_PEOPLE } from '@/constants/mockData'
 import { SEED_SITES } from '@/constants/sites'
-import { fetchContextLayers, OverpassLayerType } from '@/lib/overpass-client'
+import { fetchContextLayers, OverpassLayerType, fetchPlaceBoundary } from '@/lib/overpass-client'
 import { LayersPanel, AnimitaProperty, Layer, GISOperation } from './layers-panel'
 import { bufferFeatures, intersectFeatures, dissolveFeatures, clipFeatures, spatialJoin, GISOperationResult } from '@/lib/gis-engine'
 import { ActionsPanel } from './actions-panel'
@@ -620,23 +620,45 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
   }
 
-  const handleSelectLocation = (location: any) => {
+  const handleSelectLocation = async (location: any) => {
     if (!map.current || !location) return
+
+    // 1. Handle 'local' (Animitas) - Just focus, no highlight layer
+    if (location.type === 'local') {
+      focusMemorial(location.id, location.center)
+      setSearchSuggestions([])
+      return
+    }
 
     // Use centralized color for search elements
     const elementColor = COLORS.searchElements
+
+    // 2. Handle 'mapbox' (Places) - Try to get boundary
+    let geometry = location.geometry
+    let geometryType: 'point' | 'polygon' | 'line' = location.geometry?.type === 'Point' ? 'point' : 'polygon'
+    let finalLocation = { ...location }
+
+    if (location.type === 'mapbox') {
+      // Try to fetch boundary
+      const boundary = await fetchPlaceBoundary(location.title)
+      if (boundary) {
+        geometry = boundary.geometry
+        geometryType = 'polygon'
+        finalLocation = { ...location, geometry: boundary.geometry }
+      }
+    }
 
     // Add to elements list
     const newElement: Layer = {
       id: location.id,
       label: location.title || location.place_name,
       type: 'analysis',
-      geometry: location.geometry?.type === 'Point' ? 'point' : 'polygon', // Simplify
+      geometry: geometryType,
       color: elementColor,
       visible: true,
       opacity: 100,
       source: 'search',
-      data: location
+      data: finalLocation
     }
     setElements(prev => [...prev, newElement])
 
@@ -1157,6 +1179,31 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
   }
 
+  const handleLayerClick = (layer: Layer) => {
+    if (!map.current) return
+
+    // If it's a search element, we have location data
+    if (layer.source === 'search' && layer.data) {
+      const location = layer.data
+      if (location.bbox) {
+        map.current.fitBounds(
+          [
+            [location.bbox[0], location.bbox[1]],
+            [location.bbox[2], location.bbox[3]]
+          ],
+          { padding: 50, maxZoom: 16, essential: true }
+        )
+      } else if (location.center) {
+        const [lng, lat] = location.center
+        map.current.flyTo({
+          center: [lng, lat],
+          zoom: 14,
+          essential: true
+        })
+      }
+    }
+  }
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
@@ -1175,6 +1222,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         elements={elements}
         onElementVisibilityChange={(id, visible) => setElements(prev => prev.map(e => e.id === id ? { ...e, visible } : e))}
         onElementRemove={(id) => setElements(prev => prev.filter(e => e.id !== id))}
+        onLayerClick={handleLayerClick}
       />
 
 

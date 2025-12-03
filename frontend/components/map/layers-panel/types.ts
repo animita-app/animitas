@@ -55,6 +55,7 @@ export interface LayersPanelProps {
   elements?: Layer[]
   onElementVisibilityChange?: (id: string, visible: boolean) => void
   onElementRemove?: (id: string) => void
+  onLayerClick?: (layer: Layer) => void
 }
 
 // Initial Data

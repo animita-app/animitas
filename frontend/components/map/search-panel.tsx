@@ -1,26 +1,17 @@
-import { useState, useEffect } from 'react'
-import { Search as SearchIcon, Check, XCircle, PanelLeftClose, PanelLeftOpen, History, MapPin, Navigation } from 'lucide-react'
+import { useState } from 'react'
+import { Search as SearchIcon, XCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
 import { cn } from '@/lib/utils'
+import { LayerItem } from './layers-panel/layer-item'
+import { Layer } from './layers-panel/types'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { COLORS } from '@/lib/map-style'
 
 interface SearchPanelProps {
   className?: string
@@ -29,50 +20,24 @@ interface SearchPanelProps {
   onSelectResult?: (result: any) => void
 }
 
-const formatAddress = (address: string) => {
-  if (!address) return ''
-  const parts = address.split(',')
-  if (parts.length <= 2) return address
-  return `${parts[0].trim()}, ${parts[1].trim()}`
-}
-
-export function SearchPanel({ className, onSearch, searchResults = [], onSelectResult }: SearchPanelProps) {
+export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: SearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const [history, setHistory] = useState<any[]>([])
-
-  // Load history from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('animita-search-history')
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to parse search history', e)
-      }
-    }
-  }, [])
-
-  const addToHistory = (result: any) => {
-    const newHistory = [result, ...history.filter(h => h.id !== result.id)].slice(0, 10)
-    setHistory(newHistory)
-    localStorage.setItem('animita-search-history', JSON.stringify(newHistory))
-  }
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
     setSearchQuery(query)
     onSearch?.(query)
 
-    if (query.length < 3) {
-      // Keep open to show history if available
+    if (query.length >= 3) {
       setOpen(true)
+    } else {
+      setOpen(false)
     }
   }
 
   const handleSelect = (result: any) => {
-    addToHistory(result)
     onSelectResult?.(result)
     setSearchQuery('')
     onSearch?.('')
@@ -82,13 +47,12 @@ export function SearchPanel({ className, onSearch, searchResults = [], onSelectR
   const handleClearSearch = () => {
     setSearchQuery('')
     onSearch?.('')
-    // Don't close immediately, show history
-    setOpen(true)
+    setOpen(false)
   }
 
   if (isCollapsed) {
     return (
-      <Card className="absolute left-4 top-4 z-10 w-12 h-12 flex items-center justify-center shadow-md border border-border-weak rounded-md p-1">
+      <Card className="!py-0 absolute left-4 top-4 z-10 w-12 h-12 flex items-center justify-center shadow-md border border-border-weak rounded-md p-1">
         <Button
           size="icon"
           variant="ghost"
@@ -101,86 +65,82 @@ export function SearchPanel({ className, onSearch, searchResults = [], onSelectR
   }
 
   return (
-    <Card className="absolute left-4 top-4 z-10 w-80 !p-0 !gap-0 shadow-md border border-border-weak rounded-md">
-      <CardHeader className="pl-4 border-b border-border-weak !py-1.5 pr-2 h-12 items-center flex flex-row justify-between space-y-0">
+    <Card className="!py-0 absolute left-4 top-4 z-10 flex flex-col gap-2 w-80 shadow-md border border-border-weak">
+      <CardHeader className="pl-4 border-b border-border-weak !py-1.5 pr-2 h-12 items-center flex flex-row justify-between space-y-0 sr-only">
         <CardTitle className="font-ibm-plex-mono">[ÁNIMA]</CardTitle>
-
         <Button
           size="icon"
           variant="ghost"
+          className="ml-auto h-8 w-8 shrink-0"
           onClick={() => setIsCollapsed(true)}
         >
           <PanelLeftClose className="text-muted-foreground" />
         </Button>
       </CardHeader>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <InputGroup className="border-none rounded-0 h-12">
-            <InputGroupAddon className="ml-1">
-              <SearchIcon />
-            </InputGroupAddon>
-            <InputGroupInput
-              placeholder="Buscar lugares, rutas..."
+          <div className="relative flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              className="w-full bg-transparent border-none focus:outline-none pl-9 pr-8 text-sm h-9"
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={handleSearch}
-              onFocus={() => setOpen(true)}
+              onFocus={() => {
+                if (searchQuery.length >= 3) setOpen(true)
+              }}
             />
-            {searchQuery.length > 0 && (
-              <InputGroupAddon align="inline-end">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-transparent mr-1"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleClearSearch()
-                  }}
-                >
-                  <XCircle className="text-muted-foreground" />
-                </Button>
-              </InputGroupAddon>
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="[&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <XCircle />
+              </button>
             )}
-          </InputGroup>
+          </div>
         </PopoverTrigger>
-        <PopoverContent className="p-0 w-80" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
-          <Command>
-            <CommandList>
-              {searchQuery.length === 0 && history.length > 0 && (
-                <CommandGroup heading="Recientes">
-                  {history.map((item, i) => (
-                    <CommandItem
-                      key={`hist-${item.id || i}`}
-                      onSelect={() => handleSelect(item)}
-                    >
-                      {item.title || item.place_name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
+        <PopoverContent
+          className="w-80 p-0 overflow-y-hidden"
+          align="start"
+          sideOffset={8}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <ScrollArea className="max-h-48 p-1">
+            <div className="flex flex-col gap-1">
+              {searchResults.map((result) => {
+                let geometryType: 'point' | 'line' | 'polygon' = 'point'
+                if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') {
+                  geometryType = 'polygon'
+                } else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') {
+                  geometryType = 'line'
+                } else if (result.bbox) {
+                  geometryType = 'polygon'
+                }
 
-              {searchQuery.length > 0 && (
-                <CommandGroup heading="Resultados">
-                  {searchResults.length === 0 ? (
-                    <CommandEmpty>No se encontraron resultados.</CommandEmpty>
-                  ) : (
-                    searchResults.map((result, i) => (
-                      <CommandItem
-                        key={result.id || i}
-                        onSelect={() => handleSelect(result)}
-                      >
-                        <div className="flex flex-col overflow-hidden">
-                          <span className="truncate font-normal">{result.title || result.place_name}</span>
-                          <span className="truncate text-sm text-muted-foreground">
-                            {formatAddress(result.place_name || result.story || '')}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))
-                  )}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
+                const layer: Layer = {
+                  id: result.id,
+                  label: result.title,
+                  type: 'data',
+                  geometry: geometryType,
+                  color: result.type === 'local' ? COLORS.animitas : '#6b7280',
+                  visible: true,
+                  opacity: 1,
+                }
+
+                return (
+                  <LayerItem
+                    key={result.id}
+                    layer={layer}
+                    onClick={() => handleSelect(result)}
+                    onToggleVisibility={(e) => {
+                      e.stopPropagation()
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </ScrollArea>
         </PopoverContent>
       </Popover>
     </Card>
