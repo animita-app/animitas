@@ -24,17 +24,27 @@ import {
 export const COLORS = {
   animitas: "#0000ff", // Fixed blue color for animitas
   context: {
-    highways: "#E57373",
-    cemeteries: "#2E8B57",
-    bars: "#FF8C00",
-    churches: "#6A6AD3"
+    // Transporte
+    highways: "#FF0000", // Red
+    secondary_roads: "#FF4500", // Orange Red
+    urban_streets: "#FFA500", // Orange
+    dangerous_junctions: "#8B0000", // Dark Red
+    traffic_lights: "#FFD700", // Gold
+    roundabouts: "#A0522D", // Sienna
+
+    // Servicios
+    hospitals: "#00FFFF", // Cyan
+    cemeteries: "#00FF00", // Green
+    police: "#00008B", // Dark Blue
+    fire_station: "#FF4500", // Orange Red
+
+    // Sociabilidad
+    churches: "#FFFF00", // Yellow
+    schools: "#32CD32", // Lime Green
+    universities: "#4169E1", // Royal Blue
+    bars: "#FF00FF" // Magenta
   },
   searchElements: "#A855F7",
-  heatmap: {
-    low: "#00FF00",
-    mid: "#FFFF00",
-    high: "#FF0000"
-  },
   clusters: {
     default: "#EC4899"
   },
@@ -85,10 +95,25 @@ export const ICONS = {
 export const LABELS = {
   animitas: "Animitas",
   contextLayers: {
-    highways: "Carreteras",
+    // Transporte
+    highways: "Carreteras Principales",
+    secondary_roads: "Rutas Secundarias",
+    urban_streets: "Calles Urbanas",
+    dangerous_junctions: "Cruces Peligrosos",
+    traffic_lights: "Semáforos",
+    roundabouts: "Rotondas",
+
+    // Servicios
+    hospitals: "Hospitales",
     cemeteries: "Cementerios",
-    bars: "Bares",
-    churches: "Iglesias"
+    police: "Comisarías",
+    fire_station: "Bomberos",
+
+    // Sociabilidad
+    churches: "Iglesias",
+    schools: "Colegios/Liceos",
+    universities: "Universidades",
+    bars: "Bares"
   },
   elementos: "Elementos"
 };
@@ -97,9 +122,21 @@ export const LEGENDS = {
   animitas: { label: LABELS.animitas, color: COLORS.animitas, icon: ICONS.typology.default.icon },
   context: {
     highways: { label: LABELS.contextLayers.highways, color: COLORS.context.highways },
+    secondary_roads: { label: LABELS.contextLayers.secondary_roads, color: COLORS.context.secondary_roads },
+    urban_streets: { label: LABELS.contextLayers.urban_streets, color: COLORS.context.urban_streets },
+    dangerous_junctions: { label: LABELS.contextLayers.dangerous_junctions, color: COLORS.context.dangerous_junctions },
+    traffic_lights: { label: LABELS.contextLayers.traffic_lights, color: COLORS.context.traffic_lights },
+    roundabouts: { label: LABELS.contextLayers.roundabouts, color: COLORS.context.roundabouts },
+
+    hospitals: { label: LABELS.contextLayers.hospitals, color: COLORS.context.hospitals },
     cemeteries: { label: LABELS.contextLayers.cemeteries, color: COLORS.context.cemeteries },
-    bars: { label: LABELS.contextLayers.bars, color: COLORS.context.bars },
-    churches: { label: LABELS.contextLayers.churches, color: COLORS.context.churches }
+    police: { label: LABELS.contextLayers.police, color: COLORS.context.police },
+    fire_station: { label: LABELS.contextLayers.fire_station, color: COLORS.context.fire_station },
+
+    churches: { label: LABELS.contextLayers.churches, color: COLORS.context.churches },
+    schools: { label: LABELS.contextLayers.schools, color: COLORS.context.schools },
+    universities: { label: LABELS.contextLayers.universities, color: COLORS.context.universities },
+    bars: { label: LABELS.contextLayers.bars, color: COLORS.context.bars }
   }
 };
 

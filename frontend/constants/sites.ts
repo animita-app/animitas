@@ -7,7 +7,7 @@ export const SEED_SITES: Site[] = [
     "title": "Animita del Cabo Gomez",
     "person_id": "seed-person-cabo-gomez",
     "location": { "lat": -18.4778588, "lng": -70.313807 },
-    "typology": "monumental",
+    "typology": "Monumental",
 
     "images": [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-del-cabo-gomez/gomez.jpg"
@@ -19,7 +19,7 @@ export const SEED_SITES: Site[] = [
     "insights": {
       "site_id": "animita-del-cabo-gomez",
       "memorial": {
-        "death_cause": "accident",
+        "death_cause": "Accidente",
         "social_roles": ["Militar"],
         "narrator_relation": "Investigador"
       },
@@ -30,7 +30,7 @@ export const SEED_SITES: Site[] = [
       },
       "patrimonial": {
         "antiquity_year": 1950,
-        "size": "medium"
+        size: "Mediana"
       },
       "generated_at": "2025-10-21"
     }
@@ -41,7 +41,7 @@ export const SEED_SITES: Site[] = [
     title: "Animita de Hermógenes San Martín",
     person_id: "seed-person-hermogenes-san-martin",
     location: { lat: -20.2117411, lng: -70.1395242 },
-    typology: "iglesia",
+    typology: "Iglesia",
     images: [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-hermogenes/hermo.jpg"
     ],
@@ -63,7 +63,7 @@ export const SEED_SITES: Site[] = [
       },
       patrimonial: {
         antiquity_year: 1935,
-        size: "medium"
+        size: "Mediana"
       },
       generated_at: "2025-10-21"
     }
@@ -74,7 +74,7 @@ export const SEED_SITES: Site[] = [
     title: "Animita de Evaristo Montt",
     person_id: "seed-person-evaristo-montt",
     location: { lat: -23.6370689, lng: -70.3900487 },
-    typology: "monumental",
+    typology: "Monumental",
     images: [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-evaristo-montt/CleanShot%202025-12-02%20at%2008.58.51@2x.png"
     ],
@@ -96,136 +96,136 @@ export const SEED_SITES: Site[] = [
       },
       patrimonial: {
         antiquity_year: 1924,
-        size: "large"
+        size: "Grande"
       },
       generated_at: "2025-12-01"
     }
   },
   {
-    "id": "animita-de-elvirita-guillen",
-    "slug": "animita-de-elvirita-guillen",
-    "title": "Animita de Elvirita Guillén",
-    "person_id": "seed-person-elvirita-guillen",
-    "location": { "lat": -23.6471877, "lng": -70.3872316 },
-    "typology": "tumba",
-    "size": "large",
-    "images": ["/placeholder/elvirita-guillen.jpg"],
-    "story": "Elvirita Guillén Guillén tenía 14 años de edad, era huérfana, sus padres habían muerto cuando ella era aún muy pequeña. Fue entregada al Hogar de Huérfanos de Limache...\n(Historia completa omitida por extensión).",
-    "created_at": "1937-03-16",
-    "created_by": { "id": "oreste-plath", "name": "Oreste Plath" },
-    "allow_edits": true,
-    "insights": {
-      "site_id": "animita-de-elvirita-guillen",
-      "memorial": {
-        "death_cause": "suicidio (precedido de violación)",
-        "social_roles": ["Huérfana", "Víctima", "Santa Laica"],
-        "narrator_relation": "Investigador",
-        "narrator_name_mentioned": ["Canut de Bon U.", "Pedro Rojas", "Gustavo Segura", "José Aedo", "Ricardo Sepúlveda", "Alfonso Jeria", "Raúl Herrera"]
+    id: "animita-de-elvirita-guillen",
+    slug: "animita-de-elvirita-guillen",
+    title: "Animita de Elvirita Guillén",
+    person_id: "seed-person-elvirita-guillen",
+    location: { lat: -23.6471877, lng: -70.3872316 },
+    typology: "Tumba",
+    size: "Grande",
+    images: ["/placeholder/elvirita-guillen.jpg"],
+    story: "Elvirita Guillén Guillén tenía 14 años de edad, era huérfana, sus padres habían muerto cuando ella era aún muy pequeña. Fue entregada al Hogar de Huérfanos de Limache...\n(Historia completa omitida por extensión).",
+    created_at: "1937-03-16",
+    created_by: { id: "oreste-plath", name: "Oreste Plath" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-de-elvirita-guillen",
+      memorial: {
+        death_cause: "Suicidio",
+        social_roles: ["Huérfana", "Víctima", "Santa Laica"],
+        narrator_relation: "Investigador",
+        narrator_name_mentioned: ["Canut de Bon U.", "Pedro Rojas", "Gustavo Segura", "José Aedo", "Ricardo Sepúlveda", "Alfonso Jeria", "Raúl Herrera"]
       },
-      "spiritual": {
-        "rituals_mentioned": ["Rezo del Rosario (Viernes)", "Peticiones"],
-        "offerings_mentioned": ["Velas", "Flores", "Estampas", "Placas de Agradecimiento", "Cartas"],
-        "digital_visit_count": 0
+      spiritual: {
+        rituals_mentioned: ["Rezo del Rosario (Viernes)", "Peticiones"],
+        offerings_mentioned: ["Velas", "Flores", "Estampas", "Placas de Agradecimiento", "Cartas"],
+        digital_visit_count: 0
       },
-      "patrimonial": {
-        "antiquity_year": 1937,
-        "size": "large"
+      patrimonial: {
+        antiquity_year: 1937,
+        size: "Grande"
       },
-      "generated_at": "2025-10-21"
+      generated_at: "2025-10-21"
     }
   },
   {
-    "id": "animita-de-las-adrianitas",
-    "slug": "animita-de-las-adrianitas",
-    "title": "Animita de las Adrianitas",
-    "person_id": "seed-person-las-adrianitas",
-    "location": { "lat": -27.3714509, "lng": -70.3380243 },
-    "typology": "tumba",
-    "size": "large",
-    "images": ["/placeholder/las-adrianitas.jpg"],
-    "story": "Cubiertas de lápidas de agradecimientos, patentes e inscripciones, en las que se puede leer la frase “Gracias por el favor concedido”, las Adrianitas son consideradas ahora “niñas de la fe”, mientras que en vida fueron “niñas de la noche”...\n(Historia completa omitida por extensión).",
-    "created_at": "1935-08-12",
-    "created_by": { "id": "oreste-plath", "name": "Oreste Plath" },
-    "allow_edits": true,
-    "insights": {
-      "site_id": "animita-de-las-adrianitas",
-      "memorial": {
-        "death_cause": "enfermedad o asesinato (disputado)",
-        "social_roles": ["Trabajadoras Sexuales", "Santas Populares"],
-        "narrator_relation": "Investigador"
+    id: "animita-de-las-adrianitas",
+    slug: "animita-de-las-adrianitas",
+    title: "Animita de las Adrianitas",
+    person_id: "seed-person-las-adrianitas",
+    location: { lat: -27.3714509, lng: -70.3380243 },
+    typology: "Tumba",
+    size: "Grande",
+    images: ["/placeholder/las-adrianitas.jpg"],
+    story: "Cubiertas de lápidas de agradecimientos, patentes e inscripciones, en las que se puede leer la frase “Gracias por el favor concedido”, las Adrianitas son consideradas ahora “niñas de la fe”, mientras que en vida fueron “niñas de la noche”...\n(Historia completa omitida por extensión).",
+    created_at: "1935-08-12",
+    created_by: { id: "oreste-plath", name: "Oreste Plath" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-de-las-adrianitas",
+      memorial: {
+        death_cause: "Desconocida",
+        social_roles: ["Trabajadoras Sexuales", "Santas Populares"],
+        narrator_relation: "Investigador"
       },
-      "spiritual": {
-        "rituals_mentioned": ["Fe", "Peticiones"],
-        "offerings_mentioned": ["Velas", "Lápidas de Agradecimiento", "Patentes", "Inscripciones"],
-        "digital_visit_count": 0
+      spiritual: {
+        rituals_mentioned: ["Fe", "Peticiones"],
+        offerings_mentioned: ["Velas", "Lápidas de Agradecimiento", "Patentes", "Inscripciones"],
+        digital_visit_count: 0
       },
-      "patrimonial": {
-        "antiquity_year": 1935,
-        "size": "large"
+      patrimonial: {
+        antiquity_year: 1935,
+        size: "Grande"
       },
-      "generated_at": "2025-10-21"
+      generated_at: "2025-10-21"
     }
   },
   {
-    "id": "animita-de-el-quisco",
-    "slug": "animita-de-el-quisco",
-    "title": "Animita del Quisco",
-    "person_id": "seed-person-el-quisco",
-    "location": { "lat": -29.9494971, "lng": -71.3464602 },
-    "typology": "muro",
-    "images": ["/placeholder/animita-el-quisco.jpg"],
-    "story": "\"ANIMITA\" DEL QUISCO\nPor el año 1950, los sectores altos de Coquimbo comenzaron a poblarse. Por ese entonces, desde la población \"Estrella de Chile\" hasta \"Barrio nuevo\" habfa una gran planicie totalmente desierta...\n(Historia completa omitida por extensión).",
-    "created_at": "1950-01-01",
-    "created_by": { "id": "oreste-plath", "name": "Oreste Plath" },
-    "allow_edits": true,
-    "insights": {
-      "site_id": "animita-de-el-quisco",
-      "memorial": {
-        "death_cause": "homicidio",
-        "social_roles": ["Vecino anónimo"],
-        "narrator_relation": "Investigador"
+    id: "animita-de-el-quisco",
+    slug: "animita-de-el-quisco",
+    title: "Animita del Quisco",
+    person_id: "seed-person-el-quisco",
+    location: { lat: -29.9494971, lng: -71.3464602 },
+    typology: "Muro",
+    images: ["/placeholder/animita-el-quisco.jpg"],
+    story: "Por el año 1950, los sectores altos de Coquimbo comenzaron a poblarse. Por ese entonces, desde la población \"Estrella de Chile\" hasta \"Barrio nuevo\" habfa una gran planicie totalmente desierta...\n(Historia completa omitida por extensión).",
+    created_at: "1950-01-01",
+    created_by: { id: "oreste-plath", name: "Oreste Plath" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-de-el-quisco",
+      memorial: {
+        death_cause: "Homicidio",
+        social_roles: ["Vecino anónimo"],
+        narrator_relation: "Investigador"
       },
-      "spiritual": {
-        "rituals_mentioned": ["Peticiones", "Cumplimiento de Mandas", "Visitas los Lunes"],
-        "offerings_mentioned": ["Velas", "Flores", "Placas de Agradecimiento"],
-        "digital_visit_count": 0
+      spiritual: {
+        rituals_mentioned: ["Peticiones", "Cumplimiento de Mandas", "Visitas los Lunes"],
+        offerings_mentioned: ["Velas", "Flores", "Placas de Agradecimiento"],
+        digital_visit_count: 0
       },
-      "patrimonial": {
-        "antiquity_year": 1950,
-        "size": "small"
+      patrimonial: {
+        antiquity_year: 1950,
+        size: "Pequeña"
       },
-      "generated_at": "2025-10-21"
+      generated_at: "2025-10-21"
     }
   },
   {
-    "id": "animita-de-luis-castillo",
-    "slug": "animita-de-luis-castillo",
-    "title": "Animita de Luis Castillo",
-    "person_id": "seed-person-luis-castillo",
-    "location": { "lat": -30.5876393, "lng": -71.1956484 },
-    "typology": "gruta",
-    "images": ["/placeholder/luis-castillo.jpg"],
-    "story": "Luis Castillo era soltero, tenía 38 años de edad y vivía en Ovalle con sus padres, quienes poseían muchas mulas de arreo...\n(Historia completa omitida por extensión).",
-    "created_at": "1950-06-27",
-    "created_by": { "id": "oreste-plath", "name": "Oreste Plath" },
-    "allow_edits": true,
-    "insights": {
-      "site_id": "animita-de-luis-castillo",
-      "memorial": {
-        "death_cause": "asesinato",
-        "social_roles": ["Arriero", "Negociante"],
-        "narrator_relation": "Investigador"
+    id: "animita-de-luis-castillo",
+    slug: "animita-de-luis-castillo",
+    title: "Animita de Luis Castillo",
+    person_id: "seed-person-luis-castillo",
+    location: { lat: -30.5876393, lng: -71.1956484 },
+    typology: "Gruta",
+    images: ["/placeholder/luis-castillo.jpg"],
+    story: "Luis Castillo era soltero, tenía 38 años de edad y vivía en Ovalle con sus padres, quienes poseían muchas mulas de arreo...\n(Historia completa omitida por extensión).",
+    created_at: "1950-06-27",
+    created_by: { id: "oreste-plath", name: "Oreste Plath" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-de-luis-castillo",
+      memorial: {
+        death_cause: "Asesinato",
+        social_roles: ["Arriero", "Negociante"],
+        narrator_relation: "Investigador"
       },
-      "spiritual": {
-        "rituals_mentioned": ["Peticiones", "Reconocimiento en Cementerio"],
-        "offerings_mentioned": ["Velas", "Placas de Agradecimiento", "Flores"],
-        "digital_visit_count": 0
+      spiritual: {
+        rituals_mentioned: ["Peticiones", "Reconocimiento en Cementerio"],
+        offerings_mentioned: ["Velas", "Placas de Agradecimiento", "Flores"],
+        digital_visit_count: 0
       },
-      "patrimonial": {
-        "antiquity_year": 1950,
-        "size": "small"
+      patrimonial: {
+        antiquity_year: 1950,
+        size: "Pequeña"
       },
-      "generated_at": "2025-10-21"
+      generated_at: "2025-10-21"
     }
   },
   {
@@ -234,7 +234,7 @@ export const SEED_SITES: Site[] = [
     title: "Animita de Astrid",
     person_id: "seed-person-astrid",
     location: { lat: -33.5617032, lng: -70.8373234 },
-    typology: "casa",
+    typology: "Casa",
     images: [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-astrid/astrid.jpg",
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-astrid/astrid2.jpg",
@@ -246,9 +246,9 @@ export const SEED_SITES: Site[] = [
     allow_edits: true,
     insights: {
       site_id: "animita-de-astrid",
-      memorial: { death_cause: "accident", social_roles: ["Joven", "Estudiante"], narrator_relation: "Devoto" },
+      memorial: { death_cause: "Accidente", social_roles: ["Joven", "Estudiante"], narrator_relation: "Devoto" },
       spiritual: { rituals_mentioned: ["Peluches", "Velas"], offerings_mentioned: ["Juguetes"], digital_visit_count: 350 },
-      patrimonial: { antiquity_year: 1998, size: "medium" },
+      patrimonial: { antiquity_year: 1998, size: "Mediana" },
       generated_at: "2025-10-21"
     }
   },
@@ -258,7 +258,7 @@ export const SEED_SITES: Site[] = [
     title: "Animita de Emile Dubois",
     person_id: "seed-person-emile-dubois",
     location: { lat: -33.0275463, lng: -71.6478226 },
-    typology: "casa",
+    typology: "Casa",
     images: [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.02@2x.png",
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.06@2x.png",
@@ -269,9 +269,9 @@ export const SEED_SITES: Site[] = [
     allow_edits: true,
     insights: {
       site_id: "animita-de-emile-dubois",
-      memorial: { death_cause: "violence", social_roles: ["Criminal", "Santo Popular"], narrator_relation: "Historiador" },
+      memorial: { death_cause: "Violencia", social_roles: ["Criminal", "Santo Popular"], narrator_relation: "Historiador" },
       spiritual: { rituals_mentioned: ["Placas", "Velas"], offerings_mentioned: ["Flores"], digital_visit_count: 500 },
-      patrimonial: { antiquity_year: 1907, size: "medium" },
+      patrimonial: { antiquity_year: 1907, size: "Mediana" },
       generated_at: "2025-10-21"
     }
   },
@@ -281,7 +281,7 @@ export const SEED_SITES: Site[] = [
     title: "Animita de Romualdito",
     person_id: "seed-person-romualdito",
     location: { lat: -33.4520189, lng: -70.6803072 },
-    typology: "monumental",
+    typology: "Monumental",
     images: [
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-romualdito/CleanShot%202025-10-20%20at%2022.25.38@2x.png",
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-romualdito/CleanShot%202025-10-20%20at%2022.25.45@2x.png",
@@ -294,9 +294,49 @@ export const SEED_SITES: Site[] = [
     allow_edits: true,
     insights: {
       site_id: "animita-de-romualdito",
-      memorial: { death_cause: "violence", social_roles: ["Mecánico", "Santo Popular"], narrator_relation: "Devoto" },
+      memorial: { death_cause: "Violencia", social_roles: ["Mecánico", "Santo Popular"], narrator_relation: "Devoto" },
       spiritual: { rituals_mentioned: ["Placas", "Velas", "Rezos"], offerings_mentioned: ["Flores", "Juguetes"], digital_visit_count: 1200 },
-      patrimonial: { antiquity_year: 1933, size: "large" },
+      patrimonial: { antiquity_year: 1933, size: "Grande" },
+      generated_at: "2025-10-21"
+    }
+  },
+  {
+    id: "animita-de-petronila",
+    slug: "animita-de-petronila",
+    title: "Animita de Petronila",
+    person_id: "seed-person-petronila",
+    location: { lat: -33.4372, lng: -70.6506 }, // Santiago Centro
+    typology: "Gruta",
+    images: ["/placeholder/petronila.jpg"],
+    story: "Petronila Neira, costurera asesinada en 1910. Su cuerpo fue encontrado en la laguna del Parque Cousiño (actual O'Higgins). Se le atribuyen milagros relacionados con la salud y el trabajo.",
+    created_at: "1910-10-25",
+    created_by: { id: "u1", name: "Investigador" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-de-petronila",
+      memorial: { death_cause: "Asesinato", social_roles: ["Costurera", "Víctima"], narrator_relation: "Historiador" },
+      spiritual: { rituals_mentioned: ["Velas", "Flores"], offerings_mentioned: ["Placas"], digital_visit_count: 80 },
+      patrimonial: { antiquity_year: 1910, size: "Mediana" },
+      generated_at: "2025-10-21"
+    }
+  },
+  {
+    id: "animita-del-chacal",
+    slug: "animita-del-chacal",
+    title: "Animita del Chacal de Nahueltoro",
+    person_id: "seed-person-chacal",
+    location: { lat: -36.6066, lng: -72.1033 }, // San Carlos, Ñuble
+    typology: "Tumba",
+    images: ["/placeholder/chacal.jpg"],
+    story: "Jorge del Carmen Valenzuela Torres, conocido como el Chacal de Nahueltoro. Tras cometer un crimen atroz y rehabilitarse en prisión, fue fusilado en 1963. Su tumba es lugar de peregrinación.",
+    created_at: "1963-04-30",
+    created_by: { id: "u1", name: "Investigador" },
+    allow_edits: true,
+    insights: {
+      site_id: "animita-del-chacal",
+      memorial: { death_cause: "Violencia", social_roles: ["Campesino", "Santo Popular"], narrator_relation: "Devoto" },
+      spiritual: { rituals_mentioned: ["Velas", "Rezos"], offerings_mentioned: ["Flores", "Cigarrillos"], digital_visit_count: 200 },
+      patrimonial: { antiquity_year: 1963, size: "Grande" },
       generated_at: "2025-10-21"
     }
   }

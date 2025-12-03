@@ -16,14 +16,14 @@ export interface Site {
   title: string;
   person_id: string | null;
   location: { lat: number; lng: number };
-  typology: "gruta" | "iglesia" | "casa" | "cruz" | "orgánica" | "social" | "moderna" | "monumental" | "tumba" | "muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
+  typology: "Gruta" | "Iglesia" | "Casa" | "Cruz" | "Orgánica" | "Social" | "Moderna" | "Monumental" | "Tumba" | "Muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
   images: string[];
   story?: string;
   insights?: SiteInsights;
   created_at: string; // ISO 8601
   created_by: { id: string; name: string };
   allow_edits: boolean;
-  size?: string;
+  size?: "Pequeña" | "Mediana" | "Grande";
 }
 
 // 3. Site Story (Historia versionable)
@@ -52,11 +52,22 @@ export interface Testimonial {
   tags?: string[];
 }
 
+// Standardized Death Causes
+export type DeathCause =
+  | 'Accidente'
+  | 'Violencia'
+  | 'Enfermedad'
+  | 'Natural'
+  | 'Desconocida'
+  | 'Suicidio'
+  | 'Homicidio'
+  | 'Asesinato'
+
 // 5. Site Insights (Auto-extraídos)
 export interface SiteInsights {
   site_id: string;
   memorial: {
-    death_cause?: string;
+    death_cause?: DeathCause | string; // Allow string for legacy/unmapped, but prefer DeathCause
     social_roles?: string[];
     narrator_relation?: string | null;
     narrator_name_mentioned?: string[];
@@ -68,7 +79,7 @@ export interface SiteInsights {
   };
   patrimonial: {
     antiquity_year?: number | null;
-    size?: 'small' | 'medium' | 'large';
+    size?: 'Pequeña' | 'Mediana' | 'Grande';
   };
   generated_at: string;
 }

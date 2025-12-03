@@ -16,9 +16,18 @@ export type OverpassLayerType =
   | 'sin_iluminacion'
   | 'plazas'
   | 'hospitales'
-  | 'colegios'
   | 'carceles'
-  | 'cruces_viales';
+  | 'cruces_viales'
+  | 'highways'
+  | 'secondary_roads'
+  | 'urban_streets'
+  | 'dangerous_junctions'
+  | 'traffic_lights'
+  | 'roundabouts'
+  | 'police'
+  | 'fire_station'
+  | 'schools'
+  | 'universities';
 
 const QUERIES: Record<OverpassLayerType, (bbox: string) => string> = {
   iglesias: (bbox) => `
@@ -101,24 +110,74 @@ const QUERIES: Record<OverpassLayerType, (bbox: string) => string> = {
     out body; >; out skel qt;
   `,
 
-  hospitales: (bbox) => `
-    [out:json][timeout:25];
-    nwr["amenity"="hospital"](${bbox});
-    out body; >; out skel qt;
-  `,
-
-  colegios: (bbox) => `
-    [out:json][timeout:25];
-    nwr["amenity"="school"](${bbox});
-    out body; >; out skel qt;
-  `,
-
   carceles: (bbox) => `
     [out:json][timeout:25];
     nwr["amenity"="prison"](${bbox});
     out body; >; out skel qt;
   `,
 
+  // Transporte
+  highways: (bbox) => `
+    [out:json][timeout:25];
+    way["highway"~"motorway|trunk|primary"](${bbox});
+    out body; >; out skel qt;
+  `,
+  secondary_roads: (bbox) => `
+    [out:json][timeout:25];
+    way["highway"~"secondary|tertiary"](${bbox});
+    out body; >; out skel qt;
+  `,
+  urban_streets: (bbox) => `
+    [out:json][timeout:25];
+    way["highway"~"residential|living_street"](${bbox});
+    out body; >; out skel qt;
+  `,
+  dangerous_junctions: (bbox) => `
+    [out:json][timeout:25];
+    node["highway"="crossing"](${bbox});
+    out body; >; out skel qt;
+  `,
+  traffic_lights: (bbox) => `
+    [out:json][timeout:25];
+    node["highway"="traffic_signals"](${bbox});
+    out body; >; out skel qt;
+  `,
+  roundabouts: (bbox) => `
+    [out:json][timeout:25];
+    way["junction"="roundabout"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  // Servicios
+  hospitales: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"~"hospital|clinic"](${bbox});
+    out body; >; out skel qt;
+  `,
+  police: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="police"](${bbox});
+    out body; >; out skel qt;
+  `,
+  fire_station: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="fire_station"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  // Sociabilidad
+  schools: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"~"school|college"](${bbox});
+    out body; >; out skel qt;
+  `,
+  universities: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="university"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  // Existing...
   cruces_viales: (bbox) => `
     [out:json][timeout:25];
     nwr["highway"="crossing"](${bbox});
@@ -134,6 +193,7 @@ export async function fetchOverpassLayer(
   const query = QUERIES[type](bbox);
 
   try {
+    console.log(`Fetching Overpass layer: ${type} with bbox: ${bbox}`)
     const response = await fetch(OVERPASS_API_URL, {
       method: 'POST',
       body: `data=${encodeURIComponent(query)}`,
@@ -143,7 +203,9 @@ export async function fetchOverpassLayer(
     if (!response.ok) throw new Error(`Overpass API error: ${response.statusText}`);
 
     const data = await response.json();
-    return osmtogeojson(data) as FeatureCollection;
+    const geojson = osmtogeojson(data) as FeatureCollection;
+    console.log(`Overpass layer ${type} fetched successfully. Features: ${geojson.features.length}`)
+    return geojson;
 
   } catch (error) {
     console.error(`Failed to fetch ${type} layer:`, error);
