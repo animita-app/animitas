@@ -20,7 +20,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
 
   // Get data source based on layer type
   const data = useMemo(() => {
-    console.log('LayerMetrics: selectedLayer', selectedLayer)
+    // console.log('LayerMetrics: selectedLayer', selectedLayer)
     if (selectedLayer.id === 'animitas') {
       // Use SEED_SITES filtered ONLY by activeArea (spatial), ignoring attribute filters
       // This ensures charts show all available options in the current area, even when an attribute filter is active.
@@ -482,7 +482,7 @@ function HistogramCard({ component, data }: { component: Component, data: any[] 
             </Bar>
           </BarChart>
         </ChartContainer>
-        <div className="flex justify-between text-xs text-muted-foreground font-medium">
+        <div className="flex justify-between text-xs text-muted-foreground font-normal">
           <span>{Math.round(minValue)}</span>
           <span>{Math.round(maxValue)}</span>
         </div>

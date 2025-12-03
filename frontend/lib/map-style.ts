@@ -27,11 +27,8 @@ export const COLORS = {
     // Transporte
     highways: "#FF0000", // Red
     critical_points: "#FF4500", // Orange Red for critical points
-    secondary_roads: "#FF4500", // Orange Red
     urban_streets: "#FFA500", // Orange
-    dangerous_junctions: "#8B0000", // Dark Red
     traffic_lights: "#FFD700", // Gold
-    roundabouts: "#A0522D", // Sienna
 
     // Servicios
     hospitals: "#00FFFF", // Cyan
@@ -102,12 +99,9 @@ export const LABELS = {
   contextLayers: {
     // Transporte
     highways: "Carreteras Principales",
-    critical_points: "Puntos críticos 2024",
-    secondary_roads: "Rutas Secundarias",
+    critical_points: "Mapa de Calor de Accidentes",
     urban_streets: "Calles Urbanas",
-    dangerous_junctions: "Cruces Peligrosos",
     traffic_lights: "Semáforos",
-    roundabouts: "Rotondas",
 
     // Servicios
     hospitals: "Hospitales",
@@ -128,11 +122,8 @@ export const LEGENDS = {
   animitas: { label: LABELS.animitas, color: COLORS.animitas, icon: ICONS.typology.default.icon },
   context: {
     highways: { label: LABELS.contextLayers.highways, color: COLORS.context.highways },
-    secondary_roads: { label: LABELS.contextLayers.secondary_roads, color: COLORS.context.secondary_roads },
     urban_streets: { label: LABELS.contextLayers.urban_streets, color: COLORS.context.urban_streets },
-    dangerous_junctions: { label: LABELS.contextLayers.dangerous_junctions, color: COLORS.context.dangerous_junctions },
     traffic_lights: { label: LABELS.contextLayers.traffic_lights, color: COLORS.context.traffic_lights },
-    roundabouts: { label: LABELS.contextLayers.roundabouts, color: COLORS.context.roundabouts },
 
     hospitals: { label: LABELS.contextLayers.hospitals, color: COLORS.context.hospitals },
     cemeteries: { label: LABELS.contextLayers.cemeteries, color: COLORS.context.cemeteries },

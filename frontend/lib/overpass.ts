@@ -19,11 +19,8 @@ export type OverpassLayerType =
   | 'carceles'
   | 'cruces_viales'
   | 'highways'
-  | 'secondary_roads'
   | 'urban_streets'
-  | 'dangerous_junctions'
   | 'traffic_lights'
-  | 'roundabouts'
   | 'police'
   | 'fire_station'
   | 'schools'
@@ -122,29 +119,14 @@ const QUERIES: Record<OverpassLayerType, (bbox: string) => string> = {
     way["highway"~"motorway|trunk|primary"](${bbox});
     out body; >; out skel qt;
   `,
-  secondary_roads: (bbox) => `
-    [out:json][timeout:25];
-    way["highway"~"secondary|tertiary"](${bbox});
-    out body; >; out skel qt;
-  `,
   urban_streets: (bbox) => `
     [out:json][timeout:25];
     way["highway"~"residential|living_street"](${bbox});
     out body; >; out skel qt;
   `,
-  dangerous_junctions: (bbox) => `
-    [out:json][timeout:25];
-    node["highway"="crossing"](${bbox});
-    out body; >; out skel qt;
-  `,
   traffic_lights: (bbox) => `
     [out:json][timeout:25];
     node["highway"="traffic_signals"](${bbox});
-    out body; >; out skel qt;
-  `,
-  roundabouts: (bbox) => `
-    [out:json][timeout:25];
-    way["junction"="roundabout"](${bbox});
     out body; >; out skel qt;
   `,
 
@@ -193,7 +175,7 @@ export async function fetchOverpassLayer(
   const query = QUERIES[type](bbox);
 
   try {
-    console.log(`Fetching Overpass layer: ${type} with bbox: ${bbox}`)
+    // console.log(`Fetching Overpass layer: ${type} with bbox: ${bbox}`)
     const response = await fetch(OVERPASS_API_URL, {
       method: 'POST',
       body: `data=${encodeURIComponent(query)}`,
@@ -204,7 +186,7 @@ export async function fetchOverpassLayer(
 
     const data = await response.json();
     const geojson = osmtogeojson(data) as FeatureCollection;
-    console.log(`Overpass layer ${type} fetched successfully. Features: ${geojson.features.length}`)
+    // console.log(`Overpass layer ${type} fetched successfully. Features: ${geojson.features.length}`)
     return geojson;
 
   } catch (error) {

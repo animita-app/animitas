@@ -16,6 +16,7 @@ export interface Layer {
   source?: 'search' | 'system'
   data?: any
   components?: Component[]
+  gradient?: string
 }
 
 export interface Component {
@@ -97,11 +98,8 @@ export const INITIAL_LAYERS: Layer[] = [
   // Transporte y riesgo vial
   { id: 'critical_points', label: LABELS.contextLayers.critical_points, type: 'context', geometry: 'heatmap', color: COLORS.context.critical_points, visible: false, opacity: 100, components: [] },
   { id: 'highways', label: LABELS.contextLayers.highways, type: 'context', geometry: 'line', color: COLORS.context.highways, visible: false, opacity: 100, components: [] },
-  { id: 'secondary_roads', label: LABELS.contextLayers.secondary_roads, type: 'context', geometry: 'line', color: COLORS.context.secondary_roads, visible: false, opacity: 100, components: [] },
   { id: 'urban_streets', label: LABELS.contextLayers.urban_streets, type: 'context', geometry: 'line', color: COLORS.context.urban_streets, visible: false, opacity: 100, components: [] },
-  { id: 'dangerous_junctions', label: LABELS.contextLayers.dangerous_junctions, type: 'context', geometry: 'point', color: COLORS.context.dangerous_junctions, visible: false, opacity: 100, components: [] },
   { id: 'traffic_lights', label: LABELS.contextLayers.traffic_lights, type: 'context', geometry: 'point', color: COLORS.context.traffic_lights, visible: false, opacity: 100, components: [] },
-  { id: 'roundabouts', label: LABELS.contextLayers.roundabouts, type: 'context', geometry: 'point', color: COLORS.context.roundabouts, visible: false, opacity: 100, components: [] },
 
   // Servicios críticos
   { id: 'hospitals', label: LABELS.contextLayers.hospitals, type: 'context', geometry: 'point', color: COLORS.context.hospitals, visible: false, opacity: 100, components: [] },

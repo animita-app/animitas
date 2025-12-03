@@ -15,8 +15,6 @@ import { Feature, Geometry } from 'geojson'
 import { formatPlaceName } from '@/lib/format-place'
 import { fetchPlaceBoundary } from '@/lib/overpass-client'
 
-// ... imports
-
 interface SearchPanelProps {
   className?: string
   onSearch?: (query: string) => void
@@ -87,7 +85,6 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
       setOpen(false)
       return // Exit early as we handle setActiveArea async
     } else if (result.geometry) {
-      console.log('Selected result geometry:', result.geometry)
       geometry = result.geometry
     } else if (result.center) {
       geometry = {

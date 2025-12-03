@@ -199,27 +199,25 @@ export async function fetchContextLayers(options: FetchOptions = { useMock: true
   const fetchWithCache = async (type: OverpassLayerType) => {
     const key = getCacheKey(type, bbox)
     if (layerCache.has(key)) {
-      console.log(`[Cache] Hit for ${type}`)
+      // console.log(`[Cache] Hit for ${type}`)
       return layerCache.get(key)
     }
-    console.log(`[Cache] Miss for ${type}, fetching...`)
+    // console.log(`[Cache] Miss for ${type}, fetching...`)
     const data = await fetchOverpassLayer(type, bbox)
     layerCache.set(key, data)
     return data
   }
 
   const [
-    highways, secondary_roads, urban_streets, dangerous_junctions, traffic_lights, roundabouts,
+    highways, urban_streets, traffic_lights,
     hospitals, cemeteries, police, fire_station,
     churches, schools, universities, bars
   ] = await Promise.all([
     // Transporte
     fetchWithCache('highways'),
-    fetchWithCache('secondary_roads'),
+
     fetchWithCache('urban_streets'),
-    fetchWithCache('dangerous_junctions'),
     fetchWithCache('traffic_lights'),
-    fetchWithCache('roundabouts'),
 
     // Servicios
     fetchWithCache('hospitales'),
@@ -235,7 +233,7 @@ export async function fetchContextLayers(options: FetchOptions = { useMock: true
   ])
 
   return {
-    highways, secondary_roads, urban_streets, dangerous_junctions, traffic_lights, roundabouts,
+    highways, urban_streets, traffic_lights,
     hospitals, cemeteries, police, fire_station,
     churches, schools, universities, bars
   }

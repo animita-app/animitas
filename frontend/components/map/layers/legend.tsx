@@ -34,7 +34,7 @@ export function Legend({
   const animitasLayer = layers.find(l => l.id === 'animitas')
 
   const transportLayers = layers.filter(l =>
-    ['highways', 'secondary_roads', 'urban_streets', 'dangerous_junctions', 'traffic_lights', 'roundabouts'].includes(l.id)
+    ['critical_points', 'highways', 'urban_streets', 'traffic_lights'].includes(l.id)
   )
 
   const serviceLayers = layers.filter(l =>

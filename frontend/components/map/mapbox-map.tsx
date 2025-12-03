@@ -74,11 +74,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
     // Transporte
     highways: false,
-    secondary_roads: false,
     urban_streets: false,
-    dangerous_junctions: false,
     traffic_lights: false,
-    roundabouts: false,
     critical_points: false,
 
     // Servicios
@@ -207,7 +204,22 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   // Load/Save Layers
   useEffect(() => {
     const savedLayers = localStorage.getItem('animita-layers')
-    if (savedLayers) setLayers(JSON.parse(savedLayers))
+    if (savedLayers) {
+      try {
+        const parsed = JSON.parse(savedLayers)
+        // Merge with INITIAL_LAYERS to ensure new layers exist and structure is updated
+        const merged = INITIAL_LAYERS.map(initLayer => {
+          const saved = parsed.find((l: Layer) => l.id === initLayer.id)
+          // If saved layer exists, merge it but ensure critical properties from initLayer are preserved if needed
+          // For now, simple merge, preferring saved state for visibility/opacity
+          return saved ? { ...initLayer, ...saved } : initLayer
+        })
+        setLayers(merged)
+      } catch (e) {
+        console.error('Failed to parse saved layers', e)
+        setLayers(INITIAL_LAYERS)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -248,7 +260,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         // Handle context layers
         const contextLayers = [
           'churches', 'cemeteries', 'bars',
-          'highways', 'secondary_roads', 'urban_streets', 'dangerous_junctions', 'traffic_lights', 'roundabouts',
+          'highways', 'urban_streets', 'traffic_lights',
           'hospitals', 'police', 'fire_station', 'schools', 'universities',
           'critical_points'
         ]
@@ -330,14 +342,14 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
                   }
                 }
               } catch (err) {
-                console.error(`Failed to fetch layer ${id}:`, err)
+                // console.error(`Failed to fetch layer ${id}:`, err)
               }
             }
             fetchLayer()
           }
 
           // Toggle map layers
-          if (['highways', 'secondary_roads', 'urban_streets'].includes(id)) {
+          if (['highways', 'urban_streets'].includes(id)) {
             // Line layers
             if (map.current && map.current.getLayer(id)) {
               map.current.setLayoutProperty(id, 'visibility', newVisibility ? 'visible' : 'none')
@@ -367,6 +379,53 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
   }
 
+  const getHeatmapGradient = (name: string) => {
+    switch (name) {
+      case 'green-red':
+        return [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(0,255,0,0)',
+          0.2, 'rgb(0,255,0)',
+          0.5, 'rgb(255,255,0)',
+          1, 'rgb(255,0,0)'
+        ]
+      case 'blue-purple':
+        return [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(0,0,255,0)',
+          0.2, 'rgb(0,0,255)',
+          0.5, 'rgb(128,0,128)',
+          1, 'rgb(255,0,255)'
+        ]
+      case 'magma':
+        return [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(0,0,0,0)',
+          0.2, 'rgb(0,0,0)',
+          0.5, 'rgb(255,0,0)',
+          1, 'rgb(255,255,0)'
+        ]
+      default: // default blue-red
+        return [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0, 'rgba(33,102,172,0)',
+          0.2, 'rgb(103,169,207)',
+          0.4, 'rgb(209,229,240)',
+          0.6, 'rgb(253,219,199)',
+          0.8, 'rgb(239,138,98)',
+          1, 'rgb(178,24,43)'
+        ]
+    }
+  }
+
   const handleLayerUpdate = (updatedLayer: Layer) => {
     if (updatedLayer.source === 'search') {
       setElements(prev => prev.map(e => e.id === updatedLayer.id ? updatedLayer : e))
@@ -377,6 +436,15 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
     // Update style if needed
     handleLayerColorChange(updatedLayer.id, updatedLayer.color)
+
+    // Handle heatmap gradient
+    if (updatedLayer.geometry === 'heatmap' && map.current) {
+      const gradient = getHeatmapGradient(updatedLayer.gradient || 'default')
+      // Ensure layer exists before setting property
+      if (map.current.getLayer(`${updatedLayer.id}-heatmap`)) {
+        map.current.setPaintProperty(`${updatedLayer.id}-heatmap`, 'heatmap-color', gradient as any)
+      }
+    }
   }
 
   const handleLayerSelect = (layer: Layer) => {
@@ -499,8 +567,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       // --- Overpass Sources ---
       const contextSources = [
         'churches', 'cemeteries', 'bars',
-        'highways', 'secondary_roads', 'urban_streets', 'dangerous_junctions', 'traffic_lights', 'roundabouts',
-        'hospitals', 'police', 'fire_station', 'schools', 'universities'
+        'highways', 'urban_streets', 'traffic_lights',
+        'hospitals', 'police', 'fire_station', 'schools', 'universities',
+        'critical_points'
       ]
 
       contextSources.forEach(source => {
@@ -594,13 +663,10 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       addPolygonLayer('fire_station', COLORS.context.fire_station)
 
       // Transporte (Points)
-      addPointLayer('dangerous_junctions', COLORS.context.dangerous_junctions)
       addPointLayer('traffic_lights', COLORS.context.traffic_lights)
-      addPointLayer('roundabouts', COLORS.context.roundabouts)
 
       // Transporte (Lines)
       addLineLayer('highways', COLORS.context.highways, 3)
-      addLineLayer('secondary_roads', COLORS.context.secondary_roads, 2)
       addLineLayer('urban_streets', COLORS.context.urban_streets, 1)
 
       // Critical Points Heatmap
@@ -1017,9 +1083,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       }
     }
 
-    console.log('Selected Location:', location)
     if (!usedBoundary && location.bbox) {
-      console.log('BBox:', location.bbox)
       // Create a Polygon from the BBox
       const [minLng, minLat, maxLng, maxLat] = location.bbox
       geometry = {
@@ -1415,7 +1479,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   }
 
   const handleExport = (format: string, scope?: 'viewport' | 'all') => {
-    console.log('Exporting as:', format, 'Scope:', scope)
     // Mock export functionality
     const canvas = map.current?.getCanvas()
     if (canvas && format === 'image') {
@@ -1471,9 +1534,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         <ActiveAreaBanner
           label={activeAreaLabel}
           onClear={() => {
-            console.log('Clearing active area...')
             clearActiveArea()
-            console.log('Resetting view...')
             handleResetView()
           }}
         />
