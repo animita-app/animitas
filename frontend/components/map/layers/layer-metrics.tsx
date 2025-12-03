@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Layer, Component } from '../types'
+import { Layer, Component, ANIMITAS_METRICS } from './types'
 import { SEED_SITES } from '@/constants/sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
@@ -49,29 +49,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
   // Define default components for animitas if none are provided
   const componentsToRender = useMemo(() => {
     if (selectedLayer.id === 'animitas' && (!selectedLayer.components || selectedLayer.components.length === 0)) {
-      return [
-        {
-          id: 'count-stat',
-          type: 'statistic',
-          title: 'Total Animitas',
-          visible: true,
-          config: { stat: 'count' }
-        },
-        {
-          id: 'death-cause-chart',
-          type: 'bar_chart',
-          title: 'Causa de Muerte',
-          visible: true,
-          config: { horizontalAxis: 'death_cause', groupBy: 'typology', stat: 'count' }
-        },
-        {
-          id: 'antiquity-hist',
-          type: 'histogram',
-          title: 'Antigüedad (Años)',
-          visible: true,
-          config: { horizontalAxis: 'antiquity_year', bins: 50 }
-        }
-      ] as Component[]
+      return ANIMITAS_METRICS
     }
     return selectedLayer.components || []
   }, [selectedLayer, filteredData])
@@ -108,8 +86,12 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
 
 // --- Sub-components ---
 
-function StatisticCard({ component, data }: { component: Component, data: any[] }) {
+function StatisticCard({ component, data: rawData }: { component: Component, data: any[] }) {
   const { config } = component
+  const { filteredData } = useSpatialContext()
+
+  // Use filteredData from context to reflect all active filters
+  const data = filteredData
 
   const value = useMemo(() => {
     if (!data.length) return 0
@@ -165,68 +147,62 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
   // Neutral color palette (default)
   const NEUTRAL_COLORS = [
     '#000000', // neutral-900
-    '#1F1F1F', // neutral-800
-    '#3A3A3A', // neutral-700
-    '#595959', // neutral-600
-    '#808080', // neutral-500
-    '#B3B3B3', // neutral-400
-    '#D9D9D9', // neutral-300
-    '#F0F0F0', // neutral-200
+    '#2B2B2B', // neutral-700
+    '#555555', // neutral-500
+    '#A0A0A0', // neutral-300
+    '#E5E5E5', // neutral-100
   ]
 
   // Blue color palette (active)
   const BLUE_COLORS = [
-    '#0000ee', // blue-900
-    '#3333F2', // blue-800
-    '#6666F5', // blue-700
-    '#9999F7', // blue-600
-    '#B3B3F9', // blue-500
-    '#CCCCFB', // blue-400
-    '#E6E6FD', // blue-300
-    '#F5F5FE', // blue-200
+    '#0000EE', // blue-900
+    '#4C4CFF', // blue-700
+    '#8C8CFF', // blue-500
+    '#C5C5FF', // blue-300
+    '#ECECFF', // blue-100
   ]
 
+  // @ts-ignore
+  const horizontalAxis = config.horizontalAxis || config.verticalAxis
+  // @ts-ignore
+  const groupBy = config.groupBy
+
+  // Filter data by all OTHER filters (cross-filtering)
+  const chartData = useMemo(() => {
+    return data.filter(item => {
+      return Object.entries(filters).every(([key, values]) => {
+        if (key === horizontalAxis) return true // Ignore self
+        if (!values || values.length === 0) return true
+        return values.includes(String(item[key]))
+      })
+    })
+  }, [data, filters, horizontalAxis])
+
   const { rows, segmentColors } = useMemo(() => {
-    // Note: We use the FULL data (unfiltered by this chart's attributes) to calculate totals/segments?
-    // Actually, 'data' passed here is already filtered by ALL filters in context.
-    // If we want to show the distribution relative to the current selection, this is correct.
-    // But if we want to show the distribution of the *whole* dataset while highlighting the selection,
-    // we would need the unfiltered data.
-    // However, standard behavior for these dashboards is usually "drill down", so showing filtered data is fine.
-    // BUT, if we filter by "Accidente", then only "Accidente" row will show up.
-    // The user might want to see all rows but with "Accidente" selected/highlighted.
-    // The current `filteredData` in context applies ALL filters.
-    // To support "selection" without hiding others, we might need `unfilteredData` or handle filtering differently.
-    // Given the user said "update the data accordingly", maybe they want drill down.
-    // But for a "filter" UI, usually you see all options.
-    // Let's assume for now we work with what we have. If rows disappear, it's because they are filtered out.
-    // To fix this, we would need to separate "data for calculation" vs "data for display" or move filtering to the component level (which we are doing via context).
-
-    // Actually, if I filter by "Accidente", `filteredData` only has "Accidente".
-    // So the chart will only show one bar.
-    // This might be what is expected for "metrics of the current view".
-
     if (!data.length) return { rows: [], segmentColors: {} }
-
-    // @ts-ignore
-    const horizontalAxis = config.horizontalAxis || config.verticalAxis
-    // @ts-ignore
-    const groupBy = config.groupBy
 
     if (!horizontalAxis) return { rows: [], segmentColors: {} }
 
-    // 1. Group by Horizontal Axis (Rows)
-    const rowGroups: Record<string, any[]> = {}
-    const allSegmentNames = new Set<string>()
-
+    // 1. Identify ALL possible rows from the full dataset (to prevent hiding)
+    const allRowNames = new Set<string>()
     data.forEach(item => {
+      const key = String(item[horizontalAxis] || 'Unknown')
+      allRowNames.add(key)
+    })
+
+    // 2. Group filtered data by Horizontal Axis
+    const rowGroups: Record<string, any[]> = {}
+    chartData.forEach(item => {
       const key = String(item[horizontalAxis] || 'Unknown')
       if (!rowGroups[key]) rowGroups[key] = []
       rowGroups[key].push(item)
     })
 
-    // 2. Process each row
-    const processedRows = Object.entries(rowGroups).map(([rowName, rowItems]) => {
+    const allSegmentNames = new Set<string>()
+
+    // 3. Process each possible row
+    const processedRows = Array.from(allRowNames).map((rowName) => {
+      const rowItems = rowGroups[rowName] || []
       let segments: { name: string, value: number }[] = []
 
       if (groupBy) {
@@ -250,9 +226,9 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
         total: rowItems.length,
         segments
       }
-    }).sort((a, b) => b.total - a.total).slice(0, 10)
+    }).sort((a, b) => b.total - a.total) // Sort by total desc
 
-    // 3. Assign colors to segments (pre-calculate both palettes)
+    // 4. Assign colors to segments (pre-calculate both palettes)
     const sortedSegments = Array.from(allSegmentNames).sort()
     const neutralColors: Record<string, string> = {}
     const blueColors: Record<string, string> = {}
@@ -264,17 +240,14 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
 
     return { rows: processedRows, segmentColors: { neutral: neutralColors, blue: blueColors } }
 
-  }, [data, config])
+  }, [data, chartData, config, horizontalAxis, groupBy])
 
   if (rows.length === 0) return null
 
   // Calculate max total for scaling
   const maxTotal = Math.max(...rows.map(r => r.total))
 
-  // @ts-ignore
-  const horizontalAxis = config.horizontalAxis || config.verticalAxis
-  // @ts-ignore
-  const groupBy = config.groupBy
+
 
   return (
     <div className="space-y-4 py-2">
@@ -337,21 +310,29 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
 function HistogramCard({ component, data }: { component: Component, data: any[] }) {
   const { config } = component
   const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null)
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null)
-  const { filters, toggleFilter } = useSpatialContext()
+  const { filters, setFilter } = useSpatialContext()
 
   // @ts-ignore
   const axis = config.horizontalAxis
 
   const chartData = useMemo(() => {
-    if (!data.length) return []
+    // Filter data by all OTHER filters (cross-filtering)
+    const filteredData = data.filter(item => {
+      return Object.entries(filters).every(([key, values]) => {
+        if (key === axis) return true // Ignore self
+        if (!values || values.length === 0) return true
+        return values.includes(String(item[key]))
+      })
+    })
+
+    if (!filteredData.length) return []
 
     // @ts-ignore
     const binsCount = config.bins || 20
 
     if (!axis) return []
 
-    const values = data.map(d => Number(d[axis])).filter(v => !isNaN(v))
+    const values = filteredData.map(d => Number(d[axis])).filter(v => !isNaN(v))
     if (!values.length) return []
 
     const min = Math.min(...values)
@@ -373,7 +354,7 @@ function HistogramCard({ component, data }: { component: Component, data: any[] 
 
     return bins
 
-  }, [data, config, axis])
+  }, [data, config, axis, filters])
 
   const chartConfig = {
     value: {
@@ -415,7 +396,7 @@ function HistogramCard({ component, data }: { component: Component, data: any[] 
                   return (
                     <div className="z-50 overflow-hidden rounded-md bg-black text-white px-3 py-1.5 text-sm shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                       <div className="flex gap-4 justify-between items-center text-xs">
-                        <span className="font-normal">{data.name}</span>
+                        <span className="!font-normal">{data.name}</span>
                         <span className="font-ibm-plex-mono opacity-80">
                           {data.value}
                         </span>
@@ -429,14 +410,59 @@ function HistogramCard({ component, data }: { component: Component, data: any[] 
             <Bar
               dataKey="value"
               radius={[0, 0, 0, 0]}
-              onClick={(data, index) => {
-                setSelectedIndex(index === selectedIndex ? null : index)
-                console.log('Histogram bar clicked:', data)
+              onClick={(entry, index) => {
+                const bin = chartData[index]
+                if (!bin) return
+
+                // Find items in this bin
+                const itemsInBin = data.filter((d: any) => {
+                  const val = Number(d[axis])
+                  return val >= bin.min && val < bin.max
+                })
+
+                // Get unique values for the filter attribute (e.g. antiquity_year)
+                // Since histogram bins are ranges, we filter by the exact values present in the bin
+                const values = Array.from(new Set(itemsInBin.map((d: any) => String(d[axis])))) as string[]
+
+                // Check if currently filtered by these values
+                const currentFilters = filters[axis] || []
+                const isSelected = currentFilters.length > 0 && values.every(v => currentFilters.includes(v))
+
+                if (isSelected) {
+                  // Clear filter for this axis
+                  setFilter(axis, [])
+                } else {
+                  // Set filter to values in this bin
+                  setFilter(axis, values)
+                }
               }}
             >
               {chartData.map((entry, index) => {
-                const isActive = selectedIndex === index
-                const isAnyActive = selectedIndex !== null
+                // Determine if this bin is active based on filters
+                // A bin is active if ANY of its possible values are in the filter
+                // But strictly speaking, if we filter by a range, we want to highlight the bin that corresponds to it.
+                // Here we check if the filter values overlap with the bin range.
+
+                const currentFilters = filters[axis] || []
+                const isAnyFilterActive = currentFilters.length > 0
+
+                let isActive = false
+                if (isAnyFilterActive) {
+                  // Check if any value in the bin is selected
+                  // We need to know which values are in this bin from the source data
+                  // Re-calculating here might be expensive but let's try a simpler check:
+                  // If the filter contains values that would fall into this bin.
+                  const binMin = entry.min
+                  const binMax = entry.max
+
+                  // Check if any filtered value is within [min, max)
+                  isActive = currentFilters.some(valStr => {
+                    const val = Number(valStr)
+                    return !isNaN(val) && val >= binMin && val < binMax
+                  })
+                }
+
+                const isAnyActive = isAnyFilterActive
 
                 let fill = '#000000' // Default black
                 if (isActive) fill = '#0000ee' // Active blue

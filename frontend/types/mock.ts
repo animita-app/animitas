@@ -60,7 +60,6 @@ export type DeathCause =
   | 'Natural'
   | 'Desconocida'
   | 'Suicidio'
-  | 'Homicidio'
   | 'Asesinato'
 
 // 5. Site Insights (Auto-extraídos)

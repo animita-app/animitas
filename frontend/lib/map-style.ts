@@ -26,6 +26,7 @@ export const COLORS = {
   context: {
     // Transporte
     highways: "#FF0000", // Red
+    critical_points: "#FF4500", // Orange Red for critical points
     secondary_roads: "#FF4500", // Orange Red
     urban_streets: "#FFA500", // Orange
     dangerous_junctions: "#8B0000", // Dark Red
@@ -64,22 +65,26 @@ export const ICONS = {
     polygon: (color: string) => svgIcon('<path d="M3 3h18v18H3z"/>', color) // Square
   },
   typology: {
-    cruz: { icon: Cross, label: "Cruz" },
-    gruta: { icon: Mountain, label: "Gruta" }, // Using Mountain as proxy for 'cave/grotto'
-    iglesia: { icon: Church, label: "Iglesia" },
-    casa: { icon: Home, label: "Casa" },
-    organica: { icon: Leaf, label: "Orgánica" },
-    social: { icon: Handshake, label: "Social" },
-    moderna: { icon: Gem, label: "Moderna" },
-    monumental: { icon: Star, label: "Monumental" },
+    Cruz: { icon: Cross, label: "Cruz" },
+    Gruta: { icon: Mountain, label: "Gruta" }, // Using Mountain as proxy for 'cave/grotto'
+    Iglesia: { icon: Church, label: "Iglesia" },
+    Casa: { icon: Home, label: "Casa" },
+    Orgánica: { icon: Leaf, label: "Orgánica" },
+    Social: { icon: Handshake, label: "Social" },
+    Moderna: { icon: Gem, label: "Moderna" },
+    Monumental: { icon: Star, label: "Monumental" },
+    Tumba: { icon: Cross, label: "Tumba" }, // Using Cross for Tumba
+    Muro: { icon: MapPin, label: "Muro" }, // Using MapPin for Muro
     default: { icon: MapPin, label: "Animita" }
   },
   deathCause: {
-    accident: { icon: Car, label: "Accidente" },
-    suicidio: { icon: Skull, label: "Suicidio" }, // Using Skull for suicide
-    violence: { icon: Zap, label: "Violencia" }, // Zap/Flash for violence
-    illness: { icon: Syringe, label: "Enfermedad" },
-    natural: { icon: Leaf, label: "Natural" },
+    Accidente: { icon: Car, label: "Accidente" },
+    Suicidio: { icon: Skull, label: "Suicidio" }, // Using Skull for suicide
+    Violencia: { icon: Zap, label: "Violencia" }, // Zap/Flash for violence
+    Asesinato: { icon: Zap, label: "Asesinato" }, // Zap/Flash for murder
+    Enfermedad: { icon: Syringe, label: "Enfermedad" },
+    Natural: { icon: Leaf, label: "Natural" },
+    Desconocida: { icon: HelpCircle, label: "Desconocida" },
     default: { icon: HelpCircle, label: "Desconocida" }
   },
   socialRoles: {
@@ -97,6 +102,7 @@ export const LABELS = {
   contextLayers: {
     // Transporte
     highways: "Carreteras Principales",
+    critical_points: "Puntos críticos 2024",
     secondary_roads: "Rutas Secundarias",
     urban_streets: "Calles Urbanas",
     dangerous_junctions: "Cruces Peligrosos",

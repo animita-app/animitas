@@ -24,7 +24,7 @@ export function ActiveAreaBanner({ label, onClear }: ActiveAreaBannerProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-5 w-5 text-muted-foreground ml-1 hover:bg-muted rounded-full"
+          className="h-5 w-5 text-muted-foreground ml-1"
           onClick={onClear}
         >
           <X className="h-3 w-3" />

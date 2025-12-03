@@ -74,7 +74,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
           const feature: Feature<Geometry> = {
             type: 'Feature',
             geometry,
-            properties: result
+            properties: { ...result, isBbox: true }
           }
           const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
           setActiveArea(feature, label)

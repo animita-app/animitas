@@ -1,12 +1,9 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Layer } from './types'
 import { LayerItem } from './layer-item'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
-import { ChevronDown } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 import { LayerMetrics } from './layer-metrics'
 
@@ -28,7 +25,6 @@ interface LegendProps {
 export function Legend({
   layers,
   elements,
-  selectedLayerId,
   onLayerClick,
   onToggleVisibility
 }: LegendProps) {
@@ -78,7 +74,7 @@ export function Legend({
         <CardTitle>Capas</CardTitle>
       </CardHeader>
 
-      <ScrollArea className="h-full max-h-[calc(100vh-100px)]">
+      <ScrollArea className="h-full max-h-[calc(100vh-1rem)]">
         <div className="p-2 space-y-1">
           {/* Animitas (Always at top) */}
           {animitasLayer && renderLayerItem(animitasLayer)}

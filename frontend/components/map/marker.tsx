@@ -1,7 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { AnimitaProperty } from './layers-panel'
+import { AnimitaProperty } from './layers/types'
 import Link from 'next/link'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Site } from '@/types/mock'
@@ -131,8 +131,7 @@ export const MarkerIcon = ({
                 <div className="p-2 flex flex-col justify-center">
                   <span className="text-xs opacity-60 uppercase leading-none mb-1">Tamaño</span>
                   <span className="font-medium text-sm leading-tight">
-                    {site.insights.patrimonial.size === 'small' ? 'Pequeña' :
-                      site.insights.patrimonial.size === 'medium' ? 'Mediana' : 'Grande'}
+                    {site.insights.patrimonial.size}
                   </span>
                 </div>
               )}

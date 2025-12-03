@@ -66,7 +66,7 @@ export function MultiProgress({
                   }}
                 />
               </TooltipTrigger>
-              <TooltipContent className="text-xs flex gap-4 mb-1 justify-between items-center">
+              <TooltipContent side="bottom" className="text-xs flex gap-4 mt-1 justify-between items-center">
                 <p className="font-normal">{segment.label}</p>
                 <p className="ibm-plex-mono opacity-80">
                   {segment.value} ({Math.round(percentage)}%)

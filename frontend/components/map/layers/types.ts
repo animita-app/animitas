@@ -9,7 +9,7 @@ export interface Layer {
   id: string
   label: string
   type: LayerType
-  geometry: 'point' | 'line' | 'polygon'
+  geometry: 'point' | 'line' | 'polygon' | 'heatmap'
   color: string
   visible: boolean
   opacity: number
@@ -59,6 +59,30 @@ export interface LayersPanelProps {
 }
 
 // Initial Data
+export const ANIMITAS_METRICS: Component[] = [
+  {
+    id: 'default-stat',
+    type: 'statistic',
+    title: 'Total Animitas',
+    visible: true,
+    config: { stat: 'count' }
+  },
+  {
+    id: 'death-cause-chart',
+    type: 'bar_chart',
+    title: 'Causa de Muerte',
+    visible: true,
+    config: { horizontalAxis: 'death_cause', groupBy: 'typology', stat: 'count' }
+  },
+  {
+    id: 'antiquity-hist',
+    type: 'histogram',
+    title: 'Antigüedad (Años)',
+    visible: true,
+    config: { horizontalAxis: 'antiquity_year', bins: 50, verticalAxis: 'count' }
+  }
+]
+
 export const INITIAL_LAYERS: Layer[] = [
   {
     id: 'animitas',
@@ -68,31 +92,10 @@ export const INITIAL_LAYERS: Layer[] = [
     color: COLORS.animitas,
     visible: true,
     opacity: 100,
-    components: [
-      {
-        id: 'default-stat',
-        type: 'statistic',
-        title: 'Total Animitas',
-        visible: true,
-        config: { stat: 'count' }
-      },
-      {
-        id: 'death-cause-chart',
-        type: 'bar_chart',
-        title: 'Causa de Muerte',
-        visible: true,
-        config: { horizontalAxis: 'death_cause', groupBy: 'typology', stat: 'count' }
-      },
-      {
-        id: 'antiquity-hist',
-        type: 'histogram',
-        title: 'Antigüedad (Años)',
-        visible: true,
-        config: { horizontalAxis: 'antiquity_year', bins: 50, verticalAxis: 'count' }
-      }
-    ]
+    components: ANIMITAS_METRICS
   },
   // Transporte y riesgo vial
+  { id: 'critical_points', label: LABELS.contextLayers.critical_points, type: 'context', geometry: 'heatmap', color: COLORS.context.critical_points, visible: false, opacity: 100, components: [] },
   { id: 'highways', label: LABELS.contextLayers.highways, type: 'context', geometry: 'line', color: COLORS.context.highways, visible: false, opacity: 100, components: [] },
   { id: 'secondary_roads', label: LABELS.contextLayers.secondary_roads, type: 'context', geometry: 'line', color: COLORS.context.secondary_roads, visible: false, opacity: 100, components: [] },
   { id: 'urban_streets', label: LABELS.contextLayers.urban_streets, type: 'context', geometry: 'line', color: COLORS.context.urban_streets, visible: false, opacity: 100, components: [] },

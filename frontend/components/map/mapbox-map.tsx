@@ -79,6 +79,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     dangerous_junctions: false,
     traffic_lights: false,
     roundabouts: false,
+    critical_points: false,
 
     // Servicios
     hospitals: false,
@@ -111,8 +112,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   } | null>(null)
 
   // GIS Panel State
-  const [activeTypologies, setActiveTypologies] = useState<string[]>(['gruta', 'iglesia', 'casa', 'cruz', 'orgánica', 'social', 'moderna', 'monumental'])
-  const [activeDeathCauses, setActiveDeathCauses] = useState<string[]>(['accident', 'violence', 'illness', 'natural', 'unknown'])
+  const [activeTypologies, setActiveTypologies] = useState<string[]>(['Gruta', 'Iglesia', 'Casa', 'Cruz', 'Orgánica', 'Social', 'Moderna', 'Monumental', 'Tumba', 'Muro'])
+  const [activeDeathCauses, setActiveDeathCauses] = useState<string[]>(['Accidente', 'Violencia', 'Enfermedad', 'Natural', 'Desconocida', 'Suicidio', 'Asesinato'])
   const [colorTheme, setColorTheme] = useState<'default' | 'neutral' | 'monochrome'>('default')
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [activeProperties, setActiveProperties] = useState<AnimitaProperty[]>(['typology', 'death_cause'])
@@ -122,7 +123,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const [selectedLayer, setSelectedLayer] = useState<Layer | null>(null)
 
   // Spatial Context
-  const { activeArea, activeAreaLabel, clearActiveArea } = useSpatialContext()
+  const { activeArea, activeAreaLabel, clearActiveArea, filteredData } = useSpatialContext()
 
   // Handle Active Area on Map
   useEffect(() => {
@@ -140,11 +141,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
 
     if (!activeArea) {
-      console.log('No active area, cleaning up...')
       cleanup()
       return
     }
-    console.log('Active area updated:', activeArea)
 
     // Add source
     if (!map.current.getSource(sourceId)) {
@@ -164,9 +163,10 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         type: 'fill',
         source: sourceId,
         paint: {
-          'fill-color': 'transparent',
-          'fill-opacity': 0
-        }
+          'fill-color': COLORS.searchElements,
+          'fill-opacity': 0.2
+        },
+        filter: ['!=', ['get', 'isBbox'], true]
       })
     }
 
@@ -197,43 +197,17 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       // Delay fitting bounds to avoid jarring jump if loading
       setTimeout(() => {
         if (map.current) {
-          map.current.fitBounds(bounds, { padding: 50, maxZoom: 16, duration: 2000, essential: true })
+          map.current.fitBounds(bounds, { padding: 50, maxZoom: 16, duration: 1000, essential: true })
         }
-      }, 500)
+      }, 100)
     }
 
   }, [activeArea, isMapReady])
 
   // Load/Save Layers
   useEffect(() => {
-    const savedLayersStr = localStorage.getItem('animita-layers')
-    if (savedLayersStr) {
-      try {
-        const savedLayers: Layer[] = JSON.parse(savedLayersStr)
-
-        // Merge saved state with initial structure to ensure new components/layers appear
-        const mergedLayers = INITIAL_LAYERS.map(initLayer => {
-          const savedLayer = savedLayers.find(l => l.id === initLayer.id)
-          if (savedLayer) {
-            return {
-              ...initLayer,
-              visible: savedLayer.visible,
-              opacity: savedLayer.opacity,
-              color: savedLayer.color,
-              // Force initial components for animitas to ensure new charts appear
-              // For other layers, preserve saved components if any, or use initial
-              components: initLayer.id === 'animitas' ? initLayer.components : (savedLayer.components || initLayer.components)
-            }
-          }
-          return initLayer
-        })
-
-        setLayers(mergedLayers)
-      } catch (e) {
-        console.error('Failed to parse saved layers', e)
-        // If error, fall back to initial layers (already set)
-      }
-    }
+    const savedLayers = localStorage.getItem('animita-layers')
+    if (savedLayers) setLayers(JSON.parse(savedLayers))
   }, [])
 
   useEffect(() => {
@@ -275,7 +249,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         const contextLayers = [
           'churches', 'cemeteries', 'bars',
           'highways', 'secondary_roads', 'urban_streets', 'dangerous_junctions', 'traffic_lights', 'roundabouts',
-          'hospitals', 'police', 'fire_station', 'schools', 'universities'
+          'hospitals', 'police', 'fire_station', 'schools', 'universities',
+          'critical_points'
         ]
 
         if (contextLayers.includes(id)) {
@@ -285,6 +260,57 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             // Fetch data if not loaded
             const fetchLayer = async () => {
               try {
+                if (id === 'critical_points') {
+                  const response = await fetch('/data/Puntos_criticos_2024.csv')
+                  const csvText = await response.text()
+
+                  // Simple CSV Parser
+                  const lines = csvText.split('\n')
+                  const headers = lines[0].split(',')
+                  const latIndex = headers.indexOf('Latitud')
+                  const lonIndex = headers.indexOf('Longitud')
+                  const countIndex = headers.indexOf('Cantidad_d') // Use quantity for heatmap weight
+
+                  const features: any[] = []
+
+                  for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim()
+                    if (!line) continue
+
+                    // Handle potential quoted fields (simple regex split, might need more robust if complex)
+                    // For this specific file, standard split seems okay based on preview, but let's be safer with regex for commas outside quotes
+                    const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',')
+
+                    if (row.length > Math.max(latIndex, lonIndex)) {
+                      // Clean up quotes if present
+                      const clean = (val: string) => val ? val.replace(/^"|"$/g, '') : ''
+
+                      const lat = parseFloat(clean(row[latIndex]))
+                      const lon = parseFloat(clean(row[lonIndex]))
+                      const count = parseInt(clean(row[countIndex])) || 1
+
+                      if (!isNaN(lat) && !isNaN(lon)) {
+                        features.push({
+                          type: 'Feature',
+                          geometry: { type: 'Point', coordinates: [lon, lat] },
+                          properties: { weight: count }
+                        })
+                      }
+                    }
+                  }
+
+                  const geojson = { type: 'FeatureCollection', features } as any
+
+                  if (map.current) {
+                    const source = map.current.getSource(id) as mapboxgl.GeoJSONSource | undefined
+                    if (source) {
+                      source.setData(geojson)
+                      setLoadedLayers(prev => new Set(prev).add(id))
+                    }
+                  }
+                  return
+                }
+
                 // Map layer ID to Overpass ID if needed (currently they match mostly)
                 // We need to cast id to OverpassLayerType, assuming they match
                 // Special cases mapping if needed:
@@ -316,6 +342,11 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             if (map.current && map.current.getLayer(id)) {
               map.current.setLayoutProperty(id, 'visibility', newVisibility ? 'visible' : 'none')
             }
+          } else if (id === 'critical_points') {
+            // Heatmap layer
+            if (map.current && map.current.getLayer(`${id}-heatmap`)) {
+              map.current.setLayoutProperty(`${id}-heatmap`, 'visibility', newVisibility ? 'visible' : 'none')
+            }
           } else {
             // Point layers (inner/outer)
             if (map.current && map.current.getLayer(`${id}-outer`)) {
@@ -323,6 +354,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             }
             if (map.current && map.current.getLayer(`${id}-inner`)) {
               map.current.setLayoutProperty(`${id}-inner`, 'visibility', newVisibility ? 'visible' : 'none')
+            }
+            if (map.current && map.current.getLayer(`${id}-poly`)) {
+              map.current.setLayoutProperty(`${id}-poly`, 'visibility', newVisibility ? 'visible' : 'none')
             }
           }
         }
@@ -515,17 +549,49 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         })
       }
 
+      // Helper to add polygon layers
+      const addPolygonLayer = (id: string, color: string) => {
+        if (!mapInstance.getLayer(`${id}-poly`)) {
+          mapInstance.addLayer({
+            id: `${id}-poly`,
+            type: 'fill',
+            source: id,
+            layout: { visibility: 'none' },
+            paint: {
+              'fill-color': color,
+              'fill-opacity': 0.2,
+              'fill-outline-color': color
+            },
+            filter: ['==', '$type', 'Polygon']
+          })
+        }
+      }
+
       // Sociabilidad
       addPointLayer('churches', COLORS.context.churches)
+      addPolygonLayer('churches', COLORS.context.churches)
+
       addPointLayer('bars', COLORS.context.bars)
+      addPolygonLayer('bars', COLORS.context.bars)
+
       addPointLayer('schools', COLORS.context.schools)
+      addPolygonLayer('schools', COLORS.context.schools)
+
       addPointLayer('universities', COLORS.context.universities)
+      addPolygonLayer('universities', COLORS.context.universities)
 
       // Servicios
       addPointLayer('cemeteries', COLORS.context.cemeteries)
+      addPolygonLayer('cemeteries', COLORS.context.cemeteries)
+
       addPointLayer('hospitals', COLORS.context.hospitals)
+      addPolygonLayer('hospitals', COLORS.context.hospitals)
+
       addPointLayer('police', COLORS.context.police)
+      addPolygonLayer('police', COLORS.context.police)
+
       addPointLayer('fire_station', COLORS.context.fire_station)
+      addPolygonLayer('fire_station', COLORS.context.fire_station)
 
       // Transporte (Points)
       addPointLayer('dangerous_junctions', COLORS.context.dangerous_junctions)
@@ -536,6 +602,65 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       addLineLayer('highways', COLORS.context.highways, 3)
       addLineLayer('secondary_roads', COLORS.context.secondary_roads, 2)
       addLineLayer('urban_streets', COLORS.context.urban_streets, 1)
+
+      // Critical Points Heatmap
+      if (!mapInstance.getLayer('critical_points-heatmap')) {
+        mapInstance.addLayer({
+          id: 'critical_points-heatmap',
+          type: 'heatmap',
+          source: 'critical_points',
+          layout: { visibility: 'none' },
+          paint: {
+            // Increase the heatmap weight based on frequency and property magnitude
+            'heatmap-weight': [
+              'interpolate',
+              ['linear'],
+              ['get', 'weight'],
+              0, 0,
+              10, 1
+            ],
+            // Increase the heatmap color weight weight by zoom level
+            // heatmap-intensity is a multiplier on top of heatmap-weight
+            'heatmap-intensity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 1,
+              15, 3
+            ],
+            // Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+            // Begin color ramp at 0-stop with a 0-transparency color
+            // to create a blur-like effect.
+            'heatmap-color': [
+              'interpolate',
+              ['linear'],
+              ['heatmap-density'],
+              0, 'rgba(33,102,172,0)',
+              0.2, 'rgb(103,169,207)',
+              0.4, 'rgb(209,229,240)',
+              0.6, 'rgb(253,219,199)',
+              0.8, 'rgb(239,138,98)',
+              1, 'rgb(178,24,43)'
+            ],
+            // Adjust the heatmap radius by zoom level
+            'heatmap-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 2,
+              9, 20
+            ],
+            // Transition from heatmap to circle layer by zoom level
+            'heatmap-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              7, 1,
+              18, 0.5
+            ]
+          }
+        })
+      }
 
       // Keep cementerios-poly if needed, or remove it. User didn't specify polygons.
       // I'll leave it out for now to keep it clean as per "mini animitas" style request (points).
@@ -615,7 +740,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           id: 'search-elements-poly',
           type: 'fill',
           source: 'search-elements',
-          filter: ['==', '$type', 'Polygon'],
+          filter: ['all', ['==', ['geometry-type'], 'Polygon'], ['!=', ['get', 'isBbox'], true]],
           paint: {
             'fill-color': COLORS.searchElements,
             'fill-opacity': 0.2,
@@ -908,7 +1033,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
         ]]
       }
       geometryType = 'polygon'
-      finalLocation = { ...location, geometry }
+      finalLocation = { ...location, geometry, isBbox: true }
 
       map.current.fitBounds(
         [
@@ -1095,10 +1220,11 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   }, [colorTheme, isMapReady])
 
   // Filter Memorials by Typology and Death Cause
+  // Filter Memorials based on SpatialContext filteredData
   useEffect(() => {
     if (!isMapReady || !map.current) return
 
-    const filteredFeatures = SEED_SITES
+    const filteredFeatures = filteredData
       .filter(site => {
         // Ensure site has valid location
         return site.location && typeof site.location.lat === 'number' && typeof site.location.lng === 'number'
@@ -1117,7 +1243,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             name: site.title,
             images: site.images,
             typology: site.typology,
-            death_cause: site.insights?.memorial?.death_cause || 'unknown'
+            death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown'
           }
         }
       })
@@ -1128,7 +1254,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
 
     setMemorials(geojson)
-  }, [activeTypologies, activeDeathCauses, isMapReady])
+  }, [filteredData, isMapReady])
 
   // Update Source Data
   useEffect(() => {
@@ -1148,7 +1274,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           return {
             type: 'Feature',
             geometry: e.data.geometry,
-            properties: { id: e.id, title: e.label }
+            properties: { id: e.id, title: e.label, isBbox: e.data.isBbox }
           }
         } else if (e.data?.center) {
           return {
@@ -1277,11 +1403,6 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const handleLayerChange = (id: string, visible: boolean) => {
     // Update activeLayers state for all layers including animitas
     setActiveLayers(prev => ({ ...prev, [id]: visible }))
-
-    // Also toggle heatmap if that's the ID
-    if (id === 'heatmap') {
-      setShowHeatmap(visible)
-    }
   }
 
   const handleResetView = () => {

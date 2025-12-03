@@ -63,7 +63,7 @@ export const MOCK_INSIGHTS: SiteInsights[] = [
     },
     patrimonial: {
       antiquity_year: 1933,
-      size: 'large'
+      size: 'Grande'
     },
     generated_at: '2023-12-01T10:00:00Z'
   }
