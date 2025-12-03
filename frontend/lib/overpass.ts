@@ -1,0 +1,152 @@
+import osmtogeojson from 'osmtogeojson';
+import { FeatureCollection } from 'geojson';
+
+const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
+
+// Capas ampliadas para cartografía crítica
+export type OverpassLayerType =
+  | 'iglesias'
+  | 'cementerios'
+  | 'paradas'
+  | 'bares'
+  | 'memoriales'
+  | 'altares'
+  | 'accidentes'
+  | 'curvas_peligrosas'
+  | 'sin_iluminacion'
+  | 'plazas'
+  | 'hospitales'
+  | 'colegios'
+  | 'carceles'
+  | 'cruces_viales';
+
+const QUERIES: Record<OverpassLayerType, (bbox: string) => string> = {
+  iglesias: (bbox) => `
+    [out:json][timeout:25];
+    (
+      node["amenity"="place_of_worship"](${bbox});
+      way["amenity"="place_of_worship"](${bbox});
+      relation["amenity"="place_of_worship"](${bbox});
+    );
+    out body; >; out skel qt;
+  `,
+
+  cementerios: (bbox) => `
+    [out:json][timeout:25];
+    (
+      nwr["landuse"="cemetery"](${bbox});
+      nwr["amenity"="grave_yard"](${bbox});
+    );
+    out body; >; out skel qt;
+  `,
+
+  paradas: (bbox) => `
+    [out:json][timeout:25];
+    node["highway"="bus_stop"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  bares: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"~"bar|pub|biergarten"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  // —— NUEVAS CAPAS ——————————————————————
+
+  memoriales: (bbox) => `
+    [out:json][timeout:25];
+    nwr["memorial"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  altares: (bbox) => `
+    [out:json][timeout:25];
+    (
+      nwr["amenity"="altar"](${bbox});
+      nwr["historic"="wayside_shrine"](${bbox});
+      nwr["man_made"="cross"](${bbox});
+    );
+    out body; >; out skel qt;
+  `,
+
+  accidentes: (bbox) => `
+    [out:json][timeout:25];
+    (
+      nwr["hazard"](${bbox});
+      nwr["traffic_calming"](${bbox});
+      nwr["highway"="traffic_signals"](${bbox});
+    );
+    out body; >; out skel qt;
+  `,
+
+  curvas_peligrosas: (bbox) => `
+    [out:json][timeout:25];
+    nwr["hazard"="curve"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  sin_iluminacion: (bbox) => `
+    [out:json][timeout:25];
+    (
+      way["highway"]["lit"="no"](${bbox});
+      node["highway"]["lit"="no"](${bbox});
+    );
+    out body; >; out skel qt;
+  `,
+
+  plazas: (bbox) => `
+    [out:json][timeout:25];
+    nwr["leisure"="park"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  hospitales: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="hospital"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  colegios: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="school"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  carceles: (bbox) => `
+    [out:json][timeout:25];
+    nwr["amenity"="prison"](${bbox});
+    out body; >; out skel qt;
+  `,
+
+  cruces_viales: (bbox) => `
+    [out:json][timeout:25];
+    nwr["highway"="crossing"](${bbox});
+    out body; >; out skel qt;
+  `
+};
+
+export async function fetchOverpassLayer(
+  type: OverpassLayerType,
+  bounds: { south: number; west: number; north: number; east: number }
+): Promise<FeatureCollection> {
+  const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
+  const query = QUERIES[type](bbox);
+
+  try {
+    const response = await fetch(OVERPASS_API_URL, {
+      method: 'POST',
+      body: `data=${encodeURIComponent(query)}`,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+
+    if (!response.ok) throw new Error(`Overpass API error: ${response.statusText}`);
+
+    const data = await response.json();
+    return osmtogeojson(data) as FeatureCollection;
+
+  } catch (error) {
+    console.error(`Failed to fetch ${type} layer:`, error);
+    return { type: 'FeatureCollection', features: [] };
+  }
+}

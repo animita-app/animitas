@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { MemorialDetail } from '@/components/animita/memorial-detail'
+import { SiteDetail } from '@/components/site-detail'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 
 interface MemorialContentProps {
@@ -38,14 +38,14 @@ export function MemorialContent({ id }: MemorialContentProps) {
       open={dialogOpen}
       onOpenChange={handleDialogChange}
 
-      title="Detalle del memorial"
-      description="Información y testimonios del memorial seleccionado"
+      title="Detalle del sitio"
+      description="Información y testimonios del sitio seleccionado"
       snapPoints={snapPoints}
       activeSnapPoint={snap}
       setActiveSnapPoint={setSnap}
       className="min-h-[550px]"
     >
-      <MemorialDetail id={id} />
+      <SiteDetail id={id} />
     </ResponsiveDialog>
   )
 }

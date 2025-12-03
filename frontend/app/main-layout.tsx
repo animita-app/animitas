@@ -2,8 +2,11 @@
 
 import { usePathname, useParams } from 'next/navigation'
 import { ViewTransition } from 'react'
+import { useState } from 'react'
 import MapboxMap from '@/components/map/mapbox-map'
-import { TopHeader } from '@/components/layout/top-header'
+
+import { AnalysisPanel } from '@/components/analysis-panel'
+import { AnalysisResult } from '@/lib/analysis-engine'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -12,6 +15,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiaWNhcnVzbWluZCIsImEiOiJjbWc4c2puMDIwYWxqMmxwczF0cWY2azZyIn0.YiZOCFkJJbVqu5lJwv9akQ'
 
   const focusedMemorialId = pathname.startsWith('/animita/') ? (params.id as string) : null
+  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
 
   if (isAuthPage) {
     return <>{children}</>
@@ -19,11 +23,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <TopHeader />
+      {/* <TopHeader /> */}
       <div className="h-screen w-screen relative">
         <div className="absolute inset-0">
-          <MapboxMap accessToken={mapboxToken} focusedMemorialId={focusedMemorialId} isModal={false} />
+          <MapboxMap
+            accessToken={mapboxToken}
+            focusedMemorialId={focusedMemorialId}
+            isModal={false}
+            onAnalysisRequested={setAnalysisData}
+          />
         </div>
+        <AnalysisPanel
+          data={analysisData}
+          onClose={() => setAnalysisData(null)}
+        />
         <ViewTransition name="page-content">
           {children}
         </ViewTransition>

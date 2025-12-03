@@ -1,0 +1,1727 @@
+{
+  "1101": {
+    "avg_income": 12569,
+    "poverty_rate": 0.096,
+    "sample_size": 1130
+  },
+  "1107": {
+    "avg_income": 15302,
+    "poverty_rate": 0.182,
+    "sample_size": 834
+  },
+  "1401": {
+    "avg_income": 18072,
+    "poverty_rate": 0.1357,
+    "sample_size": 95
+  },
+  "1402": {
+    "avg_income": 5694,
+    "poverty_rate": 0.0455,
+    "sample_size": 23
+  },
+  "1403": {
+    "avg_income": 18017,
+    "poverty_rate": 0.6835,
+    "sample_size": 17
+  },
+  "1404": {
+    "avg_income": 3996,
+    "poverty_rate": 0.2783,
+    "sample_size": 26
+  },
+  "1405": {
+    "avg_income": 4361,
+    "poverty_rate": 0.1172,
+    "sample_size": 53
+  },
+  "2101": {
+    "avg_income": 23744,
+    "poverty_rate": 0.1029,
+    "sample_size": 1052
+  },
+  "2102": {
+    "avg_income": 44096,
+    "poverty_rate": 0.057,
+    "sample_size": 38
+  },
+  "2103": {
+    "avg_income": 7926,
+    "poverty_rate": 0.0622,
+    "sample_size": 25
+  },
+  "2104": {
+    "avg_income": 14924,
+    "poverty_rate": 0.2909,
+    "sample_size": 45
+  },
+  "2201": {
+    "avg_income": 20828,
+    "poverty_rate": 0.1208,
+    "sample_size": 646
+  },
+  "2203": {
+    "avg_income": 26633,
+    "poverty_rate": 0.05,
+    "sample_size": 63
+  },
+  "2301": {
+    "avg_income": 29896,
+    "poverty_rate": 0.1861,
+    "sample_size": 80
+  },
+  "2302": {
+    "avg_income": 1064,
+    "poverty_rate": 0,
+    "sample_size": 19
+  },
+  "3101": {
+    "avg_income": 17333,
+    "poverty_rate": 0.1094,
+    "sample_size": 1162
+  },
+  "3102": {
+    "avg_income": 16425,
+    "poverty_rate": 0.06,
+    "sample_size": 98
+  },
+  "3103": {
+    "avg_income": 16879,
+    "poverty_rate": 0.0886,
+    "sample_size": 100
+  },
+  "3201": {
+    "avg_income": 13437,
+    "poverty_rate": 0.2713,
+    "sample_size": 95
+  },
+  "3202": {
+    "avg_income": 16833,
+    "poverty_rate": 0.0702,
+    "sample_size": 103
+  },
+  "3301": {
+    "avg_income": 17967,
+    "poverty_rate": 0.1524,
+    "sample_size": 324
+  },
+  "3302": {
+    "avg_income": 5269,
+    "poverty_rate": 0.205,
+    "sample_size": 35
+  },
+  "3303": {
+    "avg_income": 8585,
+    "poverty_rate": 0.2736,
+    "sample_size": 41
+  },
+  "3304": {
+    "avg_income": 10512,
+    "poverty_rate": 0.2392,
+    "sample_size": 71
+  },
+  "4101": {
+    "avg_income": 23137,
+    "poverty_rate": 0.0935,
+    "sample_size": 624
+  },
+  "4102": {
+    "avg_income": 14890,
+    "poverty_rate": 0.1476,
+    "sample_size": 361
+  },
+  "4103": {
+    "avg_income": 22087,
+    "poverty_rate": 0.1376,
+    "sample_size": 42
+  },
+  "4104": {
+    "avg_income": 6634,
+    "poverty_rate": 0.0375,
+    "sample_size": 24
+  },
+  "4105": {
+    "avg_income": 12342,
+    "poverty_rate": 0.2736,
+    "sample_size": 11
+  },
+  "4106": {
+    "avg_income": 9308,
+    "poverty_rate": 0.1051,
+    "sample_size": 45
+  },
+  "4201": {
+    "avg_income": 11328,
+    "poverty_rate": 0.0584,
+    "sample_size": 74
+  },
+  "4202": {
+    "avg_income": 5809,
+    "poverty_rate": 0.1461,
+    "sample_size": 22
+  },
+  "4203": {
+    "avg_income": 13125,
+    "poverty_rate": 0.0689,
+    "sample_size": 51
+  },
+  "4204": {
+    "avg_income": 11338,
+    "poverty_rate": 0.1809,
+    "sample_size": 47
+  },
+  "4301": {
+    "avg_income": 17905,
+    "poverty_rate": 0.1386,
+    "sample_size": 293
+  },
+  "4302": {
+    "avg_income": 12871,
+    "poverty_rate": 0.1717,
+    "sample_size": 16
+  },
+  "4303": {
+    "avg_income": 13440,
+    "poverty_rate": 0.4058,
+    "sample_size": 47
+  },
+  "4304": {
+    "avg_income": 15868,
+    "poverty_rate": 0.3313,
+    "sample_size": 37
+  },
+  "4305": {
+    "avg_income": 18562,
+    "poverty_rate": 0.1531,
+    "sample_size": 16
+  },
+  "5101": {
+    "avg_income": 20741,
+    "poverty_rate": 0.1261,
+    "sample_size": 583
+  },
+  "5102": {
+    "avg_income": 36021,
+    "poverty_rate": 0,
+    "sample_size": 59
+  },
+  "5103": {
+    "avg_income": 8787,
+    "poverty_rate": 0.0289,
+    "sample_size": 100
+  },
+  "5105": {
+    "avg_income": 31087,
+    "poverty_rate": 0.0212,
+    "sample_size": 37
+  },
+  "5107": {
+    "avg_income": 26419,
+    "poverty_rate": 0.1842,
+    "sample_size": 67
+  },
+  "5109": {
+    "avg_income": 29258,
+    "poverty_rate": 0.0943,
+    "sample_size": 710
+  },
+  "5301": {
+    "avg_income": 15193,
+    "poverty_rate": 0.1456,
+    "sample_size": 205
+  },
+  "5302": {
+    "avg_income": 12229,
+    "poverty_rate": 0.1394,
+    "sample_size": 55
+  },
+  "5303": {
+    "avg_income": 31432,
+    "poverty_rate": 0.1086,
+    "sample_size": 38
+  },
+  "5304": {
+    "avg_income": 13553,
+    "poverty_rate": 0.1228,
+    "sample_size": 20
+  },
+  "5401": {
+    "avg_income": 24346,
+    "poverty_rate": 0.1221,
+    "sample_size": 72
+  },
+  "5402": {
+    "avg_income": 40869,
+    "poverty_rate": 0.0837,
+    "sample_size": 46
+  },
+  "5403": {
+    "avg_income": 9315,
+    "poverty_rate": 0.149,
+    "sample_size": 19
+  },
+  "5404": {
+    "avg_income": 61445,
+    "poverty_rate": 0.0863,
+    "sample_size": 35
+  },
+  "5405": {
+    "avg_income": 21172,
+    "poverty_rate": 0.051,
+    "sample_size": 44
+  },
+  "5501": {
+    "avg_income": 24529,
+    "poverty_rate": 0.0668,
+    "sample_size": 199
+  },
+  "5502": {
+    "avg_income": 22394,
+    "poverty_rate": 0.0914,
+    "sample_size": 130
+  },
+  "5503": {
+    "avg_income": 15957,
+    "poverty_rate": 0.1957,
+    "sample_size": 43
+  },
+  "5504": {
+    "avg_income": 32799,
+    "poverty_rate": 0.0082,
+    "sample_size": 31
+  },
+  "5506": {
+    "avg_income": 18344,
+    "poverty_rate": 0.0635,
+    "sample_size": 45
+  },
+  "5601": {
+    "avg_income": 29971,
+    "poverty_rate": 0.0821,
+    "sample_size": 183
+  },
+  "5602": {
+    "avg_income": 4561,
+    "poverty_rate": 0.0572,
+    "sample_size": 35
+  },
+  "5603": {
+    "avg_income": 42606,
+    "poverty_rate": 0.1028,
+    "sample_size": 52
+  },
+  "5604": {
+    "avg_income": 6904,
+    "poverty_rate": 0.1544,
+    "sample_size": 32
+  },
+  "5605": {
+    "avg_income": 620,
+    "poverty_rate": 0.0302,
+    "sample_size": 20
+  },
+  "5606": {
+    "avg_income": 23720,
+    "poverty_rate": 0,
+    "sample_size": 27
+  },
+  "5701": {
+    "avg_income": 16967,
+    "poverty_rate": 0.0838,
+    "sample_size": 194
+  },
+  "5702": {
+    "avg_income": 21151,
+    "poverty_rate": 0.2358,
+    "sample_size": 38
+  },
+  "5703": {
+    "avg_income": 23838,
+    "poverty_rate": 0.2979,
+    "sample_size": 46
+  },
+  "5704": {
+    "avg_income": 14966,
+    "poverty_rate": 0.2042,
+    "sample_size": 23
+  },
+  "5705": {
+    "avg_income": 16258,
+    "poverty_rate": 0,
+    "sample_size": 39
+  },
+  "5706": {
+    "avg_income": 13938,
+    "poverty_rate": 0.1671,
+    "sample_size": 33
+  },
+  "5801": {
+    "avg_income": 22437,
+    "poverty_rate": 0.1156,
+    "sample_size": 345
+  },
+  "5802": {
+    "avg_income": 23003,
+    "poverty_rate": 0.1123,
+    "sample_size": 95
+  },
+  "5803": {
+    "avg_income": 14217,
+    "poverty_rate": 0.1217,
+    "sample_size": 44
+  },
+  "5804": {
+    "avg_income": 16059,
+    "poverty_rate": 0.045,
+    "sample_size": 220
+  },
+  "6101": {
+    "avg_income": 20260,
+    "poverty_rate": 0.1011,
+    "sample_size": 836
+  },
+  "6102": {
+    "avg_income": 35934,
+    "poverty_rate": 0.1582,
+    "sample_size": 25
+  },
+  "6103": {
+    "avg_income": 9644,
+    "poverty_rate": 0.1826,
+    "sample_size": 24
+  },
+  "6104": {
+    "avg_income": 20720,
+    "poverty_rate": 0.0646,
+    "sample_size": 49
+  },
+  "6105": {
+    "avg_income": 13559,
+    "poverty_rate": 0.1838,
+    "sample_size": 71
+  },
+  "6106": {
+    "avg_income": 37496,
+    "poverty_rate": 0.0478,
+    "sample_size": 95
+  },
+  "6107": {
+    "avg_income": 6847,
+    "poverty_rate": 0.1237,
+    "sample_size": 53
+  },
+  "6108": {
+    "avg_income": 11518,
+    "poverty_rate": 0.0353,
+    "sample_size": 185
+  },
+  "6109": {
+    "avg_income": 26124,
+    "poverty_rate": 0,
+    "sample_size": 27
+  },
+  "6110": {
+    "avg_income": 57404,
+    "poverty_rate": 0.066,
+    "sample_size": 63
+  },
+  "6111": {
+    "avg_income": 7062,
+    "poverty_rate": 0.1612,
+    "sample_size": 41
+  },
+  "6112": {
+    "avg_income": 9439,
+    "poverty_rate": 0.1216,
+    "sample_size": 47
+  },
+  "6113": {
+    "avg_income": 22934,
+    "poverty_rate": 0.1938,
+    "sample_size": 22
+  },
+  "6114": {
+    "avg_income": 43977,
+    "poverty_rate": 0.1382,
+    "sample_size": 30
+  },
+  "6115": {
+    "avg_income": 20436,
+    "poverty_rate": 0.0876,
+    "sample_size": 156
+  },
+  "6116": {
+    "avg_income": 23538,
+    "poverty_rate": 0.0377,
+    "sample_size": 84
+  },
+  "6117": {
+    "avg_income": 12798,
+    "poverty_rate": 0.191,
+    "sample_size": 104
+  },
+  "6201": {
+    "avg_income": 11784,
+    "poverty_rate": 0.2123,
+    "sample_size": 28
+  },
+  "6202": {
+    "avg_income": 18098,
+    "poverty_rate": 0.1294,
+    "sample_size": 10
+  },
+  "6203": {
+    "avg_income": 11107,
+    "poverty_rate": 0.2766,
+    "sample_size": 17
+  },
+  "6204": {
+    "avg_income": 4108,
+    "poverty_rate": 0.0342,
+    "sample_size": 25
+  },
+  "6205": {
+    "avg_income": 23131,
+    "poverty_rate": 0.4692,
+    "sample_size": 23
+  },
+  "6206": {
+    "avg_income": 16305,
+    "poverty_rate": 0.0676,
+    "sample_size": 12
+  },
+  "6301": {
+    "avg_income": 17418,
+    "poverty_rate": 0.1306,
+    "sample_size": 244
+  },
+  "6302": {
+    "avg_income": 10723,
+    "poverty_rate": 0.0668,
+    "sample_size": 21
+  },
+  "6303": {
+    "avg_income": 14907,
+    "poverty_rate": 0.1801,
+    "sample_size": 78
+  },
+  "6304": {
+    "avg_income": 28750,
+    "poverty_rate": 0.0371,
+    "sample_size": 23
+  },
+  "6305": {
+    "avg_income": 15394,
+    "poverty_rate": 0.1822,
+    "sample_size": 50
+  },
+  "6306": {
+    "avg_income": 3021,
+    "poverty_rate": 0.1212,
+    "sample_size": 16
+  },
+  "6307": {
+    "avg_income": 8524,
+    "poverty_rate": 0.1486,
+    "sample_size": 38
+  },
+  "6308": {
+    "avg_income": 14844,
+    "poverty_rate": 0.065,
+    "sample_size": 13
+  },
+  "6309": {
+    "avg_income": 10356,
+    "poverty_rate": 0.1677,
+    "sample_size": 15
+  },
+  "6310": {
+    "avg_income": 20009,
+    "poverty_rate": 0.1542,
+    "sample_size": 108
+  },
+  "7101": {
+    "avg_income": 13496,
+    "poverty_rate": 0.1033,
+    "sample_size": 698
+  },
+  "7102": {
+    "avg_income": 18490,
+    "poverty_rate": 0.1959,
+    "sample_size": 129
+  },
+  "7103": {
+    "avg_income": 12157,
+    "poverty_rate": 0.2118,
+    "sample_size": 26
+  },
+  "7104": {
+    "avg_income": 11970,
+    "poverty_rate": 0.1757,
+    "sample_size": 24
+  },
+  "7105": {
+    "avg_income": 6232,
+    "poverty_rate": 0.077,
+    "sample_size": 57
+  },
+  "7106": {
+    "avg_income": 16375,
+    "poverty_rate": 0.0623,
+    "sample_size": 35
+  },
+  "7107": {
+    "avg_income": 4112,
+    "poverty_rate": 0.2736,
+    "sample_size": 7
+  },
+  "7108": {
+    "avg_income": 15957,
+    "poverty_rate": 0.0876,
+    "sample_size": 19
+  },
+  "7109": {
+    "avg_income": 18247,
+    "poverty_rate": 0.1041,
+    "sample_size": 72
+  },
+  "7110": {
+    "avg_income": 32725,
+    "poverty_rate": 0.3491,
+    "sample_size": 33
+  },
+  "7201": {
+    "avg_income": 18753,
+    "poverty_rate": 0.2415,
+    "sample_size": 120
+  },
+  "7202": {
+    "avg_income": 14780,
+    "poverty_rate": 0.2452,
+    "sample_size": 23
+  },
+  "7203": {
+    "avg_income": 2546,
+    "poverty_rate": 0.115,
+    "sample_size": 21
+  },
+  "7301": {
+    "avg_income": 28469,
+    "poverty_rate": 0.1263,
+    "sample_size": 396
+  },
+  "7302": {
+    "avg_income": 14936,
+    "poverty_rate": 0.1007,
+    "sample_size": 30
+  },
+  "7303": {
+    "avg_income": 17898,
+    "poverty_rate": 0.1461,
+    "sample_size": 33
+  },
+  "7304": {
+    "avg_income": 13415,
+    "poverty_rate": 0.1278,
+    "sample_size": 109
+  },
+  "7305": {
+    "avg_income": 16724,
+    "poverty_rate": 0,
+    "sample_size": 22
+  },
+  "7306": {
+    "avg_income": 33164,
+    "poverty_rate": 0.1851,
+    "sample_size": 42
+  },
+  "7307": {
+    "avg_income": 26619,
+    "poverty_rate": 0.0222,
+    "sample_size": 32
+  },
+  "7308": {
+    "avg_income": 20114,
+    "poverty_rate": 0.1091,
+    "sample_size": 41
+  },
+  "7309": {
+    "avg_income": 15338,
+    "poverty_rate": 0,
+    "sample_size": 14
+  },
+  "7401": {
+    "avg_income": 19029,
+    "poverty_rate": 0.1618,
+    "sample_size": 247
+  },
+  "7402": {
+    "avg_income": 33216,
+    "poverty_rate": 0.1759,
+    "sample_size": 50
+  },
+  "7403": {
+    "avg_income": 19164,
+    "poverty_rate": 0.126,
+    "sample_size": 47
+  },
+  "7404": {
+    "avg_income": 17761,
+    "poverty_rate": 0.1332,
+    "sample_size": 113
+  },
+  "7405": {
+    "avg_income": 24381,
+    "poverty_rate": 0.1978,
+    "sample_size": 29
+  },
+  "7406": {
+    "avg_income": 48753,
+    "poverty_rate": 0.0997,
+    "sample_size": 109
+  },
+  "7407": {
+    "avg_income": 94148,
+    "poverty_rate": 0.0653,
+    "sample_size": 41
+  },
+  "7408": {
+    "avg_income": 66127,
+    "poverty_rate": 0.2507,
+    "sample_size": 25
+  },
+  "8101": {
+    "avg_income": 29525,
+    "poverty_rate": 0.0665,
+    "sample_size": 603
+  },
+  "8102": {
+    "avg_income": 16737,
+    "poverty_rate": 0.0793,
+    "sample_size": 314
+  },
+  "8103": {
+    "avg_income": 18457,
+    "poverty_rate": 0.0907,
+    "sample_size": 185
+  },
+  "8104": {
+    "avg_income": 18162,
+    "poverty_rate": 0.0212,
+    "sample_size": 40
+  },
+  "8105": {
+    "avg_income": 21174,
+    "poverty_rate": 0.1547,
+    "sample_size": 55
+  },
+  "8106": {
+    "avg_income": 23024,
+    "poverty_rate": 0.1489,
+    "sample_size": 93
+  },
+  "8107": {
+    "avg_income": 35715,
+    "poverty_rate": 0.1208,
+    "sample_size": 67
+  },
+  "8108": {
+    "avg_income": 17332,
+    "poverty_rate": 0.0648,
+    "sample_size": 313
+  },
+  "8109": {
+    "avg_income": 34224,
+    "poverty_rate": 0.0186,
+    "sample_size": 52
+  },
+  "8110": {
+    "avg_income": 28957,
+    "poverty_rate": 0.0607,
+    "sample_size": 308
+  },
+  "8111": {
+    "avg_income": 23096,
+    "poverty_rate": 0.1121,
+    "sample_size": 136
+  },
+  "8112": {
+    "avg_income": 32152,
+    "poverty_rate": 0.0207,
+    "sample_size": 159
+  },
+  "8201": {
+    "avg_income": 17144,
+    "poverty_rate": 0.167,
+    "sample_size": 74
+  },
+  "8202": {
+    "avg_income": 17288,
+    "poverty_rate": 0.1209,
+    "sample_size": 76
+  },
+  "8203": {
+    "avg_income": 27096,
+    "poverty_rate": 0.1437,
+    "sample_size": 99
+  },
+  "8204": {
+    "avg_income": 16676,
+    "poverty_rate": 0.1041,
+    "sample_size": 31
+  },
+  "8205": {
+    "avg_income": 31344,
+    "poverty_rate": 0.1772,
+    "sample_size": 90
+  },
+  "8206": {
+    "avg_income": 17834,
+    "poverty_rate": 0.198,
+    "sample_size": 62
+  },
+  "8207": {
+    "avg_income": 21959,
+    "poverty_rate": 0.3724,
+    "sample_size": 39
+  },
+  "8301": {
+    "avg_income": 22863,
+    "poverty_rate": 0.1279,
+    "sample_size": 550
+  },
+  "8302": {
+    "avg_income": 14718,
+    "poverty_rate": 0.1097,
+    "sample_size": 18
+  },
+  "8303": {
+    "avg_income": 30687,
+    "poverty_rate": 0.2096,
+    "sample_size": 65
+  },
+  "8304": {
+    "avg_income": 16566,
+    "poverty_rate": 0.166,
+    "sample_size": 51
+  },
+  "8305": {
+    "avg_income": 21494,
+    "poverty_rate": 0.14,
+    "sample_size": 73
+  },
+  "8306": {
+    "avg_income": 25351,
+    "poverty_rate": 0.1369,
+    "sample_size": 67
+  },
+  "8307": {
+    "avg_income": 72439,
+    "poverty_rate": 0.2202,
+    "sample_size": 23
+  },
+  "8308": {
+    "avg_income": 5050,
+    "poverty_rate": 0.1402,
+    "sample_size": 16
+  },
+  "8309": {
+    "avg_income": 22742,
+    "poverty_rate": 0,
+    "sample_size": 19
+  },
+  "8310": {
+    "avg_income": 15792,
+    "poverty_rate": 0,
+    "sample_size": 7
+  },
+  "8311": {
+    "avg_income": 33021,
+    "poverty_rate": 0.2555,
+    "sample_size": 49
+  },
+  "8312": {
+    "avg_income": 22802,
+    "poverty_rate": 0.2566,
+    "sample_size": 33
+  },
+  "8313": {
+    "avg_income": 25358,
+    "poverty_rate": 0.1778,
+    "sample_size": 34
+  },
+  "8314": {
+    "avg_income": 28892,
+    "poverty_rate": 0.2508,
+    "sample_size": 41
+  },
+  "9101": {
+    "avg_income": 26061,
+    "poverty_rate": 0.132,
+    "sample_size": 774
+  },
+  "9102": {
+    "avg_income": 35528,
+    "poverty_rate": 0.3345,
+    "sample_size": 58
+  },
+  "9103": {
+    "avg_income": 29650,
+    "poverty_rate": 0.3205,
+    "sample_size": 47
+  },
+  "9104": {
+    "avg_income": 29299,
+    "poverty_rate": 0.2432,
+    "sample_size": 33
+  },
+  "9105": {
+    "avg_income": 25680,
+    "poverty_rate": 0.2898,
+    "sample_size": 54
+  },
+  "9106": {
+    "avg_income": 45596,
+    "poverty_rate": 0.1449,
+    "sample_size": 34
+  },
+  "9107": {
+    "avg_income": 21247,
+    "poverty_rate": 0.4359,
+    "sample_size": 23
+  },
+  "9108": {
+    "avg_income": 40997,
+    "poverty_rate": 0.0547,
+    "sample_size": 102
+  },
+  "9109": {
+    "avg_income": 29166,
+    "poverty_rate": 0.1818,
+    "sample_size": 57
+  },
+  "9110": {
+    "avg_income": 37469,
+    "poverty_rate": 0.173,
+    "sample_size": 28
+  },
+  "9111": {
+    "avg_income": 33368,
+    "poverty_rate": 0.1229,
+    "sample_size": 102
+  },
+  "9112": {
+    "avg_income": 27254,
+    "poverty_rate": 0.2297,
+    "sample_size": 161
+  },
+  "9113": {
+    "avg_income": 26840,
+    "poverty_rate": 0.1641,
+    "sample_size": 29
+  },
+  "9114": {
+    "avg_income": 18393,
+    "poverty_rate": 0.1832,
+    "sample_size": 79
+  },
+  "9115": {
+    "avg_income": 20219,
+    "poverty_rate": 0.1442,
+    "sample_size": 80
+  },
+  "9116": {
+    "avg_income": 27900,
+    "poverty_rate": 0.5632,
+    "sample_size": 29
+  },
+  "9117": {
+    "avg_income": 12345,
+    "poverty_rate": 0.2418,
+    "sample_size": 39
+  },
+  "9118": {
+    "avg_income": 23306,
+    "poverty_rate": 0.2638,
+    "sample_size": 27
+  },
+  "9119": {
+    "avg_income": 18212,
+    "poverty_rate": 0.1794,
+    "sample_size": 64
+  },
+  "9120": {
+    "avg_income": 28770,
+    "poverty_rate": 0.0716,
+    "sample_size": 192
+  },
+  "9121": {
+    "avg_income": 31981,
+    "poverty_rate": 0.2793,
+    "sample_size": 45
+  },
+  "9201": {
+    "avg_income": 18098,
+    "poverty_rate": 0.1268,
+    "sample_size": 168
+  },
+  "9202": {
+    "avg_income": 21790,
+    "poverty_rate": 0.1557,
+    "sample_size": 96
+  },
+  "9203": {
+    "avg_income": 20530,
+    "poverty_rate": 0.1628,
+    "sample_size": 40
+  },
+  "9204": {
+    "avg_income": 20176,
+    "poverty_rate": 0.312,
+    "sample_size": 34
+  },
+  "9205": {
+    "avg_income": 45004,
+    "poverty_rate": 0.2861,
+    "sample_size": 26
+  },
+  "9206": {
+    "avg_income": 27920,
+    "poverty_rate": 0.2053,
+    "sample_size": 41
+  },
+  "9207": {
+    "avg_income": 22474,
+    "poverty_rate": 0.3016,
+    "sample_size": 22
+  },
+  "9208": {
+    "avg_income": 20795,
+    "poverty_rate": 0.2082,
+    "sample_size": 37
+  },
+  "9209": {
+    "avg_income": 18336,
+    "poverty_rate": 0.0082,
+    "sample_size": 38
+  },
+  "9210": {
+    "avg_income": 32694,
+    "poverty_rate": 0.2708,
+    "sample_size": 56
+  },
+  "9211": {
+    "avg_income": 38184,
+    "poverty_rate": 0.1983,
+    "sample_size": 81
+  },
+  "10101": {
+    "avg_income": 29085,
+    "poverty_rate": 0.1023,
+    "sample_size": 643
+  },
+  "10102": {
+    "avg_income": 34313,
+    "poverty_rate": 0.0587,
+    "sample_size": 84
+  },
+  "10103": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "10104": {
+    "avg_income": 10370,
+    "poverty_rate": 0.2638,
+    "sample_size": 32
+  },
+  "10105": {
+    "avg_income": 11811,
+    "poverty_rate": 0.095,
+    "sample_size": 62
+  },
+  "10106": {
+    "avg_income": 28941,
+    "poverty_rate": 0.2645,
+    "sample_size": 32
+  },
+  "10107": {
+    "avg_income": 22318,
+    "poverty_rate": 0.0204,
+    "sample_size": 53
+  },
+  "10108": {
+    "avg_income": 24794,
+    "poverty_rate": 0.4614,
+    "sample_size": 28
+  },
+  "10109": {
+    "avg_income": 11230,
+    "poverty_rate": 0.0099,
+    "sample_size": 97
+  },
+  "10201": {
+    "avg_income": 13595,
+    "poverty_rate": 0.0342,
+    "sample_size": 129
+  },
+  "10202": {
+    "avg_income": 36032,
+    "poverty_rate": 0.066,
+    "sample_size": 100
+  },
+  "10203": {
+    "avg_income": 19372,
+    "poverty_rate": 0.049,
+    "sample_size": 38
+  },
+  "10204": {
+    "avg_income": 3206,
+    "poverty_rate": 0.1178,
+    "sample_size": 24
+  },
+  "10205": {
+    "avg_income": 25395,
+    "poverty_rate": 0.023,
+    "sample_size": 24
+  },
+  "10206": {
+    "avg_income": 25639,
+    "poverty_rate": 0.5344,
+    "sample_size": 17
+  },
+  "10207": {
+    "avg_income": 15682,
+    "poverty_rate": 0,
+    "sample_size": 19
+  },
+  "10208": {
+    "avg_income": 26640,
+    "poverty_rate": 0.1939,
+    "sample_size": 99
+  },
+  "10209": {
+    "avg_income": 16257,
+    "poverty_rate": 0.2806,
+    "sample_size": 12
+  },
+  "10210": {
+    "avg_income": 13000,
+    "poverty_rate": 0.1849,
+    "sample_size": 42
+  },
+  "10301": {
+    "avg_income": 17997,
+    "poverty_rate": 0.1233,
+    "sample_size": 367
+  },
+  "10302": {
+    "avg_income": 16208,
+    "poverty_rate": 0.2566,
+    "sample_size": 19
+  },
+  "10303": {
+    "avg_income": 10286,
+    "poverty_rate": 0.1558,
+    "sample_size": 49
+  },
+  "10304": {
+    "avg_income": 22570,
+    "poverty_rate": 0,
+    "sample_size": 39
+  },
+  "10305": {
+    "avg_income": 18351,
+    "poverty_rate": 0.0362,
+    "sample_size": 36
+  },
+  "10306": {
+    "avg_income": 42949,
+    "poverty_rate": 0.2285,
+    "sample_size": 16
+  },
+  "10307": {
+    "avg_income": 24503,
+    "poverty_rate": 0.2244,
+    "sample_size": 35
+  },
+  "11101": {
+    "avg_income": 24406,
+    "poverty_rate": 0.0574,
+    "sample_size": 599
+  },
+  "11102": {
+    "avg_income": 27826,
+    "poverty_rate": 0.6133,
+    "sample_size": 5
+  },
+  "11201": {
+    "avg_income": 23903,
+    "poverty_rate": 0.1154,
+    "sample_size": 210
+  },
+  "11202": {
+    "avg_income": 17857,
+    "poverty_rate": 0.1136,
+    "sample_size": 43
+  },
+  "11301": {
+    "avg_income": 4494,
+    "poverty_rate": 0,
+    "sample_size": 16
+  },
+  "11303": {
+    "avg_income": 7704,
+    "poverty_rate": 0,
+    "sample_size": 5
+  },
+  "11401": {
+    "avg_income": 26607,
+    "poverty_rate": 0,
+    "sample_size": 30
+  },
+  "11402": {
+    "avg_income": 9987,
+    "poverty_rate": 0.0609,
+    "sample_size": 15
+  },
+  "12101": {
+    "avg_income": 9043,
+    "poverty_rate": 0.0672,
+    "sample_size": 804
+  },
+  "12102": {
+    "avg_income": 8000,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "12103": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 3
+  },
+  "12104": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 4
+  },
+  "12201": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 7
+  },
+  "12301": {
+    "avg_income": 13112,
+    "poverty_rate": 0.0899,
+    "sample_size": 43
+  },
+  "12302": {
+    "avg_income": 7354,
+    "poverty_rate": 0,
+    "sample_size": 7
+  },
+  "12303": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 3
+  },
+  "12401": {
+    "avg_income": 4004,
+    "poverty_rate": 0.0381,
+    "sample_size": 118
+  },
+  "12402": {
+    "avg_income": 0,
+    "poverty_rate": 1,
+    "sample_size": 2
+  },
+  "13101": {
+    "avg_income": 27425,
+    "poverty_rate": 0.0618,
+    "sample_size": 455
+  },
+  "13102": {
+    "avg_income": 16340,
+    "poverty_rate": 0.1072,
+    "sample_size": 86
+  },
+  "13103": {
+    "avg_income": 42731,
+    "poverty_rate": 0.1283,
+    "sample_size": 75
+  },
+  "13104": {
+    "avg_income": 9664,
+    "poverty_rate": 0.0934,
+    "sample_size": 112
+  },
+  "13105": {
+    "avg_income": 16989,
+    "poverty_rate": 0.095,
+    "sample_size": 189
+  },
+  "13106": {
+    "avg_income": 16867,
+    "poverty_rate": 0.0776,
+    "sample_size": 150
+  },
+  "13107": {
+    "avg_income": 86922,
+    "poverty_rate": 0.0781,
+    "sample_size": 84
+  },
+  "13108": {
+    "avg_income": 6589,
+    "poverty_rate": 0.1482,
+    "sample_size": 96
+  },
+  "13109": {
+    "avg_income": 17624,
+    "poverty_rate": 0.0955,
+    "sample_size": 144
+  },
+  "13110": {
+    "avg_income": 12014,
+    "poverty_rate": 0.0651,
+    "sample_size": 416
+  },
+  "13111": {
+    "avg_income": 19714,
+    "poverty_rate": 0.1551,
+    "sample_size": 112
+  },
+  "13112": {
+    "avg_income": 24783,
+    "poverty_rate": 0.2432,
+    "sample_size": 160
+  },
+  "13113": {
+    "avg_income": 19128,
+    "poverty_rate": 0.0091,
+    "sample_size": 142
+  },
+  "13114": {
+    "avg_income": 30325,
+    "poverty_rate": 0.0118,
+    "sample_size": 253
+  },
+  "13115": {
+    "avg_income": 6120,
+    "poverty_rate": 0,
+    "sample_size": 126
+  },
+  "13116": {
+    "avg_income": 9036,
+    "poverty_rate": 0.0497,
+    "sample_size": 59
+  },
+  "13117": {
+    "avg_income": 32793,
+    "poverty_rate": 0.0369,
+    "sample_size": 63
+  },
+  "13118": {
+    "avg_income": 24182,
+    "poverty_rate": 0.0464,
+    "sample_size": 102
+  },
+  "13119": {
+    "avg_income": 14997,
+    "poverty_rate": 0.0499,
+    "sample_size": 514
+  },
+  "13120": {
+    "avg_income": 37498,
+    "poverty_rate": 0.0468,
+    "sample_size": 237
+  },
+  "13121": {
+    "avg_income": 31480,
+    "poverty_rate": 0.1118,
+    "sample_size": 100
+  },
+  "13122": {
+    "avg_income": 21755,
+    "poverty_rate": 0.053,
+    "sample_size": 202
+  },
+  "13123": {
+    "avg_income": 26334,
+    "poverty_rate": 0.0128,
+    "sample_size": 224
+  },
+  "13124": {
+    "avg_income": 14402,
+    "poverty_rate": 0.0927,
+    "sample_size": 201
+  },
+  "13125": {
+    "avg_income": 19181,
+    "poverty_rate": 0.0826,
+    "sample_size": 240
+  },
+  "13126": {
+    "avg_income": 9076,
+    "poverty_rate": 0.0276,
+    "sample_size": 124
+  },
+  "13127": {
+    "avg_income": 20511,
+    "poverty_rate": 0.0718,
+    "sample_size": 193
+  },
+  "13128": {
+    "avg_income": 25786,
+    "poverty_rate": 0.0295,
+    "sample_size": 149
+  },
+  "13129": {
+    "avg_income": 9803,
+    "poverty_rate": 0.0699,
+    "sample_size": 78
+  },
+  "13130": {
+    "avg_income": 10581,
+    "poverty_rate": 0.0307,
+    "sample_size": 141
+  },
+  "13131": {
+    "avg_income": 18764,
+    "poverty_rate": 0.0764,
+    "sample_size": 58
+  },
+  "13132": {
+    "avg_income": 8155,
+    "poverty_rate": 0,
+    "sample_size": 143
+  },
+  "13201": {
+    "avg_income": 23468,
+    "poverty_rate": 0.0753,
+    "sample_size": 609
+  },
+  "13202": {
+    "avg_income": 12502,
+    "poverty_rate": 0.0202,
+    "sample_size": 46
+  },
+  "13203": {
+    "avg_income": 5426,
+    "poverty_rate": 0.0554,
+    "sample_size": 40
+  },
+  "13301": {
+    "avg_income": 12897,
+    "poverty_rate": 0.057,
+    "sample_size": 137
+  },
+  "13302": {
+    "avg_income": 14060,
+    "poverty_rate": 0.0493,
+    "sample_size": 118
+  },
+  "13303": {
+    "avg_income": 25293,
+    "poverty_rate": 0.185,
+    "sample_size": 31
+  },
+  "13401": {
+    "avg_income": 18220,
+    "poverty_rate": 0.0851,
+    "sample_size": 359
+  },
+  "13402": {
+    "avg_income": 11932,
+    "poverty_rate": 0.0432,
+    "sample_size": 123
+  },
+  "13403": {
+    "avg_income": 11719,
+    "poverty_rate": 0,
+    "sample_size": 46
+  },
+  "13404": {
+    "avg_income": 22374,
+    "poverty_rate": 0.0592,
+    "sample_size": 105
+  },
+  "13501": {
+    "avg_income": 34212,
+    "poverty_rate": 0.1624,
+    "sample_size": 118
+  },
+  "13502": {
+    "avg_income": 7449,
+    "poverty_rate": 0.2362,
+    "sample_size": 40
+  },
+  "13503": {
+    "avg_income": 51179,
+    "poverty_rate": 0.0326,
+    "sample_size": 49
+  },
+  "13504": {
+    "avg_income": 18262,
+    "poverty_rate": 0.0897,
+    "sample_size": 30
+  },
+  "13505": {
+    "avg_income": 17624,
+    "poverty_rate": 0.1721,
+    "sample_size": 9
+  },
+  "13601": {
+    "avg_income": 27107,
+    "poverty_rate": 0.1164,
+    "sample_size": 98
+  },
+  "13602": {
+    "avg_income": 11137,
+    "poverty_rate": 0.0271,
+    "sample_size": 44
+  },
+  "13603": {
+    "avg_income": 26442,
+    "poverty_rate": 0,
+    "sample_size": 65
+  },
+  "13604": {
+    "avg_income": 11290,
+    "poverty_rate": 0.007,
+    "sample_size": 74
+  },
+  "13605": {
+    "avg_income": 15190,
+    "poverty_rate": 0.194,
+    "sample_size": 102
+  },
+  "14101": {
+    "avg_income": 19539,
+    "poverty_rate": 0.0546,
+    "sample_size": 880
+  },
+  "14102": {
+    "avg_income": 38314,
+    "poverty_rate": 0.2328,
+    "sample_size": 17
+  },
+  "14103": {
+    "avg_income": 26769,
+    "poverty_rate": 0.0512,
+    "sample_size": 83
+  },
+  "14104": {
+    "avg_income": 23164,
+    "poverty_rate": 0.0956,
+    "sample_size": 98
+  },
+  "14105": {
+    "avg_income": 34920,
+    "poverty_rate": 0.1343,
+    "sample_size": 48
+  },
+  "14106": {
+    "avg_income": 29308,
+    "poverty_rate": 0.1322,
+    "sample_size": 127
+  },
+  "14107": {
+    "avg_income": 33707,
+    "poverty_rate": 0.0821,
+    "sample_size": 147
+  },
+  "14108": {
+    "avg_income": 28332,
+    "poverty_rate": 0.1569,
+    "sample_size": 197
+  },
+  "14201": {
+    "avg_income": 25039,
+    "poverty_rate": 0.1395,
+    "sample_size": 252
+  },
+  "14202": {
+    "avg_income": 18014,
+    "poverty_rate": 0.1491,
+    "sample_size": 111
+  },
+  "14203": {
+    "avg_income": 31152,
+    "poverty_rate": 0.0629,
+    "sample_size": 68
+  },
+  "14204": {
+    "avg_income": 27006,
+    "poverty_rate": 0.0903,
+    "sample_size": 167
+  },
+  "15101": {
+    "avg_income": 19472,
+    "poverty_rate": 0.1195,
+    "sample_size": 1752
+  },
+  "15102": {
+    "avg_income": 7016,
+    "poverty_rate": 0.4461,
+    "sample_size": 16
+  },
+  "15201": {
+    "avg_income": 9516,
+    "poverty_rate": 0.4955,
+    "sample_size": 15
+  },
+  "15202": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "16101": {
+    "avg_income": 15661,
+    "poverty_rate": 0.1428,
+    "sample_size": 583
+  },
+  "16102": {
+    "avg_income": 33181,
+    "poverty_rate": 0.2077,
+    "sample_size": 88
+  },
+  "16103": {
+    "avg_income": 5034,
+    "poverty_rate": 0.1872,
+    "sample_size": 71
+  },
+  "16104": {
+    "avg_income": 49009,
+    "poverty_rate": 0.1405,
+    "sample_size": 40
+  },
+  "16105": {
+    "avg_income": 23868,
+    "poverty_rate": 0.3129,
+    "sample_size": 38
+  },
+  "16106": {
+    "avg_income": 24674,
+    "poverty_rate": 0.0784,
+    "sample_size": 32
+  },
+  "16107": {
+    "avg_income": 8051,
+    "poverty_rate": 0.3098,
+    "sample_size": 64
+  },
+  "16108": {
+    "avg_income": 17406,
+    "poverty_rate": 0.2144,
+    "sample_size": 32
+  },
+  "16109": {
+    "avg_income": 31371,
+    "poverty_rate": 0.1344,
+    "sample_size": 67
+  },
+  "16201": {
+    "avg_income": 23780,
+    "poverty_rate": 0.1144,
+    "sample_size": 50
+  },
+  "16202": {
+    "avg_income": 5719,
+    "poverty_rate": 0.0424,
+    "sample_size": 12
+  },
+  "16203": {
+    "avg_income": 23266,
+    "poverty_rate": 0.1617,
+    "sample_size": 61
+  },
+  "16204": {
+    "avg_income": 53528,
+    "poverty_rate": 0,
+    "sample_size": 16
+  },
+  "16205": {
+    "avg_income": 6203,
+    "poverty_rate": 0.1958,
+    "sample_size": 18
+  },
+  "16206": {
+    "avg_income": 6925,
+    "poverty_rate": 0.3544,
+    "sample_size": 26
+  },
+  "16207": {
+    "avg_income": 18803,
+    "poverty_rate": 0,
+    "sample_size": 26
+  },
+  "16301": {
+    "avg_income": 33364,
+    "poverty_rate": 0.2145,
+    "sample_size": 170
+  },
+  "16302": {
+    "avg_income": 35316,
+    "poverty_rate": 0.178,
+    "sample_size": 58
+  },
+  "16303": {
+    "avg_income": 27639,
+    "poverty_rate": 0.1971,
+    "sample_size": 33
+  },
+  "16304": {
+    "avg_income": 67684,
+    "poverty_rate": 0.2612,
+    "sample_size": 28
+  },
+  "16305": {
+    "avg_income": 16040,
+    "poverty_rate": 0.2369,
+    "sample_size": 32
+  },
+  " ": {
+    "avg_income": 556928,
+    "poverty_rate": 0.0564,
+    "sample_size": 161220
+  },
+  "-66": {
+    "avg_income": 42195,
+    "poverty_rate": 0.1334,
+    "sample_size": 131
+  },
+  "173\"": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "El Parque 1284": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  " 2471\"": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "\"": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 2
+  },
+  "14 De Febrero 2212": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  "Esmeralda con sargento aldea S/N": {
+    "avg_income": 93424,
+    "poverty_rate": 0,
+    "sample_size": 1
+  },
+  " norte 3120\"": {
+    "avg_income": 0,
+    "poverty_rate": 0,
+    "sample_size": 1
+  }
+}

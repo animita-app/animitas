@@ -1,7 +1,28 @@
 import type { Metadata } from 'next'
+import { Geist, Geist_Mono, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
-import { CreateMemorialButton } from '@/components/create-memorial-button'
+import { cn } from '@/lib/utils'
+
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist-sans',
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+})
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-ibm-plex-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'ánima',
@@ -31,21 +52,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
-      <body>
-        <div className="pointer-events-none fixed inset-0 z-50 mix-blend-overlay opacity-[0.15]">
-          <svg className="h-full w-full opacity-100" preserveAspectRatio="none">
-            <filter id="noise">
-              <feTurbulence
-                type="fractalNoise"
-                baseFrequency="0.8"
-                numOctaves="4"
-                stitchTiles="stitch"
-              />
-            </filter>
-            <rect width="100%" height="100%" filter="url(#noise)" />
-          </svg>
-        </div>
+    <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)}>
+      <body className="overflow-hidden">
         <Providers>
           {children}
           {/* <CreateMemorialButton /> */}

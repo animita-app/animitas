@@ -1,144 +1,204 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
-import { StickerItem } from '@/components/animita/sticker-grid'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { AnimitaProperty } from './layers-panel'
+import Link from 'next/link'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Site } from '@/types/mock'
+import { ArrowUpRight } from 'lucide-react'
+import { COLORS, ICONS } from '@/lib/map-style'
 
 interface MarkerIconProps {
+  site?: Site
+  // Legacy props for backward compatibility during refactor, but we should prefer site
   id?: string
   name?: string
   images?: string[]
-  stickers?: { type: string }[]
+  typology?: string
+  death_cause?: string
+
   className?: string
+  activeProperties?: AnimitaProperty[]
+  highlight?: boolean
+  halo?: boolean
+  pulse?: boolean
+  zoomedIn?: boolean
 }
 
-export const MarkerIcon = ({ name, images = [], stickers = [], className }: MarkerIconProps) => {
-  const count = images.length
+export const MarkerIcon = ({
+  site,
+  id: propId,
+  name: propName,
+  images: propImages,
+  typology: propTypology,
+  death_cause: propDeathCause,
+  className,
+  activeProperties = ['typology', 'death_cause'],
+  highlight = false,
+  halo = false,
+  pulse = false,
+  zoomedIn = false
+}: MarkerIconProps) => {
 
-  const getStableRandom = (seed: string) => {
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      const char = seed.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    const x = Math.sin(hash) * 10000;
-    return x - Math.floor(x);
+  // Extract values from site object or fallback to props
+  const id = site?.id || propId
+  const name = site?.title || propName
+  const images = site?.images || propImages || []
+  const typology = site?.typology || propTypology
+  const death_cause = site?.insights?.memorial?.death_cause || propDeathCause
+
+  // Helper to get typology data safely
+  const getTypologyData = (type?: string) => {
+    return ICONS.typology[type as keyof typeof ICONS.typology] || ICONS.typology.default
   }
 
-  return (
-    <div className="flex-col flex items-center justify-center text-center group cursor-pointer">
-      <div className="relative size-32 flex items-center justify-center">
-        <div className={cn(
-          "drop-shadow-xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center",
-          count > 1 && "-mt-6"
-        )}>
-          {images[0] && (
-            <Image
-              src={images[0]}
-              alt={name || "Animita"}
-              width={80}
-              height={80}
-              className="min-w-20 w-20 h-20 object-cover ring-4 ring-white rounded-lg aspect-square shrink-0 z-10 relative"
-            />
-          )}
+  // Helper to get death cause data safely
+  const getDeathCauseData = (cause?: string) => {
+    return ICONS.deathCause[cause as keyof typeof ICONS.deathCause] || ICONS.deathCause.default
+  }
 
-          {images[1] && (
-            <Image
-              src={images[1]}
-              alt={name || "Animita"}
-              width={80}
-              height={80}
-              className="z-20 absolute top-8 left-8 min-w-20 w-20 h-20 object-cover rotate-[10deg] ring-4 ring-white rounded-lg aspect-square shrink-0 z-0"
-            />
-          )}
+  const typologyData = getTypologyData(typology)
+  const deathCauseData = getDeathCauseData(death_cause)
 
-          {images[2] && (
-            <Image
-              src={images[2]}
-              alt={name || "Animita"}
-              width={80}
-              height={80}
-              className="z-10 absolute top-10 -left-8 min-w-20 w-20 h-20 object-cover -rotate-[10deg] ring-4 ring-white rounded-lg aspect-square shrink-0 z-0"
-            />
-          )}
+  // Base style for the marker (Circle with Dot)
+  const renderMarker = () => (
+    <div className={cn(
+      "relative flex items-center justify-center w-6 h-6 rounded-full border-2",
+      highlight && "ring-4 ring-yellow-400 scale-110 z-50",
+      halo && "ring-4 opacity-50",
+      pulse && "animate-pulse"
+    )}
+      style={{
+        borderColor: COLORS.animitas,
+        boxShadow: halo ? `0 0 0 4px ${COLORS.animitas}80` : 'none'
+      }}
+    >
+      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.animitas }} />
+    </div>
+  )
 
-          {/* Show variable number of stickers based on total count to represent scarcity/abundance */}
-          {(() => {
-            // Map sticker count: 0-2 stickers = show 2, 3-5 = show 3, 6-10 = show 5, 11+ = show 7
-            const totalStickers = stickers.length
-            let visibleCount = 5 // default
+  // Detailed View (Zoomed In)
+  if (zoomedIn) {
+    return (
+      <Popover open={true}>
+        <PopoverTrigger asChild>
+          <div className={cn("relative flex flex-col items-center group z-50 cursor-pointer", className)}>
+            {renderMarker()}
+            {/* Name absolutely positioned below the circle */}
+            <div className="absolute top-full mt-2 whitespace-nowrap">
+              <span
+                className="font-ibm-plex-mono text-xs font-medium uppercase text-white"
+                style={{ textShadow: '1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000' }}
+              >
+                {name || 'Animita'}
+              </span>
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent
+          side="top"
+          sideOffset={30}
+          disablePortal={true}
+          className="bg-transparent border-none shadow-none text-black font-ibm-plex-mono uppercase"
+        >
+          {/* Dotted Line Visual */}
+          <div className="absolute left-1/2 -translate-x-1/2 -bottom-4 w-px h-8 border-l-2 border-dotted border-black" />
 
-            if (totalStickers <= 2) {
-              visibleCount = 2
-            } else if (totalStickers <= 5) {
-              visibleCount = 3
-            } else if (totalStickers <= 10) {
-              visibleCount = 5
-            } else {
-              visibleCount = 7
-            }
-
-            // Radius configurations for different counts
-            const radiusConfig: Record<number, { radius: number, scaleRange: [number, number] }> = {
-              2: { radius: 90, scaleRange: [0.85, 0.95] },
-              3: { radius: 100, scaleRange: [0.8, 1.0] },
-              5: { radius: 110, scaleRange: [0.7, 1.1] },
-              7: { radius: 120, scaleRange: [0.6, 1.2] }
-            }
-
-            const config = radiusConfig[visibleCount]
-
-            return Array.from({ length: visibleCount }).map((_, i) => {
-              const sticker = stickers[i] || { type: 'heart' }
-              const seed = (name || 'animita') + i
-
-              // Distribute stickers evenly across the top half of the circle (180 degrees)
-              // Start from 180° (left) to 0° (right), which is the top semicircle
-              const angleStep = Math.PI / (visibleCount - 1) // Divide 180° by (count - 1)
-              const angle = Math.PI - (angleStep * i) // Start from left (180°) and go to right (0°)
-
-              // Calculate position using trigonometry
-              // Apply elliptical transformation: wider on X axis (1.5x), same height on Y
-              const x = Math.cos(angle) * config.radius * 1.5
-              const y = Math.sin(angle) * config.radius
-
-              // Scale based on position - center items larger, edge items smaller
-              const normalizedPosition = i / (visibleCount - 1) // 0 to 1
-              const centerDistance = Math.abs(normalizedPosition - 0.5) * 2 // 0 at center, 1 at edges
-              const baseScale = config.scaleRange[1] - (centerDistance * (config.scaleRange[1] - config.scaleRange[0]))
-
-              // Add randomness
-              const randX = (getStableRandom(seed + 'x') - 0.5) * 20
-              const randY = (getStableRandom(seed + 'y') - 0.5) * 20
-              const randScale = (getStableRandom(seed + 's') - 0.5) * 0.15
-
-              // Z-index based on scale (larger = higher z-index)
-              const zIndex = Math.round(baseScale * 40)
-
-              return (
-                <div
-                  key={i}
-                  className="absolute pointer-events-none transition-all duration-500"
-                  style={{
-                    zIndex,
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(calc(-50% + ${x + randX}px), calc(-50% - ${y - randY}px)) scale(${baseScale + randScale})`,
-                    willChange: 'transform'
-                  }}
-                >
-                  <StickerItem type={sticker.type as any} className="drop-shadow-md" />
+          <div className="flex flex-col gap-0">
+            {/* Properties Grid */}
+            <div className="grid grid-cols-2 *:-mr-0.5 border-2 border-black divide-x-2 divide-y-2 divide-black bg-white">
+              <div className="p-2 flex flex-col justify-center">
+                <span className="text-xs opacity-60 uppercase leading-none mb-1">Tipología</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-sm leading-tight">{typologyData.label}</span>
                 </div>
-              )
-            })
-          })()}
-        </div>
+              </div>
+              <div className="p-2 flex flex-col justify-center">
+                <span className="text-xs opacity-60 uppercase leading-none mb-1">Causa</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-medium text-sm leading-tight">{deathCauseData.label}</span>
+                </div>
+              </div>
+
+              {site?.insights?.patrimonial?.antiquity_year && (
+                <div className="p-2 flex flex-col justify-center border-black">
+                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Antigüedad</span>
+                  <span className="font-medium text-sm leading-tight">{site.insights.patrimonial.antiquity_year}</span>
+                </div>
+              )}
+
+              {site?.insights?.patrimonial?.size && (
+                <div className="p-2 flex flex-col justify-center">
+                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Tamaño</span>
+                  <span className="font-medium text-sm leading-tight">
+                    {site.insights.patrimonial.size === 'small' ? 'Pequeña' :
+                      site.insights.patrimonial.size === 'medium' ? 'Mediana' : 'Grande'}
+                  </span>
+                </div>
+              )}
+
+              {site?.insights?.memorial?.social_roles && site.insights.memorial.social_roles.length > 0 && (
+                <div className="p-2 flex flex-col justify-center col-span-2">
+                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Roles</span>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {site.insights.memorial.social_roles.map(role => {
+                      const roleData = ICONS.socialRoles[role as keyof typeof ICONS.socialRoles] || ICONS.socialRoles.default
+                      return (
+                        <span key={role} className="inline-flex items-center gap-1 bg-neutral-100 px-1.5 py-0.5 rounded text-[10px]">
+                          <span>{roleData.label}</span>
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Link */}
+            {id && (
+              <Link
+                href={`/animita/${id}`}
+                className="bg-white border-x-2 border-b-2 underline-offset-4 border-black flex gap-1.5 [&_svg]:size-4 hover:underline items-center justify-center text-accent p-2"
+                style={{ color: COLORS.animitas }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="text-sm font-medium uppercase">Ver Detalle </span>
+                <ArrowUpRight />
+              </Link>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  // Standard View (Zoomed Out)
+  return (
+    <div className={cn("flex-col flex items-center justify-center text-center group cursor-pointer", className)}>
+      <div className="relative flex items-center justify-center gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {renderMarker()}
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p>{name || 'Animita'}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {/* Secondary Badge (Death Cause) - Optional in standard view */}
+        {activeProperties.includes('death_cause') && death_cause && (
+          <div className="absolute -top-1 -right-1 size-3 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[8px] shadow-sm z-10">
+            <deathCauseData.icon size={10} />
+          </div>
+        )}
       </div>
 
-      <h3 className={cn(
-        "z-50 text-sm font-semibold truncate text-card-foreground leading-tight [text-shadow:1.5px_1.5px_0_#fff,_-1.5px_1.5px_0_#fff,_1.5px_-1.5px_0_#fff,_-1.5px_-1.5px_0_#fff]",
-        count > 1 && "mt-4"
-      )}>
+      <h3
+        className="text-sm font-medium text-black uppercase font-ibm-plex-mono mt-1 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        style={{ textShadow: '1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff' }}
+      >
         {name || 'Animita'}
       </h3>
     </div>

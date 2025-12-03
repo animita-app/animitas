@@ -1,45 +1,74 @@
-export type StickerType = "heart" | "candle" | "teddy" | "rose" | "colo-colo" | "u-de-chile" | "swanderers";
-export type PetitionState = "activa" | "cumplida" | "expirada";
-export interface Sticker {
+// --- PCI Platform Interfaces ---
+
+// 1. Person (Entidad biográfica)
+export interface Person {
   id: string;
-  type: StickerType;
-  date: string;
-  userId: string;
-  message?: string | null;
+  full_name: string;
+  birth_date?: string; // ISO 8601 YYYY-MM-DD
+  birth_place?: string;
+  death_place?: { lat: number; lng: number } | string;
 }
 
-export interface Petition {
+// 2. Site (Punto de patrimonio)
+export interface Site {
   id: string;
-  texto: string;
-  fecha: string;
-  estado: PetitionState;
-  userId: string;
-  reactions: Sticker[];
-}
-
-export interface Animita {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  story: string;
-  deathDate: string;
-  birthDate: string;
-  biography: string;
+  slug: string;
+  title: string;
+  person_id: string | null;
+  location: { lat: number; lng: number };
+  typology: "gruta" | "iglesia" | "casa" | "cruz" | "orgánica" | "social" | "moderna" | "monumental" | "tumba" | "muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
   images: string[];
-  stickers: Sticker[]; // Renamed/Added to match usage
-  material: Sticker[];
-  peticiones: Petition[];
-  createdAt: string;
-  isPublic: boolean;
+  story?: string;
+  insights?: SiteInsights;
+  created_at: string; // ISO 8601
+  created_by: { id: string; name: string };
+  allow_edits: boolean;
+  size?: string;
 }
 
-export interface UserSticker {
-  animitaId: string;
-  sticker: Sticker;
+// 3. Site Story (Historia versionable)
+export interface SiteStory {
+  id: string;
+  site_id: string;
+  content: string; // Markdown supported
+  created_by: { id: string; name: string };
+  created_at: string;
+  version: number;
+  approved: boolean;
 }
 
-export interface UserPetition {
-  animitaId: string;
-  petition: Petition;
+// 4. Testimonial (Aportes)
+export interface Testimonial {
+  id: string;
+  site_id: string;
+  content: string;
+  images?: string[];
+  created_by?: {
+    id: string;
+    name: string;
+    relation?: 'familiar' | 'devoto' | 'investigador' | 'otro';
+  };
+  created_at: string;
+  tags?: string[];
+}
+
+// 5. Site Insights (Auto-extraídos)
+export interface SiteInsights {
+  site_id: string;
+  memorial: {
+    death_cause?: string;
+    social_roles?: string[];
+    narrator_relation?: string | null;
+    narrator_name_mentioned?: string[];
+  };
+  spiritual: {
+    rituals_mentioned?: string[];
+    offerings_mentioned?: string[];
+    digital_visit_count?: number;
+  };
+  patrimonial: {
+    antiquity_year?: number | null;
+    size?: 'small' | 'medium' | 'large';
+  };
+  generated_at: string;
 }
