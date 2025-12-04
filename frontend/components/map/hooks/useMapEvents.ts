@@ -38,9 +38,12 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
       const source = map.getSource('memorials') as mapboxgl.GeoJSONSource
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || zoom === null || zoom === undefined) return
-        map.easeTo({
+        map.flyTo({
           center: (feature.geometry as any).coordinates,
           zoom: zoom,
+          speed: 1.2,
+          curve: 1,
+          essential: true,
           duration: 500
         })
       })

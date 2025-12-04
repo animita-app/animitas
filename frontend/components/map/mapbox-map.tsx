@@ -223,12 +223,17 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
 
   const handleResetView = () => {
     if (!map.current) return
-    map.current.flyTo({
-      center: [-71.0, -36.0],
-      zoom: 3,
-      essential: true,
-      speed: 2.5 // Faster zoom out
-    })
+    map.current.fitBounds(
+      [
+        [-75.6, -56.0],
+        [-66.4, -17.5]
+      ],
+      {
+        padding: 64,
+        essential: true,
+        duration: 600
+      }
+    )
   }
 
   const handleExport = (format: string, scope?: 'viewport' | 'all') => {
