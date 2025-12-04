@@ -1,59 +1,43 @@
+import React from 'react'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
   DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu"
-import { Save, VectorSquare, Scan } from 'lucide-react'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { Save, Plus, ChevronDown } from 'lucide-react'
+import { ButtonGroup } from '../ui/button-group'
 
-interface ToolbarProps {
-  onResetView?: () => void
-  onExport?: (format: 'image' | 'pdf' | 'geojson' | 'geotiff', scope?: 'viewport' | 'all') => void
-  onDefineArea?: () => void
-  disabled?: boolean
-  onToggleProfile?: () => void
-  showProfile?: boolean
-  onThemeChange?: (theme: any) => void
+interface TopHeaderProps {
+  onExport?: (format: string, scope?: 'viewport' | 'all') => void
 }
 
-export function Toolbar({ onResetView, onExport, onDefineArea, disabled }: ToolbarProps) {
+export function TopHeader({ onExport }: TopHeaderProps) {
   return (
-    <div className="absolute right-4 bottom-4 z-[20] pointer-events-auto">
-      <ButtonGroup>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onResetView}
-          title="Restablecer Vista"
-          disabled={!onResetView || disabled}
-        >
-          <Scan />
-        </Button>
+    <div className="pl-4 bg-transparent z-10 flex items-center justify-between">
+      <div className="text-black font-ibm-plex-mono">
+        [ÁNIMA]
+      </div>
 
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={onDefineArea}
-          title="Definir área"
-        >
-          <VectorSquare />
-        </Button>
-
+      <div className="flex items-center gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" title="Guardar">
-              <Save />
-            </Button>
+            <ButtonGroup className="group *:group-hover:bg-muted *:active:scale-100 active:scale-[97%]">
+              <Button variant="outline" size="sm">
+                Guardar
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-fit px-2">
+                <ChevronDown />
+              </Button>
+            </ButtonGroup>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="top">
-            <DropdownMenuLabel className="sr-only">Guardar</DropdownMenuLabel>
+          <DropdownMenuContent>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>Guardar encuadre</DropdownMenuSubTrigger>
               <DropdownMenuPortal>
@@ -93,10 +77,19 @@ export function Toolbar({ onResetView, onExport, onDefineArea, disabled }: Toolb
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
-
           </DropdownMenuContent>
         </DropdownMenu>
-      </ButtonGroup>
+
+        <Button size="sm">
+          <Plus />
+          Añadir
+        </Button>
+
+        <Avatar className="cursor-pointer">
+          <AvatarImage src="/pype.png" alt="@pype" />
+          <AvatarFallback>FM</AvatarFallback>
+        </Avatar>
+      </div>
     </div>
   )
 }

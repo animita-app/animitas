@@ -22,25 +22,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <>
-      {/* <TopHeader /> */}
-      <div className="h-screen w-screen relative">
-        <div className="absolute inset-0">
-          <MapboxMap
-            accessToken={mapboxToken}
-            focusedMemorialId={focusedMemorialId}
-            isModal={false}
-            onAnalysisRequested={setAnalysisData}
-          />
-        </div>
-        <AnalysisPanel
-          data={analysisData}
-          onClose={() => setAnalysisData(null)}
+    <div className="h-screen w-screen relative">
+      <div className="absolute inset-0">
+        <MapboxMap
+          accessToken={mapboxToken}
+          focusedMemorialId={focusedMemorialId}
+          isModal={false}
+          onAnalysisRequested={setAnalysisData}
         />
-        <ViewTransition name="page-content">
-          {children}
-        </ViewTransition>
       </div>
-    </>
+      <AnalysisPanel
+        data={analysisData}
+        onClose={() => setAnalysisData(null)}
+      />
+      <ViewTransition name="page-content">
+        {children}
+      </ViewTransition>
+    </div>
   )
 }

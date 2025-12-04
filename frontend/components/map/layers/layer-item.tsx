@@ -2,7 +2,7 @@ import { Eye, EyeOff, MapPin, Activity, Hexagon, VectorSquare, Spline } from 'lu
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { Layer } from './types'
+import { Layer } from '../../paywall/types'
 
 // Layer Icon Component
 const LayerIcon = ({ layer }: { layer: Layer }) => {

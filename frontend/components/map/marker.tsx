@@ -1,12 +1,15 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { AnimitaProperty } from './layers/types'
+import { AnimitaProperty } from '../paywall/types'
 import Link from 'next/link'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from '@/components/ui/popover'
 import { Site } from '@/types/mock'
 import { ArrowUpRight } from 'lucide-react'
 import { COLORS, ICONS } from '@/lib/map-style'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel'
+import { Label } from '../ui/label'
 
 interface MarkerIconProps {
   site?: Site
@@ -60,146 +63,116 @@ export const MarkerIcon = ({
   const typologyData = getTypologyData(typology)
   const deathCauseData = getDeathCauseData(death_cause)
 
-  // Base style for the marker (Circle with Dot)
+  // Base style for the marker (Invisible anchor to match Mapbox circle)
   const renderMarker = () => (
     <div className={cn(
-      "relative flex items-center justify-center w-6 h-6 rounded-full border-2",
-      highlight && "ring-4 ring-yellow-400 scale-110 z-50",
-      halo && "ring-4 opacity-50",
-      pulse && "animate-pulse"
+      "relative flex items-center justify-center rounded-full transition-all duration-300",
+      // Base size to match map (approx 6px radius -> 12px diameter)
+      "w-3 h-3",
+      // Only show styles if highlighted/pulsing, otherwise transparent to let map layer show through
+      highlight && "scale-150 z-50 ring-2 ring-yellow-400 bg-blue-600",
+      halo && "ring-4 opacity-50 bg-blue-600",
+      pulse && "animate-pulse bg-blue-600"
     )}
       style={{
-        borderColor: COLORS.animitas,
-        boxShadow: halo ? `0 0 0 4px ${COLORS.animitas}80` : 'none'
+        // Transparent by default
+        backgroundColor: (highlight || halo || pulse) ? COLORS.animitas : 'transparent',
+        boxShadow: (highlight || halo || pulse) ? '0 0 0 2px white' : 'none',
       }}
-    >
-      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.animitas }} />
-    </div>
+    />
   )
 
-  // Detailed View (Zoomed In)
-  if (zoomedIn) {
-    return (
-      <Popover open={true}>
-        <PopoverTrigger asChild>
-          <div className={cn("relative flex flex-col items-center group z-50 cursor-pointer", className)}>
-            {renderMarker()}
-            {/* Name absolutely positioned below the circle */}
-            <div className="absolute top-full mt-2 whitespace-nowrap">
-              <span
-                className="font-ibm-plex-mono text-xs font-medium uppercase text-white"
-                style={{ textShadow: '1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000' }}
-              >
-                {name || 'Animita'}
-              </span>
-            </div>
-          </div>
-        </PopoverTrigger>
-        <PopoverContent
-          side="top"
-          sideOffset={30}
-          disablePortal={true}
-          className="bg-transparent border-none shadow-none text-black font-ibm-plex-mono uppercase"
-        >
-          {/* Dotted Line Visual */}
-          <div className="absolute left-1/2 -translate-x-1/2 -bottom-4 w-px h-8 border-l-2 border-dotted border-black" />
-
-          <div className="flex flex-col gap-0">
-            {/* Properties Grid */}
-            <div className="grid grid-cols-2 *:-mr-0.5 border-2 border-black divide-x-2 divide-y-2 divide-black bg-white">
-              <div className="p-2 flex flex-col justify-center">
-                <span className="text-xs opacity-60 uppercase leading-none mb-1">Tipología</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-sm leading-tight">{typologyData.label}</span>
-                </div>
-              </div>
-              <div className="p-2 flex flex-col justify-center">
-                <span className="text-xs opacity-60 uppercase leading-none mb-1">Causa</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium text-sm leading-tight">{deathCauseData.label}</span>
-                </div>
-              </div>
-
-              {site?.insights?.patrimonial?.antiquity_year && (
-                <div className="p-2 flex flex-col justify-center border-black">
-                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Antigüedad</span>
-                  <span className="font-medium text-sm leading-tight">{site.insights.patrimonial.antiquity_year}</span>
-                </div>
-              )}
-
-              {site?.insights?.patrimonial?.size && (
-                <div className="p-2 flex flex-col justify-center">
-                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Tamaño</span>
-                  <span className="font-medium text-sm leading-tight">
-                    {site.insights.patrimonial.size}
-                  </span>
-                </div>
-              )}
-
-              {site?.insights?.memorial?.social_roles && site.insights.memorial.social_roles.length > 0 && (
-                <div className="p-2 flex flex-col justify-center col-span-2">
-                  <span className="text-xs opacity-60 uppercase leading-none mb-1">Roles</span>
-                  <div className="flex flex-wrap gap-1 mt-0.5">
-                    {site.insights.memorial.social_roles.map(role => {
-                      const roleData = ICONS.socialRoles[role as keyof typeof ICONS.socialRoles] || ICONS.socialRoles.default
-                      return (
-                        <span key={role} className="inline-flex items-center gap-1 bg-neutral-100 px-1.5 py-0.5 rounded text-[10px]">
-                          <span>{roleData.label}</span>
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Link */}
-            {id && (
-              <Link
-                href={`/animita/${id}`}
-                className="bg-white border-x-2 border-b-2 underline-offset-4 border-black flex gap-1.5 [&_svg]:size-4 hover:underline items-center justify-center text-accent p-2"
-                style={{ color: COLORS.animitas }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="text-sm font-medium uppercase">Ver Detalle </span>
-                <ArrowUpRight />
-              </Link>
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
-    )
-  }
-
-  // Standard View (Zoomed Out)
+  // Detailed View (Always render Popover since we only render this component for focused items)
+  // Detailed View (Always render Popover since we only render this component for focused items)
   return (
-    <div className={cn("flex-col flex items-center justify-center text-center group cursor-pointer", className)}>
-      <div className="relative flex items-center justify-center gap-1">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {renderMarker()}
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              <p>{name || 'Animita'}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Secondary Badge (Death Cause) - Optional in standard view */}
-        {activeProperties.includes('death_cause') && death_cause && (
-          <div className="absolute -top-1 -right-1 size-3 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[8px] shadow-sm z-10">
-            <deathCauseData.icon size={10} />
+    <Popover open={true}>
+      <PopoverTrigger asChild>
+        <div className={cn("relative flex flex-col items-center group z-50 cursor-pointer", className)}>
+          {renderMarker()}
+          {/* Name absolutely positioned below the circle */}
+          <div className="absolute top-full mt-8 whitespace-nowrap pointer-events-none">
+            <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
+              {name || 'Animita'}
+            </span>
           </div>
-        )}
-      </div>
-
-      <h3
-        className="text-sm font-medium text-black uppercase font-ibm-plex-mono mt-1 whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-        style={{ textShadow: '1px 1px 0 #fff, -1px 1px 0 #fff, 1px -1px 0 #fff, -1px -1px 0 #fff' }}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        sideOffset={20}
+        collisionPadding={10}
+        disablePortal={true}
+        className="bg-transparent border-none shadow-none p-0 w-auto"
       >
-        {name || 'Animita'}
-      </h3>
-    </div>
+        {/* Connector Line */}
+        <PopoverArrow
+          className="fill-black stroke-black"
+          width={12}
+          height={20}
+          asChild
+        >
+          <svg width="12" height="20" viewBox="0 0 12 20" style={{ overflow: 'visible' }}>
+            <line
+              x1="6" y1="0" x2="6" y2="20"
+              stroke="#666666ff"
+              strokeWidth="2"
+              strokeDasharray="4 2"
+            />
+          </svg>
+        </PopoverArrow>
+
+        <Card className="z-10 w-80 !py-0 overflow-hidden">
+          {images && images.length > 0 && (
+            <Carousel className="w-full h-full overflow-hidden aspect-video">
+              <CarouselContent className="h-full ml-0">
+                {images.map((img, idx) => (
+                  <CarouselItem key={idx} className="pl-0 h-full">
+                    <img
+                      src={img}
+                      alt={`${name} - ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {images.length > 1 && (
+                <>
+                  <CarouselPrevious className="left-2 size-6" />
+                  <CarouselNext className="right-2 size-6" />
+                </>
+              )}
+            </Carousel>
+          )}
+
+          <Link
+            href={`/animita/${id}`}
+            className="block w-full hover:bg-neutral-50 transition-colors group/link"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardContent className="p-4 space-y-3">
+              {/* Properties List */}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Tipología</Label>
+                  <span className="text-sm font-normal text-black">{typologyData.label}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Causa de Muerte</Label>
+                  <span className="text-sm font-normal text-black">{deathCauseData.label}</span>
+                </div>
+
+                {site?.insights?.patrimonial?.antiquity_year && (
+                  <div className="space-y-1.5">
+                    <Label>Antigüedad</Label>
+                    <span className="text-sm font-normal text-black">{site.insights.patrimonial.antiquity_year}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Link>
+        </Card>
+      </PopoverContent>
+    </Popover>
   )
 }

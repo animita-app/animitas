@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Layer, Component, ANIMITAS_METRICS } from './types'
+import { Layer, Component, ANIMITAS_METRICS } from '../../paywall/types'
 import { SEED_SITES } from '@/constants/sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
@@ -16,15 +16,17 @@ interface LayerMetricsProps {
 
 export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
   // Get data source based on layer type
-  const { filteredData, filters, toggleFilter, activeArea } = useSpatialContext()
+  // @ts-ignore
+  const { filteredData, filters, toggleFilter, activeArea, syntheticSites } = useSpatialContext()
 
   // Get data source based on layer type
   const data = useMemo(() => {
     // console.log('LayerMetrics: selectedLayer', selectedLayer)
     if (selectedLayer.id === 'animitas') {
-      // Use SEED_SITES filtered ONLY by activeArea (spatial), ignoring attribute filters
+      // Use SEED_SITES + syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
       // This ensures charts show all available options in the current area, even when an attribute filter is active.
-      let baseData = SEED_SITES
+      const allSites = [...SEED_SITES, ...(syntheticSites || [])]
+      let baseData = allSites
 
       if (activeArea) {
         baseData = baseData.filter(site => {
@@ -36,7 +38,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
       // Map data to include flattened properties for charts
       return baseData.map(site => ({
         ...site,
-        death_cause: site.insights?.memorial?.death_cause || 'unknown',
+        death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
         typology: site.typology || 'unknown',
         antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
         size: site.insights?.patrimonial?.size || 'unknown'
@@ -44,7 +46,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
     }
     // For other layers, we might not have data readily available in this context yet
     return []
-  }, [selectedLayer, activeArea]) // Removed filteredData dependency, added activeArea
+  }, [selectedLayer, activeArea, syntheticSites]) // Added syntheticSites dependency
 
   // Define default components for animitas if none are provided
   const componentsToRender = useMemo(() => {
@@ -144,22 +146,30 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
   const { config } = component
   const { filters, toggleFilter } = useSpatialContext()
 
-  // Neutral color palette (default)
+  // Neutral color palette (expanded)
   const NEUTRAL_COLORS = [
-    '#000000', // neutral-900
-    '#2B2B2B', // neutral-700
-    '#555555', // neutral-500
-    '#A0A0A0', // neutral-300
-    '#E5E5E5', // neutral-100
+    '#171717', // neutral-900
+    '#262626', // neutral-800
+    '#404040', // neutral-700
+    '#525252', // neutral-600
+    '#737373', // neutral-500
+    '#a3a3a3', // neutral-400
+    '#d4d4d4', // neutral-300
+    '#e5e5e5', // neutral-200
+    '#f5f5f5', // neutral-100
   ]
 
-  // Blue color palette (active)
+  // Blue color palette (expanded)
   const BLUE_COLORS = [
-    '#0000EE', // blue-900
-    '#4C4CFF', // blue-700
-    '#8C8CFF', // blue-500
-    '#C5C5FF', // blue-300
-    '#ECECFF', // blue-100
+    '#1e3a8a', // blue-900
+    '#1e40af', // blue-800
+    '#1d4ed8', // blue-700
+    '#2563eb', // blue-600
+    '#3b82f6', // blue-500
+    '#60a5fa', // blue-400
+    '#93c5fd', // blue-300
+    '#bfdbfe', // blue-200
+    '#dbeafe', // blue-100
   ]
 
   // @ts-ignore

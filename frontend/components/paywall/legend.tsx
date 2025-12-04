@@ -1,11 +1,11 @@
 import React from 'react'
 import { Layer } from './types'
-import { LayerItem } from './layer-item'
+import { LayerItem } from '../map/layers/layer-item'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 
-import { LayerMetrics } from './layer-metrics'
+import { LayerMetrics } from '../map/layers/layer-metrics'
 
 import {
   Accordion,
@@ -69,7 +69,7 @@ export function Legend({
   )
 
   return (
-    <Card className="absolute left-4 top-4 z-10 w-80 !p-0 !gap-0 flex flex-col shadow-xl border-border-weak">
+    <Card className="w-80 !p-0 !gap-0 flex flex-col shadow-xl border-border-weak">
       <CardHeader className="sr-only">
         <CardTitle>Capas</CardTitle>
       </CardHeader>

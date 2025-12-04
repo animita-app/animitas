@@ -17,7 +17,7 @@ export interface Site {
   person_id: string | null;
   location: { lat: number; lng: number };
   typology: "Gruta" | "Iglesia" | "Casa" | "Cruz" | "Orgánica" | "Social" | "Moderna" | "Monumental" | "Tumba" | "Muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
-  images: string[];
+  images: string[] | null;
   story?: string;
   insights?: SiteInsights;
   created_at: string; // ISO 8601

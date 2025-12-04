@@ -7,19 +7,15 @@ import type { FeatureCollection, Point } from 'geojson'
 import * as GeoJSON from 'geojson'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { SearchPanel } from './search'
-import { ActiveAreaBanner } from './active-area-banner'
 import { MarkerIcon } from './marker'
 import { calculateDistance, calculateBearing } from '@/lib/utils'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { SEED_SITES } from '@/constants/sites'
 import { fetchOverpassLayer, OverpassLayerType, fetchPlaceBoundary } from '@/lib/overpass-client'
-import { Legend } from './layers/legend'
-import { LayerDetail } from './layers/layer-detail'
-import { AnimitaProperty, Layer, GISOperation, INITIAL_LAYERS } from './layers/types'
+import { AnimitaProperty, Layer, GISOperation, INITIAL_LAYERS } from '../paywall/types'
 import { bufferFeatures, intersectFeatures, dissolveFeatures, clipFeatures, spatialJoin, GISOperationResult } from '@/lib/gis-engine'
-import { Toolbar } from './toolbar'
 import { COLORS, ICONS, LEGENDS } from '@/lib/map-style'
+import { PaywallLayout } from '@/layouts/paywall-layout'
 
 interface MapboxMapProps {
   accessToken: string
@@ -120,7 +116,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
   const [selectedLayer, setSelectedLayer] = useState<Layer | null>(null)
 
   // Spatial Context
-  const { activeArea, activeAreaLabel, clearActiveArea, filteredData } = useSpatialContext()
+  // @ts-ignore
+  const { activeArea, activeAreaLabel, clearActiveArea, filteredData, setSyntheticSites } = useSpatialContext()
 
   // Handle Active Area on Map
   useEffect(() => {
@@ -291,7 +288,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
                     // Handle potential quoted fields (simple regex split, might need more robust if complex)
                     // For this specific file, standard split seems okay based on preview, but let's be safer with regex for commas outside quotes
-                    const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',')
+                    const row = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
 
                     if (row.length > Math.max(latIndex, lonIndex)) {
                       // Clean up quotes if present
@@ -342,7 +339,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
                   }
                 }
               } catch (err) {
-                // console.error(`Failed to fetch layer ${id}:`, err)
+                // Error handling
+
               }
             }
             fetchLayer()
@@ -356,19 +354,19 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
             }
           } else if (id === 'critical_points') {
             // Heatmap layer
-            if (map.current && map.current.getLayer(`${id}-heatmap`)) {
-              map.current.setLayoutProperty(`${id}-heatmap`, 'visibility', newVisibility ? 'visible' : 'none')
+            if (map.current && map.current.getLayer(`${id} -heatmap`)) {
+              map.current.setLayoutProperty(`${id} -heatmap`, 'visibility', newVisibility ? 'visible' : 'none')
             }
           } else {
             // Point layers (inner/outer)
-            if (map.current && map.current.getLayer(`${id}-outer`)) {
-              map.current.setLayoutProperty(`${id}-outer`, 'visibility', newVisibility ? 'visible' : 'none')
+            if (map.current && map.current.getLayer(`${id} -outer`)) {
+              map.current.setLayoutProperty(`${id} -outer`, 'visibility', newVisibility ? 'visible' : 'none')
             }
-            if (map.current && map.current.getLayer(`${id}-inner`)) {
-              map.current.setLayoutProperty(`${id}-inner`, 'visibility', newVisibility ? 'visible' : 'none')
+            if (map.current && map.current.getLayer(`${id} -inner`)) {
+              map.current.setLayoutProperty(`${id} -inner`, 'visibility', newVisibility ? 'visible' : 'none')
             }
-            if (map.current && map.current.getLayer(`${id}-poly`)) {
-              map.current.setLayoutProperty(`${id}-poly`, 'visibility', newVisibility ? 'visible' : 'none')
+            if (map.current && map.current.getLayer(`${id} -poly`)) {
+              map.current.setLayoutProperty(`${id} -poly`, 'visibility', newVisibility ? 'visible' : 'none')
             }
           }
         }
@@ -441,8 +439,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     if (updatedLayer.geometry === 'heatmap' && map.current) {
       const gradient = getHeatmapGradient(updatedLayer.gradient || 'default')
       // Ensure layer exists before setting property
-      if (map.current.getLayer(`${updatedLayer.id}-heatmap`)) {
-        map.current.setPaintProperty(`${updatedLayer.id}-heatmap`, 'heatmap-color', gradient as any)
+      if (map.current.getLayer(`${updatedLayer.id} -heatmap`)) {
+        map.current.setPaintProperty(`${updatedLayer.id} -heatmap`, 'heatmap-color', gradient as any)
       }
     }
   }
@@ -512,7 +510,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       }
 
       // if (shouldNavigate) {
-      //   router.push(`/animita/${memorialId}`)
+      //   router.push(`/ animita / ${ memorialId } `)
       // }
     },
     [router]
@@ -533,6 +531,12 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false
+    })
+
+    map.current.on('zoom', () => {
+      if (map.current && map.current.getZoom() < 12 && focusedMemorialId) {
+        router.push('/')
+      }
     })
 
     map.current.on('load', () => {
@@ -581,7 +585,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
       // Helper to add point layers (inner/outer circles)
       const addPointLayer = (id: string, color: string) => {
         mapInstance.addLayer({
-          id: `${id}-outer`,
+          id: `${id} -outer`,
           type: 'circle',
           source: id,
           layout: { visibility: 'none' },
@@ -593,7 +597,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
           }
         })
         mapInstance.addLayer({
-          id: `${id}-inner`,
+          id: `${id} -inner`,
           type: 'circle',
           source: id,
           layout: { visibility: 'none' },
@@ -620,9 +624,9 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
       // Helper to add polygon layers
       const addPolygonLayer = (id: string, color: string) => {
-        if (!mapInstance.getLayer(`${id}-poly`)) {
+        if (!mapInstance.getLayer(`${id} -poly`)) {
           mapInstance.addLayer({
-            id: `${id}-poly`,
+            id: `${id} -poly`,
             type: 'fill',
             source: id,
             layout: { visibility: 'none' },
@@ -1025,7 +1029,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     // 2. Mapbox Geocoding with filtering
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${accessToken}&country=cl&language=es&bbox=-75.6,-56.0,-66.4,-17.5&types=place,locality,address,region,postcode&limit=5`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${accessToken}&country=cl&language=es&types=place,locality,address,region,postcode&limit=5`
       )
       const data = await response.json()
       // Exclude plain address results; keep places, regions, localities, and highways (if category includes highway)
@@ -1382,8 +1386,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
 
     toggleLayer('clusters', false)
     toggleLayer('cluster-count', false)
-    toggleLayer('memorials-outer', false)
-    toggleLayer('memorials-inner', false)
+    // toggleLayer('memorials-outer', false) // Keep visible as base
+    // toggleLayer('memorials-inner', false) // Keep visible as base
 
     const activeIds = new Set<string>()
 
@@ -1514,71 +1518,88 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, isMod
     }
   }
 
+  const handleElementRemove = (id: string) => {
+    setElements(prev => prev.filter(e => e.id !== id))
+    setSelectedLayer(null)
+    // Remove from map
+    if (map.current) {
+      if (map.current.getLayer(id)) map.current.removeLayer(id)
+      if (map.current.getLayer(`${id}-fill`)) map.current.removeLayer(`${id}-fill`)
+      if (map.current.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`)
+      if (map.current.getSource(id)) map.current.removeSource(id)
+    }
+  }
+
+  const handleGenerateSynthetic = async () => {
+    if (!map.current) return
+
+    // Gather context features from map sources
+    const getFeatures = (sourceId: string) => {
+      const source = map.current?.getSource(sourceId) as mapboxgl.GeoJSONSource
+      // @ts-ignore
+      return source?._data?.features || []
+    }
+
+    const roads = [
+      ...getFeatures('highways'),
+      ...getFeatures('urban_streets')
+    ]
+
+    const urbanAreas = getFeatures('search-elements').filter((f: any) => f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+    const cemeteries = getFeatures('cemeteries')
+
+    // Generate
+    const { generateSyntheticSites } = await import('@/lib/synthetic-sites')
+    const synthetic = generateSyntheticSites(
+      SEED_SITES,
+      500, // Generate 500 sites
+      {
+        roads,
+        urbanAreas,
+        cemeteries
+      }
+    )
+
+    // Update Context
+    // @ts-ignore
+    setSyntheticSites(synthetic)
+  }
+
+  const handleToggleProfile = () => {
+    setShowProfileMarkers(!showProfileMarkers)
+    profileViewState.current = !showProfileMarkers
+  }
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
-
-      {/* UI Overlays */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="pointer-events-auto">
-          <Legend
-            layers={layers}
-            elements={elements}
-            selectedLayerId={selectedLayer?.id}
-            onLayerClick={handleLayerSelect}
-            onToggleVisibility={handleLayerVisibilityChange}
-          />
-        </div>
-
-        {/* Active Area Banner */}
-        <ActiveAreaBanner
-          label={activeAreaLabel}
-          onClear={() => {
-            clearActiveArea()
-            handleResetView()
-          }}
-        />
-
-        <div className="pointer-events-auto">
-          {selectedLayer ? (
-            <LayerDetail
-              selectedLayer={selectedLayer}
-              onClose={() => setSelectedLayer(null)}
-              onUpdateLayer={handleLayerUpdate}
-              activeProperties={activeProperties}
-              onPropertyToggle={handlePropertyToggle}
-              onGISOperationSelect={handleGISOperation}
-              onElementRemove={(id) => {
-                setElements(prev => prev.filter(e => e.id !== id))
-                setSelectedLayer(null)
-                // Remove from map
-                if (map.current) {
-                  if (map.current.getLayer(id)) map.current.removeLayer(id)
-                  if (map.current.getLayer(`${id}-fill`)) map.current.removeLayer(`${id}-fill`)
-                  if (map.current.getLayer(`${id}-outline`)) map.current.removeLayer(`${id}-outline`)
-                  if (map.current.getSource(id)) map.current.removeSource(id)
-                }
-              }}
-            />
-          ) : (
-            <SearchPanel
-              onSearch={handleSearchChange}
-              searchResults={searchSuggestions}
-              onSelectResult={handleSelectLocation}
-            />
-          )}
-        </div>
-
-        <Toolbar
-          onResetView={handleResetView}
-          onToggleProfile={() => {
-            setShowProfileMarkers(!showProfileMarkers)
-            profileViewState.current = !showProfileMarkers
-          }}
-          showProfile={showProfileMarkers}
-          onExport={handleExport}
-        />
-      </div>
+      <PaywallLayout
+        layers={layers}
+        elements={elements}
+        selectedLayer={selectedLayer}
+        activeAreaLabel={activeAreaLabel}
+        activeProperties={activeProperties}
+        searchSuggestions={searchSuggestions}
+        showProfileMarkers={showProfileMarkers}
+        onLayerSelect={handleLayerSelect}
+        onLayerVisibilityChange={handleLayerVisibilityChange}
+        onClearActiveArea={() => {
+          clearActiveArea()
+          setElements(prev => prev.filter(e => e.source !== 'search'))
+          handleResetView()
+        }}
+        onLayerUpdate={handleLayerUpdate}
+        onPropertyToggle={handlePropertyToggle}
+        onGISOperationSelect={handleGISOperation}
+        onElementRemove={handleElementRemove}
+        onCloseLayerDetail={() => setSelectedLayer(null)}
+        onSearch={handleSearchChange}
+        onSelectResult={handleSelectLocation}
+        onResetView={handleResetView}
+        onToggleProfile={handleToggleProfile}
+        onExport={handleExport}
+        onGenerateSynthetic={handleGenerateSynthetic}
+      />
     </div>
   )
 }

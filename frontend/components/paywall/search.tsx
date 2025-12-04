@@ -6,8 +6,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { LayerItem } from './layers/layer-item'
-import { Layer } from './layers/types'
+import { LayerItem } from '../map/layers/layer-item'
+import { Layer } from './types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { COLORS } from '@/lib/map-style'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -115,7 +115,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
   }
 
   return (
-    <Card className="absolute right-4 top-4 z-10 flex flex-col gap-2 w-80 shadow-md border border-border-weak !p-0">
+    <Card className="flex flex-col gap-2 w-80 shadow-md border border-border-weak !p-0">
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">

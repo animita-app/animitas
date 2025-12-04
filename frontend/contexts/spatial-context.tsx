@@ -18,6 +18,8 @@ interface SpatialContextType {
 
   // Data
   filteredData: any[]
+  syntheticSites: any[]
+  setSyntheticSites: (sites: any[]) => void
 }
 
 const SpatialContext = createContext<SpatialContextType | undefined>(undefined)
@@ -26,6 +28,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
+  const [syntheticSites, setSyntheticSites] = useState<any[]>([])
 
   const setActiveArea = (area: Feature<Geometry> | FeatureCollection, label: string) => {
     setActiveAreaState(area)
@@ -66,10 +69,12 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
   // Compute filtered data
   const filteredData = useMemo(() => {
-    let data = SEED_SITES.map(site => ({
+    const allSites = [...SEED_SITES, ...syntheticSites]
+
+    let data = allSites.map(site => ({
       ...site,
       // Flatten nested properties for easier access
-      death_cause: site.insights?.memorial?.death_cause || 'unknown',
+      death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
       typology: site.typology || 'unknown',
       antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
       size: site.insights?.patrimonial?.size || 'unknown'
@@ -123,7 +128,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
     })
 
     return data
-  }, [activeArea, filters])
+  }, [activeArea, filters, syntheticSites])
 
   return (
     <SpatialContext.Provider value={{
@@ -135,7 +140,10 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       setFilter,
       toggleFilter,
       clearFilters,
-      filteredData
+      filteredData,
+      syntheticSites,
+      // @ts-ignore
+      setSyntheticSites
     }}>
       {children}
     </SpatialContext.Provider>

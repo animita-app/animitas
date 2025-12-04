@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Layer, AnimitaProperty } from '../types'
+import { Layer, AnimitaProperty } from '../../../paywall/types'
 
 const HEATMAP_GRADIENTS = [
   { value: 'default', label: 'Azul a Rojo (Default)' },

@@ -1,6 +1,6 @@
 import { Plus, X, ChartBarDecreasing, ChartColumn, ListOrdered } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Layer, Component } from '../types'
+import { Layer, Component } from '../../../paywall/types'
 
 interface ComponentsTabProps {
   selectedLayer: Layer
