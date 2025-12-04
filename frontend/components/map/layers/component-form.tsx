@@ -33,7 +33,7 @@ export function ComponentForm({
   onDelete
 }: ComponentFormProps) {
   return (
-    <Card className="fixed top-4 right-4 mr-82 w-80 z-10 flex flex-col shadow-xl !p-0 !gap-0 bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-right-5 duration-200">
+    <Card className="fixed top-4 right-4 mr-82 w-80 z-10 flex flex-col shadow-sm !p-0 !gap-0 bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-right-5 duration-200">
       <CardHeader className="px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0">
         <CardTitle className="text-sm">
           {component ? 'Editar' : 'Nuevo'}

@@ -1,47 +1,34 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { AnimitaProperty } from '../paywall/types'
+import { useRef } from 'react'
 import Link from 'next/link'
 import { Popover, PopoverContent, PopoverTrigger, PopoverArrow } from '@/components/ui/popover'
 import { Site } from '@/types/mock'
-import { ArrowUpRight } from 'lucide-react'
-import { COLORS, ICONS } from '@/lib/map-style'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel'
-import { Label } from '../ui/label'
+import { ICONS } from '@/lib/map-style'
+import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 
-interface MarkerIconProps {
+interface SiteDetailPopoverProps {
   site?: Site
-  // Legacy props for backward compatibility during refactor, but we should prefer site
   id?: string
   name?: string
   images?: string[]
   typology?: string
   death_cause?: string
-
-  className?: string
-  activeProperties?: AnimitaProperty[]
-  highlight?: boolean
-  halo?: boolean
-  pulse?: boolean
-  zoomedIn?: boolean
+  open?: boolean
 }
 
-export const MarkerIcon = ({
+export const SiteDetailPopover = ({
   site,
   id: propId,
   name: propName,
   images: propImages,
   typology: propTypology,
   death_cause: propDeathCause,
-  className,
-  activeProperties = ['typology', 'death_cause'],
-  highlight = false,
-  halo = false,
-  pulse = false,
-  zoomedIn = false
-}: MarkerIconProps) => {
+  open = true
+}: SiteDetailPopoverProps) => {
+  const triggerRef = useRef<HTMLDivElement>(null)
+
+
 
   // Extract values from site object or fallback to props
   const id = site?.id || propId
@@ -63,34 +50,13 @@ export const MarkerIcon = ({
   const typologyData = getTypologyData(typology)
   const deathCauseData = getDeathCauseData(death_cause)
 
-  // Base style for the marker (Invisible anchor to match Mapbox circle)
-  const renderMarker = () => (
-    <div className={cn(
-      "relative flex items-center justify-center rounded-full transition-all duration-300",
-      // Base size to match map (approx 6px radius -> 12px diameter)
-      "w-3 h-3",
-      // Only show styles if highlighted/pulsing, otherwise transparent to let map layer show through
-      highlight && "scale-150 z-50 ring-2 ring-yellow-400 bg-blue-600",
-      halo && "ring-4 opacity-50 bg-blue-600",
-      pulse && "animate-pulse bg-blue-600"
-    )}
-      style={{
-        // Transparent by default
-        backgroundColor: (highlight || halo || pulse) ? COLORS.animitas : 'transparent',
-        boxShadow: (highlight || halo || pulse) ? '0 0 0 2px white' : 'none',
-      }}
-    />
-  )
+  if (!open) return null
 
-  // Detailed View (Always render Popover since we only render this component for focused items)
-  // Detailed View (Always render Popover since we only render this component for focused items)
   return (
-    <Popover open={true}>
+    <Popover open={open}>
       <PopoverTrigger asChild>
-        <div className={cn("relative flex flex-col items-center group z-50 cursor-pointer", className)}>
-          {renderMarker()}
-          {/* Name absolutely positioned below the circle */}
-          <div className="absolute top-full mt-8 whitespace-nowrap pointer-events-none">
+        <div ref={triggerRef} className="relative flex flex-col items-center group z-50 cursor-pointer w-0 h-0">
+          <div className="absolute top-0 mt-10 whitespace-nowrap pointer-events-none">
             <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
               {name || 'Animita'}
             </span>
@@ -99,13 +65,13 @@ export const MarkerIcon = ({
       </PopoverTrigger>
       <PopoverContent
         side="top"
-        sideOffset={20}
+        sideOffset={56}
         collisionPadding={10}
         disablePortal={true}
         className="bg-transparent border-none shadow-none p-0 w-auto"
       >
         {/* Connector Line */}
-        <PopoverArrow
+        {/* <PopoverArrow
           className="fill-black stroke-black"
           width={12}
           height={20}
@@ -119,7 +85,7 @@ export const MarkerIcon = ({
               strokeDasharray="4 2"
             />
           </svg>
-        </PopoverArrow>
+        </PopoverArrow> */}
 
         <Card className="z-10 w-80 !py-0 overflow-hidden">
           {images && images.length > 0 && (

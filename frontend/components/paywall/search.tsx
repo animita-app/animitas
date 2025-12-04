@@ -115,7 +115,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
   }
 
   return (
-    <Card className="flex flex-col gap-2 w-80 shadow-md border border-border-weak !p-0">
+    <Card className="flex flex-col gap-2 w-80 shadow-xs border border-border-weak !p-0">
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">
@@ -145,12 +145,13 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
 
                 const layer: Layer = {
                   id: result.id,
-                  label: formatPlaceName(result.title),
+                  label: formatPlaceName(result.title || result.text || result.place_name),
                   type: 'data',
                   geometry: geometryType,
                   color: result.type === 'local' ? COLORS.animitas : '#6b7280',
                   visible: true,
-                  opacity: 1,
+                  opacity: 100,
+                  source: 'search',
                 }
                 return (
                   <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => { e.stopPropagation() }} />

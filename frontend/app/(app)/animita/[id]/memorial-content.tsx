@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { SiteDetail } from '@/components/site-detail'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 
 interface MemorialContentProps {
@@ -45,7 +44,6 @@ export function MemorialContent({ id }: MemorialContentProps) {
       setActiveSnapPoint={setSnap}
       className="min-h-[550px]"
     >
-      <SiteDetail id={id} />
     </ResponsiveDialog>
   )
 }

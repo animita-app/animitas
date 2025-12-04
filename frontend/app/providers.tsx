@@ -1,6 +1,7 @@
 'use client'
 
 import { SpatialProvider } from '@/contexts/spatial-context'
+import { UserProvider } from '@/contexts/user-context'
 import MainLayout from './main-layout'
 
 export function Providers({
@@ -9,8 +10,10 @@ export function Providers({
   children: React.ReactNode
 }) {
   return (
-    <SpatialProvider>
-      <MainLayout>{children}</MainLayout>
-    </SpatialProvider>
+    <UserProvider>
+      <SpatialProvider>
+        <MainLayout>{children}</MainLayout>
+      </SpatialProvider>
+    </UserProvider>
   )
 }

@@ -1,3 +1,13 @@
+import { UserRole, ROLES } from '@/types/roles'
+
+export const CURRENT_USER = {
+  id: '1',
+  name: 'Pype',
+  email: 'pype@animita.app',
+  role: ROLES.EDITOR as UserRole, // Change this to ROLES.PAID or ROLES.EDITOR to test other roles
+  avatarUrl: '/pype.png'
+}
+
 export const FAKE_USERS: Record<string, { username: string; avatar: string }> = {
   'user-1': { username: '@pbenavides', avatar: '/pbenavides.jpg' },
   'user-2': { username: '@vicpino', avatar: '/vicpino.png' },

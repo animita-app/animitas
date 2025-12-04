@@ -64,14 +64,14 @@ export const ANIMITAS_METRICS: Component[] = [
   {
     id: 'default-stat',
     type: 'statistic',
-    title: 'Total Animitas',
+    title: 'Total animitas',
     visible: true,
     config: { stat: 'count' }
   },
   {
     id: 'death-cause-chart',
     type: 'bar_chart',
-    title: 'Causa de Muerte',
+    title: 'Causa de muerte',
     visible: true,
     config: { horizontalAxis: 'death_cause', groupBy: 'typology', stat: 'count' }
   },

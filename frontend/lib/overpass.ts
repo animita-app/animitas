@@ -172,6 +172,11 @@ export async function fetchOverpassLayer(
   bounds: { south: number; west: number; north: number; east: number }
 ): Promise<FeatureCollection> {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
+
+  if (!QUERIES[type]) {
+    return { type: 'FeatureCollection', features: [] }
+  }
+
   const query = QUERIES[type](bbox);
 
   try {
@@ -190,7 +195,6 @@ export async function fetchOverpassLayer(
     return geojson;
 
   } catch (error) {
-    console.error(`Failed to fetch ${type} layer:`, error);
     return { type: 'FeatureCollection', features: [] };
   }
 }

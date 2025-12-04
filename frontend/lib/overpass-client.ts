@@ -45,7 +45,6 @@ export async function fetchPlaceBoundary(placeName: string): Promise<Feature<Pol
 
     return (feature as Feature<Polygon | MultiPolygon>) || null
   } catch (error) {
-    console.error('Error fetching boundary:', error)
     return null
   }
 }
