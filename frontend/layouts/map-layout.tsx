@@ -31,6 +31,7 @@ interface MapLayoutProps {
   onToggleProfile: () => void
   onExport: (format: string, scope?: 'viewport' | 'all') => void
   onGenerateSynthetic: () => void
+  onSearchLoading?: (loading: boolean) => void
 }
 
 export function MapLayout({
@@ -54,7 +55,8 @@ export function MapLayout({
   onResetView,
   onToggleProfile,
   onExport,
-  onGenerateSynthetic
+  onGenerateSynthetic,
+  onSearchLoading
 }: MapLayoutProps) {
   const { role } = useUser()
   const isPaidOrHigher = role === ROLES.PAID || role === ROLES.EDITOR
@@ -63,33 +65,32 @@ export function MapLayout({
     <div className="absolute inset-0 pointer-events-none flex flex-col">
       <ActiveAreaBanner
         label={activeAreaLabel}
-        onClear={onClearActiveArea}
+        onClear={() => {
+          onClearActiveArea()
+          onResetView()
+        }}
       />
 
-      <div className="absolute inset-4 z-10 space-y-4 pointer-events-none">
-        <div className="pointer-events-auto">
-          <TopHeader
-            onExport={onExport}
-          />
-        </div>
+      <div className="absolute inset-4 z-10 flex flex-col gap-4 pointer-events-none [&>*]:pointer-events-auto">
+        <TopHeader
+          onExport={onExport}
+        />
 
-        <div className="relative flex-1 pointer-events-none max-h-[calc(100vh-8rem)]">
+        <div className="relative flex-1 min-h-0 pointer-events-none">
           {isPaidOrHigher && (
-            <div className="pointer-events-auto inline-block">
-              <Legend
-                layers={layers}
-                elements={elements}
-                selectedLayerId={selectedLayer?.id}
-                onLayerClick={onLayerSelect}
-                onToggleVisibility={onLayerVisibilityChange}
-              />
-            </div>
+            <Legend
+              layers={layers}
+              elements={elements}
+              selectedLayerId={selectedLayer?.id}
+              onLayerClick={onLayerSelect}
+              onToggleVisibility={onLayerVisibilityChange}
+            />
           )}
 
 
           {selectedLayer ? (
             isPaidOrHigher && (
-              <div className="absolute right-0 top-0 pointer-events-auto">
+              <div className="absolute right-0 top-0 pointer-events-auto max-h-full flex flex-col">
                 <LayerDetail
                   selectedLayer={selectedLayer}
                   onClose={onCloseLayerDetail}
@@ -102,11 +103,12 @@ export function MapLayout({
               </div>
             )
           ) : (
-            <div className="absolute right-0 top-0 pointer-events-auto">
+            <div className="absolute right-0 top-0 pointer-events-auto max-h-full flex flex-col">
               <SearchPanel
                 onSearch={onSearch}
                 searchResults={searchSuggestions}
                 onSelectResult={onSelectResult}
+                onLoadingChange={onSearchLoading}
               />
             </div>
           )}

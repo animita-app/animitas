@@ -10,11 +10,8 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubContent,
   DropdownMenuGroup,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { Plus, ChevronDown, LogOut } from 'lucide-react'
-import { ButtonGroup } from '../ui/button-group'
-import { Loader2 } from 'lucide-react'
+import { Plus, ChevronDown } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 

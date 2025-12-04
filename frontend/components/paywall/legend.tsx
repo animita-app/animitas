@@ -69,12 +69,12 @@ export function Legend({
   )
 
   return (
-    <Card className="w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak">
+    <Card className="max-h-full pointer-events-auto w-80 flex flex-col !p-0 !gap-0 shadow-md border-border-weak overflow-hidden">
       <CardHeader className="sr-only">
         <CardTitle>Capas</CardTitle>
       </CardHeader>
 
-      <ScrollArea className="h-full">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-2 space-y-1">
           {/* Animitas (Always at top) */}
           {animitasLayer && renderLayerItem(animitasLayer)}

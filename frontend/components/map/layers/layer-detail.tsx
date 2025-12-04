@@ -154,7 +154,7 @@ export function LayerDetail({
 
   return (
     <>
-      <Card className="w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in slide-in-from-right duration-300 fade-in">
+      <Card className="w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in slide-in-from-right duration-300 fade-in max-h-full">
         <CardHeader className="px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <CardTitle className="truncate text-sm">{selectedLayer.label}</CardTitle>
@@ -204,17 +204,18 @@ export function LayerDetail({
             setActiveTab(value)
             closeComponentForm()
           }}
+          className="flex-1 flex flex-col min-h-0"
         >
           {selectedLayer.id === 'animitas' && (
-            <TabsList>
+            <TabsList className="shrink-0">
               <TabsTrigger value="style">Estilo</TabsTrigger>
               <TabsTrigger value="components">Componentes</TabsTrigger>
               <TabsTrigger value="analysis">Análisis</TabsTrigger>
             </TabsList>
           )}
 
-          <ScrollArea>
-            <TabsContent value="style">
+          <ScrollArea className="flex-1">
+            <TabsContent value="style" className="m-0 h-full">
               <StyleTab
                 selectedLayer={selectedLayer}
                 activeProperties={activeProperties}
@@ -225,7 +226,7 @@ export function LayerDetail({
 
             {selectedLayer.id === 'animitas' && (
               <>
-                <TabsContent value="components">
+                <TabsContent value="components" className="m-0 h-full">
                   <ComponentsTab
                     selectedLayer={selectedLayer}
                     onOpenForm={openComponentForm}
@@ -233,7 +234,7 @@ export function LayerDetail({
                   />
                 </TabsContent>
 
-                <TabsContent value="analysis">
+                <TabsContent value="analysis" className="m-0 h-full">
                   <AnalysisTab
                     gisOperation={gisOperation}
                     gisRadius={gisRadius}

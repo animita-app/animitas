@@ -4,6 +4,7 @@ import './globals.css'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Providers } from './providers'
 import { cn } from '@/lib/utils'
+import { Toaster } from '@/components/ui/sonner'
 
 
 const geist = Geist({
@@ -58,6 +59,7 @@ export default function RootLayout({
         <Providers>
           {children}
           {/* <CreateMemorialButton /> */}
+          <Toaster />
         </Providers>
       </body>
     </html>

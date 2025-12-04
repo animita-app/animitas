@@ -39,6 +39,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
   const [selectedMemorialId, setSelectedMemorialId] = useState<string | null>(focusedMemorialId || null)
   const [currentZoom, setCurrentZoom] = useState<number>(0)
 
+  const [isSearching, setIsSearching] = useState(false)
+
   // Sync prop with state
   useEffect(() => {
     if (focusedMemorialId) setSelectedMemorialId(focusedMemorialId)
@@ -194,7 +196,16 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
     // 2. Search Mapbox
     const mapboxResults = await searchLocation(query, accessToken)
 
-    setSearchSuggestions([...localResults, ...mapboxResults])
+    const filteredMapboxResults = mapboxResults.filter((result: any) => {
+      const isBoundary = result.place_type.some((t: string) =>
+        ['region', 'district', 'place', 'locality', 'neighborhood'].includes(t)
+      )
+      const isMotorway = /autopista|ruta|camino|carretera|corredor|vía|costanera|peaje|tunel/i.test(result.text)
+
+      return isBoundary || isMotorway
+    })
+
+    setSearchSuggestions([...localResults, ...filteredMapboxResults])
   }
 
   const handleSelectResult = (location: any) => {
@@ -264,8 +275,8 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
         )
       })()}
 
-      {isLoading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-muted-60 animate-pulse">
+      {(isLoading || isSearching) && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-muted/60 animate-pulse pointer-events-none">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       )}
@@ -294,6 +305,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
         onSearch={handleSearch}
         onSelectResult={handleSelectResult}
         onResetView={handleResetView}
+        onSearchLoading={setIsSearching}
       />
     </div>
   )

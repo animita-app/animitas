@@ -20,9 +20,10 @@ interface SearchPanelProps {
   onSearch?: (query: string) => void
   searchResults?: any[]
   onSelectResult?: (result: any) => void
+  onLoadingChange?: (loading: boolean) => void
 }
 
-export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: SearchPanelProps) {
+export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLoadingChange }: SearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [open, setOpen] = useState(false)
   const { setActiveArea } = useSpatialContext()
@@ -40,23 +41,43 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
   }
 
   const handleSelect = (result: any) => {
-    onSelectResult?.(result)
+    const startTime = performance.now()
+    console.log('Search: Selected result', result)
+    // Removed immediate onSelectResult to prevent early zoom
+    // onSelectResult?.(result)
+
+    onLoadingChange?.(true)
+    onLoadingChange?.(true)
 
     // Create a feature from the result for the active area
     let geometry: Geometry | null = null
 
     if (result.bbox) {
+      console.log('Search: Result has bbox, fetching precise boundary...')
+
       // Try to fetch precise boundary
       fetchPlaceBoundary(result.place_name || result.title).then(boundary => {
+        const elapsed = Math.round(performance.now() - startTime)
+        console.log(`Search: Boundary fetch took ${elapsed}ms`)
+
         if (boundary) {
-          const feature: Feature<Geometry> = {
-            type: 'Feature',
-            geometry: boundary.geometry,
-            properties: result
-          }
-          const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
-          setActiveArea(feature, label)
+          console.log('Search: Boundary found', boundary)
+
+          setTimeout(() => {
+            console.log('Search: Setting active area from boundary')
+            const feature: Feature<Geometry> = {
+              type: 'Feature',
+              geometry: boundary.geometry,
+              properties: result
+            }
+            const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
+
+            setActiveArea(feature, label)
+            onLoadingChange?.(false)
+          }, 500)
         } else {
+          console.log('Search: Boundary not found, using bbox fallback')
+
           // Fallback to bbox polygon if boundary fetch fails
           const [minLng, minLat, maxLng, maxLat] = result.bbox
           const geometry: Geometry = {
@@ -76,7 +97,13 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
           }
           const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
           setActiveArea(feature, label)
+          onLoadingChange?.(false)
         }
+      }).catch((err) => {
+        console.error('Search: Error fetching boundary', err)
+        // Fallback to standard zoom if boundary fetch errors
+        onSelectResult?.(result)
+        onLoadingChange?.(false)
       })
 
       // Clear search immediately
@@ -85,8 +112,10 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
       setOpen(false)
       return // Exit early as we handle setActiveArea async
     } else if (result.geometry) {
+      console.log('Search: Result has geometry')
       geometry = result.geometry
     } else if (result.center) {
+      console.log('Search: Result has center point')
       geometry = {
         type: 'Point',
         coordinates: result.center
@@ -94,6 +123,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
     }
 
     if (geometry) {
+      console.log('Search: Setting active area from geometry')
       const feature: Feature<Geometry> = {
         type: 'Feature',
         geometry,
@@ -103,6 +133,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
       setActiveArea(feature, label)
     }
 
+    onLoadingChange?.(false)
     setSearchQuery('')
     onSearch?.('')
     setOpen(false)
@@ -128,7 +159,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult }: Se
               onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
             />
             {searchQuery && (
-              <button onClick={handleClearSearch} className="[&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button onClick={handleClearSearch} className="cursor-pointer [&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 <XCircle />
               </button>
             )}
