@@ -62,7 +62,7 @@ export function MapLayout({
   const isPaidOrHigher = role === ROLES.PAID || role === ROLES.EDITOR
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col">
+    <div className="absolute inset-0 pointer-events-none *:pointer-events-auto flex flex-col">
       <ActiveAreaBanner
         label={activeAreaLabel}
         onClear={() => {
@@ -90,17 +90,15 @@ export function MapLayout({
 
           {selectedLayer ? (
             isPaidOrHigher && (
-              <div className="absolute right-0 top-0 pointer-events-auto max-h-full flex flex-col">
-                <LayerDetail
-                  selectedLayer={selectedLayer}
-                  onClose={onCloseLayerDetail}
-                  onUpdateLayer={onLayerUpdate}
-                  activeProperties={activeProperties}
-                  onPropertyToggle={onPropertyToggle}
-                  onGISOperationSelect={onGISOperationSelect}
-                  onElementRemove={onElementRemove}
-                />
-              </div>
+              <LayerDetail
+                selectedLayer={selectedLayer}
+                onClose={onCloseLayerDetail}
+                onUpdateLayer={onLayerUpdate}
+                activeProperties={activeProperties}
+                onPropertyToggle={onPropertyToggle}
+                onGISOperationSelect={onGISOperationSelect}
+                onElementRemove={onElementRemove}
+              />
             )
           ) : (
             <div className="absolute right-0 top-0 pointer-events-auto max-h-full flex flex-col">
@@ -113,19 +111,17 @@ export function MapLayout({
             </div>
           )}
         </div>
+      </div>
 
-      </div>
-      <div className="pointer-events-auto">
-        {isPaidOrHigher && (
-          <Toolbar
-            onResetView={onResetView}
-            onToggleProfile={onToggleProfile}
-            showProfile={showProfileMarkers}
-            onExport={onExport}
-            onGenerateSynthetic={onGenerateSynthetic}
-          />
-        )}
-      </div>
+      {isPaidOrHigher && (
+        <Toolbar
+          onResetView={onResetView}
+          onToggleProfile={onToggleProfile}
+          showProfile={showProfileMarkers}
+          onExport={onExport}
+          onGenerateSynthetic={onGenerateSynthetic}
+        />
+      )}
     </div>
   )
 }

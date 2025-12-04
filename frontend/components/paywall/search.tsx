@@ -1,5 +1,6 @@
+
 import { useState } from 'react'
-import { Search as SearchIcon, XCircle } from 'lucide-react'
+import { Search as SearchIcon, XCircle, Loader2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import {
   Popover,
@@ -26,6 +27,7 @@ interface SearchPanelProps {
 export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLoadingChange }: SearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const { setActiveArea } = useSpatialContext()
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,81 +43,63 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
   }
 
   const handleSelect = (result: any) => {
-    const startTime = performance.now()
-    console.log('Search: Selected result', result)
     // Removed immediate onSelectResult to prevent early zoom
     // onSelectResult?.(result)
 
-    onLoadingChange?.(true)
-    onLoadingChange?.(true)
+    setIsLoading(true)
 
     // Create a feature from the result for the active area
     let geometry: Geometry | null = null
 
     if (result.bbox) {
-      console.log('Search: Result has bbox, fetching precise boundary...')
 
-      // Try to fetch precise boundary
+      // 1. Optimistic UI: Set active area immediately using bbox
+      const [minLng, minLat, maxLng, maxLat] = result.bbox
+      const bboxGeometry: Geometry = {
+        type: 'Polygon',
+        coordinates: [[
+          [minLng, minLat],
+          [maxLng, minLat],
+          [maxLng, maxLat],
+          [minLng, maxLat],
+          [minLng, minLat]
+        ]]
+      }
+      const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
+
+      const bboxFeature: Feature<Geometry> = {
+        type: 'Feature',
+        geometry: bboxGeometry,
+        properties: { ...result, isBbox: true }
+      }
+
+      setActiveArea(bboxFeature, label)
+
+      // 2. Fetch precise boundary in background
       fetchPlaceBoundary(result.place_name || result.title).then(boundary => {
-        const elapsed = Math.round(performance.now() - startTime)
-        console.log(`Search: Boundary fetch took ${elapsed}ms`)
-
         if (boundary) {
-          console.log('Search: Boundary found', boundary)
-
-          setTimeout(() => {
-            console.log('Search: Setting active area from boundary')
-            const feature: Feature<Geometry> = {
-              type: 'Feature',
-              geometry: boundary.geometry,
-              properties: result
-            }
-            const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
-
-            setActiveArea(feature, label)
-            onLoadingChange?.(false)
-          }, 500)
-        } else {
-          console.log('Search: Boundary not found, using bbox fallback')
-
-          // Fallback to bbox polygon if boundary fetch fails
-          const [minLng, minLat, maxLng, maxLat] = result.bbox
-          const geometry: Geometry = {
-            type: 'Polygon',
-            coordinates: [[
-              [minLng, minLat],
-              [maxLng, minLat],
-              [maxLng, maxLat],
-              [minLng, maxLat],
-              [minLng, minLat]
-            ]]
-          }
           const feature: Feature<Geometry> = {
             type: 'Feature',
-            geometry,
-            properties: { ...result, isBbox: true }
+            geometry: boundary.geometry,
+            properties: result
           }
-          const label = formatPlaceName(result.title || result.place_name || 'Área seleccionada')
+
+          // Update with precise boundary
           setActiveArea(feature, label)
-          onLoadingChange?.(false)
         }
-      }).catch((err) => {
-        console.error('Search: Error fetching boundary', err)
-        // Fallback to standard zoom if boundary fetch errors
-        onSelectResult?.(result)
-        onLoadingChange?.(false)
+        setIsLoading(false)
+      }).catch(() => {
+        setIsLoading(false)
       })
 
       // Clear search immediately
       setSearchQuery('')
       onSearch?.('')
       setOpen(false)
-      return // Exit early as we handle setActiveArea async
+      return
     } else if (result.geometry) {
-      console.log('Search: Result has geometry')
       geometry = result.geometry
     } else if (result.center) {
-      console.log('Search: Result has center point')
       geometry = {
         type: 'Point',
         coordinates: result.center
@@ -123,7 +107,6 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
     }
 
     if (geometry) {
-      console.log('Search: Setting active area from geometry')
       const feature: Feature<Geometry> = {
         type: 'Feature',
         geometry,
@@ -133,7 +116,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
       setActiveArea(feature, label)
     }
 
-    onLoadingChange?.(false)
+    setIsLoading(false)
     setSearchQuery('')
     onSearch?.('')
     setOpen(false)
@@ -150,15 +133,20 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {isLoading ? (
+              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+            ) : (
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            )}
             <input
               className="w-full bg-transparent border-none focus:outline-none pl-9 pr-8 text-sm h-9"
-              placeholder="Buscar..."
+              placeholder={isLoading ? "Cargando..." : "Buscar..."}
               value={searchQuery}
               onChange={handleSearch}
+              disabled={isLoading}
               onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
             />
-            {searchQuery && (
+            {searchQuery && !isLoading && (
               <button onClick={handleClearSearch} className="cursor-pointer [&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 <XCircle />
               </button>
