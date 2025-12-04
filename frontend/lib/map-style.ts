@@ -42,7 +42,7 @@ export const COLORS = {
     universities: "#4169E1", // Royal Blue
     bars: "#FF00FF" // Magenta
   },
-  searchElements: "#A855F7",
+  searchElements: "#0000ee",
   clusters: {
     default: "#EC4899"
   },
