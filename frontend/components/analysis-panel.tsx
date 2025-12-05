@@ -38,7 +38,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={data.typologyDistribution.labels.map((label, i) => ({ name: label, value: data.typologyDistribution.values[i] }))}
+                      data={data.charts.typology.labels.map((label, i) => ({ name: label, value: data.charts.typology.datasets[0].data[i] }))}
                       cx="50%"
                       cy="50%"
                       innerRadius={60}
@@ -47,7 +47,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                       paddingAngle={5}
                       dataKey="value"
                     >
-                      {data.typologyDistribution.labels.map((entry, index) => (
+                      {data.charts.typology.labels.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -56,11 +56,11 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                 </ResponsiveContainer>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {data.typologyDistribution.labels.map((label, i) => (
+                {data.charts.typology.labels.map((label, i) => (
                   <div key={label} className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                     <span className="font-medium">{label}:</span>
-                    <span className="text-muted-foreground">{data.typologyDistribution.values[i]}</span>
+                    <span className="text-muted-foreground">{data.charts.typology.datasets[0].data[i]}</span>
                   </div>
                 ))}
               </div>
@@ -70,7 +70,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
               <div className="h-[250px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.contextCounts.labels.map((label, i) => ({ name: label, count: data.contextCounts.values[i] }))}
+                    data={data.charts.context.labels.map((label, i) => ({ name: label, count: data.charts.context.datasets[0].data[i] }))}
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
                   >
@@ -88,7 +88,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
               <div className="h-[250px] w-full mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.distanceHistogram.labels.map((label, i) => ({ range: label, count: data.distanceHistogram.values[i] }))}
+                    data={data.charts.distance.labels.map((label, i) => ({ range: label, count: data.charts.distance.datasets[0].data[i] }))}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -105,7 +105,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
           <div className="grid grid-cols-2 gap-4 pt-4 border-t">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase">Total Elementos</p>
-              <p className="text-2xl font-bold">{data.typologyDistribution.values.reduce((a, b) => a + b, 0)}</p>
+              <p className="text-2xl font-bold">{data.charts.typology.datasets[0].data.reduce((a, b) => a + b, 0)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase">Densidad Promedio</p>

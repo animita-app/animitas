@@ -2,8 +2,8 @@ import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Layer, Component, ANIMITAS_METRICS } from '../../paywall/types'
-import { SEED_SITES } from '@/constants/sites'
+import { Layer, Component, HERITAGE_SITE_METRICS } from '../../paywall/types'
+import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -22,10 +22,10 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
   // Get data source based on layer type
   const data = useMemo(() => {
     // console.log('LayerMetrics: selectedLayer', selectedLayer)
-    if (selectedLayer.id === 'animitas') {
+    if (selectedLayer.id === 'heritage_sites') {
       // Use SEED_SITES + syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
       // This ensures charts show all available options in the current area, even when an attribute filter is active.
-      const allSites = [...SEED_SITES, ...(syntheticSites || [])]
+      const allSites = [...SEED_HERITAGE_SITES, ...(syntheticSites || [])]
       let baseData = allSites
 
       if (activeArea) {
@@ -50,8 +50,8 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
 
   // Define default components for animitas if none are provided
   const componentsToRender = useMemo(() => {
-    if (selectedLayer.id === 'animitas' && (!selectedLayer.components || selectedLayer.components.length === 0)) {
-      return ANIMITAS_METRICS
+    if (selectedLayer.id === 'heritage_sites' && (!selectedLayer.components || selectedLayer.components.length === 0)) {
+      return HERITAGE_SITE_METRICS
     }
     return selectedLayer.components || []
   }, [selectedLayer, filteredData])
@@ -125,7 +125,7 @@ function StatisticCard({ component, data: rawData }: { component: Component, dat
       </Label>
       <div className="space-y-1 text-sm">
         <div
-          className="text-3xl text-black font-medium font-ibm-plex-mono"
+          className="select-none text-3xl text-black font-medium font-ibm-plex-mono"
           style={{ fontFeatureSettings: 'zero 1' }}
         >
           {value}
@@ -297,7 +297,7 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
             >
               <div
                 className={cn(
-                  "flex justify-between text-xs cursor-pointer",
+                  "flex justify-between text-xs cursor-pointer select-none",
                   isRowActive ? "text-accent" : "text-foreground"
                 )}
                 onClick={() => toggleFilter(horizontalAxis, row.name)}

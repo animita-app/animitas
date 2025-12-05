@@ -19,7 +19,7 @@ const getComponentIcon = (type: string) => {
 
 export function ComponentsTab({ selectedLayer, onOpenForm, onRemove }: ComponentsTabProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 -m-1.5 -mt-2.5">
       {/* Component List */}
       {selectedLayer.components && selectedLayer.components.length > 0 && (
         <div className="space-y-2">
@@ -35,7 +35,7 @@ export function ComponentsTab({ selectedLayer, onOpenForm, onRemove }: Component
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium">{component.title}</p>
+                  <p className="text-sm font-normal text-black">{component.title}</p>
                   <p className="sr-only text-xs text-muted-foreground capitalize">{component.type.replace('_', ' ')}</p>
                 </div>
               </div>

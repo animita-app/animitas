@@ -26,7 +26,7 @@ interface ToolbarProps {
 
 export function Toolbar({ onResetView, onExport, onDefineArea, disabled, onGenerateSynthetic }: ToolbarProps) {
   return (
-    <ButtonGroup className="absolute bottom-4 right-4 z-10 shadow-xs">
+    <ButtonGroup className="absolute bottom-4 right-4 z-10 shadow-xs pointer-events-auto">
       <Button
         variant="outline"
         size="icon"

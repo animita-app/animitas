@@ -1,70 +1,84 @@
-import { Site } from '@/types/mock'
-import { computeAnimitaInsights } from './gis-engine'
+import { HeritageSite } from '@/types/mock'
+import * as turf from '@turf/turf'
+import { Feature, Point, Polygon } from 'geojson'
+
+export interface AnalysisResult {
+  animitasInside: number
+  contextCounts: Record<string, number>
+  density: number
+  nearestNeighborAvg: number
+  typologyDistribution: Record<string, number>
+  charts: {
+    density: ChartData
+    context: ChartData
+    distance: ChartData
+    typology: ChartData
+  }
+}
 
 export interface ChartData {
   labels: string[]
-  values: number[]
+  datasets: {
+    label: string
+    data: number[]
+    backgroundColor?: string | string[]
+  }[]
 }
 
-export interface AnalysisResult {
-  density: ChartData
-  contextCounts: ChartData
-  distanceHistogram: ChartData
-  typologyDistribution: ChartData
-}
-
-export function getAnimitaDensity(animitas: Site[]): ChartData {
-  // Simple mock density calculation (e.g., by commune or grid)
-  // For now, we'll just return a dummy distribution
+export function getAnimitaDensity(animitas: HeritageSite[]): ChartData {
+  // Mock density calculation over time/space
   return {
-    labels: ['Norte', 'Centro', 'Sur', 'Costa', 'Cordillera'],
-    values: [12, 45, 23, 15, 8]
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Densidad (animitas/km²)',
+        data: [12, 19, 3, 5, 2, 3],
+        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+      },
+    ],
   }
 }
 
-export function getContextCounts(animitas: Site[], contextLayers: any): ChartData {
-  // Use GIS engine to compute real counts if possible, or mock for now
-  // In a real scenario, we'd iterate over animitas and count nearby features
-
-  // Mock data based on context layers presence
+export function getContextCounts(animitas: HeritageSite[], contextLayers: any): ChartData {
+  // Mock context counts
   return {
-    labels: ['Iglesias', 'Cementerios', 'Bares', 'Comercio'],
-    values: [
-      contextLayers.churches?.features.length || 0,
-      contextLayers.cemeteries?.features.length || 0,
-      contextLayers.bars?.features.length || 0,
-      contextLayers.convenience?.features.length || 0
-    ]
+    labels: ['Iglesias', 'Colegios', 'Bares', 'Comisarías'],
+    datasets: [
+      {
+        label: 'Cercanía a hitos',
+        data: [5, 10, 8, 2],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+      },
+    ],
   }
 }
 
-export function getDistanceHistogram(animitas: Site[]): ChartData {
-  // Mock histogram of distances to nearest road
+export function getDistanceHistogram(animitas: HeritageSite[]): ChartData {
   return {
-    labels: ['0-10m', '10-50m', '50-100m', '100m+'],
-    values: [15, 30, 10, 5]
+    labels: ['0-100m', '100-500m', '500-1km', '>1km'],
+    datasets: [
+      {
+        label: 'Distancia a nearest highway',
+        data: [15, 20, 10, 5],
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+      },
+    ],
   }
 }
 
-export function getTypologyDistribution(animitas: Site[]): ChartData {
+export function getTypologyDistribution(animitas: HeritageSite[]): ChartData {
   const counts: Record<string, number> = {}
-
-  animitas.forEach(site => {
-    const type = site.typology || 'unknown'
-    counts[type] = (counts[type] || 0) + 1
+  animitas.forEach(a => {
+    const t = a.typology || 'Desconocida'
+    counts[t] = (counts[t] || 0) + 1
   })
 
   return {
     labels: Object.keys(counts),
-    values: Object.values(counts)
-  }
-}
-
-export function runFullAnalysis(animitas: Site[], contextLayers: any): AnalysisResult {
-  return {
-    density: getAnimitaDensity(animitas),
-    contextCounts: getContextCounts(animitas, contextLayers),
-    distanceHistogram: getDistanceHistogram(animitas),
-    typologyDistribution: getTypologyDistribution(animitas)
+    datasets: [{
+      label: 'Tipología',
+      data: Object.values(counts),
+      backgroundColor: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
+    }]
   }
 }

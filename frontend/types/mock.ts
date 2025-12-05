@@ -9,27 +9,28 @@ export interface Person {
   death_place?: { lat: number; lng: number } | string;
 }
 
-// 2. Site (Punto de patrimonio)
-export interface Site {
+// 2. HeritageSite (Punto de patrimonio)
+export interface HeritageSite {
   id: string;
   slug: string;
+  kind: "Animita";
   title: string;
   person_id: string | null;
   location: { lat: number; lng: number };
   typology: "Gruta" | "Iglesia" | "Casa" | "Cruz" | "Orgánica" | "Social" | "Moderna" | "Monumental" | "Tumba" | "Muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
   images: string[] | null;
   story?: string;
-  insights?: SiteInsights;
+  insights?: HeritageSiteInsights;
   created_at: string; // ISO 8601
   created_by: { id: string; name: string };
   allow_edits: boolean;
   size?: "Pequeña" | "Mediana" | "Grande";
 }
 
-// 3. Site Story (Historia versionable)
-export interface SiteStory {
+// 3. HeritageSite Story (Historia versionable)
+export interface HeritageSiteStory {
   id: string;
-  site_id: string;
+  heritage_site_id: string;
   content: string; // Markdown supported
   created_by: { id: string; name: string };
   created_at: string;
@@ -40,7 +41,7 @@ export interface SiteStory {
 // 4. Testimonial (Aportes)
 export interface Testimonial {
   id: string;
-  site_id: string;
+  heritage_site_id: string;
   content: string;
   images?: string[];
   created_by?: {
@@ -62,9 +63,9 @@ export type DeathCause =
   | 'Suicidio'
   | 'Asesinato'
 
-// 5. Site Insights (Auto-extraídos)
-export interface SiteInsights {
-  site_id: string;
+// 5. HeritageSite Insights (Auto-extraídos)
+export interface HeritageSiteInsights {
+  heritage_site_id: string;
   memorial: {
     death_cause?: DeathCause | string; // Allow string for legacy/unmapped, but prefer DeathCause
     social_roles?: string[];

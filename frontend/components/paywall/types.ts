@@ -45,13 +45,13 @@ export interface StatisticConfig {
   attribute?: string
 }
 
-export type AnimitaProperty = 'typology' | 'death_cause' | 'social_roles'
+export type HeritageSiteProperty = 'typology' | 'death_cause' | 'social_roles'
 
 export interface LayersPanelProps {
   className?: string
   onLayerChange?: (id: string, visible: boolean) => void
-  onPropertyToggle?: (property: AnimitaProperty, visible: boolean) => void
-  activeProperties?: AnimitaProperty[]
+  onPropertyToggle?: (property: HeritageSiteProperty, visible: boolean) => void
+  activeProperties?: HeritageSiteProperty[]
   onGISOperationSelect?: (operation: GISOperation, params?: any) => void
   elements?: Layer[]
   onElementVisibilityChange?: (id: string, visible: boolean) => void
@@ -60,7 +60,7 @@ export interface LayersPanelProps {
 }
 
 // Initial Data
-export const ANIMITAS_METRICS: Component[] = [
+export const HERITAGE_SITE_METRICS: Component[] = [
   {
     id: 'default-stat',
     type: 'statistic',
@@ -86,14 +86,14 @@ export const ANIMITAS_METRICS: Component[] = [
 
 export const INITIAL_LAYERS: Layer[] = [
   {
-    id: 'animitas',
+    id: 'heritage_sites',
     label: LABELS.animitas,
     type: 'data',
     geometry: 'point',
     color: COLORS.animitas,
     visible: true,
     opacity: 100,
-    components: ANIMITAS_METRICS
+    components: HERITAGE_SITE_METRICS
   },
   // Transporte y riesgo vial
   { id: 'critical_points', label: LABELS.contextLayers.critical_points, type: 'context', geometry: 'heatmap', color: COLORS.context.critical_points, visible: false, opacity: 100, components: [] },

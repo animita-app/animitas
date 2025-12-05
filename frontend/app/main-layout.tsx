@@ -1,14 +1,17 @@
 'use client'
 
 import { usePathname, useParams } from 'next/navigation'
-import { ViewTransition } from 'react'
 import { useState } from 'react'
 import MapboxMap from '@/components/map/mapbox-map'
 
 import { AnalysisPanel } from '@/components/analysis-panel'
 import { AnalysisResult } from '@/lib/analysis-engine'
 
-export default function MainLayout({ children }: { children: React.ReactNode }) {
+export default function MainLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const pathname = usePathname()
   const params = useParams()
   const isAuthPage = pathname === '/auth'
@@ -26,7 +29,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <div className="absolute inset-0">
         <MapboxMap
           accessToken={mapboxToken}
-          focusedMemorialId={focusedMemorialId}
+          focusedHeritageSiteId={focusedMemorialId}
           isModal={false}
           onAnalysisRequested={setAnalysisData}
         />
@@ -35,9 +38,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         data={analysisData}
         onClose={() => setAnalysisData(null)}
       />
-      <ViewTransition name="page-content">
-        {children}
-      </ViewTransition>
+      {children}
     </div>
   )
 }

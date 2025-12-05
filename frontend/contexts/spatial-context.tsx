@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react'
 import { Feature, Geometry, FeatureCollection, Point } from 'geojson'
-import { SEED_SITES } from '@/constants/sites'
+import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { clipFeatures } from '@/lib/gis-engine'
 import * as turf from '@turf/turf'
 
@@ -69,7 +69,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
   // Compute filtered data
   const filteredData = useMemo(() => {
-    const allSites = [...SEED_SITES, ...syntheticSites]
+    const allSites = [...SEED_HERITAGE_SITES, ...syntheticSites]
 
     let data = allSites.map(site => ({
       ...site,

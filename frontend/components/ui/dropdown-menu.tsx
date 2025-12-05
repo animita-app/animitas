@@ -9,13 +9,17 @@ import { cn } from "@/lib/utils"
 const DropdownMenuContext = React.createContext<{
   openOnHover: boolean
   setOpen: (open: boolean) => void
+  onMouseEnter: () => void
+  onMouseLeave: () => void
 }>({
   openOnHover: false,
   setOpen: () => { },
+  onMouseEnter: () => { },
+  onMouseLeave: () => { },
 })
 
 function DropdownMenu({
-  openOnHover = false,
+  openOnHover = true,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root> & {
   openOnHover?: boolean
@@ -36,9 +40,30 @@ function DropdownMenu({
     ? setControlledOpen ?? (() => { })
     : setUncontrolledOpen
 
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const onMouseEnter = React.useCallback(() => {
+    if (!openOnHover) return
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setOpen(true)
+  }, [openOnHover, setOpen])
+
+  const onMouseLeave = React.useCallback(() => {
+    if (!openOnHover) return
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false)
+    }, 50)
+  }, [openOnHover, setOpen])
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
   return (
     <DropdownMenuContext.Provider
-      value={{ openOnHover, setOpen: setOpen as (open: boolean) => void }}
+      value={{ openOnHover, setOpen: setOpen as (open: boolean) => void, onMouseEnter, onMouseLeave }}
     >
       <DropdownMenuPrimitive.Root
         data-slot="dropdown-menu"
@@ -62,14 +87,18 @@ function DropdownMenuPortal({
 function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
-  const { openOnHover, setOpen } = React.useContext(DropdownMenuContext)
+  const { onMouseEnter, onMouseLeave } = React.useContext(DropdownMenuContext)
   return (
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
       {...props}
       onMouseEnter={(e) => {
-        if (openOnHover) setOpen(true)
+        onMouseEnter()
         props.onMouseEnter?.(e)
+      }}
+      onMouseLeave={(e) => {
+        onMouseLeave()
+        props.onMouseLeave?.(e)
       }}
     />
   )
@@ -81,7 +110,7 @@ function DropdownMenuContent({
   onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
-  const { openOnHover, setOpen } = React.useContext(DropdownMenuContext)
+  const { openOnHover, onMouseEnter, onMouseLeave } = React.useContext(DropdownMenuContext)
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
@@ -91,8 +120,12 @@ function DropdownMenuContent({
           "bg-black text-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-[999999] max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border border-neutral-800 p-1 shadow-md",
           className
         )}
+        onMouseEnter={(e) => {
+          onMouseEnter()
+          props.onMouseEnter?.(e)
+        }}
         onMouseLeave={(e) => {
-          if (openOnHover) setOpen(false)
+          onMouseLeave()
           props.onMouseLeave?.(e)
         }}
         onCloseAutoFocus={(e) => {
@@ -226,7 +259,7 @@ function DropdownMenuSeparator({
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("bg-border-neutral-800 -mx-1 my-1 h-px", className)}
+      className={cn("bg-neutral-700 -mx-1 my-1 h-px", className)}
       {...props}
     />
   )
@@ -267,7 +300,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "[&_svg]:opacity-50 focus:bg-neutral-800 data-[state=open]:bg-neutral-800 [&_svg:not([class*='text-'])]:text-muted-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "[&_svg]:opacity-75 focus:bg-neutral-800 data-[state=open]:bg-neutral-800 [&_svg:not([class*='text-'])]:text-muted-foreground flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

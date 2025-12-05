@@ -49,7 +49,28 @@ export function useActiveArea({ map, isMapReady, activeArea }: UseActiveAreaProp
           'fill-color': COLORS.searchElements,
           'fill-opacity': 0.2
         },
-        filter: ['!=', ['get', 'isBbox'], true]
+        filter: ['!', ['==', ['get', 'isBbox'], true]]
+      })
+    } else {
+      const isBbox = activeArea.properties?.isBbox;
+    }
+
+    // Add line layer for LineString/MultiLineString/Polygon Outline
+    if (!map.getLayer(layerIdLine)) {
+      map.addLayer({
+        id: layerIdLine,
+        type: 'line',
+        source: sourceId,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': COLORS.searchElements,
+          'line-width': 0,
+          'line-opacity': 0.8
+        },
+        filter: ['!', ['==', ['get', 'isBbox'], true]]
       })
     }
 

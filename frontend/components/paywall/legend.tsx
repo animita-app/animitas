@@ -13,6 +13,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Plus } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 interface LegendProps {
   layers: Layer[]
@@ -20,18 +22,20 @@ interface LegendProps {
   selectedLayerId?: string
   onLayerClick: (layer: Layer) => void
   onToggleVisibility: (id: string, isElement: boolean) => void
+  className?: string
 }
 
 export function Legend({
   layers,
   elements,
   onLayerClick,
-  onToggleVisibility
+  onToggleVisibility,
+  className
 }: LegendProps) {
   const allItems = [...layers, ...elements]
 
   // Categorize layers
-  const animitasLayer = layers.find(l => l.id === 'animitas')
+  const heritageSitesLayer = layers.find(l => l.id === 'heritage_sites')
 
   const transportLayers = layers.filter(l =>
     ['critical_points', 'highways', 'urban_streets', 'traffic_lights'].includes(l.id)
@@ -46,7 +50,7 @@ export function Legend({
   )
 
   const otherLayers = layers.filter(l =>
-    !['animitas', 'heatmap', ...transportLayers.map(tl => tl.id), ...serviceLayers.map(sl => sl.id), ...socialLayers.map(sl => sl.id)].includes(l.id)
+    !['heritage_sites', 'heatmap', ...transportLayers.map(tl => tl.id), ...serviceLayers.map(sl => sl.id), ...socialLayers.map(sl => sl.id)].includes(l.id)
   )
 
   const renderLayerItem = (layer: Layer) => (
@@ -69,15 +73,15 @@ export function Legend({
   )
 
   return (
-    <Card className="max-h-full pointer-events-auto w-80 flex flex-col !p-0 !gap-0 shadow-md border-border-weak">
+    <Card className={cn("max-h-full pointer-events-auto w-80 !p-0 !gap-0 shadow-md border-border-weak flex flex-col", className)}>
       <CardHeader className="sr-only">
         <CardTitle>Capas</CardTitle>
       </CardHeader>
 
-      <ScrollArea className="flex-1 min-h-0 bg-red-500/20">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-2 space-y-1">
-          {/* Animitas (Always at top) */}
-          {animitasLayer && renderLayerItem(animitasLayer)}
+          {/* Heritage Sites (Always at top) */}
+          {heritageSitesLayer && renderLayerItem(heritageSitesLayer)}
 
           <Separator className="my-2" />
 

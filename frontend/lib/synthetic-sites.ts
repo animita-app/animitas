@@ -1,8 +1,8 @@
-import { Site } from '@/types/mock'
+import { HeritageSite } from '@/types/mock'
 import { Feature, FeatureCollection, LineString, MultiLineString, Polygon, MultiPolygon, Point } from 'geojson'
 import * as turf from '@turf/turf'
 
-export type SiteWithMeta = Site & {
+export type HeritageSiteWithMeta = HeritageSite & {
   source: 'real' | 'synthetic'
 }
 
@@ -71,7 +71,7 @@ function generateRandomName(): string {
   return `Animita de ${first} ${last}`
 }
 
-function generateRandomAttributes(seed: Site, index: number): Partial<Site> {
+function generateRandomAttributes(seed: HeritageSite, index: number): Partial<HeritageSite> {
   const typology = getRandomItem(TYPOLOGIES);
   const size = getRandomItem(SIZES);
   const deathCause = getRandomItem(DEATH_CAUSES);
@@ -105,7 +105,7 @@ function generateRandomAttributes(seed: Site, index: number): Partial<Site> {
     story: story,
     created_at: createdAt,
     insights: {
-      site_id: `synthetic-${index}-${Date.now()}`,
+      heritage_site_id: `synthetic-${index}-${Date.now()}`,
       memorial: {
         death_cause: deathCause,
         social_roles: socialRoles,
@@ -133,11 +133,11 @@ function generateRandomAttributes(seed: Site, index: number): Partial<Site> {
  * - ~10% Cemeteries (Mode C)
  */
 export function generateSyntheticSites(
-  seeds: Site[],
+  seeds: HeritageSite[],
   totalCount: number,
   context: SpatialContext
-): SiteWithMeta[] {
-  const syntheticSites: SiteWithMeta[] = []
+): HeritageSiteWithMeta[] {
+  const syntheticSites: HeritageSiteWithMeta[] = []
 
   // Default probabilities - Adjusted for more rural/highway spread
   let pRoad = 0.85      // Increase road focus to fill gaps between cities
@@ -312,7 +312,7 @@ function generateLocationInPolygon(polygons: Feature<Polygon | MultiPolygon>[]):
   return null
 }
 
-function generateSimpleJitterSites(seeds: Site[], count: number): SiteWithMeta[] {
+function generateSimpleJitterSites(seeds: HeritageSite[], count: number): HeritageSiteWithMeta[] {
   return Array.from({ length: count }).map((_, i) => {
     const seed = seeds[Math.floor(Math.random() * seeds.length)]
     const attributes = generateRandomAttributes(seed, i);

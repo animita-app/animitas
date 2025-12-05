@@ -1,6 +1,6 @@
 # ÁNIMA
 
-ÁNIMA es una plataforma experimental de cartografía crítica y patrimonio cultural digital destinada a preservar, visualizar y analizar las animitas de Chile como una forma de patrimonio cultural inmaterial (PCI). El proyecto explora cómo las infraestructuras digitales pueden mediar experiencias devocionales, representar memorias territoriales y correlacionarlas con el entorno social, urbano y geográfico.
+ÁNIMA es una infraestructura de cartografía crítica y patrimonio cultural digital destinada a preservar, visualizar y analizar las animitas de Chile como una forma de patrimonio cultural inmaterial (PCI). El proyecto explora cómo las infraestructuras digitales pueden mediar experiencias devocionales, representar memorias territoriales y correlacionarlas con el entorno social, urbano y geográfico.
 
 El sistema combina datos propios de animitas con capas externas (Overpass, ArcGIS, CSVs, etc.) para crear un entorno interactivo de análisis espacial, GIS y visualización avanzada.
 

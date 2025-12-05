@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Component, ComponentType, MOCK_ATTRIBUTES } from '../../paywall/types'
 
+import { cn } from "@/lib/utils"
+
 interface ComponentFormProps {
   component: Component | null // null means creating new
   formType: ComponentType
@@ -18,6 +20,7 @@ interface ComponentFormProps {
   onClose: () => void
   onSave: () => void
   onDelete?: () => void
+  className?: string
 }
 
 export function ComponentForm({
@@ -30,15 +33,16 @@ export function ComponentForm({
   onConfigChange,
   onClose,
   onSave,
-  onDelete
+  onDelete,
+  className
 }: ComponentFormProps) {
   return (
-    <Card className="fixed top-4 right-4 mr-82 w-80 z-10 flex flex-col shadow-sm !p-0 !gap-0 bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-right-5 duration-200">
+    <Card className={cn("absolute top-0 right-82 w-80 z-10 flex flex-col shadow-sm !p-0 !gap-0 bg-background animate-in fade-in-0 zoom-in-95 slide-in-from-right-5 duration-200 max-h-full pointer-events-auto overflow-hidden", className)}>
       <CardHeader className="px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0">
         <CardTitle className="text-sm">
           {component ? 'Editar' : 'Nuevo'}
         </CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" className="sr-only md:not-sr-only" onClick={onClose}>
           <X />
         </Button>
       </CardHeader>
@@ -71,7 +75,7 @@ export function ComponentForm({
 
             {/* Statistic Config */}
             {formType === 'statistic' && (
-              <div className="space-y-2">
+              <div className="hidden">
                 <Label>Estadística</Label>
                 <Select
                   value={formConfig.stat}
@@ -120,7 +124,7 @@ export function ComponentForm({
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="hidden">
                   <Label>Eje Vertical</Label>
                   <Select
                     value={formConfig.verticalAxis}
@@ -143,7 +147,7 @@ export function ComponentForm({
             {formType === 'bar_chart' && (
               <>
                 <div className="space-y-2">
-                  <Label>Eje Horizontal</Label>
+                  <Label>Categorías</Label>
                   <Select
                     value={formConfig.horizontalAxis}
                     onValueChange={(v) => onConfigChange({ ...formConfig, horizontalAxis: v })}
@@ -163,12 +167,13 @@ export function ComponentForm({
                   <Label>Agrupar por</Label>
                   <Select
                     value={formConfig.groupBy}
-                    onValueChange={(v) => onConfigChange({ ...formConfig, groupBy: v })}
+                    onValueChange={(v) => onConfigChange({ ...formConfig, groupBy: v === 'nada' ? '' : v })}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent className="w-[--radix-select-trigger-width]">
+                      <SelectItem value="nada">Ninguno</SelectItem>
                       {MOCK_ATTRIBUTES.map(attr => (
                         <SelectItem key={attr} value={attr}>{attr}</SelectItem>
                       ))}
@@ -178,7 +183,7 @@ export function ComponentForm({
 
 
 
-                <div className="space-y-2">
+                <div className="hidden">
                   <Label>Estadística</Label>
                   <Select
                     value={formConfig.stat}

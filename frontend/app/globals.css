@@ -110,7 +110,7 @@
   --color-text: var(--color-neutral-dark-11);
   --color-text-weak: var(--color-neutral-dark-10);
   --color-text-weaker: var(--color-neutral-dark-8);
-  --color-text-strong: var(--color-neutral-dark-12);
+  --color-text-strong: black;
   --color-text-inverted: var(--color-neutral-dark-1);
   --color-border: var(--color-neutral-dark-7);
   --color-border-weak: var(--color-neutral-dark-6);
@@ -120,7 +120,7 @@
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
-  --color-foreground: var(--color-text);
+  --color-foreground: var(--color-text-strong);
   --color-card: var(--color-background);
   --color-card-foreground: var(--color-text);
   --color-muted: var(--color-background-weak);

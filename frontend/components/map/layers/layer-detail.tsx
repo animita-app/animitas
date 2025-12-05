@@ -11,25 +11,41 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useUser } from '@/contexts/user-context'
+import { ROLES } from '@/types/roles'
+import {
   Layer,
   Component,
   ComponentType,
   GISOperation,
-  AnimitaProperty
+  HeritageSiteProperty
 } from '../../paywall/types'
 import { ComponentForm } from './component-form'
 import { StyleTab } from './tabs/style-tab'
 import { ComponentsTab } from './tabs/components-tab'
 import { AnalysisTab } from './tabs/analysis-tab'
 
+import { cn } from "@/lib/utils"
+import { useIsMobile } from '../../../hooks/use-mobile'
+
 interface LayerDetailProps {
   selectedLayer: Layer
   onClose: () => void
   onUpdateLayer: (layer: Layer) => void
-  activeProperties: AnimitaProperty[]
-  onPropertyToggle: (property: AnimitaProperty, visible: boolean) => void
+  activeProperties: HeritageSiteProperty[]
+  onPropertyToggle: (property: HeritageSiteProperty, visible: boolean) => void
   onGISOperationSelect?: (operation: GISOperation, params?: any) => void
   onElementRemove?: (id: string) => void
+  className?: string
 }
 
 export function LayerDetail({
@@ -39,8 +55,10 @@ export function LayerDetail({
   activeProperties,
   onPropertyToggle,
   onGISOperationSelect,
-  onElementRemove
+  onElementRemove,
+  className
 }: LayerDetailProps) {
+  const isMobile = useIsMobile()
   const [activeTab, setActiveTab] = useState<string>('style')
   const [gisOperation, setGisOperation] = useState<GISOperation | ''>('')
   const [gisRadius, setGisRadius] = useState(0.5)
@@ -58,6 +76,9 @@ export function LayerDetail({
     horizontalAxis: '',
     attribute: ''
   })
+  const [showLimitAlert, setShowLimitAlert] = useState(false)
+
+  const { role } = useUser()
 
   const openComponentForm = (component?: Component) => {
     if (component) {
@@ -118,9 +139,20 @@ export function LayerDetail({
         config: componentFormConfig
       }
 
+      const currentComponents = selectedLayer.components || []
+
+      // Pro Plan Limit Check
+      if (role === ROLES.PAID) {
+        if (currentComponents.length >= 3) {
+          setShowLimitAlert(true)
+          // Keep form open
+          return
+        }
+      }
+
       const updatedLayer = {
         ...selectedLayer,
-        components: [...(selectedLayer.components || []), newComponent]
+        components: [...currentComponents, newComponent]
       }
       onUpdateLayer(updatedLayer)
     }
@@ -137,25 +169,32 @@ export function LayerDetail({
     }
 
     onUpdateLayer(updatedLayer)
+    closeComponentForm()
   }
 
-  const toggleComponentVisibility = (componentId: string) => {
-    if (!selectedLayer) return
-
-    const updatedLayer = {
-      ...selectedLayer,
-      components: (selectedLayer.components || []).map(c =>
-        c.id === componentId ? { ...c, visible: !c.visible } : c
-      )
-    }
-
-    onUpdateLayer(updatedLayer)
+  // Mobile View: Component Form replaces Layer Detail
+  if (isMobile && (isCreatingComponent || editingComponent)) {
+    return (
+      <ComponentForm
+        component={editingComponent}
+        formType={componentFormType}
+        formTitle={componentFormTitle}
+        formConfig={componentFormConfig}
+        onTypeChange={setComponentFormType}
+        onTitleChange={setComponentFormTitle}
+        onConfigChange={setComponentFormConfig}
+        onClose={closeComponentForm}
+        onSave={saveComponent}
+        onDelete={editingComponent ? () => removeComponent(editingComponent.id) : undefined}
+        className="static w-full h-full border-none shadow-none !p-0 !m-0"
+      />
+    )
   }
 
   return (
     <>
-      <Card className="w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in slide-in-from-right duration-300 fade-in max-h-full">
-        <CardHeader className="px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0">
+      <Card className={cn("absolute top-0 right-0 w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in slide-in-from-right duration-300 fade-in max-h-full pointer-events-auto", className)}>
+        <CardHeader className={cn("px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0", selectedLayer.id === 'heritage_sites' ? 'border-b-0' : '')}>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <CardTitle className="truncate text-sm">{selectedLayer.label}</CardTitle>
           </div>
@@ -190,7 +229,7 @@ export function LayerDetail({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 ml-1"
+              className="sr-only md:not-sr-only !h-8 !w-8 ml-1"
               onClick={onClose}
             >
               <X />
@@ -206,8 +245,8 @@ export function LayerDetail({
           }}
           className="flex-1 flex flex-col min-h-0"
         >
-          {selectedLayer.id === 'animitas' && (
-            <TabsList className="shrink-0">
+          {selectedLayer.id === 'heritage_sites' && (
+            <TabsList className="shrink-0 pt-0">
               <TabsTrigger value="style">Estilo</TabsTrigger>
               <TabsTrigger value="components">Componentes</TabsTrigger>
               <TabsTrigger value="analysis">Análisis</TabsTrigger>
@@ -217,14 +256,14 @@ export function LayerDetail({
           <ScrollArea className="flex-1">
             <TabsContent value="style" className="m-0 h-full">
               <StyleTab
-                selectedLayer={selectedLayer}
+                layer={selectedLayer}
                 activeProperties={activeProperties}
                 onPropertyToggle={onPropertyToggle}
                 onUpdateLayer={onUpdateLayer}
               />
             </TabsContent>
 
-            {selectedLayer.id === 'animitas' && (
+            {selectedLayer.id === 'heritage_sites' && (
               <>
                 <TabsContent value="components" className="m-0 h-full">
                   <ComponentsTab
@@ -249,8 +288,7 @@ export function LayerDetail({
         </Tabs>
       </Card>
 
-      {/* Component Form Side Panel */}
-      {(isCreatingComponent || editingComponent) && (
+      {!isMobile && (isCreatingComponent || editingComponent) && (
         <ComponentForm
           component={editingComponent}
           formType={componentFormType}
@@ -264,6 +302,26 @@ export function LayerDetail({
           onDelete={editingComponent ? () => removeComponent(editingComponent.id) : undefined}
         />
       )}
+
+      <AlertDialog open={showLimitAlert} onOpenChange={setShowLimitAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Límite de componentes alcanzado</AlertDialogTitle>
+            <AlertDialogDescription>
+              El plan Pro permite un máximo de 3 componentes activos simultáneamente. Actualiza al plan Editor para agregar más.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Entendido</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              // Redirect or open upgrade modal could go here
+              setShowLimitAlert(false)
+            }}>
+              Mejorar Plan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }

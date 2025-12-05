@@ -14,7 +14,7 @@ import { COLORS } from '@/lib/map-style'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { Feature, Geometry } from 'geojson'
 import { formatPlaceName } from '@/lib/format-place'
-import { fetchPlaceBoundary } from '@/lib/overpass-client'
+import { fetchPlaceBoundary } from '@/lib/boundary-service'
 
 interface SearchPanelProps {
   className?: string
@@ -76,20 +76,22 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
       setActiveArea(bboxFeature, label)
 
       // 2. Fetch precise boundary in background
+      // Don't block UI loading state on this refinement
+      setIsLoading(false)
+
       fetchPlaceBoundary(result.place_name || result.title).then(boundary => {
         if (boundary) {
           const feature: Feature<Geometry> = {
             type: 'Feature',
             geometry: boundary.geometry,
-            properties: result
+            properties: { ...result, isBbox: false }
           }
 
           // Update with precise boundary
           setActiveArea(feature, label)
         }
-        setIsLoading(false)
       }).catch(() => {
-        setIsLoading(false)
+        // limit error handling
       })
 
       // Clear search immediately
@@ -129,7 +131,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
   }
 
   return (
-    <Card className="flex flex-col gap-2 w-80 shadow-xs border border-border-weak !p-0">
+    <Card className="flex flex-col gap-2 w-80 shadow-xs border border-border-weak !p-0 pointer-events-auto">
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">
@@ -153,30 +155,28 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
             )}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0 overflow-y-hidden" align="start" sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
-          <ScrollArea className="max-h-48 p-1">
-            <div className="flex flex-col gap-1">
-              {searchResults.map((result) => {
-                let geometryType: 'point' | 'line' | 'polygon' = 'point'
-                if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
-                else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
-                else if (result.bbox) geometryType = 'polygon'
+        <PopoverContent className="max-h-48 w-80 p-0 overflow-y-hidden" align="start" sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
+          <ScrollArea className="max-h-48 p-1 space-y-1">
+            {searchResults.map((result) => {
+              let geometryType: 'point' | 'line' | 'polygon' = 'point'
+              if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
+              else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
+              else if (result.bbox) geometryType = 'polygon'
 
-                const layer: Layer = {
-                  id: result.id,
-                  label: formatPlaceName(result.title || result.text || result.place_name),
-                  type: 'data',
-                  geometry: geometryType,
-                  color: result.type === 'local' ? COLORS.animitas : '#6b7280',
-                  visible: true,
-                  opacity: 100,
-                  source: 'search',
-                }
-                return (
-                  <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => { e.stopPropagation() }} />
-                )
-              })}
-            </div>
+              const layer: Layer = {
+                id: result.id,
+                label: formatPlaceName(result.title || result.text || result.place_name),
+                type: 'data',
+                geometry: geometryType,
+                color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
+                visible: true,
+                opacity: 100,
+                source: 'search',
+              }
+              return (
+                <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => { e.stopPropagation() }} />
+              )
+            })}
           </ScrollArea>
         </PopoverContent>
       </Popover>

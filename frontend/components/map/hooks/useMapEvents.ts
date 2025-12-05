@@ -7,26 +7,30 @@ const TARGET_ZOOM = 17
 
 interface UseMapEventsProps {
   map: mapboxgl.Map | null
-  focusedMemorialId?: string | null
-  onMemorialClick?: (id: string) => void
+  isMapReady: boolean
+  focusedHeritageSiteId?: string | null
+  onHeritageSiteClick?: (id: string) => void
   onLayerClick?: (layerId: string, feature: any) => void
 }
 
-export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerClick }: UseMapEventsProps) {
+export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onHeritageSiteClick, onLayerClick }: UseMapEventsProps) {
   const router = useRouter()
   const lastFocusedIdRef = useRef<string | null>(null)
 
   // Click Listeners
   useEffect(() => {
-    if (!map) return
+    if (!map || !isMapReady) return
+
+    // map.getStyle() check removed as isMapReady (derived from 'load' event) is safer
+
 
     const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       if (!e.features || e.features.length === 0) return
       const feature = e.features[0]
       const id = feature.properties?.id
 
-      if (id && onMemorialClick) {
-        onMemorialClick(id)
+      if (id && onHeritageSiteClick) {
+        onHeritageSiteClick(id)
       }
     }
 
@@ -38,6 +42,7 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
       const source = map.getSource('memorials') as mapboxgl.GeoJSONSource
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || zoom === null || zoom === undefined) return
+        // Use the exact zoom level where the cluster breaks apart
         map.flyTo({
           center: (feature.geometry as any).coordinates,
           zoom: zoom,
@@ -102,18 +107,17 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
     })
 
     return () => {
-      map.off('click', 'memorials-inner', onPointClick)
       map.off('click', 'memorials-outer', onPointClick)
       map.off('click', 'clusters', onClusterClick)
       // Cleanup others...
     }
-  }, [map, onMemorialClick, onLayerClick])
+  }, [map, isMapReady, onHeritageSiteClick, onLayerClick])
 
   useEffect(() => {
     if (!map) return
 
     const onZoom = () => {
-      if (map.getZoom() < 12 && focusedMemorialId) {
+      if (map.getZoom() < 12 && focusedHeritageSiteId) {
         router.push('/')
       }
     }
@@ -123,11 +127,11 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
     return () => {
       map.off('zoom', onZoom)
     }
-  }, [map, focusedMemorialId, router])
+  }, [map, focusedHeritageSiteId, router])
 
-  const focusMemorial = useCallback(
+  const focusHeritageSite = useCallback(
     (
-      memorialId: string,
+      heritageSiteId: string,
       coordinates: [number, number],
       options?: {
         shouldNavigate?: boolean
@@ -140,7 +144,7 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
       }
 
       if (shouldNavigate) {
-        lastFocusedIdRef.current = memorialId
+        lastFocusedIdRef.current = heritageSiteId
       }
 
       const padding = { top: 0, bottom: 0, left: 0, right: 0 }
@@ -184,5 +188,5 @@ export function useMapEvents({ map, focusedMemorialId, onMemorialClick, onLayerC
     [map]
   )
 
-  return { focusMemorial }
+  return { focusHeritageSite }
 }

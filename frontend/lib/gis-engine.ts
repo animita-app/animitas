@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf'
-import type { Feature, FeatureCollection, Point, Polygon, LineString, Geometry, GeoJsonProperties } from 'geojson'
-import { Site } from '@/types/mock'
+import { Feature, Geometry, Polygon, Point, FeatureCollection, LineString } from 'geojson'
+import { HeritageSite } from '@/types/mock'
+import { Layer } from '@/components/paywall/types'
 
 export interface GISOperationResult {
   type: 'buffer' | 'intersect' | 'dissolve' | 'clip' | 'spatialJoin'
@@ -146,7 +147,7 @@ export function spatialJoin(
 // --- INSIGHTS GENERATION ---
 
 export function computeAnimitaInsights(
-  animitas: Site[],
+  animitas: HeritageSite[],
   contextLayers: any
 ): any[] {
   // Convert sites to GeoJSON points

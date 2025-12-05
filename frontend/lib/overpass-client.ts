@@ -1,4 +1,4 @@
-import type { FeatureCollection, Feature, Point, Polygon, LineString, MultiPolygon } from 'geojson'
+import type { FeatureCollection, Feature, Point, Polygon, LineString, MultiPolygon, MultiLineString } from 'geojson'
 import osmtogeojson from 'osmtogeojson'
 import { fetchOverpassLayer, OverpassLayerType } from './overpass'
 export { fetchOverpassLayer }
@@ -6,17 +6,20 @@ export type { OverpassLayerType }
 
 // ... existing code ...
 
-export async function fetchPlaceBoundary(placeName: string): Promise<Feature<Polygon | MultiPolygon> | null> {
-  // Clean up place name (remove ", Chile" etc if present, though Mapbox usually gives full name)
-  const cleanName = placeName.split(',')[0].trim()
+export async function fetchPlaceBoundary(placeName: string): Promise<Feature<Polygon | MultiPolygon | LineString | MultiLineString> | null> {
+  // Clean up and escape place name
+  const cleanName = placeName.split(',')[0].trim().replace(/"/g, '\\"')
 
   // Prioritize relations for administrative boundaries (cities, comunas)
+  // Also search for highways/routes
   const query = `
     [out:json][timeout:10];
     (
       relation["name"="${cleanName}"]["boundary"="administrative"];
       relation["name"="${cleanName}"]["type"="boundary"];
       way["name"="${cleanName}"]["boundary"="administrative"];
+      way["name"="${cleanName}"]["highway"];
+      relation["name"="${cleanName}"]["type"="route"];
     );
     out body;
     >;
@@ -24,26 +27,30 @@ export async function fetchPlaceBoundary(placeName: string): Promise<Feature<Pol
   `
 
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s timeout
+
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
-      body: query
-    })
+      body: query,
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) return null
 
     const data = await response.json()
     const geojson = osmtogeojson(data)
 
-    // Find the first Polygon or MultiPolygon
+    // Find the first Polygon, MultiPolygon, LineString, or MultiLineString
     // Prefer relations (usually more complex boundaries) over ways
     const feature = geojson.features.find(f =>
-      (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon') &&
+      (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon' || f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') &&
       f.id && f.id.toString().startsWith('relation/')
     ) || geojson.features.find(f =>
-      f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+      f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon' || f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString'
     )
 
-    return (feature as Feature<Polygon | MultiPolygon>) || null
+    return (feature as Feature<Polygon | MultiPolygon | LineString | MultiLineString>) || null
   } catch (error) {
     return null
   }

@@ -14,7 +14,7 @@ const EMPTY_MEMORIALS = {
 
 const CLUSTER_CONFIG = {
   cluster: true,
-  clusterMaxZoom: 15,
+  clusterMaxZoom: 20, // Clusters will break apart up to zoom level 20
   clusterRadius: 25
 }
 

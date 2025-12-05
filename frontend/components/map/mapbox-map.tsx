@@ -10,48 +10,82 @@ import { useActiveArea } from './hooks/useActiveArea'
 import { useOverpassData } from './hooks/useOverpassData'
 import { useLayerManagement } from './hooks/useLayerManagement'
 import { useMapEvents } from './hooks/useMapEvents'
-import { AnimitaProperty, GISOperation } from '../paywall/types'
+import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
+import { useVisibleSites } from '@/hooks/use-visible-sites'
+import { HeritageSiteProperty, GISOperation } from '../paywall/types'
 import { searchLocation } from '@/lib/mapbox'
 import { MapMarker } from './map-marker'
-import { SiteDetailPopover } from './site-detail-popover'
+import { HeritageSiteDetailPopover } from './heritage-site-detail-popover'
 import { COLORS } from '@/lib/map-style'
+import { HeritageSite } from '@/types/mock'
 
 interface MapboxMapProps {
   accessToken: string
   style?: string
-  focusedMemorialId?: string | null
+  focusedHeritageSiteId?: string | null
   isModal?: boolean
   onAnalysisRequested?: (data: any) => void
+  onHeritageSiteSelect?: (site: HeritageSite | null) => void
+  selectedHeritageSite?: HeritageSite | null
 }
 
-export default function MapboxMap({ accessToken, style, focusedMemorialId, onAnalysisRequested }: MapboxMapProps) {
+export default function MapboxMap({
+  accessToken,
+  style,
+  focusedHeritageSiteId,
+  onAnalysisRequested,
+  onHeritageSiteSelect,
+  selectedHeritageSite: propSelectedHeritageSite
+}: MapboxMapProps) {
+  // Constants
+  const HIGH_ZOOM_THRESHOLD = 10
+
   // Spatial Context
   // @ts-ignore
   const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData } = useSpatialContext()
 
-  // 1. Map Initialization
+  // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
 
-  // State for UI
-  const [showProfileMarkers, setShowProfileMarkers] = useState(false)
-  const [activeProperties, setActiveProperties] = useState<AnimitaProperty[]>(['typology', 'death_cause'])
-  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
-  const [selectedMemorialId, setSelectedMemorialId] = useState<string | null>(focusedMemorialId || null)
-  const [currentZoom, setCurrentZoom] = useState<number>(0)
+  // Heritage Site Selection
+  const { selectedHeritageSite, handleHeritageSiteSelect } = useHeritageSiteSelection({
+    onHeritageSiteSelect,
+    selectedHeritageSite: propSelectedHeritageSite
+  })
 
+  // UI State
+  const [showProfileMarkers, setShowProfileMarkers] = useState(false)
+  const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['typology', 'death_cause'])
+  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
+  const [currentZoom, setCurrentZoom] = useState<number>(0)
   const [isSearching, setIsSearching] = useState(false)
 
-  // Sync prop with state
+  // Track Visible Sites at High Zoom
+  const visibleSites = useVisibleSites({
+    map: map.current,
+    isMapReady,
+    currentZoom,
+    zoomThreshold: HIGH_ZOOM_THRESHOLD,
+    filteredData,
+    maxVisibleSites: 20
+  })
+
+  // Sync focusedHeritageSiteId prop with selection
   useEffect(() => {
-    if (focusedMemorialId) setSelectedMemorialId(focusedMemorialId)
-  }, [focusedMemorialId])
+    if (focusedHeritageSiteId && filteredData.length > 0) {
+      const site = filteredData.find((s: HeritageSite) => s.id === focusedHeritageSiteId)
+      if (site) {
+        handleHeritageSiteSelect(site)
+      }
+    }
+  }, [focusedHeritageSiteId, filteredData, handleHeritageSiteSelect])
 
   // Track Zoom Level
   useEffect(() => {
     if (!map.current) return
     const updateZoom = () => setCurrentZoom(map.current!.getZoom())
     map.current.on('zoom', updateZoom)
-    updateZoom() // Initial check
+    updateZoom()
     return () => {
       map.current?.off('zoom', updateZoom)
     }
@@ -65,7 +99,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
     if (source) {
       const geojson = {
         type: 'FeatureCollection',
-        features: filteredData.map((site: any) => ({
+        features: filteredData.map((site: HeritageSite) => ({
           type: 'Feature',
           geometry: {
             type: 'Point',
@@ -129,15 +163,29 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
 
   // 7. Map Events (Zoom, Focus)
   const router = useRouter()
-  const { focusMemorial } = useMapEvents({
+  const { focusHeritageSite } = useMapEvents({
     map: map.current,
-    focusedMemorialId: selectedMemorialId,
-    onMemorialClick: (id) => {
-      setSelectedMemorialId(id)
-      // Optional: focus map on click
-      const site = filteredData.find((s: any) => s.id === id)
-      if (site) {
-        focusMemorial(id, [site.location.lng, site.location.lat], { shouldNavigate: false })
+    isMapReady,
+    focusedHeritageSiteId: selectedHeritageSite?.id || null,
+    onHeritageSiteClick: (id) => {
+      const site = filteredData.find((s: HeritageSite) => s.id === id)
+      if (!site) return
+
+      const zoom = map.current?.getZoom() || 0
+
+      if (zoom >= HIGH_ZOOM_THRESHOLD) {
+        // High zoom: Redirect to detail page
+        const kind = (site as any).kind || 'animita'
+        const slug = site.slug || site.id
+        router.push(`/${kind}/${slug}`)
+      } else {
+        // Normal zoom: Select site AND zoom to it
+        handleHeritageSiteSelect(site)
+        focusHeritageSite(
+          site.id,
+          [site.location.lng, site.location.lat],
+          { shouldNavigate: false, instant: false }
+        )
       }
     },
     onLayerClick: (layerId, feature) => {
@@ -152,7 +200,7 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
   // Handlers
   const handleProfileToggle = () => setShowProfileMarkers(prev => !prev)
 
-  const handlePropertyToggle = (property: AnimitaProperty, visible: boolean) => {
+  const handlePropertyToggle = (property: HeritageSiteProperty, visible: boolean) => {
     if (visible) {
       setActiveProperties(prev => [...prev, property])
     } else {
@@ -178,20 +226,19 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
       return
     }
 
-    // 1. Search Local Data (Animitas)
+    // 1. Search Local Data (Heritage Sites)
     const localResults = filteredData
-      .filter((site: any) =>
+      .filter((site: HeritageSite) =>
         site.title.toLowerCase().includes(query.toLowerCase()) ||
         site.typology?.toLowerCase().includes(query.toLowerCase())
       )
-      .map((site: any) => ({
+      .map((site: HeritageSite) => ({
         id: site.id,
         title: site.title,
         type: 'local',
         center: [site.location.lng, site.location.lat],
         geometry: { type: 'Point', coordinates: [site.location.lng, site.location.lat] }
       }))
-      .slice(0, 5)
 
     // 2. Search Mapbox
     const mapboxResults = await searchLocation(query, accessToken)
@@ -255,25 +302,29 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
   }
 
   return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0" />
+    <div className="relative w-full h-full pointer-events-auto">
+      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
 
       {/* Render Selected Marker */}
-      {selectedMemorialId && map.current && (() => {
-        const site = filteredData.find((s: any) => s.id === selectedMemorialId)
-        if (!site) return null
-
-
-
-        return (
-          <MapMarker map={map.current} coordinates={[site.location.lng, site.location.lat]}>
-            <SiteDetailPopover
-              site={site}
-              open={currentZoom >= 12}
-            />
-          </MapMarker>
-        )
-      })()}
+      {/* Render Selected Marker OR High Zoom Markers */}
+      {map.current && (
+        <>
+          {(currentZoom >= HIGH_ZOOM_THRESHOLD ? visibleSites : (selectedHeritageSite ? [selectedHeritageSite] : []))
+            .map((site) => (
+              <MapMarker
+                key={site.id}
+                map={map.current!}
+                coordinates={[site.location.lng, site.location.lat]}
+              >
+                <HeritageSiteDetailPopover
+                  heritageSite={site}
+                  open={currentZoom >= HIGH_ZOOM_THRESHOLD}
+                  onClose={() => handleHeritageSiteSelect?.(null)}
+                />
+              </MapMarker>
+            ))}
+        </>
+      )}
 
       {(isLoading || isSearching) && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-muted/60 animate-pulse pointer-events-none">
@@ -292,12 +343,12 @@ export default function MapboxMap({ accessToken, style, focusedMemorialId, onAna
         onExport={handleExport}
         onGenerateSynthetic={handleGenerateSynthetic}
 
-        // Missing props
         activeAreaLabel={activeAreaLabel}
         activeProperties={activeProperties}
         searchSuggestions={searchSuggestions}
         showProfileMarkers={showProfileMarkers}
         onClearActiveArea={clearActiveArea}
+        // @ts-ignore
         onPropertyToggle={handlePropertyToggle}
         onGISOperationSelect={handleGISOperationSelect}
         onElementRemove={handleElementRemove}
