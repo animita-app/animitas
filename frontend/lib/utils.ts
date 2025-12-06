@@ -1,8 +1,5 @@
-  import { clsx, type ClassValue } from 'clsx'
+import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
-
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -14,11 +11,11 @@ export function getInitials(name?: string | null): string {
   return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase()
 }
 
-export function formatDate(date: string | Date | null, formatStr = 'MMM dd, yyyy'): string {
+export function formatDate(date: string | Date | null): string {
   if (!date) return '-'
   try {
-    const parsed = typeof date === 'string' ? parseISO(date) : date
-    return format(parsed, formatStr)
+    const d = typeof date === 'string' ? new Date(date) : date
+    return new Intl.DateTimeFormat('es-CL', { month: 'short', day: 'numeric', year: 'numeric' }).format(d)
   } catch {
     return '-'
   }
@@ -27,8 +24,19 @@ export function formatDate(date: string | Date | null, formatStr = 'MMM dd, yyyy
 export function formatDateRelative(date: string | Date | null): string {
   if (!date) return '-'
   try {
-    const parsed = typeof date === 'string' ? parseISO(date) : date
-    return formatDistanceToNow(parsed, { addSuffix: true, locale: es })
+    const d = typeof date === 'string' ? new Date(date) : date
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - d.getTime()) / 1000)
+
+    const rtf = new Intl.RelativeTimeFormat('es-CL', { numeric: 'auto' })
+
+    if (diffInSeconds < 60) return rtf.format(-diffInSeconds, 'second')
+    if (diffInSeconds < 3600) return rtf.format(-Math.floor(diffInSeconds / 60), 'minute')
+    if (diffInSeconds < 86400) return rtf.format(-Math.floor(diffInSeconds / 3600), 'hour')
+    if (diffInSeconds < 604800) return rtf.format(-Math.floor(diffInSeconds / 86400), 'day')
+    if (diffInSeconds < 2592000) return rtf.format(-Math.floor(diffInSeconds / 604800), 'week')
+    if (diffInSeconds < 31536000) return rtf.format(-Math.floor(diffInSeconds / 2592000), 'month')
+    return rtf.format(-Math.floor(diffInSeconds / 31536000), 'year')
   } catch {
     return '-'
   }

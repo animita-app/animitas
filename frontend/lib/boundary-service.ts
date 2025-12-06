@@ -34,7 +34,6 @@ function simplifyGeometry(
       return simplified as Feature<Polygon | MultiPolygon>
     }
   } catch (error) {
-    console.warn('Failed to simplify geometry, returning original:', error)
     return feature
   }
 }
@@ -46,14 +45,10 @@ function simplifyGeometry(
 async function fetchFromOSMBoundaries(
   placeName: string
 ): Promise<Feature<Polygon | MultiPolygon | LineString | MultiLineString> | null> {
-  console.log('🌍 [OSM Boundaries] Fetching boundary for:', placeName)
-
   try {
     // Use Nominatim with better parameters for administrative boundaries
     // featuretype=boundary prioritizes administrative boundaries
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(placeName)}&format=json&polygon_geojson=1&limit=5&featuretype=boundary`
-
-    console.log('📍 [Nominatim] Request URL:', nominatimUrl)
 
     const nominatimResponse = await fetch(nominatimUrl, {
       headers: {
@@ -62,15 +57,12 @@ async function fetchFromOSMBoundaries(
     })
 
     if (!nominatimResponse.ok) {
-      console.log('❌ [Nominatim] Response not OK:', nominatimResponse.status)
       return null
     }
 
     const nominatimData = await nominatimResponse.json()
-    console.log('📦 [Nominatim] Response data:', nominatimData)
 
     if (!nominatimData || nominatimData.length === 0) {
-      console.log('❌ [Nominatim] No results found')
       return null
     }
 
@@ -84,20 +76,8 @@ async function fetchFromOSMBoundaries(
 
     const place = adminBoundary || nominatimData.find((p: any) => p.geojson) || nominatimData[0]
 
-    console.log('🎯 [Nominatim] Selected result:', {
-      display_name: place.display_name,
-      osm_type: place.osm_type,
-      osm_id: place.osm_id,
-      type: place.type,
-      class: place.class,
-      has_geojson: !!place.geojson,
-      geojson_type: place.geojson?.type
-    })
-
     // If Nominatim already returned the geometry, use it
     if (place.geojson) {
-      console.log('✅ [Nominatim] Has GeoJSON geometry, type:', place.geojson.type)
-
       const feature: Feature<Polygon | MultiPolygon> = {
         type: 'Feature',
         geometry: place.geojson,
@@ -110,17 +90,13 @@ async function fetchFromOSMBoundaries(
         }
       }
 
-      console.log('🔧 [Simplify] Simplifying geometry...')
       const simplified = simplifyGeometry(feature, 0.001)
-      console.log('✅ [Simplify] Done! Original type:', feature.geometry.type, '→ Simplified type:', simplified.geometry.type)
 
       return simplified
     }
 
-    console.log('⚠️ [Nominatim] No GeoJSON in response')
     return null
   } catch (error) {
-    console.error('❌ [OSM Boundaries] Fetch failed:', error)
     return null
   }
 }
@@ -132,10 +108,8 @@ async function fetchFromOSMBoundaries(
 async function fetchFromOverpass(
   placeName: string
 ): Promise<Feature<Polygon | MultiPolygon | LineString | MultiLineString> | null> {
-  console.log('🔄 [Overpass] Falling back to Overpass for:', placeName)
 
   const cleanName = placeName.split(',')[0].trim().replace(/"/g, '\\"')
-  console.log('🧹 [Overpass] Cleaned name:', cleanName)
 
   const query = `
     [out:json][timeout:25];
@@ -149,13 +123,10 @@ async function fetchFromOverpass(
     out geom;
   `
 
-  console.log('📝 [Overpass] Query:', query)
-
   try {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-    console.log('⏳ [Overpass] Sending request...')
     const response = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       body: query,
@@ -163,17 +134,14 @@ async function fetchFromOverpass(
     }).finally(() => clearTimeout(timeoutId))
 
     if (!response.ok) {
-      console.log('❌ [Overpass] Response not OK:', response.status)
       return null
     }
 
     const data = await response.json()
-    console.log('📦 [Overpass] Response elements:', data.elements?.length || 0)
 
     // Convert OSM data to GeoJSON
     const osmtogeojson = (await import('osmtogeojson')).default
     const geojson = osmtogeojson(data)
-    console.log('🗺️ [Overpass] GeoJSON features:', geojson.features.length)
 
     // Find the first valid geometry
     const feature = geojson.features.find(f =>
@@ -190,12 +158,8 @@ async function fetchFromOverpass(
     )
 
     if (!feature) {
-      console.log('❌ [Overpass] No valid geometry found')
       return null
     }
-
-    console.log('✅ [Overpass] Found geometry, type:', feature.geometry.type)
-    console.log('🔧 [Simplify] Simplifying Overpass geometry...')
 
     // Simplify for faster rendering
     const simplified = simplifyGeometry(
@@ -203,10 +167,8 @@ async function fetchFromOverpass(
       0.001
     )
 
-    console.log('✅ [Simplify] Done!')
     return simplified
   } catch (error) {
-    console.error('❌ [Overpass] Fetch failed:', error)
     return null
   }
 }
@@ -219,34 +181,24 @@ async function fetchFromOverpass(
 export async function fetchPlaceBoundary(
   placeName: string
 ): Promise<Feature<Polygon | MultiPolygon | LineString | MultiLineString> | null> {
-  console.log('🚀 [Boundary Service] Starting fetch for:', placeName)
 
   // Check cache first
   const cacheKey = placeName.toLowerCase().trim()
   if (boundaryCache.has(cacheKey)) {
-    console.log('⚡ [Cache] HIT! Returning cached boundary')
     return boundaryCache.get(cacheKey)!
   }
 
-  console.log('💾 [Cache] MISS - fetching from API')
-
   // Try OSM Boundaries API first (fast)
-  console.log('🔍 [Strategy] Trying Nominatim first...')
   let boundary = await fetchFromOSMBoundaries(placeName)
 
   // Fallback to Overpass if needed
   if (!boundary) {
-    console.log('⚠️ [Strategy] Nominatim failed, trying Overpass fallback...')
     boundary = await fetchFromOverpass(placeName)
   }
 
   // Cache the result
   if (boundary) {
-    console.log('✅ [Result] Boundary found! Caching...')
-    console.log('📊 [Result] Geometry type:', boundary.geometry.type)
     boundaryCache.set(cacheKey, boundary)
-  } else {
-    console.log('❌ [Result] No boundary found from any source')
   }
 
   return boundary

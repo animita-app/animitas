@@ -205,10 +205,8 @@ export async function fetchContextLayers(options: FetchOptions = { useMock: true
   const fetchWithCache = async (type: OverpassLayerType) => {
     const key = getCacheKey(type, bbox)
     if (layerCache.has(key)) {
-      // console.log(`[Cache] Hit for ${type}`)
       return layerCache.get(key)
     }
-    // console.log(`[Cache] Miss for ${type}, fetching...`)
     const data = await fetchOverpassLayer(type, bbox)
     layerCache.set(key, data)
     return data

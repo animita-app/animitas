@@ -7,6 +7,7 @@ export interface Person {
   birth_date?: string; // ISO 8601 YYYY-MM-DD
   birth_place?: string;
   death_place?: { lat: number; lng: number } | string;
+  image?: string | null;
 }
 
 // 2. HeritageSite (Punto de patrimonio)
@@ -25,6 +26,7 @@ export interface HeritageSite {
   created_by: { id: string; name: string };
   allow_edits: boolean;
   size?: "Pequeña" | "Mediana" | "Grande";
+  person_image?: string;
 }
 
 // 3. HeritageSite Story (Historia versionable)

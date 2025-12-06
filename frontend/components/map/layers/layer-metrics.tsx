@@ -21,7 +21,6 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
 
   // Get data source based on layer type
   const data = useMemo(() => {
-    // console.log('LayerMetrics: selectedLayer', selectedLayer)
     if (selectedLayer.id === 'heritage_sites') {
       // Use SEED_SITES + syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
       // This ensures charts show all available options in the current area, even when an attribute filter is active.

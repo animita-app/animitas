@@ -96,10 +96,27 @@ function generateRandomAttributes(seed: HeritageSite, index: number): Partial<He
 
   const title = generateRandomName();
 
+  // Random portrait from Unsplash
+  // We use a fixed query "portrait" or "person" to get faces.
+  // We append index/time to signature to get different images if possible,
+  // or use random IDs if Unsplash source API supports it well.
+  // Using source.unsplash.com is simple but deprecated/unreliable sometimes.
+  // Let's use a reliable placeholder pattern or just a clear Unsplash ID if we had a list.
+  // For now, random seed.
+  const personImage = `https://api.dicebear.com/7.x/micah/svg?seed=${index}-${Date.now()}`;
+
+  // Alternative: Real photos if preferred, but Dicebear is safer for "mock" without API keys
+  // If user wanted "image of person that died", maybe use a more realistic style?
+  // User said "image of the person".
+  // Let's try to simulate real photos with a placeholder service that returns faces.
+  // https://i.pravatar.cc/ is good for this.
+  const realPersonImage = `https://i.pravatar.cc/150?u=${index}-${Date.now()}`;
+
   return {
     title: title,
     slug: slugify(title),
     person_id: `synthetic-person-${index}-${Date.now()}`,
+    person_image: realPersonImage,
     typology: typology,
     size: size,
     story: story,

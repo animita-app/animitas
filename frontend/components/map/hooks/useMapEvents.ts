@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from 'react'
-import mapboxgl from 'mapbox-gl'
 import { useRouter } from 'next/navigation'
 
 const PROFILE_ZOOM_THRESHOLD = 12
@@ -9,11 +8,10 @@ interface UseMapEventsProps {
   map: mapboxgl.Map | null
   isMapReady: boolean
   focusedHeritageSiteId?: string | null
-  onHeritageSiteClick?: (id: string) => void
   onLayerClick?: (layerId: string, feature: any) => void
 }
 
-export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onHeritageSiteClick, onLayerClick }: UseMapEventsProps) {
+export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerClick }: UseMapEventsProps) {
   const router = useRouter()
   const lastFocusedIdRef = useRef<string | null>(null)
 
@@ -24,15 +22,8 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onHeritag
     // map.getStyle() check removed as isMapReady (derived from 'load' event) is safer
 
 
-    const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      if (!e.features || e.features.length === 0) return
-      const feature = e.features[0]
-      const id = feature.properties?.id
 
-      if (id && onHeritageSiteClick) {
-        onHeritageSiteClick(id)
-      }
-    }
+
 
     const onClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       if (!e.features || e.features.length === 0) return
@@ -71,10 +62,7 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onHeritag
     const onMouseLeave = () => { map.getCanvas().style.cursor = '' }
 
     // Memorials
-    map.on('click', 'memorials-inner', onPointClick)
-    map.on('click', 'memorials-outer', onPointClick)
-    map.on('mouseenter', 'memorials-inner', onMouseEnter)
-    map.on('mouseleave', 'memorials-inner', onMouseLeave)
+
 
     // Clusters
     map.on('click', 'clusters', onClusterClick)
@@ -107,11 +95,11 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onHeritag
     })
 
     return () => {
-      map.off('click', 'memorials-outer', onPointClick)
+
       map.off('click', 'clusters', onClusterClick)
       // Cleanup others...
     }
-  }, [map, isMapReady, onHeritageSiteClick, onLayerClick])
+  }, [map, isMapReady, onLayerClick])
 
   useEffect(() => {
     if (!map) return

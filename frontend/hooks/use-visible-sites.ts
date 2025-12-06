@@ -28,7 +28,12 @@ export function useVisibleSites({
       const zoom = map.getZoom()
       if (zoom >= zoomThreshold) {
         // Query rendered features to see what's on screen
-        const features = map.queryRenderedFeatures({ layers: ['memorials-inner'] })
+        const layersToQuery = ['memorials-inner', 'memorials-marker'].filter(id => map.getLayer(id))
+        if (layersToQuery.length === 0) {
+          setVisibleSites([])
+          return
+        }
+        const features = map.queryRenderedFeatures({ layers: layersToQuery })
 
         // Extract IDs
         const visibleIds = new Set(features.map(f => f.properties?.id).filter(Boolean))

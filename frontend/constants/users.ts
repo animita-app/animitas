@@ -4,7 +4,7 @@ export const CURRENT_USER = {
   id: '1',
   name: 'Pype',
   email: 'pype@animita.app',
-  role: ROLES.EDITOR as UserRole, // Change this to ROLES.PAID or ROLES.EDITOR to test other roles
+  role: ROLES.FREE as UserRole, // Change this to ROLES.PRO, ROLES.INSTITUTIONAL or ROLES.EDITOR to test other roles
   avatarUrl: '/pype.png'
 }
 

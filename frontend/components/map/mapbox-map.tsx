@@ -12,12 +12,18 @@ import { useLayerManagement } from './hooks/useLayerManagement'
 import { useMapEvents } from './hooks/useMapEvents'
 import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
+import { useCruiseMode } from '@/hooks/use-cruise-mode'
+import { useSpatialAudio } from '@/hooks/use-spatial-audio'
 import { HeritageSiteProperty, GISOperation } from '../paywall/types'
 import { searchLocation } from '@/lib/mapbox'
 import { MapMarker } from './map-marker'
 import { HeritageSiteDetailPopover } from './heritage-site-detail-popover'
+import { HeritageMarkerLayer } from './layers/heritage-marker-layer'
 import { COLORS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/mock'
+import { PrefaceDialog } from '@/components/modals/preface-dialog'
+import { useUser } from '@/contexts/user-context'
+import { ROLES } from '@/types/roles'
 
 interface MapboxMapProps {
   accessToken: string
@@ -42,7 +48,8 @@ export default function MapboxMap({
 
   // Spatial Context
   // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData } = useSpatialContext()
+  // @ts-ignore
+  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, isCruiseActive, setCruiseActive } = useSpatialContext()
 
   // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
@@ -59,6 +66,11 @@ export default function MapboxMap({
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [currentZoom, setCurrentZoom] = useState<number>(0)
   const [isSearching, setIsSearching] = useState(false)
+  const [showPreface, setShowPreface] = useState(true)
+  const [hasMoved, setHasMoved] = useState(false)
+
+  const { role } = useUser()
+  const isFree = role === ROLES.FREE
 
   // Track Visible Sites at High Zoom
   const visibleSites = useVisibleSites({
@@ -81,36 +93,29 @@ export default function MapboxMap({
   }, [focusedHeritageSiteId, filteredData, handleHeritageSiteSelect])
 
   // Track Zoom Level
+  // Track Zoom Level & User Movement
   useEffect(() => {
     if (!map.current) return
     const updateZoom = () => setCurrentZoom(map.current!.getZoom())
+
+    const onMoveEnd = (e: any) => {
+      if (e.originalEvent) {
+        setHasMoved(true)
+      }
+    }
+
     map.current.on('zoom', updateZoom)
+    map.current.on('moveend', onMoveEnd)
+
     updateZoom()
+
     return () => {
       map.current?.off('zoom', updateZoom)
+      map.current?.off('moveend', onMoveEnd)
     }
   }, [isMapReady])
 
-  // Update Memorials Source with Filtered Data
-  useEffect(() => {
-    if (!map.current || !isMapReady) return
 
-    const source = map.current.getSource('memorials') as mapboxgl.GeoJSONSource
-    if (source) {
-      const geojson = {
-        type: 'FeatureCollection',
-        features: filteredData.map((site: HeritageSite) => ({
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [site.location.lng, site.location.lat]
-          },
-          properties: site
-        }))
-      }
-      source.setData(geojson as any)
-    }
-  }, [isMapReady, filteredData, map])
 
   // 2. Active Layers State (kept here as it's shared between Overpass and LayerManagement)
   const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
@@ -167,27 +172,8 @@ export default function MapboxMap({
     map: map.current,
     isMapReady,
     focusedHeritageSiteId: selectedHeritageSite?.id || null,
-    onHeritageSiteClick: (id) => {
-      const site = filteredData.find((s: HeritageSite) => s.id === id)
-      if (!site) return
 
-      const zoom = map.current?.getZoom() || 0
-
-      if (zoom >= HIGH_ZOOM_THRESHOLD) {
-        // High zoom: Redirect to detail page
-        const kind = (site as any).kind || 'animita'
-        const slug = site.slug || site.id
-        router.push(`/${kind}/${slug}`)
-      } else {
-        // Normal zoom: Select site AND zoom to it
-        handleHeritageSiteSelect(site)
-        focusHeritageSite(
-          site.id,
-          [site.location.lng, site.location.lat],
-          { shouldNavigate: false, instant: false }
-        )
-      }
-    },
+    // onHeritageSiteClick is now handled by HeritageMarkerLayer
     onLayerClick: (layerId, feature) => {
       // Find the layer object
       const layer = layers.find(l => l.id === layerId)
@@ -196,6 +182,54 @@ export default function MapboxMap({
       }
     }
   })
+
+  // 8. Cruise Mode & Audio
+  const { startCruise, stopCruise } = useCruiseMode({
+    map: map.current,
+    sites: filteredData,
+    onSiteExamine: (site) => {
+      // Optional: Open popover automatically?
+      handleHeritageSiteSelect(site)
+    }
+  })
+
+  useEffect(() => {
+    if (isCruiseActive) {
+      startCruise()
+    } else {
+      stopCruise()
+    }
+  }, [isCruiseActive, startCruise, stopCruise])
+
+  useSpatialAudio({
+    map: map.current,
+    sites: filteredData,
+    enabled: isFree ? true : false
+  })
+
+  // Handlers
+  const handleMarkerClick = (id: string) => {
+    const site = filteredData.find((s: HeritageSite) => s.id === id)
+    if (!site) return
+
+    const zoom = map.current?.getZoom() || 0
+
+    if (zoom >= HIGH_ZOOM_THRESHOLD) {
+      // High zoom: Redirect to detail page
+      const kind = (site as any).kind || 'animita'
+      const slug = site.slug || site.id
+      router.push(`/${kind}/${slug}`)
+    } else {
+      // Normal zoom: Select site AND zoom to it
+      handleHeritageSiteSelect(site)
+      focusHeritageSite(
+        site.id,
+        [site.location.lng, site.location.lat],
+        { shouldNavigate: false, instant: false }
+      )
+      setHasMoved(true)
+    }
+  }
 
   // Handlers
   const handleProfileToggle = () => setShowProfileMarkers(prev => !prev)
@@ -277,6 +311,7 @@ export default function MapboxMap({
       })
     }
     setSearchSuggestions([])
+    setHasMoved(true)
   }
 
   const handleResetView = () => {
@@ -292,6 +327,7 @@ export default function MapboxMap({
         duration: 600
       }
     )
+    setHasMoved(false)
   }
 
   const handleExport = (format: string, scope?: 'viewport' | 'all') => {
@@ -305,26 +341,16 @@ export default function MapboxMap({
     <div className="relative w-full h-full pointer-events-auto">
       <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
 
-      {/* Render Selected Marker */}
-      {/* Render Selected Marker OR High Zoom Markers */}
-      {map.current && (
-        <>
-          {(currentZoom >= HIGH_ZOOM_THRESHOLD ? visibleSites : (selectedHeritageSite ? [selectedHeritageSite] : []))
-            .map((site) => (
-              <MapMarker
-                key={site.id}
-                map={map.current!}
-                coordinates={[site.location.lng, site.location.lat]}
-              >
-                <HeritageSiteDetailPopover
-                  heritageSite={site}
-                  open={currentZoom >= HIGH_ZOOM_THRESHOLD}
-                  onClose={() => handleHeritageSiteSelect?.(null)}
-                />
-              </MapMarker>
-            ))}
-        </>
-      )}
+      <HeritageMarkerLayer
+        map={map.current}
+        isMapReady={isMapReady}
+        data={filteredData}
+        onSiteClick={handleMarkerClick}
+        currentZoom={currentZoom}
+        visibleSites={visibleSites}
+        selectedSite={selectedHeritageSite}
+        onSiteSelect={handleHeritageSiteSelect}
+      />
 
       {(isLoading || isSearching) && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-muted/60 animate-pulse pointer-events-none">
@@ -355,9 +381,18 @@ export default function MapboxMap({
         onCloseLayerDetail={handleCloseLayerDetail}
         onSearch={handleSearch}
         onSelectResult={handleSelectResult}
-        onResetView={handleResetView}
+
+        onResetView={hasMoved ? handleResetView : undefined}
         onSearchLoading={setIsSearching}
       />
+
+      {/* Preface Dialog for Free Users */}
+      {isFree && (
+        <PrefaceDialog
+          open={showPreface}
+          onOpenChange={setShowPreface}
+        />
+      )}
     </div>
   )
 }

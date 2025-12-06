@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
+"use client"
+
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { User, UserRole, ROLES } from '@/types/roles'
 import { CURRENT_USER } from '@/constants/users'
 
@@ -18,7 +20,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const [isLoading, setIsLoading] = useState(false)
 
+  // Load role from local storage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedRole = localStorage.getItem('user_role') as UserRole
+      if (savedRole && currentUser) {
+        setCurrentUser(prevResult => prevResult ? { ...prevResult, role: savedRole } : null)
+      }
+    }
+  }, [])
+
   const setRole = (newRole: UserRole) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('user_role', newRole)
+    }
     if (currentUser) {
       setCurrentUser({ ...currentUser, role: newRole })
     }
@@ -27,7 +42,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   return (
     <UserContext.Provider value={{
       currentUser,
-      role: currentUser?.role || ROLES.DEFAULT,
+      role: currentUser?.role || ROLES.FREE,
       setUser: setCurrentUser,
       setRole,
       isLoading

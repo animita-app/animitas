@@ -5,7 +5,7 @@ import { SearchPanel } from '../components/paywall/search'
 import { ActiveAreaBanner } from '../components/paywall/active-area-banner'
 import { Toolbar } from '../components/paywall/toolbar'
 import { Layer, HeritageSiteProperty, GISOperation } from '../components/paywall/types'
-import { TopHeader } from '@/components/headers/top-header'
+import { Header } from '@/components/headers/header'
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -32,11 +32,12 @@ interface MapLayoutProps {
   onCloseLayerDetail: () => void
   onSearch: (query: string) => void
   onSelectResult: (location: any) => void
-  onResetView: () => void
-  onToggleProfile: () => void
+  onResetView?: () => void
+  onToggleProfile?: () => void
   onExport: (format: string, scope?: 'viewport' | 'all') => void
   onGenerateSynthetic: () => void
   onSearchLoading?: (loading: boolean) => void
+  hasMoved?: boolean
 }
 
 export function MapLayout({
@@ -61,10 +62,13 @@ export function MapLayout({
   onToggleProfile,
   onExport,
   onGenerateSynthetic,
-  onSearchLoading
+  onExport,
+  onGenerateSynthetic,
+  onSearchLoading,
+  hasMoved
 }: MapLayoutProps) {
   const { role } = useUser()
-  const isPaidOrHigher = role === ROLES.PAID || role === ROLES.EDITOR
+  const isFree = role === ROLES.FREE
   const isMobile = useIsMobile()
   const [snap, setSnap] = useState<number | string | null>(0.06)
 
@@ -78,18 +82,19 @@ export function MapLayout({
           label={activeAreaLabel}
           onClear={() => {
             onClearActiveArea()
-            onResetView()
+            onResetView?.()
           }}
         />
 
         <div className="pointer-events-auto inset-x-4 top-4 absolute">
-          <TopHeader
+          <Header
             onExport={onExport}
             componentCount={componentCount}
+            variant="gis"
           />
         </div>
 
-        {isPaidOrHigher && (
+        {!isFree && (
           <Drawer
             snapPoints={[0.06, 1]}
             activeSnapPoint={snap}
@@ -144,15 +149,14 @@ export function MapLayout({
           </Drawer>
         )}
 
-        {isPaidOrHigher && (
-          <Toolbar
-            onResetView={onResetView}
-            onToggleProfile={onToggleProfile}
-            showProfile={showProfileMarkers}
-            onExport={onExport}
-            onGenerateSynthetic={onGenerateSynthetic}
-          />
-        )}
+        <Toolbar
+          onResetView={hasMoved ? onResetView : undefined}
+          onToggleProfile={onToggleProfile}
+          showProfile={showProfileMarkers}
+          onExport={onExport}
+          onGenerateSynthetic={onGenerateSynthetic}
+          isFree={isFree}
+        />
       </div>
     )
   }
@@ -163,20 +167,21 @@ export function MapLayout({
         label={activeAreaLabel}
         onClear={() => {
           onClearActiveArea()
-          onResetView()
+          onResetView?.()
         }}
       />
 
       <div className="absolute inset-4 z-10 flex flex-col gap-4 pointer-events-none">
         <div className="pointer-events-auto">
-          <TopHeader
+          <Header
             onExport={onExport}
             componentCount={componentCount}
+            variant="gis"
           />
         </div>
 
         <div className="relative flex-1 min-h-0 pointer-events-none">
-          {isPaidOrHigher && (
+          {!isFree && (
             <Legend
               layers={layers}
               elements={elements}
@@ -188,7 +193,7 @@ export function MapLayout({
 
 
           {selectedLayer ? (
-            isPaidOrHigher && (
+            !isFree && (
               <LayerDetail
                 selectedLayer={selectedLayer}
                 onClose={onCloseLayerDetail}
@@ -212,15 +217,14 @@ export function MapLayout({
         </div>
       </div>
 
-      {isPaidOrHigher && (
-        <Toolbar
-          onResetView={onResetView}
-          onToggleProfile={onToggleProfile}
-          showProfile={showProfileMarkers}
-          onExport={onExport}
-          onGenerateSynthetic={onGenerateSynthetic}
-        />
-      )}
+      <Toolbar
+        onResetView={hasMoved ? onResetView : undefined}
+        onToggleProfile={onToggleProfile}
+        showProfile={showProfileMarkers}
+        onExport={onExport}
+        onGenerateSynthetic={onGenerateSynthetic}
+        isFree={isFree}
+      />
     </div>
   )
 }

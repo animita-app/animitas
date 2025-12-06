@@ -91,7 +91,7 @@ export function Legend({
                 Transporte y riesgo vial
               </AccordionTrigger>
               <AccordionContent className="pl-5.5">
-                <div className="space-y-1">
+                <div className="text-black space-y-1">
                   {transportLayers.map(renderLayerItem)}
                 </div>
               </AccordionContent>
@@ -104,7 +104,7 @@ export function Legend({
                 Servicios críticos
               </AccordionTrigger>
               <AccordionContent className="pl-5.5">
-                <div className="space-y-1">
+                <div className="text-black space-y-1">
                   {serviceLayers.map(renderLayerItem)}
                 </div>
               </AccordionContent>
@@ -117,7 +117,7 @@ export function Legend({
                 Sociabilidad
               </AccordionTrigger>
               <AccordionContent className="pl-5.5">
-                <div className="space-y-1">
+                <div className="text-black space-y-1">
                   {socialLayers.map(renderLayerItem)}
                 </div>
               </AccordionContent>

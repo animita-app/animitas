@@ -7,6 +7,7 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: undefined,
     birth_place: "Arica, Chile",
     death_place: "Arica, Chile",
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-del-cabo-gomez/gomez.jpg"
   },
   {
     id: "seed-person-hermogenes-san-martin",
@@ -14,8 +15,9 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: undefined,
     birth_place: "Iquique, Chile",
     death_place: "Iquique, Chile",
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-hermogenes/hermo.jpg"
   },
- {
+  {
     id: "seed-person-elvirita-guillen",
     full_name: "Elvira 'Elvirita' Guillén Guillén",
     birth_date: "1923-01-01",
@@ -48,7 +50,8 @@ export const SEED_PEOPLE: Person[] = [
     full_name: "Émile Poirier (Emile Dubois)",
     birth_date: undefined,
     birth_place: "Francia",
-    death_place: "Valparaíso, Chile"
+    death_place: "Valparaíso, Chile",
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.02@2x.png"
   },
   {
     id: "seed-person-romualdito",
@@ -230,7 +233,8 @@ export const SEED_PEOPLE: Person[] = [
     full_name: "Astrid Alicia Soto Chamorro ('Niña Hermosa')",
     birth_date: "c. 1980",
     birth_place: undefined,
-    death_place: "Autopista del Sol, Chile"
+    death_place: "Autopista del Sol, Chile",
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-astrid/astrid.jpg"
   },
   {
     id: "seed-person-romualdito",

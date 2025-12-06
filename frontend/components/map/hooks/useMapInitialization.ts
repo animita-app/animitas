@@ -2,21 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { COLORS } from '@/lib/map-style'
 
-const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
+export const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-75.6, -56.0],
   [-66.4, -17.5]
 ]
 
-const EMPTY_MEMORIALS = {
-  type: 'FeatureCollection',
-  features: []
-}
 
-const CLUSTER_CONFIG = {
-  cluster: true,
-  clusterMaxZoom: 20, // Clusters will break apart up to zoom level 20
-  clusterRadius: 25
-}
 
 interface UseMapInitializationProps {
   accessToken: string
@@ -65,15 +56,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       }
       mapInstance.setMaxZoom(22)
 
-      // --- Memorials Source ---
-      if (!mapInstance.getSource('memorials')) {
 
-        mapInstance.addSource('memorials', {
-          type: 'geojson',
-          data: EMPTY_MEMORIALS as any,
-          ...CLUSTER_CONFIG
-        })
-      }
 
       // --- Overpass Sources ---
       const contextSources = [
@@ -227,77 +210,6 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
         })
       }
 
-      // --- Clusters Layers ---
-      if (!mapInstance.getLayer('clusters')) {
-        mapInstance.addLayer({
-          id: 'clusters',
-          type: 'circle',
-          source: 'memorials',
-          filter: ['has', 'point_count'],
-          paint: {
-            'circle-color': ['step', ['get', 'point_count'], 'transparent', 10, 'transparent', 30, 'transparent'],
-            'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
-            'circle-opacity': 0.85,
-            'circle-stroke-color': COLORS.animitas,
-            'circle-stroke-width': 1.5
-          }
-        })
-      }
-
-      if (!mapInstance.getLayer('cluster-count')) {
-        mapInstance.addLayer({
-          id: 'cluster-count',
-          type: 'symbol',
-          source: 'memorials',
-          filter: ['has', 'point_count'],
-          layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 14
-          },
-          paint: { 'text-color': COLORS.animitas }
-        })
-      }
-
-      if (!mapInstance.getLayer('memorials-outer')) {
-        mapInstance.addLayer({
-          id: 'memorials-outer',
-          type: 'circle',
-          source: 'memorials',
-          filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'],
-              3, 8,
-              6, 18,
-              12, 24,
-              18, 32
-            ],
-            'circle-color': 'transparent',
-            'circle-opacity': 0.85,
-            'circle-stroke-color': COLORS.animitas,
-            'circle-stroke-width': 1.5
-          }
-        })
-      }
-
-      if (!mapInstance.getLayer('memorials-inner')) {
-        mapInstance.addLayer({
-          id: 'memorials-inner',
-          type: 'circle',
-          source: 'memorials',
-          filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'],
-              3, 2.5,
-              6, 6,
-              12, 8,
-              18, 12
-            ],
-            'circle-color': COLORS.animitas,
-            'circle-opacity': 0.92
-          }
-        })
-      }
     })
 
     return () => {

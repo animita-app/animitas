@@ -1,22 +1,12 @@
-import { useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { PopoverProps } from "@radix-ui/react-popover"
 import { HeritageSite } from '@/types/mock'
 import { ICONS } from '@/lib/map-style'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Calendar, User, MapPin, Activity, Heart, Camera } from "lucide-react"
 import Image from 'next/image'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
 
-interface HeritageSiteDetailPopoverProps extends PopoverProps {
+interface HeritageSiteDetailPopoverProps {
   heritageSite?: HeritageSite
   id?: string
   name?: string
@@ -26,6 +16,7 @@ interface HeritageSiteDetailPopoverProps extends PopoverProps {
   open?: boolean
   onClose?: () => void
   children?: React.ReactNode
+  isFree?: boolean
 }
 
 export const HeritageSiteDetailPopover = ({
@@ -36,21 +27,17 @@ export const HeritageSiteDetailPopover = ({
   typology: propTypology,
   death_cause: propDeathCause,
   children,
-  onClose,
   open,
+  isFree,
   ...props
 }: HeritageSiteDetailPopoverProps) => {
-  const triggerRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
   // Extract values from site object or fallback to props
-  const lat = heritageSite?.location.lat
-  const lng = heritageSite?.location.lng
-  const id = heritageSite?.id || propId
   const name = heritageSite?.title || propName
-  const images = heritageSite?.images || propImages || []
   const typology = heritageSite?.typology || propTypology
   const death_cause = heritageSite?.insights?.memorial?.death_cause || propDeathCause
+  const id = heritageSite?.id || propId
   const kind = (heritageSite as any)?.kind || 'animita'
   const slug = heritageSite?.slug || id
 
@@ -67,54 +54,55 @@ export const HeritageSiteDetailPopover = ({
   const typologyData = getTypologyData(typology)
   const deathCauseData = getDeathCauseData(death_cause)
 
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (slug && kind) {
       router.push(`/${kind}/${slug}`)
     }
   }
 
-  if (!open) return null
-
   return (
-    <Popover open={open}>
-      <PopoverTrigger asChild>
-        <div ref={triggerRef} className="relative flex flex-col items-center group pointer-events-none w-0 h-0">
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none">
-            <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
-              {name || 'Animita'}
-            </span>
-          </div>
+    <div className="relative flex flex-col items-center group cursor-pointer w-0 h-0">
+      {/* Custom Marker Content (e.g. Image) */}
+      <div className="-mt-6 relative z-20">
+        {children}
+      </div>
+
+      {open && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-30">
+          <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
+            {name || 'Animita'}
+          </span>
         </div>
-      </PopoverTrigger>
-      <PopoverContent
-        side="top"
-        sideOffset={48}
-        collisionPadding={10}
-        disablePortal={true}
-        className="bg-transparent border-none shadow-none p-0 w-auto pointer-events-none"
-      >
-        <Card className="z-10 w-80 !py-0 overflow-hidden pointer-events-auto cursor-pointer hover:shadow-lg transition-shadow" onClick={handleCardClick}>
-          <CardContent className="p-4 space-y-4">
-            {/* Properties List */}
-            <div className="space-y-1.5">
-              <Label>Tipología</Label>
-              <span className="text-sm font-normal text-black">{typologyData.label}</span>
-            </div>
+      )}
 
-            <div className="space-y-1.5">
-              <Label>Causa de Muerte</Label>
-              <span className="text-sm font-normal text-black">{deathCauseData.label}</span>
-            </div>
-
-            {heritageSite?.insights?.patrimonial?.antiquity_year && (
-              <div className="space-y-1.5">
-                <Label>Antigüedad</Label>
-                <span className="text-sm font-normal text-black">{heritageSite.insights.patrimonial.antiquity_year}</span>
+      {open || !isFree && (
+        <div className="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
+          <Card
+            className="w-72 !py-0 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-white/90 backdrop-blur-md border-none shadow-md"
+            onClick={handleCardClick}
+          >
+            <CardContent className="p-4 space-y-4">
+              <div className="space-y-1">
+                <Label>Tipología</Label>
+                <p className="text-sm font-medium text-black">{typologyData.label}</p>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </PopoverContent>
-    </Popover>
+
+              <div className="space-y-1">
+                <Label>Causa de Muerte</Label>
+                <p className="text-sm font-medium text-black">{deathCauseData.label}</p>
+              </div>
+
+              {heritageSite?.insights?.patrimonial?.antiquity_year && (
+                <div className="space-y-1">
+                  <Label>Antigüedad</Label>
+                  <p className="text-sm font-medium text-black">{heritageSite.insights.patrimonial.antiquity_year}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
   )
 }

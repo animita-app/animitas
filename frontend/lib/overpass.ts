@@ -180,7 +180,6 @@ export async function fetchOverpassLayer(
   const query = QUERIES[type](bbox);
 
   try {
-    // console.log(`Fetching Overpass layer: ${type} with bbox: ${bbox}`)
     const response = await fetch(OVERPASS_API_URL, {
       method: 'POST',
       body: `data=${encodeURIComponent(query)}`,
@@ -191,7 +190,6 @@ export async function fetchOverpassLayer(
 
     const data = await response.json();
     const geojson = osmtogeojson(data) as FeatureCollection;
-    // console.log(`Overpass layer ${type} fetched successfully. Features: ${geojson.features.length}`)
     return geojson;
 
   } catch (error) {

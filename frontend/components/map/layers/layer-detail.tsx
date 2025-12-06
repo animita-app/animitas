@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { X, MoreHorizontal, Settings2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,9 +30,9 @@ import {
   GISOperation,
   HeritageSiteProperty
 } from '../../paywall/types'
-import { ComponentForm } from './component-form'
+import { MetricForm } from './metric-form'
 import { StyleTab } from './tabs/style-tab'
-import { ComponentsTab } from './tabs/components-tab'
+import { MetricsTab } from './tabs/metrics-tab'
 import { AnalysisTab } from './tabs/analysis-tab'
 
 import { cn } from "@/lib/utils"
@@ -58,6 +59,7 @@ export function LayerDetail({
   onElementRemove,
   className
 }: LayerDetailProps) {
+  const router = useRouter()
   const isMobile = useIsMobile()
   const [activeTab, setActiveTab] = useState<string>('style')
   const [gisOperation, setGisOperation] = useState<GISOperation | ''>('')
@@ -142,7 +144,7 @@ export function LayerDetail({
       const currentComponents = selectedLayer.components || []
 
       // Pro Plan Limit Check
-      if (role === ROLES.PAID) {
+      if (role === ROLES.PRO) {
         if (currentComponents.length >= 3) {
           setShowLimitAlert(true)
           // Keep form open
@@ -175,7 +177,7 @@ export function LayerDetail({
   // Mobile View: Component Form replaces Layer Detail
   if (isMobile && (isCreatingComponent || editingComponent)) {
     return (
-      <ComponentForm
+      <MetricForm
         component={editingComponent}
         formType={componentFormType}
         formTitle={componentFormTitle}
@@ -248,7 +250,7 @@ export function LayerDetail({
           {selectedLayer.id === 'heritage_sites' && (
             <TabsList className="shrink-0 pt-0">
               <TabsTrigger value="style">Estilo</TabsTrigger>
-              <TabsTrigger value="components">Componentes</TabsTrigger>
+              <TabsTrigger value="metrics">Métricas</TabsTrigger>
               <TabsTrigger value="analysis">Análisis</TabsTrigger>
             </TabsList>
           )}
@@ -265,8 +267,8 @@ export function LayerDetail({
 
             {selectedLayer.id === 'heritage_sites' && (
               <>
-                <TabsContent value="components" className="m-0 h-full">
-                  <ComponentsTab
+                <TabsContent value="metrics" className="m-0 h-full">
+                  <MetricsTab
                     selectedLayer={selectedLayer}
                     onOpenForm={openComponentForm}
                     onRemove={removeComponent}
@@ -289,7 +291,7 @@ export function LayerDetail({
       </Card>
 
       {!isMobile && (isCreatingComponent || editingComponent) && (
-        <ComponentForm
+        <MetricForm
           component={editingComponent}
           formType={componentFormType}
           formTitle={componentFormTitle}
@@ -306,16 +308,16 @@ export function LayerDetail({
       <AlertDialog open={showLimitAlert} onOpenChange={setShowLimitAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Límite de componentes alcanzado</AlertDialogTitle>
+            <AlertDialogTitle>Límite de métricas alcanzado</AlertDialogTitle>
             <AlertDialogDescription>
-              El plan Pro permite un máximo de 3 componentes activos simultáneamente. Actualiza al plan Editor para agregar más.
+              El plan Pro permite un máximo de 3 métricas activas simultáneamente. Actualiza al plan Institucional para agregar más.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Entendido</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
-              // Redirect or open upgrade modal could go here
               setShowLimitAlert(false)
+              router.push('/pricing')
             }}>
               Mejorar Plan
             </AlertDialogAction>

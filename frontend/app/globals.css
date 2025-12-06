@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
@@ -98,6 +99,15 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
+  --animate-blink-cursor: blink-cursor 1.2s step-end infinite;
+  @keyframes blink-cursor {
+  0%, 49% {
+    opacity: 1;
+    }
+  50%, 100% {
+    opacity: 0;
+    }
+  }
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -125,7 +135,7 @@
   --color-card-foreground: var(--color-text);
   --color-muted: var(--color-background-weak);
   --color-muted-foreground: var(--color-text-weak);
-  --color-primary: var(--color-text-strong);
+  --color-primary: black;
   --color-primary-foreground: var(--color-text-inverted);
   --color-secondary: var(--color-background-weaker);
   --color-secondary-foreground: var(--color-text);
@@ -135,7 +145,7 @@
   --color-ring: var(--color-text-weaker);
   --sidebar: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary: hsl(240 100% 47%);
   --sidebar-primary-foreground: hsl(0 0% 100%);
   --sidebar-accent: hsl(240 3.7% 15.9%);
   --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
@@ -146,7 +156,7 @@
 @layer base {
   * {
     border-color: var(--color-border);
-    font-feature-settings: "zero" 1;
+    font-feature-settings: "ss03", "zero";
   }
 
   html {
@@ -154,11 +164,14 @@
   }
 
   body {
+    @apply antialiased;
     font-family: var(--font-sans);
     background-color: var(--color-background);
     color: var(--color-text-strong);
     line-height: 1.6;
     font-size: 0.875rem;
+    webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss03", "zero";
     /* text-sm */
   }
 }
@@ -262,4 +275,13 @@ img {
 
 .animate-progress {
   animation: progress linear forwards;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

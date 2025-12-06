@@ -22,23 +22,35 @@ export const MapMarker = ({ map, coordinates, children }: MapMarkerProps) => {
   useEffect(() => {
     if (!map) return
 
+    // Create marker
     markerRef.current = new mapboxgl.Marker({
       element: container,
-      anchor: 'center'
+      anchor: 'bottom', // Ensure bottom anchor for pins
     })
       .setLngLat(coordinates)
-      .addTo(map)
 
-
+    // Safety check before adding
+    try {
+      markerRef.current.addTo(map)
+    } catch (e) {
+      console.warn("Failed to add component marker to map", e)
+    }
 
     return () => {
       markerRef.current?.remove()
+      markerRef.current = null
     }
-  }, [map, container])
+  }, [map, coordinates]) // Re-run if map or coords change, container])
 
   useEffect(() => {
     markerRef.current?.setLngLat(coordinates)
   }, [coordinates])
 
-  return createPortal(children, container)
+  return createPortal(
+    <div className="relative group cursor-pointer">
+      {/* Visual Marker (Image or Default) */}
+      {children}
+    </div>,
+    container
+  )
 }

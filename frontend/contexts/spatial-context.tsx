@@ -10,6 +10,10 @@ interface SpatialContextType {
   setActiveArea: (area: Feature<Geometry> | FeatureCollection, label: string) => void
   clearActiveArea: () => void
 
+  // Cruise Mode
+  isCruiseActive: boolean
+  setCruiseActive: (active: boolean) => void
+
   // Filtering
   filters: Record<string, string[]>
   setFilter: (attribute: string, values: string[]) => void
@@ -29,6 +33,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
+  const [isCruiseActive, setCruiseActive] = useState(false)
 
   const setActiveArea = (area: Feature<Geometry> | FeatureCollection, label: string) => {
     setActiveAreaState(area)
@@ -143,7 +148,9 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       filteredData,
       syntheticSites,
       // @ts-ignore
-      setSyntheticSites
+      setSyntheticSites,
+      isCruiseActive,
+      setCruiseActive
     }}>
       {children}
     </SpatialContext.Provider>
