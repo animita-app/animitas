@@ -26,7 +26,6 @@ export function ActiveAreaBanner({ label, onClear }: ActiveAreaBannerProps) {
           size="icon"
           className="h-5 w-5 text-muted-foreground ml-1 hover:bg-neutral-800"
           onClick={() => {
-            console.log('[ActiveAreaBanner] Clear clicked')
             onClear()
           }}
         >

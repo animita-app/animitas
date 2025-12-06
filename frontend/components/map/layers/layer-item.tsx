@@ -60,7 +60,7 @@ export const LayerItem = ({ layer, isSearchResult = false, onClick, onToggleVisi
   >
     <div className="flex items-center gap-1">
       <LayerIcon layer={layer} />
-      <span className={cn("text-sm font-medium text-black truncate select-none", !isSearchResult && "max-w-56")}>{layer.label}</span>
+      <span className={cn("text-sm font-normal text-black truncate select-none", !isSearchResult && "max-w-56")}>{layer.label}</span>
     </div>
     {!isSearchResult && (
       <Button

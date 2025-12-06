@@ -79,7 +79,6 @@ export function MapLayout({
         <ActiveAreaBanner
           label={activeAreaLabel}
           onClear={() => {
-            console.log('[MapLayout Mobile] Clearing active area')
             onClearActiveArea()
             setTimeout(() => {
               onResetView?.()
@@ -167,7 +166,6 @@ export function MapLayout({
       <ActiveAreaBanner
         label={activeAreaLabel}
         onClear={() => {
-          console.log('[MapLayout] Clearing active area. onResetView available:', !!onResetView)
           onClearActiveArea()
           setTimeout(() => {
             if (onResetView) {

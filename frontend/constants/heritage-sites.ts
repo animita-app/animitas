@@ -4,7 +4,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-hermogenes-san-martin",
     slug: "animita-de-hermogenes-san-martin",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Hermógenes San Martín",
     person_id: "seed-person-hermogenes-san-martin",
     location: { lat: -20.2117411, lng: -70.1395242 },
@@ -38,7 +38,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-evaristo-montt",
     slug: "animita-de-evaristo-montt",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Evaristo Montt",
     person_id: "seed-person-evaristo-montt",
     location: { lat: -23.6370689, lng: -70.3900487 },
@@ -72,7 +72,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-elvirita-guillen",
     slug: "animita-de-elvirita-guillen",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Elvirita Guillén",
     person_id: "seed-person-elvirita-guillen",
     location: { lat: -23.6471877, lng: -70.3872316 },
@@ -106,7 +106,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-las-adrianitas",
     slug: "animita-de-las-adrianitas",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de las Adrianitas",
     person_id: "seed-person-las-adrianitas",
     location: { lat: -27.3714509, lng: -70.3380243 },
@@ -139,7 +139,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-el-quisco",
     slug: "animita-de-el-quisco",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita del Quisco",
     person_id: "seed-person-el-quisco",
     location: { lat: -29.9494971, lng: -71.3464602 },
@@ -171,7 +171,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-luis-castillo",
     slug: "animita-de-luis-castillo",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Luis Castillo",
     person_id: "seed-person-luis-castillo",
     location: { lat: -30.5876393, lng: -71.1956484 },
@@ -203,7 +203,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-del-cabo-gomez",
     slug: "animita-del-cabo-gomez",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita del Cabo Gomez",
     person_id: "seed-person-cabo-gomez",
     location: { lat: -18.4778588, lng: -70.313807 },
@@ -238,7 +238,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-romualdito",
     slug: "animita-de-romualdito",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Romualdito",
     person_id: "seed-person-romualdo-ivani-zambelli",
     location: { lat: -33.4520189, lng: -70.6803072 },
@@ -271,7 +271,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-mesa-bell",
     slug: "animita-de-mesa-bell",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Mesa Bell",
     person_id: "seed-person-luis-mesa-bell",
     location: { lat: -33.420818, lng: -70.7016814 },
@@ -303,7 +303,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-alicia-bon",
     slug: "animita-de-alicia-bon",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Alicia Bon Guzmán",
     person_id: "seed-person-alicia-bon-guzman",
     location: { lat: -33.5082932, lng: -70.6107989 },
@@ -336,7 +336,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-la-marinita",
     slug: "animita-de-la-marinita",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de la Marinita",
     person_id: "seed-person-marina-silva-espinoza",
     location: { lat: -33.4625031, lng: -70.660034 },
@@ -368,7 +368,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-cuadra-y-osorio",
     slug: "animita-de-cuadra-y-osorio",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Cuadra y Osorio",
     person_id: "seed-person-francisco-cuadra-luis-osorio",
     location: { lat: -33.4155348, lng: -70.6487608 },
@@ -401,7 +401,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-la-malvina",
     slug: "animita-de-la-malvina",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de la Malvina",
     person_id: "seed-person-malvina-araya-miranda",
     location: { lat: -33.5880683, lng: -70.6943202 },
@@ -434,7 +434,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-servandito",
     slug: "animita-de-servandito",
-    kind: "animita",
+    kind: "Animita",
     title: "Monumento de Servandito",
     person_id: "seed-person-servando-campos-soto",
     location: { lat: -35.8418672, lng: -71.5795318 },
@@ -467,7 +467,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-juanita-ibanez",
     slug: "animita-de-juanita-ibanez",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Juanita Ibáñez",
     person_id: "seed-person-juana-ibanez-silva",
     location: { lat: -35.8396212, lng: -71.5978543 },
@@ -501,7 +501,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-petronila-neira",
     slug: "animita-de-petronila-neira",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Petronila Neira ('Pepita')",
     person_id: "seed-person-petronila-neira-bustos",
     location: { lat: -36.8186493, lng: -73.0734124 },
@@ -535,7 +535,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-serafin-rodriguez",
     slug: "animita-de-serafin-rodriguez",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Serafín Rodríguez ('San Serafín')",
     person_id: "seed-person-serafin-rodriguez",
     location: { lat: -39.8290198, lng: -73.237969 },
@@ -569,7 +569,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-bertita-vargas",
     slug: "animita-de-bertita-vargas",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Bertita Vargas",
     person_id: "seed-person-bertita-vargas",
     location: { lat: -39.8166, lng: -73.2384 },
@@ -603,7 +603,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-emilio-inostroza",
     slug: "animita-de-emilio-inostroza",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Emilio Inostroza",
     person_id: "seed-person-emilio-inostroza-sepulveda",
     location: { lat: -38.7305925, lng: -72.6074906 },
@@ -637,7 +637,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-la-pampa",
     slug: "animita-de-la-pampa",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de La Pampa",
     person_id: "seed-person-caminante-chiloe",
     location: { lat: -40.9429754, lng: -73.3025934 },
@@ -670,7 +670,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-fructuoso-soto",
     slug: "animita-de-fructuoso-soto",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Fructuoso Soto",
     person_id: "seed-person-fructuoso-soto",
     location: { lat: -41.4727939, lng: -72.9621954 },
@@ -704,7 +704,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-del-indio-desconocido",
     slug: "animita-del-indio-desconocido",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita del Indio Desconocido",
     person_id: "seed-person-pedro-zambras-alacaluf",
     location: { lat: -53.151152, lng: -70.896539 },
@@ -738,7 +738,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-astrid",
     slug: "animita-de-astrid",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Astrid",
     person_id: "seed-person-astrid",
     location: { lat: -33.5617032, lng: -70.8373234 },
@@ -763,7 +763,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-de-emile-dubois",
     slug: "animita-de-emile-dubois",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita de Emile Dubois",
     person_id: "seed-person-emile-dubois",
     location: { lat: -33.0275463, lng: -71.6478226 },
@@ -789,7 +789,7 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
   {
     id: "animita-del-chacal",
     slug: "animita-del-chacal",
-    kind: "animita",
+    kind: "Animita",
     title: "Animita del Chacal de Nahueltoro",
     person_id: "seed-person-chacal",
     location: { lat: -36.6066, lng: -72.1033 }, // San Carlos, Ñuble

@@ -48,9 +48,12 @@ const ibmPlexMono = localFont({
 })
 
 export const metadata: Metadata = {
-  title: '[ÁNIMA] — una infraestructura para el patrimonio y la memoria del territorio.',
-  description: 'Plataforma de memoriales digitales para animitas chilenas. Prende velas virtuales y comparte testimonios.',
-  keywords: ['animitas', 'Chile', 'memoria', 'velas digitales', 'memorial', 'espiritualidad popular'],
+    title: {
+    template: '%s – [ÁNIMA]',
+    default: '[ÁNIMA]',
+  },
+  description: 'Infraestructura para el patrimonio y la memoria del territorio.',
+  keywords: ['animitas', 'Chile', 'patrimonio cultural intangible', 'GIS', 'cartografía crítica'],
   authors: [{
     name: 'Felipe Mandiola',
     url: 'https://felipemandiola.com'
@@ -77,7 +80,7 @@ export default function RootLayout({
   modal: React.ReactNode
 }) {
   return (
-    <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)}>
+    <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
       <body className="overflow-hidden">
         <Providers>
           {children}

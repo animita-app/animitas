@@ -17,8 +17,7 @@ import { useSpatialAudio } from '@/hooks/use-spatial-audio'
 import { HeritageSiteProperty, GISOperation } from '../paywall/types'
 import { searchLocation } from '@/lib/mapbox'
 import { MapMarker } from './map-marker'
-import { HeritageSiteDetailPopover } from './heritage-site-detail-popover'
-import { HeritageMarkerLayer } from './layers/heritage-marker-layer'
+import { MarkerLayer } from './layers/marker-layer'
 import { COLORS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/mock'
 import { PrefaceDialog } from '@/components/modals/preface-dialog'
@@ -227,9 +226,11 @@ export default function MapboxMap({
       ? 'disabled'
       : showPreface
         ? 'preface'
-        : selectedHeritageSite
-          ? 'focused'
-          : 'interactive'
+        : isCruiseActive
+          ? 'cruise'
+          : selectedHeritageSite
+            ? 'focused'
+            : 'interactive'
   })
 
   // Handlers
@@ -237,23 +238,14 @@ export default function MapboxMap({
     const site = filteredData.find((s: HeritageSite) => s.id === id)
     if (!site) return
 
-    const zoom = map.current?.getZoom() || 0
-
-    if (zoom >= HIGH_ZOOM_THRESHOLD) {
-      // High zoom: Redirect to detail page
-      const kind = (site as any).kind || 'animita'
-      const slug = site.slug || site.id
-      router.push(`/${kind}/${slug}`)
-    } else {
-      // Normal zoom: Select site AND zoom to it
-      handleHeritageSiteSelect(site)
-      focusHeritageSite(
-        site.id,
-        [site.location.lng, site.location.lat],
-        { shouldNavigate: false, instant: false }
-      )
-      setHasMoved(true)
-    }
+    // Always select and focus, let user click card to navigate
+    handleHeritageSiteSelect(site)
+    focusHeritageSite(
+      site.id,
+      [site.location.lng, site.location.lat],
+      { shouldNavigate: false, instant: false }
+    )
+    setHasMoved(true)
   }
 
   // Handlers
@@ -355,7 +347,7 @@ export default function MapboxMap({
     <div className="relative w-full h-full pointer-events-auto">
       <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
 
-      <HeritageMarkerLayer
+      <MarkerLayer
         map={map.current}
         isMapReady={isMapReady}
         data={filteredData}

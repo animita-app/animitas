@@ -65,10 +65,10 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
     // Memorials
 
 
-    // Clusters
-    map.on('click', 'clusters', onClusterClick)
-    map.on('mouseenter', 'clusters', onMouseEnter)
-    map.on('mouseleave', 'clusters', onMouseLeave)
+    // Clusters (handled in HeritageMarkerLayer)
+    // map.on('click', 'clusters', onClusterClick)
+    // map.on('mouseenter', 'clusters', onMouseEnter)
+    // map.on('mouseleave', 'clusters', onMouseLeave)
 
     // Context Layers (Add listeners for all context layers)
     const contextLayers = [
@@ -106,9 +106,10 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
     if (!map) return
 
     const onZoom = () => {
-      if (map.getZoom() < 12 && focusedHeritageSiteId) {
-        router.push('/')
-      }
+      // Logic removed to prevent reloading the map page on zoom out
+      // if (map.getZoom() < 12 && focusedHeritageSiteId) {
+      //   router.push('/')
+      // }
     }
 
     map.on('zoom', onZoom)
@@ -178,7 +179,6 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
   )
 
   const resetView = useCallback(() => {
-    console.log('[useMapEvents] Attempting resetView')
     if (!map) {
       console.warn('[useMapEvents] Map instance missing during resetView')
       return
@@ -189,7 +189,6 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
     })
 
     if (camera) {
-      console.log('[useMapEvents] Flying to bounds with camera:', camera)
       map.flyTo({
         ...camera,
         duration: 2000,

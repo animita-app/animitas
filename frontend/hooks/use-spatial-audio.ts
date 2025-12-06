@@ -5,15 +5,15 @@ import { HeritageSite } from '@/types/mock'
 interface UseSpatialAudioProps {
   map: mapboxgl.Map | null
   sites: HeritageSite[]
-  mode: 'interactive' | 'preface' | 'focused' | 'disabled'
+  mode: 'interactive' | 'preface' | 'focused' | 'disabled' | 'cruise'
 }
 
-// Proximity in meters to start hearing the story
-const STORY_THRESHOLD = 50
-// Proximity in meters where story is at max volume
-const STORY_MAX_VOL_THRESHOLD = 10
-
 export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
+  // Proximity in meters to start hearing the story
+  const STORY_THRESHOLD = 50
+  // Proximity in meters where story is at max volume
+  const STORY_MAX_VOL_THRESHOLD = 10
+
   const audioContextRef = useRef<AudioContext | null>(null)
   const ambientNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   const filterNodeRef = useRef<BiquadFilterNode | null>(null)
@@ -56,14 +56,14 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     gainNodeRef.current = gain
 
     // Story Audio (kept simple for now, separate from context or could be added)
-    const story = new Audio('https://cdn.freesound.org/previews/320/320665_5260872-lq.mp3')
-    story.loop = true
-    story.volume = 0
-    storyAudioRef.current = story
+    // const story = new Audio('https://cdn.freesound.org/previews/320/320665_5260872-lq.mp3')
+    // story.loop = true
+    // story.volume = 0
+    // storyAudioRef.current = story
 
     return () => {
       ambient.pause()
-      story.pause()
+      // story.pause()
       audioCtx.close()
     }
   }, [])
@@ -84,9 +84,15 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     if (mode === 'disabled') {
       ambient.pause()
-      storyAudioRef.current?.pause()
+      window.speechSynthesis.cancel()
     } else {
-      if (ambient.paused) ambient.play().catch(e => console.warn("Audio play blocked", e))
+      if (ambient.paused) {
+        ambient.play().catch(e => {
+          if (e.name !== 'AbortError') {
+            console.warn("Audio play blocked", e)
+          }
+        })
+      }
     }
 
     // Mode Logic
@@ -94,13 +100,13 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
       // Low-pass filter + 25% volume
       filter.frequency.setTargetAtTime(400, ctx.currentTime, 0.5) // Muffled
       gain.gain.setTargetAtTime(0.25, ctx.currentTime, 0.5)
-      storyAudioRef.current?.pause()
+      window.speechSynthesis.cancel()
     } else if (mode === 'focused') {
-      // Clear sound + 50% volume
+      // Clear sound + 25% volume
       filter.frequency.setTargetAtTime(20000, ctx.currentTime, 0.5) // Open
-      gain.gain.setTargetAtTime(0.5, ctx.currentTime, 0.5)
-      storyAudioRef.current?.pause()
-    } else if (mode === 'interactive') {
+      gain.gain.setTargetAtTime(0.25, ctx.currentTime, 0.5)
+      window.speechSynthesis.cancel()
+    } else if (mode === 'interactive' || mode === 'cruise') { // Updated: 'interactive' or 'cruise'
       // Clear sound + Dynamic Volume (handled in spatial loop)
       filter.frequency.setTargetAtTime(20000, ctx.currentTime, 0.5)
       // Gain will be controlled by spatial loop
@@ -108,9 +114,9 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
   }, [mode])
 
-  // Spatial Logic loop (Only active in 'interactive' mode)
+  // Spatial Logic loop (Active in 'interactive' or 'cruise')
   useEffect(() => {
-    if (!map || mode !== 'interactive') return
+    if (!map || (mode !== 'interactive' && mode !== 'cruise')) return // Updated: Active in 'interactive' or 'cruise'
 
     const updateAudio = () => {
       if (!gainNodeRef.current || !audioContextRef.current) return
@@ -132,29 +138,57 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
       // Cross-fade Logic (for Interactive Mode)
       let ambientGain = 0.5 // Base volume for interactive
-      let storyVol = 0
 
       if (minDistance < STORY_THRESHOLD) {
         const proximity = 1 - (Math.max(0, minDistance - STORY_MAX_VOL_THRESHOLD) / (STORY_THRESHOLD - STORY_MAX_VOL_THRESHOLD))
-        storyVol = proximity
         ambientGain = 0.2 * (1 - proximity)
 
-        if (nearestSite && nearestSite.id !== currentStoryIdRef.current) {
+        // Web Speech API Logic (Only in interactive mode, not cruise)
+        if (mode === 'interactive' && nearestSite && (nearestSite as any).id !== currentStoryIdRef.current && (nearestSite as any).story) {
           currentStoryIdRef.current = nearestSite.id
-          if (storyAudioRef.current) {
-            storyAudioRef.current.currentTime = 0
-            storyAudioRef.current.play().catch(() => { })
+
+          window.speechSynthesis.cancel()
+
+          const speak = () => {
+            const utterance = new SpeechSynthesisUtterance((nearestSite as any).story)
+            utterance.lang = 'es-CL'
+            utterance.rate = 0.9
+            utterance.volume = 1.0
+
+            const voices = window.speechSynthesis.getVoices()
+
+            const voice = voices.find(v => v.lang === 'es-CL') ||
+              voices.find(v => v.name.includes('Google') && v.lang.includes('es')) ||
+              voices.find(v => v.lang.includes('es'))
+
+            if (voice) {
+              utterance.voice = voice
+            } else {
+              console.warn('[useSpatialAudio] No Spanish voice found, using default')
+            }
+
+            window.speechSynthesis.speak(utterance)
+          }
+
+          if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = () => {
+              speak()
+              window.speechSynthesis.onvoiceschanged = null
+            }
+          } else {
+            speak()
           }
         }
       } else {
-        if (storyAudioRef.current) storyAudioRef.current.pause()
-        currentStoryIdRef.current = null
+        // Too far, stop story
+        if (currentStoryIdRef.current) {
+          window.speechSynthesis.cancel()
+          currentStoryIdRef.current = null
+        }
       }
 
       // Update interactive volumes
-      // Use linear ramp for smoother updates during movement
       gainNodeRef.current.gain.setTargetAtTime(Math.max(0, ambientGain), audioContextRef.current.currentTime, 0.1)
-      if (storyAudioRef.current) storyAudioRef.current.volume = Math.min(1, Math.max(0, storyVol))
     }
 
     map.on('move', updateAudio)
@@ -164,6 +198,7 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     return () => {
       map.off('move', updateAudio)
+      window.speechSynthesis.cancel()
     }
   }, [map, sites, mode])
 }

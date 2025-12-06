@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { COLORS } from '@/lib/map-style'
+import Link from 'next/link'
+import { COLORS, ICONS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/mock'
 import { MapMarker } from '../map-marker'
-import { HeritageSiteDetailPopover } from '../heritage-site-detail-popover'
+
+const FALLBACK_IMAGE_URL = '/images/marker-fallback.webp'
 import { SEED_PEOPLE } from '@/constants/people'
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
+import { Card, CardContent } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
-export interface HeritageMarkerLayerProps {
+export interface MarkerLayerProps {
   map: mapboxgl.Map | null
   isMapReady: boolean
   data: any[] // HeritageSite[]
@@ -27,7 +32,7 @@ const CLUSTER_CONFIG = {
   clusterRadius: 25
 }
 
-export function HeritageMarkerLayer({
+export function MarkerLayer({
   map,
   isMapReady,
   data,
@@ -37,7 +42,7 @@ export function HeritageMarkerLayer({
   visibleSites,
   selectedSite,
   onSiteSelect
-}: HeritageMarkerLayerProps) {
+}: MarkerLayerProps) {
   const isInitialized = useRef(false)
   const { role } = useUser()
   const isFree = role === ROLES.FREE
@@ -88,7 +93,6 @@ export function HeritageMarkerLayer({
     }
 
     // --- Unclustered Markers (Outer/Inner or Image) ---
-    // --- Unclustered Markers (Outer/Inner) ---
     // Always add circle layers (needed for < zoom 10 for free, or all zooms for paid)
     if (!map.getLayer(`${sourceId}-outer`)) {
       map.addLayer({
@@ -167,7 +171,6 @@ export function HeritageMarkerLayer({
               ['zoom'],
               10, 0.2, // ~50px
               14, 0.5, // ~130px
-              18, 0.8  // ~200px
             ],
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
@@ -193,6 +196,38 @@ export function HeritageMarkerLayer({
   useEffect(() => {
     if (!map || !isMapReady) return
 
+    const processAndAddImage = (id: string, image: any) => { // HTMLImageElement
+      if (map.hasImage(id)) return
+
+      const size = 256 // Fixed square size
+      const canvas = document.createElement('canvas')
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        const imgWidth = image.width
+        const imgHeight = image.height
+        const scale = Math.max(size / imgWidth, size / imgHeight)
+        const x = (size / 2) - (imgWidth / 2) * scale
+        const y = (size / 2) - (imgHeight / 2) * scale
+
+        ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
+
+        const imageData = ctx.getImageData(0, 0, size, size)
+        map.addImage(id, imageData)
+      } else {
+        map.addImage(id, image)
+      }
+    }
+
+    // Load Fallback
+    if (!map.hasImage('marker-fallback')) {
+      map.loadImage(FALLBACK_IMAGE_URL, (error, image) => {
+        if (!error && image) processAndAddImage('marker-fallback', image)
+      })
+    }
+
+    // Load People Images
     data.forEach(site => {
       const person = SEED_PEOPLE.find(p => p.id === site.person_id)
       if (person && person.image && !map.hasImage(person.id)) {
@@ -201,29 +236,7 @@ export function HeritageMarkerLayer({
             console.warn(`Failed to load image for ${person.full_name}`, error)
             return
           }
-          if (image && !map.hasImage(person.id)) {
-            // Create a canvas to square the image
-            const size = 256 // Fixed square size
-            const canvas = document.createElement('canvas')
-            canvas.width = size
-            canvas.height = size
-            const ctx = canvas.getContext('2d')
-            if (ctx) {
-              const imgWidth = image.width
-              const imgHeight = image.height
-              const scale = Math.max(size / imgWidth, size / imgHeight)
-              const x = (size / 2) - (imgWidth / 2) * scale
-              const y = (size / 2) - (imgHeight / 2) * scale
-
-              ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
-
-              const imageData = ctx.getImageData(0, 0, size, size)
-              map.addImage(person.id, imageData)
-            } else {
-              // Fallback if canvas context fails
-              map.addImage(person.id, image)
-            }
-          }
+          if (image) processAndAddImage(person.id, image)
         })
       }
     })
@@ -240,14 +253,7 @@ export function HeritageMarkerLayer({
         type: 'FeatureCollection',
         features: data.map((site) => {
           const person = SEED_PEOPLE.find(p => p.id === site.person_id)
-          const hasPersonImage = person?.image && map.hasImage(person.id)
-          // Ideally we check map.hasImage, but since loading is async, we might optimistically set it
-          // or rely on the reload when data changes.
-          // simpler: if person.image exists, we try to use person.id. Mapbox will fallback or show empty if not loaded yet?
-          // Actually mapbox shows nothing if image missing.
-          // We can use 'coalesce' in style, or safe checking here.
-          // For now let's assume if url exists, we want to try showing it.
-          const iconId = person?.image ? person.id : 'marker-15'
+          const iconId = person?.image ? person.id : 'marker-fallback'
 
           return {
             type: 'Feature',
@@ -343,25 +349,80 @@ export function HeritageMarkerLayer({
     }
   }, [map, isMapReady, onSiteClick, sourceId])
 
+  // Helper to get iconography
+  const getTypologyData = (type?: string) => {
+    return ICONS.typology[type as keyof typeof ICONS.typology] || ICONS.typology.default
+  }
+  const getDeathCauseData = (cause?: string) => {
+    return ICONS.deathCause[cause as keyof typeof ICONS.deathCause] || ICONS.deathCause.default
+  }
+
   return (
     <>
       {map && (
         <>
           {(currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : []))
             .map((site, index) => {
+              const name = site.title
+              const typology = site.typology
+              const death_cause = site.insights?.memorial?.death_cause
+              const kind = (site as any).kind || 'animita'
+              const slug = site.slug || site.id
+
+              const typologyData = getTypologyData(typology)
+              const deathCauseData = getDeathCauseData(death_cause)
+              const isVisible = currentZoom >= 10
+              const href = `/${kind}/${slug}`
+
               return (
                 <MapMarker
                   key={site.id}
                   map={map}
                   coordinates={[site.location.lng, site.location.lat]}
                 >
-                  <HeritageSiteDetailPopover
-                    heritageSite={site}
-                    open={currentZoom >= 10}
-                    onClose={() => onSiteSelect?.(null)}
-                    isFree={isFree}
-                  >
-                  </HeritageSiteDetailPopover>
+                  <div className="relative flex flex-col items-center group cursor-pointer w-0 h-0">
+                    <div className="-mt-6 relative z-20">
+                      {/* Empty children placeholder */}
+                    </div>
+
+                    {isVisible && (
+                      <div className={cn(
+                        "absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-30",
+                        isFree ? "top-20" : "top-12"
+                      )}>
+                        <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
+                          {name || 'Animita'}
+                        </span>
+                      </div>
+                    )}
+
+                    {(isVisible && !isFree) && (
+                      <div className="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
+                        <Link href={href} prefetch={false} scroll={false} className="block">
+                          <Card className="w-72 !py-0 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-white/90 backdrop-blur-md border-none shadow-md">
+                            <CardContent className="p-4 space-y-4">
+                              <div className="space-y-1">
+                                <Label>Tipología</Label>
+                                <p className="text-sm font-medium text-black">{typologyData.label}</p>
+                              </div>
+
+                              <div className="space-y-1">
+                                <Label>Causa de Muerte</Label>
+                                <p className="text-sm font-medium text-black">{deathCauseData.label}</p>
+                              </div>
+
+                              {site.insights?.patrimonial?.antiquity_year && (
+                                <div className="space-y-1">
+                                  <Label>Antigüedad</Label>
+                                  <p className="text-sm font-medium text-black">{site.insights.patrimonial.antiquity_year}</p>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
                 </MapMarker>
               )
             })}

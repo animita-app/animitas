@@ -28,6 +28,7 @@ interface HeaderProps {
 }
 
 const MENU_ITEMS = [
+  { label: 'Explorar', href: '/map' },
   { label: 'Planes', href: '/pricing' },
 ]
 

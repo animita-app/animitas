@@ -24,7 +24,7 @@ export const MapMarker = ({ map, coordinates, children }: MapMarkerProps) => {
 
     // Create marker
     markerRef.current = new mapboxgl.Marker({
-      element: container,
+      element: container, // Use the container state
       anchor: 'bottom', // Ensure bottom anchor for pins
     })
       .setLngLat(coordinates)
@@ -40,11 +40,11 @@ export const MapMarker = ({ map, coordinates, children }: MapMarkerProps) => {
       markerRef.current?.remove()
       markerRef.current = null
     }
-  }, [map, coordinates]) // Re-run if map or coords change, container])
+  }, [map, coordinates[0], coordinates[1]]) // Re-run only if map or coords values change
 
   useEffect(() => {
     markerRef.current?.setLngLat(coordinates)
-  }, [coordinates])
+  }, [coordinates[0], coordinates[1]])
 
   return createPortal(
     <div className="relative group cursor-pointer">

@@ -2,8 +2,23 @@
 
 import { useRouter } from 'next/navigation'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
-export function ModalWrapper({ children }: { children: React.ReactNode }) {
+interface ModalWrapperProps {
+  children: React.ReactNode
+  title?: string
+  description?: string
+  className?: string
+  showTitle?: boolean
+}
+
+export function ModalWrapper({
+  children,
+  title = "Modal",
+  description = "Description",
+  className,
+  showTitle = true
+}: ModalWrapperProps) {
   const router = useRouter()
 
   const onOpenChange = (open: boolean) => {
@@ -14,12 +29,12 @@ export function ModalWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-8 py-12 md:p-16 md:max-w-5xl bg-background text-black border-none shadow-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className={cn("gap-8 py-12 md:p-16 md:max-w-5xl bg-background text-black border-none shadow-xl max-h-[90vh] overflow-y-auto", className)}>
         <DialogHeader className="sr-only">
-          <DialogTitle>Mejora tu plan</DialogTitle>
-          <DialogDescription>Accede a más funcionalidades en ÁNIMA</DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <h1 className="text-2xl font-medium">Mejora tu plan</h1>
+        {showTitle && <h1 className="text-2xl font-medium">{title}</h1>}
         {children}
       </DialogContent>
     </Dialog>

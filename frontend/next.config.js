@@ -18,6 +18,38 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'streetviewpixels-pa.googleapis.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'assets.diarioconcepcion.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'encrypted-tbn0.gstatic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fotografiapatrimonial.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images2-mega.cdn.mdstrm.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lavozdelosquesobran.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'masquecultura.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.biobiochile.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.chilevision.cl',
+      },
     ],
   },
   env: {

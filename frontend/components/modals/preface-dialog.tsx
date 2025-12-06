@@ -33,7 +33,7 @@ export function PrefaceDialog({ open, onOpenChange }: PrefaceDialogProps) {
 
         <p className="text-black">
           ÁNIMA es un mapa vivo de memorias al borde del camino. <br /><br />
-          En el viaje por Chile, de norte a sur, estas huellas del duelo y la devoción aparecen como puntos de luz en el territorio. <br /><br />
+          Al viajar por Chile, estas huellas del duelo y la devoción aparecen como puntos de luz en el territorio. <br /><br />
           Un espacio para detenerse, mirar y acompañar las historias que siguen resonando en medio del tránsito.
         </p>
 
