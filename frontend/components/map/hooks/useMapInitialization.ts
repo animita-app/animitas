@@ -45,7 +45,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       const currentZoom = mapInstance.getZoom()
       const bounds = mapInstance.getBounds()
 
-      mapInstance.setMinZoom(currentZoom)
+      mapInstance.setMinZoom(Math.max(0, currentZoom - 1)) // Allow slightly more zoom out to prevent locking errors
       if (bounds) {
         const padding = 20 // degrees
         const extendedBounds = new mapboxgl.LngLatBounds(
@@ -55,6 +55,22 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
         mapInstance.setMaxBounds(extendedBounds)
       }
       mapInstance.setMaxZoom(22)
+
+      // Load default marker image for 'marker-15'
+      if (!mapInstance.hasImage('marker-15')) {
+        mapInstance.loadImage(
+          'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+          (error, image) => {
+            if (error) {
+              console.warn('Could not load marker-15 image', error)
+              return
+            }
+            if (image && !mapInstance.hasImage('marker-15')) {
+              mapInstance.addImage('marker-15', image)
+            }
+          }
+        )
+      }
 
 
 

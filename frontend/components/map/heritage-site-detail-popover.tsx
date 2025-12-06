@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { HeritageSite } from '@/types/mock'
 import { ICONS } from '@/lib/map-style'
@@ -33,6 +34,7 @@ export const HeritageSiteDetailPopover = ({
 }: HeritageSiteDetailPopoverProps) => {
   const router = useRouter()
 
+
   // Extract values from site object or fallback to props
   const name = heritageSite?.title || propName
   const typology = heritageSite?.typology || propTypology
@@ -63,14 +65,13 @@ export const HeritageSiteDetailPopover = ({
 
   return (
     <div className="relative flex flex-col items-center group cursor-pointer w-0 h-0">
-      {/* Custom Marker Content (e.g. Image) */}
       <div className="-mt-6 relative z-20">
-        {children}
+        {children || ""}
       </div>
 
       {open && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-30">
-          <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-30">
+          <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black bg-white/50 px-1 rounded">
             {name || 'Animita'}
           </span>
         </div>

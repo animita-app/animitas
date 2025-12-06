@@ -25,7 +25,10 @@ export function ActiveAreaBanner({ label, onClear }: ActiveAreaBannerProps) {
           variant="ghost"
           size="icon"
           className="h-5 w-5 text-muted-foreground ml-1 hover:bg-neutral-800"
-          onClick={onClear}
+          onClick={() => {
+            console.log('[ActiveAreaBanner] Clear clicked')
+            onClear()
+          }}
         >
           <X className="h-3 w-3" />
         </Button>

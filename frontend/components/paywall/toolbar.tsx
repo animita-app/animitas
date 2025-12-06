@@ -1,16 +1,5 @@
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSubContent,
-} from "@/components/ui/dropdown-menu"
-import { Save, VectorSquare, Scan, Wand2 } from 'lucide-react'
+import { VectorSquare, Scan, Wand2 } from 'lucide-react'
 import { ButtonGroup } from '@/components/ui/button-group'
 
 import { cn } from "@/lib/utils"

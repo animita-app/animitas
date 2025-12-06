@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { CHILE_BOUNDS } from './useMapInitialization'
 
 const PROFILE_ZOOM_THRESHOLD = 12
 const TARGET_ZOOM = 17
@@ -36,7 +37,7 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
         // Use the exact zoom level where the cluster breaks apart
         map.flyTo({
           center: (feature.geometry as any).coordinates,
-          zoom: zoom,
+          zoom: zoom + 1, // Add buffer to ensure expansion
           speed: 1.2,
           curve: 1,
           essential: true,
@@ -176,5 +177,33 @@ export function useMapEvents({ map, isMapReady, focusedHeritageSiteId, onLayerCl
     [map]
   )
 
-  return { focusHeritageSite }
+  const resetView = useCallback(() => {
+    console.log('[useMapEvents] Attempting resetView')
+    if (!map) {
+      console.warn('[useMapEvents] Map instance missing during resetView')
+      return
+    }
+
+    const camera = map.cameraForBounds(CHILE_BOUNDS, {
+      padding: { top: 48, bottom: 48, left: 48, right: 48 }
+    })
+
+    if (camera) {
+      console.log('[useMapEvents] Flying to bounds with camera:', camera)
+      map.flyTo({
+        ...camera,
+        duration: 2000,
+        essential: true
+      })
+    } else {
+      console.warn('[useMapEvents] Could not calculate camera for bounds, falling back to fitBounds')
+      map.fitBounds(CHILE_BOUNDS, {
+        padding: 64,
+        essential: true,
+        duration: 2000
+      })
+    }
+  }, [map])
+
+  return { focusHeritageSite, resetView }
 }

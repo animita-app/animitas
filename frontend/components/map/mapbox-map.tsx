@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useRouter } from 'next/navigation'
 import { MapLayout } from '@/layouts/map-layout'
-import { useMapInitialization } from './hooks/useMapInitialization'
+import { useMapInitialization, CHILE_BOUNDS } from './hooks/useMapInitialization'
 import { useActiveArea } from './hooks/useActiveArea'
 import { useOverpassData } from './hooks/useOverpassData'
 import { useLayerManagement } from './hooks/useLayerManagement'
@@ -92,26 +92,45 @@ export default function MapboxMap({
     }
   }, [focusedHeritageSiteId, filteredData, handleHeritageSiteSelect])
 
-  // Track Zoom Level
   // Track Zoom Level & User Movement
-  useEffect(() => {
-    if (!map.current) return
-    const updateZoom = () => setCurrentZoom(map.current!.getZoom())
+  const initialViewState = useRef<{ zoom: number, center: { lng: number, lat: number } } | null>(null)
 
-    const onMoveEnd = (e: any) => {
-      if (e.originalEvent) {
-        setHasMoved(true)
+  useEffect(() => {
+    if (!map.current || !isMapReady) return
+
+    // Capture initial state
+    if (!initialViewState.current) {
+      const center = map.current.getCenter()
+      initialViewState.current = {
+        zoom: map.current.getZoom(),
+        center: { lng: center.lng, lat: center.lat }
       }
     }
 
+    const updateZoom = () => setCurrentZoom(map.current!.getZoom())
+
+    const checkMovement = () => {
+      if (!initialViewState.current) return
+
+      const currentZoom = map.current!.getZoom()
+      const currentCenter = map.current!.getCenter()
+
+      const isZoomSame = Math.abs(currentZoom - initialViewState.current.zoom) < 0.5
+      const isCenterSame = Math.abs(currentCenter.lng - initialViewState.current.center.lng) < 0.1 &&
+        Math.abs(currentCenter.lat - initialViewState.current.center.lat) < 0.1
+
+      setHasMoved(!isZoomSame || !isCenterSame)
+    }
+
     map.current.on('zoom', updateZoom)
-    map.current.on('moveend', onMoveEnd)
+    map.current.on('moveend', checkMovement)
+    // Also check on zoomend since moveend might not fire for pure pinch-zoom sometimes? Usually it does.
 
     updateZoom()
 
     return () => {
       map.current?.off('zoom', updateZoom)
-      map.current?.off('moveend', onMoveEnd)
+      map.current?.off('moveend', checkMovement)
     }
   }, [isMapReady])
 
@@ -168,7 +187,7 @@ export default function MapboxMap({
 
   // 7. Map Events (Zoom, Focus)
   const router = useRouter()
-  const { focusHeritageSite } = useMapEvents({
+  const { focusHeritageSite, resetView } = useMapEvents({
     map: map.current,
     isMapReady,
     focusedHeritageSiteId: selectedHeritageSite?.id || null,
@@ -204,7 +223,13 @@ export default function MapboxMap({
   useSpatialAudio({
     map: map.current,
     sites: filteredData,
-    enabled: isFree ? true : false
+    mode: !isFree
+      ? 'disabled'
+      : showPreface
+        ? 'preface'
+        : selectedHeritageSite
+          ? 'focused'
+          : 'interactive'
   })
 
   // Handlers
@@ -315,18 +340,7 @@ export default function MapboxMap({
   }
 
   const handleResetView = () => {
-    if (!map.current) return
-    map.current.fitBounds(
-      [
-        [-75.6, -56.0],
-        [-66.4, -17.5]
-      ],
-      {
-        padding: 64,
-        essential: true,
-        duration: 600
-      }
-    )
+    resetView()
     setHasMoved(false)
   }
 
@@ -382,7 +396,8 @@ export default function MapboxMap({
         onSearch={handleSearch}
         onSelectResult={handleSelectResult}
 
-        onResetView={hasMoved ? handleResetView : undefined}
+        onResetView={handleResetView}
+        hasMoved={hasMoved}
         onSearchLoading={setIsSearching}
       />
 

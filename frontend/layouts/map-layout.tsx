@@ -62,8 +62,6 @@ export function MapLayout({
   onToggleProfile,
   onExport,
   onGenerateSynthetic,
-  onExport,
-  onGenerateSynthetic,
   onSearchLoading,
   hasMoved
 }: MapLayoutProps) {
@@ -81,8 +79,11 @@ export function MapLayout({
         <ActiveAreaBanner
           label={activeAreaLabel}
           onClear={() => {
+            console.log('[MapLayout Mobile] Clearing active area')
             onClearActiveArea()
-            onResetView?.()
+            setTimeout(() => {
+              onResetView?.()
+            }, 100)
           }}
         />
 
@@ -166,8 +167,15 @@ export function MapLayout({
       <ActiveAreaBanner
         label={activeAreaLabel}
         onClear={() => {
+          console.log('[MapLayout] Clearing active area. onResetView available:', !!onResetView)
           onClearActiveArea()
-          onResetView?.()
+          setTimeout(() => {
+            if (onResetView) {
+              onResetView()
+            } else {
+              console.warn('[MapLayout] onResetView is undefined')
+            }
+          }, 100)
         }}
       />
 
