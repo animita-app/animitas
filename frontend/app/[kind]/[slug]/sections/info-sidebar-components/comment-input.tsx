@@ -4,23 +4,9 @@ import {
   InputGroupTextarea,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupText,
 } from "@/components/ui/input-group"
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
-import { ArrowUp, Plus } from "lucide-react"
 import { useUser } from "@/contexts/user-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  SpeechInput,
-  SpeechInputRecordButton,
-} from "@/components/ui/speech-input"
-import { getScribeToken } from "@/app/actions/get-scribe-token"
 
 export function CommentInput() {
   const { currentUser } = useUser()
@@ -80,13 +66,6 @@ export function CommentInput() {
             className="z-0"
           />
           <InputGroupAddon align="block-end" className="w-full justify-end items-end z-20 relative">
-            {/* <SpeechInput
-              getToken={getScribeToken}
-              onStop={(data) => setText((prev) => (prev + " " + data.transcript).trim())}
-              size="icon-xs"
-            >
-              <SpeechInputRecordButton />
-            </SpeechInput> */}
             <InputGroupButton
               variant="default"
               size="sm"

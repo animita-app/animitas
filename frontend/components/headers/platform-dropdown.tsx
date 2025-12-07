@@ -31,13 +31,13 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
   return (
     <DropdownMenu openOnHover={true}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="active:scale-100 gap-1 [&_svg]:opacity-50 px-2 pr-1.5 text-black font-ibm-plex-mono">
+        <Button variant="ghost" size="sm" className="active:scale-100 gap-0.5 [&_svg]:opacity-50 px-2 pr-1.5 text-black font-ibm-plex-mono">
           [ÁNIMA]
           <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        {role !== ROLES.INSTITUTIONAL && (
+        {(role !== ROLES.INSTITUTIONAL && role !== ROLES.EDITOR) && (
           <>
             <DropdownMenuGroup>
               <div className="flex flex-col gap-2 p-2 mb-3">

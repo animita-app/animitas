@@ -138,10 +138,10 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
             {isLoading ? (
               <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
             ) : (
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
             )}
             <input
-              className="w-full bg-transparent border-none focus:outline-none pl-9 pr-8 text-sm h-9"
+              className="w-full bg-muted rounded-md border-none focus:outline-none pl-9 pr-8 text-sm h-9"
               placeholder={isLoading ? "Cargando..." : "Buscar..."}
               value={searchQuery}
               onChange={handleSearch}

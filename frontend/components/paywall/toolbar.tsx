@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { VectorSquare, Scan, Wand2 } from 'lucide-react'
+import { VectorSquare, Scan, Wand2, MousePointer2 } from 'lucide-react'
 import { ButtonGroup } from '@/components/ui/button-group'
 
 import { cn } from "@/lib/utils"
@@ -20,17 +20,16 @@ export function Toolbar({ onResetView, onExport, onDefineArea, disabled, onGener
   return (
     <ButtonGroup className="absolute bottom-4 right-4 z-10 shadow-xs pointer-events-auto">
       <Button
-        variant="outline"
         size="icon"
         onClick={onResetView}
         title="Restablecer Vista"
         disabled={!onResetView || disabled}
-        className={cn((!onResetView && isFree) && "sr-only")}
+        className={cn((!onResetView) && "sr-only")}
       >
-        <Scan />
+        <MousePointer2 className="size-4 rotate-90 stroke-[0.5px] fill-white" />
       </Button>
 
-      {!isFree && (
+      {/* {!isFree && (
         <Button
           variant="outline"
           size="icon"
@@ -50,9 +49,7 @@ export function Toolbar({ onResetView, onExport, onDefineArea, disabled, onGener
         >
           <Wand2 />
         </Button>
-      )}
-
-
+      )} */}
     </ButtonGroup>
   )
 }

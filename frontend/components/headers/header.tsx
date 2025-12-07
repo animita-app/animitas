@@ -36,6 +36,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
   const { role, currentUser } = useUser()
   const pathname = usePathname()
   const isFree = role === ROLES.FREE
+  const isUpdating = pathname.includes("add")
 
   if ((pathname === '/map' && variant !== 'gis') || pathname.includes("animita")) return null
 
@@ -56,24 +57,26 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
               [ÁNIMA]
             </Link>
 
-            <NavigationMenu className="hidden md:flex absolute left-1/2 -translate-x-1/2">
-              <NavigationMenuList>
-                {MENU_ITEMS.map((item) => (
-                  <NavigationMenuItem key={item.href}>
-                    <NavigationMenuLink
-                      href={item.href}
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                        pathname === item.href && "text-black"
-                      )}
-                    >
-                      {item.label}
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+            {!isUpdating && (
+              <NavigationMenu className="hidden md:flex absolute left-1/2 -translate-x-1/2">
+                <NavigationMenuList>
+                  {MENU_ITEMS.map((item) => (
+                    <NavigationMenuItem key={item.href}>
+                      <NavigationMenuLink
+                        href={item.href}
+                        className={cn(
+                          navigationMenuTriggerStyle(),
+                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                          pathname === item.href && "text-black"
+                        )}
+                      >
+                        {item.label}
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  ))}
+                </NavigationMenuList>
+              </NavigationMenu>
+            )}
           </div>
         )}
       </div>
@@ -82,9 +85,11 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
 
         {currentUser ? (
           <>
-            <Button size="sm" className="!pl-2 gap-1 bg-black hover:bg-black/90">
-              <Plus />
-              Añadir
+            <Button size="sm" className="!pl-2 gap-1 bg-black hover:bg-black/90" asChild>
+              <Link href="/add">
+                <Plus />
+                Añadir
+              </Link>
             </Button>
 
             <UserDropdown />

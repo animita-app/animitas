@@ -23,7 +23,7 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
   const isFreeUser = CURRENT_USER.role === ROLES.FREE
 
   return (
-    <aside className="w-1/3 flex flex-col border-l border-border-weak bg-background h-full">
+    <aside className="w-1/3 flex flex-col border-l border-border-weak bg-background-weak h-full">
       {/* Scrollable Content */}
       <Scroller className="flex-1">
         <div className="p-6 md:p-8 space-y-8">

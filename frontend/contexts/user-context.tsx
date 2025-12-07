@@ -17,14 +17,18 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 function UrlRoleSynchronizer() {
   const searchParams = useSearchParams()
-  const { setRole } = useUser()
+  const { role, setRole } = useUser()
 
   useEffect(() => {
     const roleParam = searchParams.get('role')
-    if (roleParam && Object.values(ROLES).includes(roleParam as UserRole)) {
+    if (
+      roleParam &&
+      Object.values(ROLES).includes(roleParam as UserRole) &&
+      role !== roleParam
+    ) {
       setRole(roleParam as UserRole)
     }
-  }, [searchParams, setRole])
+  }, [searchParams, setRole, role])
 
   return null
 }
