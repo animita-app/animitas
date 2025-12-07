@@ -1,6 +1,7 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import React, { createContext, useContext, useState, ReactNode, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { User, UserRole, ROLES } from '@/types/roles'
 import { CURRENT_USER } from '@/constants/users'
 
@@ -13,6 +14,20 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
+
+function UrlRoleSynchronizer() {
+  const searchParams = useSearchParams()
+  const { setRole } = useUser()
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role')
+    if (roleParam && Object.values(ROLES).includes(roleParam as UserRole)) {
+      setRole(roleParam as UserRole)
+    }
+  }, [searchParams, setRole])
+
+  return null
+}
 
 export function UserProvider({ children }: { children: ReactNode }) {
   // Mock initial user
@@ -35,7 +50,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user_role', newRole)
     }
     if (currentUser) {
-      setCurrentUser({ ...currentUser, role: newRole })
+      setCurrentUser(prev => prev ? { ...prev, role: newRole } : null)
     }
   }
 
@@ -47,6 +62,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setRole,
       isLoading
     }}>
+      <Suspense fallback={null}>
+        <UrlRoleSynchronizer />
+      </Suspense>
       {children}
     </UserContext.Provider>
   )

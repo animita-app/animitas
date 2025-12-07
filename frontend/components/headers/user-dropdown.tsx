@@ -47,10 +47,10 @@ export function UserDropdown() {
             <DropdownMenuItem asChild>
               <Link href="/platform/revisions" className="justify-between w-full">
                 Por revisar
-                <Badge className="aspect-square w-5 -mr-0.5 bg-accent text-white">
+                <Badge className="aspect-square w-5 items-center -mr-0.5 !pt-0.5 bg-accent text-white">
                   5
                 </Badge>
-              </Link>
+              </Link> 
             </DropdownMenuItem>
           )}
           <DropdownMenuSub>
