@@ -88,7 +88,7 @@ export function MapLayout({
           }}
         />
 
-        <div className="pointer-events-auto inset-x-4 top-4 absolute">
+        <div className="pointer-events-auto inset-0 absolute">
           <Header
             onExport={onExport}
             componentCount={componentCount}

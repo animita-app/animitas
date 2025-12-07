@@ -85,7 +85,7 @@ function DrawerContentFloating({
       <DrawerPrimitive.Content
         data-slot="drawer-content"
         className={cn(
-          "group/drawer-content bg-background fixed z-50 flex flex-col focus-visible:outline-none overflow-visible",
+          "group/drawer-content border-border-weak bg-background fixed z-50 flex flex-col focus-visible:outline-none overflow-visible",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0 data-[vaul-drawer-direction=top]:h-[calc(100svh-64px)] data-[vaul-drawer-direction=top]:rounded-b-lg data-[vaul-drawer-direction=top]:border-b",
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:h-[calc(100svh-64px)] data-[vaul-drawer-direction=bottom]:rounded-t-lg data-[vaul-drawer-direction=bottom]:border-t",
           "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:w-3/4 data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:sm:max-w-sm",
@@ -97,6 +97,10 @@ function DrawerContentFloating({
         <div
           onClick={onHandleClick}
           className="bg-neutral-300 absolute left-1/2 -top-6 -translate-x-1/2 z-50 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block transition-opacity duration-300 group-[.drawer-expanded]/drawer-content:opacity-0 cursor-pointer"
+        />
+        <div
+          onClick={onHandleClick}
+          className="bg-neutral-300 mx-auto mt-4 mb-2 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block cursor-pointer"
         />
         {children}
       </DrawerPrimitive.Content>

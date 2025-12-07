@@ -33,7 +33,13 @@ const INITIAL_REACTIONS: Reaction[] = [
 
 const AVAILABLE_EMOJIS = ["🙏", "🕯️", "❤️", "🌺", "✨", "🕊️"]
 
-export function ReactionsAndViews() {
+import { HeritageSite } from "@/types/mock"
+
+interface ReactionsAndViewsProps {
+  site?: HeritageSite
+}
+
+export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
   const [reactions, setReactions] = useState<Reaction[]>(INITIAL_REACTIONS)
 
   const hasReacted = reactions.some((r) => r.users.includes("Tú"))
@@ -65,6 +71,8 @@ export function ReactionsAndViews() {
         .filter((r) => r.count > 0)
     })
   }
+
+  const visitCount = site?.insights?.spiritual?.digital_visit_count || "1.2k"
 
   return (
     <div className="flex items-center gap-1.5 w-full">
@@ -105,7 +113,7 @@ export function ReactionsAndViews() {
                     }
                   }}
                   className={cn(
-                    "h-6 font-normal text-black gap-1 transition-colors",
+                    "bg-background h-6 font-normal text-black gap-1 transition-colors",
                     isUserReaction &&
                     "border-accent text-accent bg-accent/5 cursor-pointer hover:bg-accent/10"
                   )}
@@ -124,7 +132,7 @@ export function ReactionsAndViews() {
 
       <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
         <Eye className="w-3.5 h-3.5" />
-        <span>1.2k</span>
+        <span>{visitCount}</span>
       </div>
     </div>
   )

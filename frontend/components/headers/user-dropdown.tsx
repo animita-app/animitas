@@ -50,7 +50,7 @@ export function UserDropdown() {
                 <Badge className="aspect-square w-5 items-center -mr-0.5 !pt-0.5 bg-accent text-white">
                   5
                 </Badge>
-              </Link> 
+              </Link>
             </DropdownMenuItem>
           )}
           <DropdownMenuSub>
@@ -59,25 +59,37 @@ export function UserDropdown() {
               <DropdownMenuSubContent>
                 <DropdownMenuCheckboxItem
                   checked={role === ROLES.FREE}
-                  onCheckedChange={() => setRole(ROLES.FREE)}
+                  onCheckedChange={() => {
+                    setRole(ROLES.FREE)
+                    window.location.reload()
+                  }}
                 >
                   Gratis
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={role === ROLES.PRO}
-                  onCheckedChange={() => setRole(ROLES.PRO)}
+                  onCheckedChange={() => {
+                    setRole(ROLES.PRO)
+                    window.location.reload()
+                  }}
                 >
                   Pro
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={role === ROLES.INSTITUTIONAL}
-                  onCheckedChange={() => setRole(ROLES.INSTITUTIONAL)}
+                  onCheckedChange={() => {
+                    setRole(ROLES.INSTITUTIONAL)
+                    window.location.reload()
+                  }}
                 >
                   Institucional
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={role === ROLES.EDITOR}
-                  onCheckedChange={() => setRole(ROLES.EDITOR)}
+                  onCheckedChange={() => {
+                    setRole(ROLES.EDITOR)
+                    window.location.reload()
+                  }}
                 >
                   Editor
                 </DropdownMenuCheckboxItem>

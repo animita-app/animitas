@@ -230,6 +230,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
 
     return () => {
       map.current?.remove()
+      map.current = null
     }
   }, [accessToken, style])
 

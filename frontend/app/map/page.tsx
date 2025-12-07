@@ -15,7 +15,7 @@ export default function MapaPage() {
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
 
   return (
-    <div className="h-screen w-screen relative">
+    <div className="h-screen w-screen relative overflow-hidden">
       <div className="absolute inset-0">
         <MapboxMap
           accessToken={mapboxToken}

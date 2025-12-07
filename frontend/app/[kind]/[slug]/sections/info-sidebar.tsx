@@ -2,41 +2,40 @@
 
 import React from "react"
 import { HeritageSite } from "@/types/mock"
-import { CURRENT_USER } from "@/constants/users"
+import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
 import { Scroller } from "@/components/ui/scroller"
 import { MainInfo } from "./info-sidebar-components/main-info"
-import { InsightsInfo } from "./info-sidebar-components/insights-info"
 import { CommentsSection } from "./info-sidebar-components/comments-section"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { ReactionsAndViews } from "./info-sidebar-components/reactions-and-views"
-import { Label } from "@/components/ui/label"
-import { cn } from "@/lib/utils"
 import { CreatorSection } from "./info-sidebar-components/creator-section"
-
+import { PollSection } from "./info-sidebar-components/poll-section"
+import { DetailedInfoSection } from "./info-sidebar-components/detailed-info-section"
 
 interface InfoSidebarProps {
   site: HeritageSite
 }
 
 export function InfoSidebar({ site }: InfoSidebarProps) {
-  const isFreeUser = CURRENT_USER.role === ROLES.FREE
+  const { role } = useUser()
+  const isFreeUser = role === ROLES.FREE
 
   return (
-    <aside className="w-1/3 flex flex-col border-l border-border-weak bg-background-weak h-full">
+    <aside className="w-full md:w-1/3 flex flex-col bg-background-weak md:min-h-svh h-full">
       {/* Scrollable Content */}
       <Scroller className="flex-1">
-        <div className="p-6 md:p-8 space-y-8">
-
+        <div className="p-6 md:p-8 space-y-8 pb-24">
           <MainInfo site={site} />
 
           <CreatorSection site={site} />
 
-          <ReactionsAndViews />
-
           {!isFreeUser && (
-            <InsightsInfo site={site} />
+            <DetailedInfoSection site={site} />
           )}
+
+          <PollSection />
+
+          <ReactionsAndViews site={site} />
 
           <CommentsSection />
         </div>

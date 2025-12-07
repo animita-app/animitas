@@ -9,7 +9,7 @@ interface CreatorSectionProps {
 
 export function CreatorSection({ site }: CreatorSectionProps) {
   return (
-    <div className="grid md:grid-cols-2 gap-4 items-center">
+    <div className="grid grid-cols-2 gap-4 items-center">
       <InfoBlock label="Creado por">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">

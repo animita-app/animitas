@@ -53,7 +53,7 @@ export function CommentInput() {
       </Avatar>
 
       <div className="flex-1">
-        <InputGroup className="relative">
+        <InputGroup className="relative bg-background">
           {!text && (
             <div className="absolute inset-0 py-3 px-3 text-sm text-muted-foreground pointer-events-none z-10 font-normal">
               {placeholder.slice(0, -1)}

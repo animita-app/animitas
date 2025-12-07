@@ -11,26 +11,20 @@ interface ImageGalleryProps {
 }
 
 export function ImageGallery({ images, title }: ImageGalleryProps) {
-  if (!images || images.length === 0) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center">
-        <p className="text-sm text-muted-foreground font-medium">No hay fotos</p>
-      </div>
-    )
-  }
+  if (!images || images.length === 0) return null
 
   return (
-    <Carousel className="w-full h-full *:h-full">
+    <Carousel className="w-full h-full [&_[data-slot=carousel-content]]:h-full">
       <CarouselContent className="w-full h-full ml-0">
         {images.map((image, index) => (
-          <CarouselItem key={index} className="pl-0 h-full flex items-center justify-center relative">
-            <div className="relative w-full max-h-screen">
+          <CarouselItem key={index} className="pl-0 w-full h-full flex items-center justify-center relative">
+            <div className="relative w-full h-full">
               <Image
                 src={image}
                 alt={`${title} - image ${index + 1}`}
                 width={1280}
                 height={1280}
-                className="object-contain aspect-square"
+                className="object-contain w-full h-full"
               />
             </div>
           </CarouselItem>

@@ -137,9 +137,6 @@ function StatisticCard({ component, data: rawData }: { component: Component, dat
 }
 
 import { MultiProgress, ProgressSegment } from '@/components/ui/multi-progress'
-import { COLORS } from '@/lib/map-style'
-
-// ...
 
 function BarChartCard({ component, data }: { component: Component, data: any[] }) {
   const { config } = component
@@ -264,7 +261,7 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
         {component.title || 'Gráfico de Barras'}
       </Label>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {rows.map((row) => {
           // Check if row is active (if filtering by horizontal axis)
           const isRowActive = filters[horizontalAxis]?.includes(row.name)
@@ -290,16 +287,16 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
             <div
               key={row.name}
               className={cn(
-                "space-y-1.5 transition-opacity",
+                "space-y-1.5 transition-opacity cursor-pointer",
                 isAnyRowActive && !isRowActive && "opacity-50"
               )}
+              onClick={() => toggleFilter(horizontalAxis, row.name)}
             >
               <div
                 className={cn(
-                  "flex justify-between text-xs cursor-pointer select-none",
+                  "flex justify-between text-xs select-none",
                   isRowActive ? "text-accent" : "text-foreground"
                 )}
-                onClick={() => toggleFilter(horizontalAxis, row.name)}
               >
                 <span className="font-normal truncate" title={row.name}>{row.name}</span>
                 <span className={cn(isRowActive ? "text-accent" : "text-muted-foreground")}>{row.total}</span>
