@@ -82,7 +82,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
-      <body className="overflow-hidden">
+      <body className="overflow-y-auto">
         <Providers>
           <Header />
           {children}

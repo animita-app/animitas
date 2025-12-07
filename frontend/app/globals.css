@@ -75,7 +75,7 @@
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
-  --color-foreground: var(--color-text);
+  --color-foreground: var(--color-text-strong);
   --color-card: var(--color-background);
   --color-card-foreground: var(--color-text);
   --color-muted: var(--color-background-weak);

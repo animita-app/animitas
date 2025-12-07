@@ -1,18 +1,27 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { SpatialProvider } from '@/contexts/spatial-context'
 import { UserProvider } from '@/contexts/user-context'
-import MainLayout from './main-layout'
 
 export function Providers({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isAuthPage = pathname === '/auth'
+
   return (
     <UserProvider>
       <SpatialProvider>
-        <MainLayout>{children}</MainLayout>
+        {isAuthPage ? (
+          children
+        ) : (
+          <div className="min-h-screen w-screen relative bg-background">
+            {children}
+          </div>
+        )}
       </SpatialProvider>
     </UserProvider>
   )
