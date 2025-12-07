@@ -10,12 +10,26 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sparkles, Map, Headphones } from "lucide-react"
 
+import { useSpatialContext } from "@/contexts/spatial-context"
+
 interface PrefaceDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function PrefaceDialog({ open, onOpenChange }: PrefaceDialogProps) {
+  const { setCruiseActive } = useSpatialContext()
+
+  const handleStartCruise = () => {
+    setCruiseActive(true)
+    onOpenChange(false)
+  }
+
+  const handleExploreOnly = () => {
+    setCruiseActive(false)
+    onOpenChange(false)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -37,9 +51,16 @@ export function PrefaceDialog({ open, onOpenChange }: PrefaceDialogProps) {
           Un espacio para detenerse, mirar y acompañar las historias que siguen resonando en medio del tránsito.
         </p>
 
-        <Button size="sm" className="w-fit focus-visible:!ring-accent/10" onClick={() => onOpenChange(false)}>
-          Empezar
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button size="sm" className="w-fit focus-visible:!ring-accent/10" onClick={handleStartCruise}>
+            Empezar
+          </Button>
+
+          {/* <p className="mt-2 text-black/50 text-sm" onClick={handleExploreOnly}>
+            si solo quieres explorar, {' '}
+            <span className="underline cursor-pointer">haz click aquí</span>
+          </p> */}
+        </div>
       </DialogContent>
     </Dialog>
   )

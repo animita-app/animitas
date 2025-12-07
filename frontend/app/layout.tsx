@@ -48,7 +48,7 @@ const ibmPlexMono = localFont({
 })
 
 export const metadata: Metadata = {
-    title: {
+  title: {
     template: '%s – [ÁNIMA]',
     default: '[ÁNIMA]',
   },
@@ -85,7 +85,6 @@ export default function RootLayout({
         <Providers>
           {children}
           {modal}
-          {/* <CreateMemorialButton /> */}
           <Toaster />
         </Providers>
       </body>

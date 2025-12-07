@@ -769,8 +769,8 @@ export const SEED_HERITAGE_SITES: HeritageSite[] = [
     location: { lat: -33.0275463, lng: -71.6478226 },
     typology: "Casa",
     images: [
-      "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.02@2x.png",
       "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.06@2x.png",
+      "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-emile-dubois/CleanShot%202025-10-20%20at%2022.49.02@2x.png",
     ],
     story: "Emile Dubois, nacido en Francia en 1867 como Luis Amadeo Brihier Lacroix, fue un aventurero que vivió por toda Sudamérica. Se ganó fama como \"el artista del crimen\" tras varios asesinatos en Chile y Valparaíso, muchos vinculados a robos. Capturado y encarcelado, siempre alegó su inocencia y se defendió solo en el juicio, mostrando una calma y valentía que impactaron al público. Se casó horas antes de ser fusilado en 1907, y su audacia y tragedia lo convirtieron en leyenda. Su animita es visitada por quienes buscan protección ante injusticias y milagros.",
     created_at: "1907-08-15",

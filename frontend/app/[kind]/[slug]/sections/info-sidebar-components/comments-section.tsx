@@ -1,16 +1,15 @@
 import React from "react"
+import { CommentInput } from "./comment-input"
 
 export function CommentsSection() {
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-semibold">Reflexiones</span>
+    <div className="space-y-4">
+      <div className="sr-only flex items-center justify-between">
+        <span className="text-sm font-semibold">Comentarios</span>
         <span className="text-sm text-muted-foreground">Más recientes</span>
       </div>
-      {/* Placeholder for list */}
-      <div className="text-sm text-muted-foreground italic">
-        No hay reflexiones aún. Sé el primero.
-      </div>
+
+      <CommentInput />
     </div>
   )
 }

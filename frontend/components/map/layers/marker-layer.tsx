@@ -13,6 +13,8 @@ import { ROLES } from '@/types/roles'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { ArrowUpRight } from 'lucide-react'
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
@@ -56,6 +58,7 @@ export function MarkerLayer({
       map.addSource(sourceId, {
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
+        promoteId: 'id', // Use the 'id' property for feature-state
         ...CLUSTER_CONFIG
       })
     }
@@ -169,7 +172,6 @@ export function MarkerLayer({
               'interpolate',
               ['linear'],
               ['zoom'],
-              10, 0.2, // ~50px
               14, 0.5, // ~130px
             ],
             'icon-allow-overlap': true,
@@ -183,10 +185,10 @@ export function MarkerLayer({
 
     // Apply Zoom Range Logic
     if (map.getLayer(`${sourceId}-outer`)) {
-      map.setLayerZoomRange(`${sourceId}-outer`, 0, isFree ? 10 : 24)
+      map.setLayerZoomRange(`${sourceId}-outer`, 0, isFree ? 12 : 24)
     }
     if (map.getLayer(`${sourceId}-inner`)) {
-      map.setLayerZoomRange(`${sourceId}-inner`, 0, isFree ? 10 : 24)
+      map.setLayerZoomRange(`${sourceId}-inner`, 0, isFree ? 12 : 24)
     }
 
     isInitialized.current = true
@@ -257,6 +259,7 @@ export function MarkerLayer({
 
           return {
             type: 'Feature',
+            id: site.id, // Add feature ID for feature-state
             geometry: {
               type: 'Point',
               coordinates: [site.location.lng, site.location.lat]
@@ -277,6 +280,7 @@ export function MarkerLayer({
     if (!map || !isMapReady) return
 
     const layersToClick = [`${sourceId}-inner`, `${sourceId}-outer`, `${sourceId}-marker-default`, `${sourceId}-marker-image`]
+
 
     // Point Click
     const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
@@ -372,55 +376,37 @@ export function MarkerLayer({
               const typologyData = getTypologyData(typology)
               const deathCauseData = getDeathCauseData(death_cause)
               const isVisible = currentZoom >= 10
-              const href = `/${kind}/${slug}`
+              const href = `/${kind.toLowerCase()}/${slug}`
 
               return (
                 <MapMarker
                   key={site.id}
                   map={map}
                   coordinates={[site.location.lng, site.location.lat]}
+                  className="group-hover:scale-[102%] transition-all duration-150"
                 >
-                  <div className="relative flex flex-col items-center group cursor-pointer w-0 h-0">
+                  <div className="relative flex flex-col items-center cursor-pointer">
                     <div className="-mt-6 relative z-20">
                       {/* Empty children placeholder */}
                     </div>
 
                     {isVisible && (
-                      <div className={cn(
-                        "absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none z-30",
-                        isFree ? "top-20" : "top-12"
-                      )}>
+                      <Link
+                        href={href}
+                        prefetch={false}
+                        className={cn(
+                          "absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-auto z-30 flex flex-col items-center gap-2",
+                          isFree ? "top-20" : "top-12"
+                        )}
+                      >
                         <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
                           {name || 'Animita'}
                         </span>
-                      </div>
-                    )}
-
-                    {(isVisible && !isFree) && (
-                      <div className="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 z-10 pointer-events-auto">
-                        <Link href={href} prefetch={false} scroll={false} className="block">
-                          <Card className="w-72 !py-0 overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-white/90 backdrop-blur-md border-none shadow-md">
-                            <CardContent className="p-4 space-y-4">
-                              <div className="space-y-1">
-                                <Label>Tipología</Label>
-                                <p className="text-sm font-medium text-black">{typologyData.label}</p>
-                              </div>
-
-                              <div className="space-y-1">
-                                <Label>Causa de Muerte</Label>
-                                <p className="text-sm font-medium text-black">{deathCauseData.label}</p>
-                              </div>
-
-                              {site.insights?.patrimonial?.antiquity_year && (
-                                <div className="space-y-1">
-                                  <Label>Antigüedad</Label>
-                                  <p className="text-sm font-medium text-black">{site.insights.patrimonial.antiquity_year}</p>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      </div>
+                        <Button size="sm" variant="link" className="hover:underline group-hover:underline text-accent hover:text-accent/80 group-hover:text-accent/80 [&_svg]:opacity-50 gap-1">
+                          Ver detalles
+                          <ArrowUpRight />
+                        </Button>
+                      </Link>
                     )}
                   </div>
                 </MapMarker>

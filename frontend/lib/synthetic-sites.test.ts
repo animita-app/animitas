@@ -1,10 +1,11 @@
 import { generateSyntheticSites, SpatialContext } from './synthetic-sites'
-import { Site } from '@/types/mock'
+import { HeritageSite } from '@/types/mock'
 import * as turf from '@turf/turf'
 
-const MOCK_SEED: Site = {
+const MOCK_SEED: HeritageSite = {
   id: 'seed-1',
   slug: 'seed-1',
+  kind: 'Animita',
   title: 'Seed Site',
   person_id: 'p1',
   location: { lat: 0, lng: 0 },

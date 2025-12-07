@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { text, voice = 'alloy' } = await req.json()
+    const { text } = await req.json()
+    // Default Voice ID provided by user
+    const voiceId = 'cMKZRsVE5V7xf6qCp9fF'
 
     if (!text) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
     }
 
-    let apiKey = process.env.OPENAI_API_KEY
+    let apiKey = process.env.ELEVENLABS_API_KEY
 
     // Fallback: Manual .env read for hot-loading in dev
     if (!apiKey) {
@@ -18,35 +20,34 @@ export async function POST(req: Request) {
         const envPath = path.resolve(process.cwd(), '.env')
         if (fs.existsSync(envPath)) {
           const content = fs.readFileSync(envPath, 'utf8')
-          const match = content.match(/OPENAI_API_KEY=(.+)/)
+          const match = content.match(/ELEVENLABS_API_KEY=(.+)/)
           if (match) apiKey = match[1].trim()
         }
       } catch (err) { console.warn('Manual env read failed', err) }
     }
 
     if (!apiKey) {
-      return NextResponse.json({ error: 'OpenAI API key not configured' }, { status: 500 })
+      return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 })
     }
 
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'xi-api-key': apiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini-tts',
-        input: text,
-        voice: voice,
+        text,
+        model_id: 'eleven_multilingual_v2',
+        output_format: 'mp3_44100_128'
       }),
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      return NextResponse.json({ error }, { status: response.status })
+      const errorText = await response.text()
+      return NextResponse.json({ error: errorText }, { status: response.status })
     }
 
-    // Return the audio stream directly
     return new NextResponse(response.body, {
       headers: {
         'Content-Type': 'audio/mpeg',

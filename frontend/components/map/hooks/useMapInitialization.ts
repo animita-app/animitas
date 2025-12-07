@@ -45,7 +45,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       const currentZoom = mapInstance.getZoom()
       const bounds = mapInstance.getBounds()
 
-      mapInstance.setMinZoom(Math.max(0, currentZoom - 1)) // Allow slightly more zoom out to prevent locking errors
+      mapInstance.setMinZoom(currentZoom)
       if (bounds) {
         const padding = 20 // degrees
         const extendedBounds = new mapboxgl.LngLatBounds(

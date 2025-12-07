@@ -195,7 +195,7 @@ export function LayerDetail({
 
   return (
     <>
-      <Card className={cn("absolute top-0 right-0 w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in slide-in-from-right duration-300 fade-in max-h-full pointer-events-auto", className)}>
+      <Card className={cn("absolute top-0 right-0 w-80 !p-0 !gap-0 flex flex-col shadow-md border-border-weak animate-in duration-150 fade-in fade-out max-h-full pointer-events-auto", className)}>
         <CardHeader className={cn("px-4 pr-2 border-b border-border-weak !py-1.5 h-12 items-center flex flex-row justify-between space-y-0 shrink-0", selectedLayer.id === 'heritage_sites' ? 'border-b-0' : '')}>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <CardTitle className="truncate text-sm">{selectedLayer.label}</CardTitle>

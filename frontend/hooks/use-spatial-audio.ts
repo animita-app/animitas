@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { HeritageSite } from '@/types/mock'
+import { useSpatialContext } from '@/contexts/spatial-context'
 
 interface UseSpatialAudioProps {
   map: mapboxgl.Map | null
@@ -9,6 +10,9 @@ interface UseSpatialAudioProps {
 }
 
 export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
+  // Get isNarrating from context
+  const { isNarrating } = useSpatialContext()
+
   // Proximity in meters to start hearing the story
   const STORY_THRESHOLD = 50
   // Proximity in meters where story is at max volume
@@ -19,9 +23,11 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
   const filterNodeRef = useRef<BiquadFilterNode | null>(null)
   const gainNodeRef = useRef<GainNode | null>(null)
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null)
-
-  const storyAudioRef = useRef<HTMLAudioElement | null>(null)
   const currentStoryIdRef = useRef<string | null>(null)
+
+  // Horn sound timer refs
+  const carHornTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const truckHornTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Initialize Audio & Context
   useEffect(() => {
@@ -32,10 +38,10 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     const audioCtx = new AudioContextClass()
     audioContextRef.current = audioCtx
 
-    // Ambient Audio Element
+    // Ambient Audio Element - FIXED PATH
     const ambient = new Audio('/sounds/carretera.wav')
     ambient.loop = true
-    ambient.crossOrigin = "anonymous" // Helpful for some CORS issues with Web Audio
+    ambient.crossOrigin = "anonymous"
     ambientAudioRef.current = ambient
 
     // Web Audio Pipeline for Ambient
@@ -55,18 +61,48 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     filterNodeRef.current = filter
     gainNodeRef.current = gain
 
-    // Story Audio (kept simple for now, separate from context or could be added)
-    // const story = new Audio('https://cdn.freesound.org/previews/320/320665_5260872-lq.mp3')
-    // story.loop = true
-    // story.volume = 0
-    // storyAudioRef.current = story
-
     return () => {
       ambient.pause()
-      // story.pause()
       audioCtx.close()
     }
   }, [])
+
+  // Randomized Horn Sounds
+  useEffect(() => {
+    if (mode === 'disabled' || mode === 'preface') return
+
+    const playCarHorn = () => {
+      const carHorn = new Audio('/sounds/car-horn.mp3')
+      carHorn.volume = 0.0125
+      carHorn.play().catch(() => { })
+
+      // Schedule next car horn (5-15 seconds)
+      const nextDelay = 5000 + Math.random() * 10000
+      carHornTimerRef.current = setTimeout(playCarHorn, nextDelay)
+    }
+
+    const playTruckHorn = () => {
+      const truckHorn = new Audio('/sounds/truck-horn.mp3')
+      truckHorn.volume = 0.0125
+      truckHorn.play().catch(() => { })
+
+      // Schedule next truck horn (5-15 seconds)
+      const nextDelay = 5000 + Math.random() * 10000
+      truckHornTimerRef.current = setTimeout(playTruckHorn, nextDelay)
+    }
+
+    // Start both horn loops with initial random delays
+    const initialCarDelay = 2000 + Math.random() * 8000
+    const initialTruckDelay = 3000 + Math.random() * 10000
+
+    carHornTimerRef.current = setTimeout(playCarHorn, initialCarDelay)
+    truckHornTimerRef.current = setTimeout(playTruckHorn, initialTruckDelay)
+
+    return () => {
+      if (carHornTimerRef.current) clearTimeout(carHornTimerRef.current)
+      if (truckHornTimerRef.current) clearTimeout(truckHornTimerRef.current)
+    }
+  }, [mode])
 
   // Handle Mode Changes (Effect & Volume Baseline)
   useEffect(() => {
@@ -77,7 +113,7 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     const gain = gainNodeRef.current
     const ambient = ambientAudioRef.current
 
-    // Resume context if suspended (browser autoplay policy)
+    // Resume context if suspended
     if (ctx.state === 'suspended') {
       ctx.resume()
     }
@@ -97,8 +133,8 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     // Mode Logic
     if (mode === 'preface') {
-      // Low-pass filter + 25% volume
-      filter.frequency.setTargetAtTime(400, ctx.currentTime, 0.5) // Muffled
+      // Less muffled filter + 25% volume
+      filter.frequency.setTargetAtTime(2000, ctx.currentTime, 0.15) // Less muffled
       gain.gain.setTargetAtTime(0.25, ctx.currentTime, 0.5)
       window.speechSynthesis.cancel()
     } else if (mode === 'focused') {
@@ -106,7 +142,7 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
       filter.frequency.setTargetAtTime(20000, ctx.currentTime, 0.5) // Open
       gain.gain.setTargetAtTime(0.25, ctx.currentTime, 0.5)
       window.speechSynthesis.cancel()
-    } else if (mode === 'interactive' || mode === 'cruise') { // Updated: 'interactive' or 'cruise'
+    } else if (mode === 'interactive' || mode === 'cruise') {
       // Clear sound + Dynamic Volume (handled in spatial loop)
       filter.frequency.setTargetAtTime(20000, ctx.currentTime, 0.5)
       // Gain will be controlled by spatial loop
@@ -116,14 +152,14 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
   // Spatial Logic loop (Active in 'interactive' or 'cruise')
   useEffect(() => {
-    if (!map || (mode !== 'interactive' && mode !== 'cruise')) return // Updated: Active in 'interactive' or 'cruise'
+    if (!map || (mode !== 'interactive' && mode !== 'cruise')) return
 
     const updateAudio = () => {
       if (!gainNodeRef.current || !audioContextRef.current) return
 
       const center = map.getCenter()
 
-      // Calculate distances
+      // Find Nearest Site
       let minDistance = Infinity
       let nearestSite: HeritageSite | null = null
 
@@ -136,59 +172,62 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
         }
       })
 
-      // Cross-fade Logic (for Interactive Mode)
-      let ambientGain = 0.5 // Base volume for interactive
+      // 3. Ambient Gain Logic - Constant volume, duck only when narrating
+      let ambientGain = 0.5 // Constant base volume
 
-      if (minDistance < STORY_THRESHOLD) {
+      if (isNarrating) {
+        // Cruise Mode: Duck to 50% when narrating
+        ambientGain = 0.25
+      } else if (mode === 'interactive' && minDistance < STORY_THRESHOLD) {
+        // Interactive Mode: Proximity ducking
         const proximity = 1 - (Math.max(0, minDistance - STORY_MAX_VOL_THRESHOLD) / (STORY_THRESHOLD - STORY_MAX_VOL_THRESHOLD))
-        ambientGain = 0.2 * (1 - proximity)
-
-        // Web Speech API Logic (Only in interactive mode, not cruise)
-        if (mode === 'interactive' && nearestSite && (nearestSite as any).id !== currentStoryIdRef.current && (nearestSite as any).story) {
-          currentStoryIdRef.current = nearestSite.id
-
-          window.speechSynthesis.cancel()
-
-          const speak = () => {
-            const utterance = new SpeechSynthesisUtterance((nearestSite as any).story)
-            utterance.lang = 'es-CL'
-            utterance.rate = 0.9
-            utterance.volume = 1.0
-
-            const voices = window.speechSynthesis.getVoices()
-
-            const voice = voices.find(v => v.lang === 'es-CL') ||
-              voices.find(v => v.name.includes('Google') && v.lang.includes('es')) ||
-              voices.find(v => v.lang.includes('es'))
-
-            if (voice) {
-              utterance.voice = voice
-            } else {
-              console.warn('[useSpatialAudio] No Spanish voice found, using default')
-            }
-
-            window.speechSynthesis.speak(utterance)
-          }
-
-          if (window.speechSynthesis.getVoices().length === 0) {
-            window.speechSynthesis.onvoiceschanged = () => {
-              speak()
-              window.speechSynthesis.onvoiceschanged = null
-            }
-          } else {
-            speak()
-          }
-        }
-      } else {
-        // Too far, stop story
-        if (currentStoryIdRef.current) {
-          window.speechSynthesis.cancel()
-          currentStoryIdRef.current = null
-        }
+        // Fade from 0.5 down to 0.25
+        ambientGain = 0.5 - (0.25 * proximity)
       }
 
-      // Update interactive volumes
-      gainNodeRef.current.gain.setTargetAtTime(Math.max(0, ambientGain), audioContextRef.current.currentTime, 0.1)
+      // 4. Update Ambient Gain
+      const targetGain = Math.max(0, Math.min(1, ambientGain))
+      gainNodeRef.current.gain.setTargetAtTime(targetGain, audioContextRef.current.currentTime, 0.1)
+
+      // 5. Web Speech API Logic (Only in Interactive Mode)
+      if (mode === 'interactive') {
+        if (minDistance < STORY_THRESHOLD && nearestSite) {
+          const site = nearestSite as HeritageSite
+          // Check if new story or different story
+          if (site.id !== currentStoryIdRef.current && site.story) {
+            // Play new story
+            currentStoryIdRef.current = site.id
+            window.speechSynthesis.cancel()
+
+            const speak = () => {
+              const utterance = new SpeechSynthesisUtterance((site as any).story)
+              utterance.lang = 'es-CL'
+              utterance.rate = 0.9
+              utterance.volume = 1.0
+              const voices = window.speechSynthesis.getVoices()
+              const voice = voices.find(v => v.lang === 'es-CL') ||
+                voices.find(v => v.lang.includes('es'))
+              if (voice) utterance.voice = voice
+              window.speechSynthesis.speak(utterance)
+            }
+
+            if (window.speechSynthesis.getVoices().length === 0) {
+              window.speechSynthesis.onvoiceschanged = () => {
+                speak()
+                window.speechSynthesis.onvoiceschanged = null
+              }
+            } else {
+              speak()
+            }
+          }
+        } else {
+          // Too far from any site
+          if (currentStoryIdRef.current) {
+            window.speechSynthesis.cancel()
+            currentStoryIdRef.current = null
+          }
+        }
+      }
     }
 
     map.on('move', updateAudio)
@@ -198,7 +237,14 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     return () => {
       map.off('move', updateAudio)
-      window.speechSynthesis.cancel()
+      if (mode !== 'cruise') {
+        // Only cancel speech if leaving interactive mode completely (or handling differently)
+        // Actually, if unmounting or changing modes, cancellation is good.
+        // But 'cruise' mode manages its own speech, so 'useCruiseMode' handles cancellation.
+        // 'interactive' uses WebSpeech.
+        // If switching from interactive -> cruise, the 'mode' changes.
+        window.speechSynthesis.cancel()
+      }
     }
-  }, [map, sites, mode])
+  }, [map, sites, mode, isNarrating])
 }

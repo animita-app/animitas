@@ -13,6 +13,8 @@ interface SpatialContextType {
   // Cruise Mode
   isCruiseActive: boolean
   setCruiseActive: (active: boolean) => void
+  isNarrating: boolean
+  setIsNarrating: (narrating: boolean) => void
 
   // Filtering
   filters: Record<string, string[]>
@@ -34,6 +36,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
   const [isCruiseActive, setCruiseActive] = useState(false)
+  const [isNarrating, setIsNarrating] = useState(false)
 
   const setActiveArea = (area: Feature<Geometry> | FeatureCollection, label: string) => {
     setActiveAreaState(area)
@@ -150,7 +153,9 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       // @ts-ignore
       setSyntheticSites,
       isCruiseActive,
-      setCruiseActive
+      setCruiseActive,
+      isNarrating,
+      setIsNarrating
     }}>
       {children}
     </SpatialContext.Provider>

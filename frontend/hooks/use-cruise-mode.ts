@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl'
 import { HeritageSite } from '@/types/mock'
+import { useSpatialContext } from '@/contexts/spatial-context'
 
 interface UseCruiseModeProps {
   map: mapboxgl.Map | null
@@ -14,12 +15,22 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [activeSite, setActiveSite] = useState<HeritageSite | null>(null)
 
+  const { setIsNarrating } = useSpatialContext()
+
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
 
   // Sort sites North to South (Latitude Descending)
   const sortedSites = useMemo(() => {
-    return [...sites].sort((a, b) => b.location.lat - a.location.lat)
+    return sites
+      .filter(site => {
+        // Filter out sites without stories or with abbreviated stories (mostly for free users)
+        if (!site.story) return false
+        if (typeof site.story === 'string' && site.story.includes('Historia completa omitida')) return false
+        return true
+      })
+      .sort((a, b) => b.location.lat - a.location.lat)
   }, [sites])
 
   const stopOrbit = useCallback(() => {
@@ -35,7 +46,7 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
 
     const animate = () => {
       if (!map || !isPlayingRef.current) return
-      map.setBearing(map.getBearing() + 0.05)
+      map.setBearing(map.getBearing() - 0.05)
       animationFrameRef.current = requestAnimationFrame(animate)
     }
     animationFrameRef.current = requestAnimationFrame(animate)
@@ -44,11 +55,16 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
   const stopCruise = useCallback(() => {
     isPlayingRef.current = false
     setIsPlaying(false)
+    setIsNarrating(false)
     setCurrentIndex(-1)
     setActiveSite(null)
     stopOrbit()
 
     if (timerRef.current) clearTimeout(timerRef.current)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
     window.speechSynthesis.cancel()
 
     // Reset map pitch/bearing if desired
@@ -59,17 +75,22 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
         duration: 1000
       })
     }
-  }, [map, stopOrbit])
+  }, [map, stopOrbit, setIsNarrating])
 
   const startCruise = useCallback(() => {
     if (!map || sortedSites.length === 0) return
     isPlayingRef.current = true
     setIsPlaying(true)
     setCurrentIndex(-1)
-    flyToNextSite(-1)
+
+    // Initial delay
+    timerRef.current = setTimeout(() => {
+      flyToNextSite(-1)
+    }, 150)
   }, [map, sortedSites]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const flyToNextSite = (prevIndex: number) => {
+    // Check ref directly
     if (!map || !isPlayingRef.current) return
 
     const nextIndex = prevIndex + 1
@@ -84,85 +105,99 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
 
     if (onSiteExamine) onSiteExamine(site)
 
-    // 1. Prepare Speech (Browser Native - Free)
+    // 1. Prepare Speech (Static Audio Files)
     const story = (site as any).story
     let speechPromise = Promise.resolve()
 
     if (story) {
       speechPromise = new Promise((resolve) => {
-        window.speechSynthesis.cancel()
-
-        const utterance = new SpeechSynthesisUtterance(story)
-        utterance.lang = 'es-CL'
-        utterance.rate = 0.9
-        utterance.volume = 1.0
-
-        let hasStarted = false
-
-        const speak = () => {
-          if (hasStarted || !isPlayingRef.current) return
-          hasStarted = true
-
-          const voices = window.speechSynthesis.getVoices()
-          const voice = voices.find(v => v.lang === 'es-CL') ||
-            voices.find(v => v.name.includes('Google') && v.lang.includes('es')) ||
-            voices.find(v => v.lang.includes('es'))
-
-          if (voice) utterance.voice = voice
-          window.speechSynthesis.speak(utterance)
-
-          // Start Orbiting when speech starts (and we are zoomed in)
-          startOrbit()
+        if (audioRef.current) {
+          audioRef.current.pause()
+          audioRef.current = null
         }
 
-        utterance.onend = () => {
-          stopOrbit() // Stop orbiting when speech ends
-          resolve(void 0)
+        // Use pre-generated static file
+        const audioUrl = `/audio/stories/${site.id}.mp3`
+        console.log('[CruiseMode] Loading audio for:', site.id, audioUrl)
+        const audio = new Audio(audioUrl)
+        audioRef.current = audio
+        audio.loop = false
+        audio.volume = 1 // Full volume, no fade
+
+        audio.onloadeddata = () => {
+          console.log('[CruiseMode] Audio loaded, duration:', audio.duration, 'seconds')
         }
-        utterance.onerror = () => {
+
+        audio.onended = () => {
+          console.log('[CruiseMode] Audio ended for:', site.id)
           stopOrbit()
+          setIsNarrating(false)
           resolve(void 0)
+        }
+
+        audio.onerror = (e) => {
+          console.warn(`[CruiseMode] Audio error for ${site.id}:`, e)
+          console.log('[CruiseMode] Continuing to next site despite audio error')
+          stopOrbit()
+          setIsNarrating(false)
+          // Resolve immediately so cruise can continue
+          resolve(void 0)
+        }
+
+        audio.oncanplaythrough = () => {
+          console.log('[CruiseMode] Audio ready to play for:', site.id)
+        }
+
+        const play = () => {
+          if (!isPlayingRef.current) {
+            console.log('[CruiseMode] Not playing, skipping audio play')
+            return
+          }
+          console.log('[CruiseMode] Attempting to play audio for:', site.id)
+          const playPromise = audio.play()
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('[CruiseMode] Audio playback started for:', site.id)
+                startOrbit()
+                setIsNarrating(true)
+              })
+              .catch(e => {
+                console.warn('Playback failed', e)
+                setIsNarrating(false)
+                resolve(void 0)
+              })
+          }
         }
 
         // Trigger on Zoom Level
+        // Start earlier (e.g. 14.5) to ensure speech starts before full zoom
         const onZoom = () => {
           if (!isPlayingRef.current) {
             map.off('zoom', onZoom)
             return
           }
-          if (map.getZoom() > 16.5) {
-            if (window.speechSynthesis.getVoices().length === 0) {
-              window.speechSynthesis.onvoiceschanged = () => {
-                speak()
-                window.speechSynthesis.onvoiceschanged = null
-              }
-            } else {
-              speak()
-            }
+          if (map.getZoom() > 14.5) {
             map.off('zoom', onZoom)
+            play()
           }
         }
 
         map.on('zoom', onZoom)
 
-        // Backup
+        // Backup mechanism
         map.once('moveend', () => {
           map.off('zoom', onZoom)
-          if (!hasStarted) {
-            if (window.speechSynthesis.getVoices().length === 0) {
-              window.speechSynthesis.onvoiceschanged = () => {
-                speak()
-                window.speechSynthesis.onvoiceschanged = null
-              }
-            } else {
-              speak()
-            }
+          // If audio hasn't started, try playing now
+          if (audio.paused && audioRef.current === audio) {
+            play()
           }
         })
       })
     }
 
     // 2. Fly (Closer zoom 18)
+    console.log('[CruiseMode] Flying to site:', site.id, 'at coordinates:', [site.location.lng, site.location.lat])
     map.flyTo({
       center: [site.location.lng, site.location.lat],
       zoom: 18,
@@ -174,35 +209,98 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
     })
 
     const flightPromise = new Promise<void>((resolve) => {
-      map.once('moveend', () => resolve())
+      let isResolved = false
+      const onMoveEnd = () => {
+        if (isResolved) return
+        isResolved = true
+        console.log('[CruiseMode] Flight moveend fired for:', site.id)
+        resolve()
+      }
+      map.once('moveend', onMoveEnd)
+
+      // Safety timeout in case moveend doesn't fire appropriately
+      setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true
+          console.log('[CruiseMode] Flight timeout reached for:', site.id)
+          map.off('moveend', onMoveEnd)
+          resolve()
+        }
+      }, 15000)
     })
 
     // 3. Wait for BOTH
     Promise.all([flightPromise, speechPromise]).then(() => {
-      if (!isPlayingRef.current) return
+      console.log('[CruiseMode] Flight and speech completed for site:', site.id)
+      if (!isPlayingRef.current) {
+        console.log('[CruiseMode] Not playing anymore, stopping')
+        return
+      }
 
       stopOrbit() // Ensure orbit is stopped
+      setIsNarrating(false)
+      console.log('[CruiseMode] Scheduling next site in 2 seconds...')
       // Small pause after everything finishes before moving on
       timerRef.current = setTimeout(() => {
+        console.log('[CruiseMode] Moving to next site')
         flyToNextSite(nextIndex)
       }, 2000)
     })
   }
 
+  // Manual navigation functions
+  const skipToNext = useCallback(() => {
+    if (!isPlaying || currentIndex >= sortedSites.length - 1) return
+
+    console.log('[CruiseMode] Manual skip to next')
+    // Clear current timers and audio
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    stopOrbit()
+    setIsNarrating(false)
+
+    flyToNextSite(currentIndex)
+  }, [isPlaying, currentIndex, sortedSites.length, stopOrbit, setIsNarrating])
+
+  const skipToPrevious = useCallback(() => {
+    if (!isPlaying || currentIndex <= 0) return
+
+    console.log('[CruiseMode] Manual skip to previous')
+    // Clear current timers and audio
+    if (timerRef.current) clearTimeout(timerRef.current)
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    stopOrbit()
+    setIsNarrating(false)
+
+    flyToNextSite(currentIndex - 2) // -2 because flyToNextSite adds 1
+  }, [isPlaying, currentIndex, stopOrbit, setIsNarrating])
+
   // Cleanup
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+      stopOrbit()
       window.speechSynthesis.cancel()
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
-      isPlayingRef.current = false
     }
-  }, [])
+  }, [stopOrbit])
 
   return {
-    isCruiseActive: isPlaying,
+    isPlaying,
+    currentIndex,
     activeCruiseSite: activeSite,
     startCruise,
-    stopCruise
+    stopCruise,
+    skipToNext,
+    skipToPrevious
   }
 }

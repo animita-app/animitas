@@ -1,4 +1,3 @@
-import React from 'react'
 import { notFound } from 'next/navigation'
 import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { ImageGallery } from './sections/image-gallery'
@@ -15,7 +14,7 @@ interface PageProps {
 }
 
 export default async function SiteDetailPage({ params }: PageProps) {
-  const { slug } = await params
+  const { slug, kind } = await params
 
   const site = SEED_HERITAGE_SITES.find((s) => s.slug === slug)
 
@@ -23,16 +22,22 @@ export default async function SiteDetailPage({ params }: PageProps) {
     notFound()
   }
 
+  // Validate that the kind matches (case-insensitive)
+  const siteKind = ((site as any).kind || 'animita').toLowerCase()
+  if (kind.toLowerCase() !== siteKind) {
+    notFound()
+  }
+
   return (
     <div className="flex h-svh w-full overflow-hidden">
       <Button size="sm" className="h-8 [&_svg]:opacity-50 absolute top-4 left-4 !pl-1.5 gap-1.5 bg-neutral-800 border-0 hover:bg-neutral-800/80 text-white hover:text-white z-10" variant="outline" asChild>
-        <Link href="/map">
+        <Link href="/">
           <ChevronLeft />
           Volver
         </Link>
       </Button>
 
-      <div className="flex-1 overflow-hidden relative flex items-center justify-center">
+      <div className="bg-black flex-1 overflow-hidden relative flex items-center justify-center">
         <ImageGallery images={site.images} title={site.title} />
       </div>
 

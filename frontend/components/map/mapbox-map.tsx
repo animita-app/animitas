@@ -202,7 +202,7 @@ export default function MapboxMap({
   })
 
   // 8. Cruise Mode & Audio
-  const { startCruise, stopCruise } = useCruiseMode({
+  const { startCruise, stopCruise, skipToNext, skipToPrevious } = useCruiseMode({
     map: map.current,
     sites: filteredData,
     onSiteExamine: (site) => {
@@ -218,6 +218,47 @@ export default function MapboxMap({
       stopCruise()
     }
   }, [isCruiseActive, startCruise, stopCruise])
+
+  // Arrow key navigation for cruise mode
+  useEffect(() => {
+    if (!isCruiseActive) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        skipToNext()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        skipToPrevious()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isCruiseActive, skipToNext, skipToPrevious])
+
+  // Stop Cruise on User Interaction
+  useEffect(() => {
+    if (!map.current || !isMapReady) return
+
+    const stopInteraction = () => {
+      setCruiseActive(false)
+    }
+
+    const m = map.current
+    // Listen to user interactions to stop cruise mode
+    m.on('mousedown', stopInteraction) // Mouse click/drag
+    m.on('touchstart', stopInteraction) // Touch
+    m.on('wheel', stopInteraction) // Zoom/Scroll
+    m.on('dragstart', stopInteraction) // Explicit drag
+
+    return () => {
+      m.off('mousedown', stopInteraction)
+      m.off('touchstart', stopInteraction)
+      m.off('wheel', stopInteraction)
+      m.off('dragstart', stopInteraction)
+    }
+  }, [isMapReady, setCruiseActive])
 
   useSpatialAudio({
     map: map.current,

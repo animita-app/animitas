@@ -78,23 +78,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
       </div>
 
       <div className="flex items-center gap-3">
-        {isFree && (
-          <div className="flex gap-3 items-center">
-            Modo crucero
-            <Button
-              variant={isCruiseActive ? "default" : "outline"}
-              size="sm"
-              className="font-ibm-plex-mono uppercase"
-              onClick={() => setCruiseActive(!isCruiseActive)}
-            >
-              <div className={cn("relative *:bg-accent", isCruiseActive && "*:!bg-white")}>
-                <div className="size-1.5 rounded-full animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                <div className="size-1.5 rounded-full" />
-              </div>
-              {isCruiseActive ? "ON" : "OFF"}
-            </Button>
-          </div>
-        )}
+
         {currentUser ? (
           <>
             <Button size="sm" className="!pl-2 gap-1 bg-black hover:bg-black/90">

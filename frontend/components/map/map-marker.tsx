@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import mapboxgl from 'mapbox-gl'
+import { cn } from '@/lib/utils'
 
 interface MapMarkerProps {
   map: mapboxgl.Map
   coordinates: [number, number]
   children: React.ReactNode
+  className?: string
 }
 
-export const MapMarker = ({ map, coordinates, children }: MapMarkerProps) => {
+export const MapMarker = ({ map, coordinates, children, className }: MapMarkerProps) => {
   const [container] = useState(() => {
     const div = document.createElement('div')
     // Use a generic class and ensure it doesn't block pointer events
@@ -47,7 +49,7 @@ export const MapMarker = ({ map, coordinates, children }: MapMarkerProps) => {
   }, [coordinates[0], coordinates[1]])
 
   return createPortal(
-    <div className="relative group cursor-pointer">
+    <div className={cn("relative group cursor-pointer", className)}>
       {/* Visual Marker (Image or Default) */}
       {children}
     </div>,
