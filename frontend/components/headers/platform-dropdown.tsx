@@ -129,8 +129,8 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem>Ocultar UI</DropdownMenuItem>
-                <DropdownMenuItem>Zoom In</DropdownMenuItem>
-                <DropdownMenuItem>Zoom Out</DropdownMenuItem>
+                <DropdownMenuItem>Zoom in</DropdownMenuItem>
+                <DropdownMenuItem>Zoom out</DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>

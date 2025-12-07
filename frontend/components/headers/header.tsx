@@ -34,12 +34,13 @@ const MENU_ITEMS = [
 
 export function Header({ onExport, componentCount = 0, className, variant = 'default' }: HeaderProps) {
   const { role, currentUser } = useUser()
-  const { isCruiseActive, setCruiseActive } = useSpatialContext()
   const pathname = usePathname()
   const isFree = role === ROLES.FREE
 
+  if ((pathname === '/map' && variant !== 'gis') || pathname.includes("animita")) return null
+
   return (
-    <div className={cn("bg-transparent z-10 flex items-center justify-between", className)}>
+    <div className={cn("bg-transparent z-10 flex items-center justify-between p-4 w-full", className)}>
       <div className="flex items-center gap-4">
         {variant === 'gis' ? (
           isFree ? (
@@ -55,7 +56,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
               [ÁNIMA]
             </Link>
 
-            <NavigationMenu className="absolute left-1/2 -translate-x-1/2">
+            <NavigationMenu className="hidden md:flex absolute left-1/2 -translate-x-1/2">
               <NavigationMenuList>
                 {MENU_ITEMS.map((item) => (
                   <NavigationMenuItem key={item.href}>

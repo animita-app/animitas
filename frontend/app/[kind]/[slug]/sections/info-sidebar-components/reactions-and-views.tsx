@@ -52,6 +52,20 @@ export function ReactionsAndViews() {
     })
   }
 
+  const handleRemoveReaction = (emoji: string) => {
+    setReactions((prev) => {
+      return prev
+        .map((r) => {
+          if (r.emoji === emoji) {
+            const newUsers = r.users.filter((u) => u !== "Tú")
+            return { ...r, count: newUsers.length, users: newUsers }
+          }
+          return r
+        })
+        .filter((r) => r.count > 0)
+    })
+  }
+
   return (
     <div className="flex items-center gap-1.5 w-full">
       {!hasReacted && (
@@ -85,9 +99,15 @@ export function ReactionsAndViews() {
               <TooltipTrigger asChild>
                 <Badge
                   variant="outline"
+                  onClick={() => {
+                    if (isUserReaction) {
+                      handleRemoveReaction(reaction.emoji)
+                    }
+                  }}
                   className={cn(
-                    "h-6 font-normal text-black gap-1",
-                    isUserReaction && "border-accent text-accent bg-accent/5"
+                    "h-6 font-normal text-black gap-1 transition-colors",
+                    isUserReaction &&
+                    "border-accent text-accent bg-accent/5 cursor-pointer hover:bg-accent/10"
                   )}
                 >
                   <span>{reaction.emoji}</span>

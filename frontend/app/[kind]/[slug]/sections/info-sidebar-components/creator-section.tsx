@@ -20,7 +20,7 @@ export function CreatorSection({ site }: CreatorSectionProps) {
       </InfoBlock>
 
       <InfoBlock label="Fecha">
-        <span className="text-sm font-normal text-black capitalize">
+        <span className="text-sm font-normal text-black">
           {new Date(site.created_at).toLocaleDateString("es-ES", {
             day: "numeric",
             month: "long",

@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
 export function UserDropdown() {
   const { role, setRole, currentUser, setUser } = useUser()
@@ -26,16 +28,31 @@ export function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer">
-          <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-          <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
-        </Avatar>
+        <div className="relative cursor-pointer">
+          <Avatar>
+            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+            <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
+          </Avatar>
+          {role === ROLES.EDITOR && (
+            <div className="absolute -top-0.5 -right-0.5 size-2.5 bg-accent rounded-full border-[2px] border-background" />
+          )}
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuGroup>
           <DropdownMenuItem>
             Perfil
           </DropdownMenuItem>
+          {role === ROLES.EDITOR && (
+            <DropdownMenuItem asChild>
+              <Link href="/platform/revisions" className="justify-between w-full">
+                Por revisar
+                <Badge className="aspect-square w-5 -mr-0.5 bg-accent text-white">
+                  5
+                </Badge>
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>Configuración</DropdownMenuSubTrigger>
             <DropdownMenuPortal>

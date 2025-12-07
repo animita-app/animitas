@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Legend } from '../components/paywall/legend'
 import { LayerDetail } from '../components/map/layers/layer-detail'
 import { SearchPanel } from '../components/paywall/search'
@@ -66,6 +67,7 @@ export function MapLayout({
   hasMoved
 }: MapLayoutProps) {
   const { role } = useUser()
+  const pathname = usePathname()
   const isFree = role === ROLES.FREE
   const isMobile = useIsMobile()
   const [snap, setSnap] = useState<number | string | null>(0.06)
@@ -179,11 +181,14 @@ export function MapLayout({
 
       <div className="absolute inset-4 z-10 flex flex-col gap-4 pointer-events-none">
         <div className="pointer-events-auto">
-          <Header
-            onExport={onExport}
-            componentCount={componentCount}
-            variant="gis"
-          />
+          {pathname !== '/pricing' && (
+            <Header
+              onExport={onExport}
+              componentCount={componentCount}
+              variant="gis"
+              className="!p-0"
+            />
+          )}
         </div>
 
         <div className="relative flex-1 min-h-0 pointer-events-none">

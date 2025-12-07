@@ -65,7 +65,7 @@
   --color-text: var(--color-neutral-light-11);
   --color-text-weak: var(--color-neutral-light-9);
   --color-text-weaker: var(--color-neutral-light-10);
-  --color-text-strong: var(--color-neutral-light-12);
+  --color-text-strong: black;
   --color-text-inverted: var(--color-neutral-light-1);
   --color-border: var(--color-neutral-light-7);
   --color-border-weak: var(--color-neutral-light-5);

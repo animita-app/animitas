@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Providers } from './providers'
 import { cn } from '@/lib/utils'
 import { Toaster } from '@/components/ui/sonner'
+import { Header } from '@/components/headers/header'
 
 
 const geist = Geist({
@@ -83,6 +84,7 @@ export default function RootLayout({
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
       <body className="overflow-hidden">
         <Providers>
+          <Header />
           {children}
           {modal}
           <Toaster />
