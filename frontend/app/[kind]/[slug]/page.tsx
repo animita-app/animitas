@@ -29,15 +29,15 @@ export default async function SiteDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-svh w-full overflow-x-hidden">
-      <Button size="sm" className="bg-neutral-800 hover:bg-neutral-800/80 text-white hover:text-white border-0 h-8 [&_svg]:opacity-50 absolute top-4 left-4 !pl-1.5 gap-1.5 z-10" variant="ghost" asChild>
+    <div className="flex flex-col md:flex-row h-svh w-full overflow-hidden">
+      <Button size="sm" className="text-muted-foreground md:bg-neutral-800 md:hover:bg-neutral-800/80 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 absolute top-4 left-4 !pl-1.5 gap-1.5 z-10" variant="ghost" asChild>
         <Link href="/">
           <ChevronLeft />
           Volver
         </Link>
       </Button>
 
-      <div className="bg-black w-full aspect-square md:aspect-auto md:flex-1 overflow-hidden relative flex items-center justify-center shrink-0">
+      <div className="bg-black flex-1 aspect-square md:aspect-auto w-full overflow-hidden relative flex items-center justify-center">
         <ImageGallery images={site.images} title={site.title} />
       </div>
 

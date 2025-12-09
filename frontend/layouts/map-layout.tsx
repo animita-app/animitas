@@ -8,11 +8,14 @@ import { Toolbar } from '../components/paywall/toolbar'
 import { Layer, HeritageSiteProperty, GISOperation } from '../components/paywall/types'
 import { Header } from '@/components/headers/header'
 import { useUser } from '@/contexts/user-context'
+import { useSpatialContext } from '@/contexts/spatial-context'
 import { ROLES } from '@/types/roles'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Drawer, DrawerContentFloating, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
 import { cn } from "@/lib/utils"
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 interface MapLayoutProps {
   layers: Layer[]
@@ -39,6 +42,12 @@ interface MapLayoutProps {
   onGenerateSynthetic: () => void
   onSearchLoading?: (loading: boolean) => void
   hasMoved?: boolean
+
+  // Cruise mode
+  activeCruiseSite?: any | null
+  onCruiseNext?: () => void
+  onCruisePrevious?: () => void
+  onStopCruise?: () => void
 }
 
 export function MapLayout({
@@ -64,16 +73,29 @@ export function MapLayout({
   onExport,
   onGenerateSynthetic,
   onSearchLoading,
-  hasMoved
+  hasMoved,
+  activeCruiseSite,
+  onCruiseNext,
+  onCruisePrevious,
+  onStopCruise
 }: MapLayoutProps) {
   const { role } = useUser()
+  const { isCruiseActive, setCruiseActive } = useSpatialContext()
   const pathname = usePathname()
   const isFree = role === ROLES.FREE
   const isMobile = useIsMobile()
   const [snap, setSnap] = useState<number | string | null>(0.06)
+  const [hasDismissedCruise, setHasDismissedCruise] = useState(false)
 
   const heritageLayer = layers.find(l => l.id === 'heritage_sites')
   const componentCount = heritageLayer?.components?.length || 0
+
+  // Wrapper to track when user dismisses cruise mode
+  const handleStopCruise = () => {
+    setHasDismissedCruise(true)
+    onStopCruise?.()
+    onResetView?.()
+  }
 
   if (isMobile) {
     return (
@@ -90,11 +112,14 @@ export function MapLayout({
 
         <div className="pointer-events-auto inset-0 absolute">
           <Header
+            variant={isFree && !hasDismissedCruise ? 'cruise' : 'gis'}
             onExport={onExport}
             componentCount={componentCount}
-            variant="gis"
+            onResetView={onResetView}
+            onStopCruise={handleStopCruise}
           />
         </div>
+
 
         {!isFree && (
           <Drawer
@@ -151,14 +176,48 @@ export function MapLayout({
           </Drawer>
         )}
 
-        <Toolbar
-          onResetView={hasMoved ? onResetView : undefined}
-          onToggleProfile={onToggleProfile}
-          showProfile={showProfileMarkers}
-          onExport={onExport}
-          onGenerateSynthetic={onGenerateSynthetic}
-          isFree={isFree}
-        />
+        <div className={cn(
+          "transition-opacity duration-500",
+          (isFree && isCruiseActive) ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}>
+          <Toolbar
+            onResetView={hasMoved ? onResetView : undefined}
+            onToggleProfile={onToggleProfile}
+            showProfile={showProfileMarkers}
+            onExport={onExport}
+            onGenerateSynthetic={onGenerateSynthetic}
+            isFree={isFree}
+          />
+        </div>
+
+        {/* Cruise Mode Navigation */}
+        {isFree && isCruiseActive && activeCruiseSite && (
+          <div className="absolute bottom-6 inset-x-4 pointer-events-auto">
+            <div className="w-full p-2 rounded-sm flex justify-center items-center gap-2">
+              <Button
+                onClick={onCruisePrevious}
+                aria-label="Anterior"
+                size="icon"
+                variant="ghost"
+              >
+                <ArrowLeft />
+              </Button>
+
+              <span className="w-full flex-1 text-balance font-ibm-plex-mono uppercase text-sm font-medium text-center">
+                {activeCruiseSite.title}
+              </span>
+
+              <Button
+                onClick={onCruiseNext}
+                aria-label="Siguiente"
+                size="icon"
+                variant="ghost"
+              >
+                <ArrowRight />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -183,15 +242,20 @@ export function MapLayout({
         <div className="pointer-events-auto">
           {pathname !== '/pricing' && (
             <Header
+              variant={isFree && !hasDismissedCruise ? 'cruise' : 'gis'}
               onExport={onExport}
               componentCount={componentCount}
-              variant="gis"
               className="!p-0"
+              onResetView={onResetView}
+              onStopCruise={handleStopCruise}
             />
           )}
         </div>
 
-        <div className="relative flex-1 min-h-0 pointer-events-none">
+        <div className={cn(
+          "relative flex-1 min-h-0 pointer-events-none transition-opacity duration-500",
+          (!isCruiseActive && !isFree) ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           {!isFree && (
             <Legend
               layers={layers}
@@ -228,14 +292,49 @@ export function MapLayout({
         </div>
       </div>
 
-      <Toolbar
-        onResetView={hasMoved ? onResetView : undefined}
-        onToggleProfile={onToggleProfile}
-        showProfile={showProfileMarkers}
-        onExport={onExport}
-        onGenerateSynthetic={onGenerateSynthetic}
-        isFree={isFree}
-      />
+      <div className={cn(
+        "transition-opacity duration-500",
+        (isFree && isCruiseActive) ? "opacity-0 pointer-events-none" : "opacity-100"
+      )}>
+        <Toolbar
+          onResetView={hasMoved ? onResetView : undefined}
+          onToggleProfile={onToggleProfile}
+          showProfile={showProfileMarkers}
+          onExport={onExport}
+          onGenerateSynthetic={onGenerateSynthetic}
+          isFree={isFree}
+        />
+      </div>
+
+      {/* Cruise Mode Navigation */}
+      {isFree && isCruiseActive && activeCruiseSite && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
+          <div className="min-w-80 p-2 rounded-sm flex justify-center items-center gap-2">
+            <Button
+              onClick={onCruisePrevious}
+              aria-label="Anterior"
+              size="icon"
+              variant="ghost"
+            >
+              <ArrowLeft />
+            </Button>
+
+            <span className="flex-1 w-full text-balance font-ibm-plex-mono uppercase text-sm font-medium text-center">
+              {activeCruiseSite.title}
+            </span>
+
+            <Button
+              onClick={onCruiseNext}
+              aria-label="Siguiente"
+              size="icon"
+              variant="ghost"
+              className="hover:bg-neutral-700 hover:text-white"
+            >
+              <ArrowRight />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

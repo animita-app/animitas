@@ -30,6 +30,8 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       style: style || 'mapbox://styles/icarusmind/cmg8sxgbf002y01qwfic65ao7',
       center: [-71.0, -36.0],
       zoom: 3,
+      pitch: 0, // Ensure map starts flat
+      bearing: 0, // Ensure map starts with no rotation
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,

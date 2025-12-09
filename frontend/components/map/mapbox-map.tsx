@@ -202,7 +202,7 @@ export default function MapboxMap({
   })
 
   // 8. Cruise Mode & Audio
-  const { startCruise, stopCruise, skipToNext, skipToPrevious } = useCruiseMode({
+  const { startCruise, stopCruise, skipToNext, skipToPrevious, activeCruiseSite } = useCruiseMode({
     map: map.current,
     sites: filteredData,
     onSiteExamine: (site) => {
@@ -432,6 +432,11 @@ export default function MapboxMap({
         onResetView={handleResetView}
         hasMoved={hasMoved}
         onSearchLoading={setIsSearching}
+
+        activeCruiseSite={activeCruiseSite}
+        onCruiseNext={skipToNext}
+        onCruisePrevious={skipToPrevious}
+        onStopCruise={stopCruise}
       />
 
       {/* Preface Dialog for Free Users */}

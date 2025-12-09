@@ -50,6 +50,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'www.chilevision.cl',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.memoriachilena.gob.cl',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.memoriasdelsigloxx.cl',
+      },
     ],
   },
   env: {

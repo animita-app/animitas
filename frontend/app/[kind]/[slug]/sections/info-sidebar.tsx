@@ -21,7 +21,7 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
   const isFreeUser = role === ROLES.FREE
 
   return (
-    <aside className="w-full md:w-1/3 flex flex-col bg-background-weak md:min-h-svh h-full">
+    <aside className="w-full md:w-96 flex flex-col bg-background-weak md:min-h-svh h-full">
       {/* Scrollable Content */}
       <Scroller className="flex-1">
         <div className="p-6 md:p-8 space-y-8 pb-24">
@@ -29,11 +29,11 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
 
           <CreatorSection site={site} />
 
-          {!isFreeUser && (
+          {isFreeUser ? (
+            <PollSection />
+          ) : (
             <DetailedInfoSection site={site} />
           )}
-
-          <PollSection />
 
           <ReactionsAndViews site={site} />
 

@@ -15,7 +15,7 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: undefined,
     birth_place: "Iquique, Chile",
     death_place: "Iquique, Chile",
-    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/animitas/images/animita-de-hermogenes/hermo.jpg"
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3ol45rkV40ANKK6QH5upXUK-Q9AQ7GdWkJg&s"
   },
   {
     id: "seed-person-elvirita-guillen",
@@ -23,21 +23,23 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: "1923-01-01",
     birth_place: "Limache, Chile",
     death_place: "Antofagasta, Chile",
-    image: "/images/marker-fallback.webp"
+    image: "https://www.memoriachilena.gob.cl/602/articles-68694_thumbnail.jpg"
   },
   {
     id: "seed-person-las-adrianitas",
     full_name: "Adriana Quiroga, Adriana Álvarez y Adriana Labraña ('Las Adrianitas')",
     birth_date: undefined,
     birth_place: undefined,
-    death_place: "Copiapó, Chile"
+    death_place: "Copiapó, Chile",
+    image: "https://www.memoriasdelsigloxx.cl/601/articles-105836_imagen.jpg"
   },
   {
     id: "seed-person-el-quisco",
     full_name: "Víctima anónima del Quisco",
     birth_date: undefined,
     birth_place: undefined,
-    death_place: "Coquimbo, Chile"
+    death_place: "Coquimbo, Chile",
+    image: "https://www.memoriachilena.gob.cl/602/articles-336567_thumbnail.jpg"
   },
   {
     id: "seed-person-luis-castillo",
@@ -53,7 +55,7 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: undefined,
     birth_place: "Francia",
     death_place: "Valparaíso, Chile",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7PhnVtz3IA0SbYzetEOa081kWej6zfrn05g&s"
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/persons/emile-dubois.png"
   },
   {
     id: "seed-person-romualdito",
@@ -244,7 +246,7 @@ export const SEED_PEOPLE: Person[] = [
     birth_date: "c. 1980",
     birth_place: undefined,
     death_place: "Autopista del Sol, Chile",
-    image: "https://www.chilevision.cl/chilevision/site/artic/20151221/imag/foto_0000001120151221110144.jpg"
+    image: "https://lqkwpjkibpkfoilfpfxz.supabase.co/storage/v1/object/public/base/persons/astrid.png"
   },
   {
     id: "seed-person-romualdito",

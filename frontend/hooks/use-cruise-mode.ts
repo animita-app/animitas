@@ -89,7 +89,7 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
     }, 150)
   }, [map, sortedSites]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const flyToNextSite = (prevIndex: number) => {
+  const flyToNextSite = useCallback((prevIndex: number) => {
     // Check ref directly
     if (!map || !isPlayingRef.current) return
 
@@ -98,7 +98,6 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
       stopCruise()
       return
     }
-
     setCurrentIndex(nextIndex)
     const site = sortedSites[nextIndex]
     setActiveSite(site)
@@ -108,100 +107,63 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
     // 1. Prepare Speech (Static Audio Files)
     const story = (site as any).story
     let speechPromise = Promise.resolve()
+    let playAudioFn: (() => void) | null = null
 
     if (story) {
       speechPromise = new Promise((resolve) => {
+        // Ensure any previous audio is completely stopped
         if (audioRef.current) {
           audioRef.current.pause()
+          audioRef.current.currentTime = 0
           audioRef.current = null
         }
 
         // Use pre-generated static file
         const audioUrl = `/audio/stories/${site.id}.mp3`
-        console.log('[CruiseMode] Loading audio for:', site.id, audioUrl)
         const audio = new Audio(audioUrl)
         audioRef.current = audio
         audio.loop = false
         audio.volume = 1 // Full volume, no fade
-
-        audio.onloadeddata = () => {
-          console.log('[CruiseMode] Audio loaded, duration:', audio.duration, 'seconds')
-        }
+        audio.playbackRate = 1.1 // Play at 1.1x speed
 
         audio.onended = () => {
-          console.log('[CruiseMode] Audio ended for:', site.id)
           stopOrbit()
           setIsNarrating(false)
           resolve(void 0)
         }
 
         audio.onerror = (e) => {
-          console.warn(`[CruiseMode] Audio error for ${site.id}:`, e)
-          console.log('[CruiseMode] Continuing to next site despite audio error')
           stopOrbit()
           setIsNarrating(false)
           // Resolve immediately so cruise can continue
           resolve(void 0)
         }
 
-        audio.oncanplaythrough = () => {
-          console.log('[CruiseMode] Audio ready to play for:', site.id)
-        }
-
-        const play = () => {
+        playAudioFn = () => {
           if (!isPlayingRef.current) {
-            console.log('[CruiseMode] Not playing, skipping audio play')
             return
           }
-          console.log('[CruiseMode] Attempting to play audio for:', site.id)
           const playPromise = audio.play()
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
-                console.log('[CruiseMode] Audio playback started for:', site.id)
                 startOrbit()
                 setIsNarrating(true)
               })
               .catch(e => {
-                console.warn('Playback failed', e)
                 setIsNarrating(false)
                 resolve(void 0)
               })
           }
         }
-
-        // Trigger on Zoom Level
-        // Start earlier (e.g. 14.5) to ensure speech starts before full zoom
-        const onZoom = () => {
-          if (!isPlayingRef.current) {
-            map.off('zoom', onZoom)
-            return
-          }
-          if (map.getZoom() > 14.5) {
-            map.off('zoom', onZoom)
-            play()
-          }
-        }
-
-        map.on('zoom', onZoom)
-
-        // Backup mechanism
-        map.once('moveend', () => {
-          map.off('zoom', onZoom)
-          // If audio hasn't started, try playing now
-          if (audio.paused && audioRef.current === audio) {
-            play()
-          }
-        })
       })
     }
 
-    // 2. Fly (Closer zoom 18)
-    console.log('[CruiseMode] Flying to site:', site.id, 'at coordinates:', [site.location.lng, site.location.lat])
+    // 2. Fly (Closer zoom 18, increased pitch to 75)
     map.flyTo({
       center: [site.location.lng, site.location.lat],
       zoom: 18,
-      pitch: 60,
+      pitch: 65, // Increased from 60 for more pronounced tilt
       bearing: Math.random() * 30 - 15,
       speed: 0.8,
       curve: 1.2,
@@ -213,7 +175,34 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
       const onMoveEnd = () => {
         if (isResolved) return
         isResolved = true
-        console.log('[CruiseMode] Flight moveend fired for:', site.id)
+
+        // Start audio and orbit after zoom reaches ~78% (zoom 14 out of 18)
+        if (playAudioFn) {
+          const targetZoom = 14 // Start audio at zoom 14
+          const currentZoom = map.getZoom()
+
+          if (currentZoom >= targetZoom) {
+            setTimeout(() => {
+              playAudioFn?.()
+            }, 100)
+          } else {
+            const onZoom = () => {
+              if (map.getZoom() >= targetZoom) {
+                map.off('zoom', onZoom)
+                playAudioFn?.()
+              }
+            }
+            map.on('zoom', onZoom)
+
+            // Fallback timeout in case zoom event doesn't fire
+            setTimeout(() => {
+              map.off('zoom', onZoom)
+              if (playAudioFn) {
+                playAudioFn()
+              }
+            }, 3000)
+          }
+        }
         resolve()
       }
       map.once('moveend', onMoveEnd)
@@ -222,8 +211,13 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
       setTimeout(() => {
         if (!isResolved) {
           isResolved = true
-          console.log('[CruiseMode] Flight timeout reached for:', site.id)
           map.off('moveend', onMoveEnd)
+
+          // Still try to play audio even on timeout
+          if (playAudioFn) {
+            playAudioFn()
+          }
+
           resolve()
         }
       }, 15000)
@@ -231,32 +225,27 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
 
     // 3. Wait for BOTH
     Promise.all([flightPromise, speechPromise]).then(() => {
-      console.log('[CruiseMode] Flight and speech completed for site:', site.id)
       if (!isPlayingRef.current) {
-        console.log('[CruiseMode] Not playing anymore, stopping')
         return
       }
-
       stopOrbit() // Ensure orbit is stopped
       setIsNarrating(false)
-      console.log('[CruiseMode] Scheduling next site in 2 seconds...')
       // Small pause after everything finishes before moving on
       timerRef.current = setTimeout(() => {
-        console.log('[CruiseMode] Moving to next site')
         flyToNextSite(nextIndex)
       }, 2000)
     })
-  }
+  }, [map, sortedSites, onSiteExamine, stopCruise, stopOrbit, setIsNarrating, startOrbit])
 
   // Manual navigation functions
   const skipToNext = useCallback(() => {
     if (!isPlaying || currentIndex >= sortedSites.length - 1) return
 
-    console.log('[CruiseMode] Manual skip to next')
     // Clear current timers and audio
     if (timerRef.current) clearTimeout(timerRef.current)
     if (audioRef.current) {
       audioRef.current.pause()
+      audioRef.current.currentTime = 0
       audioRef.current = null
     }
     stopOrbit()
@@ -268,11 +257,11 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
   const skipToPrevious = useCallback(() => {
     if (!isPlaying || currentIndex <= 0) return
 
-    console.log('[CruiseMode] Manual skip to previous')
     // Clear current timers and audio
     if (timerRef.current) clearTimeout(timerRef.current)
     if (audioRef.current) {
       audioRef.current.pause()
+      audioRef.current.currentTime = 0
       audioRef.current = null
     }
     stopOrbit()
@@ -287,6 +276,7 @@ export function useCruiseMode({ map, sites, onSiteExamine }: UseCruiseModeProps)
       if (timerRef.current) clearTimeout(timerRef.current)
       if (audioRef.current) {
         audioRef.current.pause()
+        audioRef.current.currentTime = 0
         audioRef.current = null
       }
       stopOrbit()

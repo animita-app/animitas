@@ -95,14 +95,16 @@ export function MarkerLayer({
       })
     }
 
-    // --- Unclustered Markers (Outer/Inner or Image) ---
-    // Always add circle layers (needed for < zoom 10 for free, or all zooms for paid)
+    // --- Unclustered Markers (Outer/Inner circles) ---
+    // Free users: show circles only at zoom < 10, then switch to images
+    // Paid users: show circles at all zoom levels
     if (!map.getLayer(`${sourceId}-outer`)) {
       map.addLayer({
         id: `${sourceId}-outer`,
         type: 'circle',
         source: sourceId,
         filter: ['!', ['has', 'point_count']],
+        maxzoom: isFree ? 12 : 0, // Hide at zoom 10+ for free users
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'],
             3, 8,
@@ -124,6 +126,7 @@ export function MarkerLayer({
         type: 'circle',
         source: sourceId,
         filter: ['!', ['has', 'point_count']],
+        maxzoom: isFree ? 12 : 0, // Hide at zoom 10+ for free users
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'],
             3, 2.5,
@@ -139,7 +142,7 @@ export function MarkerLayer({
 
     // --- Marker Image Layer (Free Only - Zoom >= 10) ---
     if (isFree) {
-      // Layer 1: Default Markers (Fixed Size)
+      // Layer 1: Default Markers (Zoom Scaled)
       if (!map.getLayer(`${sourceId}-marker-default`)) {
         map.addLayer({
           id: `${sourceId}-marker-default`,
@@ -149,7 +152,14 @@ export function MarkerLayer({
           filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'icon_image_id'], 'marker-15']],
           layout: {
             'icon-image': 'marker-15',
-            'icon-size': 1.5,
+            'icon-size': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              10, 0.3,   // Small at zoom 10
+              12, 0.5,   // Medium-small at zoom 12
+              14, 1.5,   // Medium at zoom 14
+            ],
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
             'icon-pitch-alignment': 'viewport',
@@ -172,7 +182,11 @@ export function MarkerLayer({
               'interpolate',
               ['linear'],
               ['zoom'],
-              14, 0.5, // ~130px
+              10, 0.15,  // Small at zoom 10
+              12, 0.25,  // Medium-small at zoom 12
+              14, 0.4,   // Medium at zoom 14
+              16, 0.45,  // Medium-large at zoom 16
+              18, 0.5    // Max size at zoom 18 (same as original)
             ],
             'icon-allow-overlap': true,
             'icon-ignore-placement': true,
@@ -212,6 +226,12 @@ export function MarkerLayer({
         const scale = Math.max(size / imgWidth, size / imgHeight)
         const x = (size / 2) - (imgWidth / 2) * scale
         const y = (size / 2) - (imgHeight / 2) * scale
+
+        // Create circular clipping path
+        ctx.beginPath()
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+        ctx.closePath()
+        ctx.clip()
 
         ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
 
@@ -378,6 +398,16 @@ export function MarkerLayer({
               const isVisible = currentZoom >= 10
               const href = `/${kind.toLowerCase()}/${slug}`
 
+              // Calculate text scale based on zoom (0.7 at zoom 10, 1.0 at zoom 18)
+              const textScale = Math.min(1, Math.max(0.7, 0.7 + ((currentZoom - 10) / 8) * 0.3))
+
+              // Calculate top position based on zoom (scales with marker size)
+              // For free: 60px at zoom 10, 80px at zoom 18
+              // For paid: 48px at zoom 10, 48px at zoom 18 (fixed)
+              const topValue = isFree
+                ? 56 + ((currentZoom - 10) / 8) * 20
+                : 28 + ((currentZoom - 10) / 8) * 20
+
               return (
                 <MapMarker
                   key={site.id}
@@ -394,10 +424,11 @@ export function MarkerLayer({
                       <Link
                         href={href}
                         prefetch={false}
-                        className={cn(
-                          "absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-auto z-30 flex flex-col items-center gap-2",
-                          isFree ? "top-20" : "top-12"
-                        )}
+                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-auto z-30 flex flex-col items-center gap-2"
+                        style={{
+                          top: `${topValue}px`,
+                          transform: `scale(${textScale})`
+                        }}
                       >
                         <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
                           {name || 'Animita'}

@@ -3,6 +3,8 @@ import { Feature, Geometry, FeatureCollection, Point } from 'geojson'
 import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { clipFeatures } from '@/lib/gis-engine'
 import * as turf from '@turf/turf'
+import { useUser } from './user-context'
+import { ROLES } from '@/types/roles'
 
 interface SpatialContextType {
   activeArea: Feature<Geometry> | FeatureCollection | null
@@ -31,11 +33,14 @@ interface SpatialContextType {
 const SpatialContext = createContext<SpatialContextType | undefined>(undefined)
 
 export function SpatialProvider({ children }: { children: ReactNode }) {
+  const { role } = useUser()
+  const isFree = role === ROLES.FREE
+
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
-  const [isCruiseActive, setCruiseActive] = useState(false)
+  const [isCruiseActive, setCruiseActive] = useState(false) // Start as false, activated by clicking "Empezar"
   const [isNarrating, setIsNarrating] = useState(false)
 
   const setActiveArea = (area: Feature<Geometry> | FeatureCollection, label: string) => {

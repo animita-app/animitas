@@ -73,8 +73,15 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     const playCarHorn = () => {
       const carHorn = new Audio('/sounds/car-horn.mp3')
-      carHorn.volume = 0.0125
+      carHorn.volume = 0.075
       carHorn.play().catch(() => { })
+
+      // Play second honk after 0.5s
+      setTimeout(() => {
+        const carHorn2 = new Audio('/sounds/car-horn.mp3')
+        carHorn2.volume = 0.075
+        carHorn2.play().catch(() => { })
+      }, 500)
 
       // Schedule next car horn (5-15 seconds)
       const nextDelay = 5000 + Math.random() * 10000
@@ -83,7 +90,7 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
 
     const playTruckHorn = () => {
       const truckHorn = new Audio('/sounds/truck-horn.mp3')
-      truckHorn.volume = 0.0125
+      truckHorn.volume = 0.02
       truckHorn.play().catch(() => { })
 
       // Schedule next truck horn (5-15 seconds)
