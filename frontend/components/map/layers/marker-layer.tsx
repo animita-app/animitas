@@ -148,7 +148,8 @@ export function MarkerLayer({
           id: `${sourceId}-marker-default`,
           type: 'symbol',
           source: sourceId,
-          minzoom: 10,
+          minzoom: 0,
+          maxzoom: 10, // Hide when DOM markers appear
           filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'icon_image_id'], 'marker-15']],
           layout: {
             'icon-image': 'marker-15',
@@ -174,7 +175,8 @@ export function MarkerLayer({
           id: `${sourceId}-marker-image`,
           type: 'symbol',
           source: sourceId,
-          minzoom: 10,
+          minzoom: 0,
+          maxzoom: 10, // Hide when DOM markers appear
           filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'icon_image_id'], 'marker-15']],
           layout: {
             'icon-image': ['get', 'icon_image_id'],
@@ -352,6 +354,55 @@ export function MarkerLayer({
       map.on('mouseleave', 'clusters', onMouseLeave)
     }
 
+    // Handle Missing Images (Dynamic Loading)
+    const onStyleImageMissing = (e: any) => {
+      const id = e.id
+      if (map.hasImage(id)) return
+
+      // Check if it's one of our people
+      const person = SEED_PEOPLE.find(p => p.id === id)
+      if (person?.image) {
+        map.loadImage(person.image, (error, image) => {
+          if (!error && image) {
+            if (!map.hasImage(id)) {
+              // Process image (circle clip)
+              const size = 256
+              const canvas = document.createElement('canvas')
+              canvas.width = size
+              canvas.height = size
+              const ctx = canvas.getContext('2d')
+              if (ctx) {
+                const imgWidth = image.width
+                const imgHeight = image.height
+                const scale = Math.max(size / imgWidth, size / imgHeight)
+                const x = (size / 2) - (imgWidth / 2) * scale
+                const y = (size / 2) - (imgHeight / 2) * scale
+
+                ctx.beginPath()
+                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
+                ctx.closePath()
+                ctx.clip()
+
+                ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
+                const imageData = ctx.getImageData(0, 0, size, size)
+                map.addImage(id, imageData)
+              } else {
+                map.addImage(id, image)
+              }
+            }
+          }
+        })
+      } else if (id === 'marker-fallback') {
+        map.loadImage(FALLBACK_IMAGE_URL, (error, image) => {
+          if (!error && image && !map.hasImage(id)) {
+            map.addImage(id, image)
+          }
+        })
+      }
+    }
+
+    map.on('styleimagemissing', onStyleImageMissing)
+
     return () => {
       // Cleanup
       layersToClick.forEach(layerId => {
@@ -370,6 +421,7 @@ export function MarkerLayer({
           map.off('mouseleave', 'clusters', onMouseLeave)
         }
       } catch (e) { }
+      map.off('styleimagemissing', onStyleImageMissing)
     }
   }, [map, isMapReady, onSiteClick, sourceId])
 
@@ -383,6 +435,13 @@ export function MarkerLayer({
 
   return (
     <>
+      {role === 'institutional' && (
+        <div className="flex md:hidden items-center justify-center backdrop-blur-sm text-center text-sm uppercase font-ibm-plex-mono absolute inset-0 bg-[#00e]/70 text-white z-50">
+          Perdón =(
+          <br /><br />
+          Sólo me dió el ⌛ para hacerlo en desktop.
+        </div>
+      )}
       {map && (
         <>
           {(currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : []))
@@ -408,6 +467,9 @@ export function MarkerLayer({
                 ? 56 + ((currentZoom - 10) / 8) * 20
                 : 28 + ((currentZoom - 10) / 8) * 20
 
+              const person = SEED_PEOPLE.find(p => p.id === site.person_id)
+              const iconImage = person?.image || FALLBACK_IMAGE_URL
+
               return (
                 <MapMarker
                   key={site.id}
@@ -416,8 +478,14 @@ export function MarkerLayer({
                   className="group-hover:scale-[102%] transition-all duration-150"
                 >
                   <div className="relative flex flex-col items-center cursor-pointer">
-                    <div className="-mt-6 relative z-20">
-                      {/* Empty children placeholder */}
+                    {/* Visual Pin Image */}
+                    <div className="-mt-6 relative z-20 shadow-md rounded-full bg-white p-[1px]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={iconImage}
+                        alt={name}
+                        className="w-10 h-10 rounded-full object-cover border-[1.5px] border-black"
+                      />
                     </div>
 
                     {isVisible && (

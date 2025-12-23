@@ -56,7 +56,6 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
           className="text-accent underline hover:text-accent/70 mr-2"
           onClick={() => {
             onStopCruise?.()
-            setCruiseActive(false)
           }}
         >
           Omitir

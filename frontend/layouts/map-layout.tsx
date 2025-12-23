@@ -93,8 +93,8 @@ export function MapLayout({
   // Wrapper to track when user dismisses cruise mode
   const handleStopCruise = () => {
     setHasDismissedCruise(true)
+    setCruiseActive(false)
     onStopCruise?.()
-    onResetView?.()
   }
 
   if (isMobile) {
@@ -110,8 +110,9 @@ export function MapLayout({
           }}
         />
 
-        <div className="pointer-events-auto inset-0 absolute">
+        <div className="absolute top-0 inset-x-0 z-10 pointer-events-none">
           <Header
+            className="pointer-events-auto"
             variant={isFree && !hasDismissedCruise ? 'cruise' : 'gis'}
             onExport={onExport}
             componentCount={componentCount}

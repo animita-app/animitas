@@ -72,12 +72,16 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     if (mode === 'disabled' || mode === 'preface') return
 
     const playCarHorn = () => {
+      // Don't play if narrating or speaking a story
+      if (isNarrating || window.speechSynthesis.speaking) return
+
       const carHorn = new Audio('/sounds/car-horn.mp3')
       carHorn.volume = 0.075
       carHorn.play().catch(() => { })
 
       // Play second honk after 0.5s
       setTimeout(() => {
+        if (isNarrating || window.speechSynthesis.speaking) return
         const carHorn2 = new Audio('/sounds/car-horn.mp3')
         carHorn2.volume = 0.075
         carHorn2.play().catch(() => { })
@@ -89,6 +93,8 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
     }
 
     const playTruckHorn = () => {
+      if (isNarrating || window.speechSynthesis.speaking) return
+
       const truckHorn = new Audio('/sounds/truck-horn.mp3')
       truckHorn.volume = 0.02
       truckHorn.play().catch(() => { })
@@ -109,7 +115,7 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
       if (carHornTimerRef.current) clearTimeout(carHornTimerRef.current)
       if (truckHornTimerRef.current) clearTimeout(truckHornTimerRef.current)
     }
-  }, [mode])
+  }, [mode, isNarrating])
 
   // Handle Mode Changes (Effect & Volume Baseline)
   useEffect(() => {
@@ -182,8 +188,8 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
       // 3. Ambient Gain Logic - Constant volume, duck only when narrating
       let ambientGain = 0.5 // Constant base volume
 
-      if (isNarrating) {
-        // Cruise Mode: Duck to 50% when narrating
+      if (isNarrating || (typeof window !== 'undefined' && window.speechSynthesis.speaking)) {
+        // Cruise Mode: Duck to 25% when narrating OR speaking
         ambientGain = 0.25
       } else if (mode === 'interactive' && minDistance < STORY_THRESHOLD) {
         // Interactive Mode: Proximity ducking
@@ -204,17 +210,21 @@ export function useSpatialAudio({ map, sites, mode }: UseSpatialAudioProps) {
           if (site.id !== currentStoryIdRef.current && site.story) {
             // Play new story
             currentStoryIdRef.current = site.id
-            window.speechSynthesis.cancel()
+            window.speechSynthesis.cancel() // Strict cancel before new speech
 
             const speak = () => {
+              // Double check not speaking
+              window.speechSynthesis.cancel()
               const utterance = new SpeechSynthesisUtterance((site as any).story)
               utterance.lang = 'es-CL'
               utterance.rate = 0.9
               utterance.volume = 1.0
+
               const voices = window.speechSynthesis.getVoices()
               const voice = voices.find(v => v.lang === 'es-CL') ||
                 voices.find(v => v.lang.includes('es'))
               if (voice) utterance.voice = voice
+
               window.speechSynthesis.speak(utterance)
             }
 
