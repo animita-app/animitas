@@ -12,15 +12,13 @@ import { useLayerManagement } from './hooks/useLayerManagement'
 import { useMapEvents } from './hooks/useMapEvents'
 import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
-import { useCruiseMode } from '@/hooks/use-cruise-mode'
-import { useSpatialAudio } from '@/hooks/use-spatial-audio'
 import { HeritageSiteProperty, GISOperation } from '../paywall/types'
 import { searchLocation } from '@/lib/mapbox'
 import { MapMarker } from './map-marker'
 import { MarkerLayer } from './layers/marker-layer'
 import { COLORS } from '@/lib/map-style'
+
 import { HeritageSite } from '@/types/mock'
-import { PrefaceDialog } from '@/components/modals/preface-dialog'
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 
@@ -48,7 +46,7 @@ export default function MapboxMap({
   // Spatial Context
   // @ts-ignore
   // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, isCruiseActive, setCruiseActive } = useSpatialContext()
+  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData } = useSpatialContext()
 
   // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
@@ -64,12 +62,28 @@ export default function MapboxMap({
   const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['typology', 'death_cause'])
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [currentZoom, setCurrentZoom] = useState<number>(0)
+
   const [isSearching, setIsSearching] = useState(false)
-  const [showPreface, setShowPreface] = useState(true)
   const [hasMoved, setHasMoved] = useState(false)
 
-  const { role } = useUser()
-  const isFree = role === ROLES.FREE
+  const { role, researchMode } = useUser()
+  const isDefault = role === ROLES.DEFAULT
+
+  // Force research layers OFF if researchMode is disabled
+  useEffect(() => {
+    if (!researchMode) {
+      setActiveLayers(prev => {
+        const reset: Record<string, boolean> = { ...prev }
+        Object.keys(reset).forEach(key => {
+          if (key !== 'animitas' && key !== 'grutas') {
+            reset[key] = false
+          }
+        })
+        return reset
+      })
+    }
+  }, [researchMode])
+
 
   // Track Visible Sites at High Zoom
   const visibleSites = useVisibleSites({
@@ -185,6 +199,7 @@ export default function MapboxMap({
   })
 
   // 7. Map Events (Zoom, Focus)
+  // 7. Map Events (Zoom, Focus)
   const router = useRouter()
   const { focusHeritageSite, resetView } = useMapEvents({
     map: map.current,
@@ -201,79 +216,6 @@ export default function MapboxMap({
     }
   })
 
-  // 8. Cruise Mode & Audio
-  const { startCruise, stopCruise, skipToNext, skipToPrevious, activeCruiseSite } = useCruiseMode({
-    map: map.current,
-    sites: filteredData,
-    onSiteExamine: (site) => {
-      // Optional: Open popover automatically?
-      handleHeritageSiteSelect(site)
-    }
-  })
-
-  useEffect(() => {
-    if (isCruiseActive) {
-      startCruise()
-    } else {
-      stopCruise()
-    }
-  }, [isCruiseActive, startCruise, stopCruise])
-
-  // Arrow key navigation for cruise mode
-  useEffect(() => {
-    if (!isCruiseActive) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        skipToNext()
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        skipToPrevious()
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isCruiseActive, skipToNext, skipToPrevious])
-
-  // Stop Cruise on User Interaction
-  useEffect(() => {
-    if (!map.current || !isMapReady) return
-
-    const stopInteraction = () => {
-      setCruiseActive(false)
-    }
-
-    const m = map.current
-    // Listen to user interactions to stop cruise mode
-    m.on('mousedown', stopInteraction) // Mouse click/drag
-    m.on('touchstart', stopInteraction) // Touch
-    m.on('wheel', stopInteraction) // Zoom/Scroll
-    m.on('dragstart', stopInteraction) // Explicit drag
-
-    return () => {
-      m.off('mousedown', stopInteraction)
-      m.off('touchstart', stopInteraction)
-      m.off('wheel', stopInteraction)
-      m.off('dragstart', stopInteraction)
-    }
-  }, [isMapReady, setCruiseActive])
-
-  useSpatialAudio({
-    map: map.current,
-    sites: filteredData,
-    mode: !isFree
-      ? 'disabled'
-      : showPreface
-        ? 'preface'
-        : isCruiseActive
-          ? 'cruise'
-          : selectedHeritageSite
-            ? 'focused'
-            : 'interactive'
-  })
-
   // Handlers
   const handleMarkerClick = (id: string) => {
     const site = filteredData.find((s: HeritageSite) => s.id === id)
@@ -286,6 +228,12 @@ export default function MapboxMap({
       [site.location.lng, site.location.lat],
       { shouldNavigate: false, instant: false }
     )
+
+    // Navigate to detail page
+    const kind = (site as any).kind || 'animita'
+    const slug = site.slug || site.id
+    router.push(`/${kind.toLowerCase()}/${slug}`)
+
     setHasMoved(true)
   }
 
@@ -432,20 +380,7 @@ export default function MapboxMap({
         onResetView={handleResetView}
         hasMoved={hasMoved}
         onSearchLoading={setIsSearching}
-
-        activeCruiseSite={activeCruiseSite}
-        onCruiseNext={skipToNext}
-        onCruisePrevious={skipToPrevious}
-        onStopCruise={stopCruise}
       />
-
-      {/* Preface Dialog for Free Users */}
-      {isFree && (
-        <PrefaceDialog
-          open={showPreface}
-          onOpenChange={setShowPreface}
-        />
-      )}
     </div>
   )
 }

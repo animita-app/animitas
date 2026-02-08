@@ -12,11 +12,8 @@ interface SpatialContextType {
   setActiveArea: (area: Feature<Geometry> | FeatureCollection, label: string) => void
   clearActiveArea: () => void
 
-  // Cruise Mode
-  isCruiseActive: boolean
-  setCruiseActive: (active: boolean) => void
-  isNarrating: boolean
-  setIsNarrating: (narrating: boolean) => void
+
+
 
   // Filtering
   filters: Record<string, string[]>
@@ -34,14 +31,43 @@ const SpatialContext = createContext<SpatialContextType | undefined>(undefined)
 
 export function SpatialProvider({ children }: { children: ReactNode }) {
   const { role } = useUser()
-  const isFree = role === ROLES.FREE
+  const isDefault = role === ROLES.DEFAULT
 
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
-  const [isCruiseActive, setCruiseActive] = useState(false) // Start as false, activated by clicking "Empezar"
-  const [isNarrating, setIsNarrating] = useState(false)
+  const [dbSites, setDbSites] = useState<any[]>([])
+
+  // Fetch initial data from Supabase
+  React.useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+
+        const { data, error } = await supabase
+          .from('heritage_sites')
+          .select('*')
+          .eq('status', 'published')
+
+        if (error) throw error
+
+        if (data) {
+          // Normalize location for GIS engine
+          const normalized = data.map((site: any) => ({
+            ...site,
+            location: site.location || { lat: 0, lng: 0 }
+          }))
+          setDbSites(normalized)
+        }
+      } catch (err) {
+        console.error("[SpatialContext] Error fetching sites:", err)
+      }
+    }
+    fetchSites()
+  }, [])
+
 
   const setActiveArea = (area: Feature<Geometry> | FeatureCollection, label: string) => {
     setActiveAreaState(area)
@@ -82,16 +108,25 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
   // Compute filtered data
   const filteredData = useMemo(() => {
-    const allSites = [...SEED_HERITAGE_SITES, ...syntheticSites]
+    // If we have sites from the database, use them. Otherwise fallback to seed data.
+    const baseSites = dbSites.length > 0 ? dbSites : SEED_HERITAGE_SITES
+    const allSites = [...baseSites, ...syntheticSites]
 
-    let data = allSites.map(site => ({
-      ...site,
-      // Flatten nested properties for easier access
-      death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
-      typology: site.typology || 'unknown',
-      antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
-      size: site.insights?.patrimonial?.size || 'unknown'
-    }))
+    let data = allSites.map(site => {
+      // Ensure location exists to avoid crashes
+      const loc = site.location || { lat: 0, lng: 0 }
+
+      return {
+        ...site,
+        location: loc,
+        // Flatten nested properties for easier access
+        death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
+        typology: site.typology || 'unknown',
+        antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
+        size: site.insights?.patrimonial?.size || 'unknown'
+      }
+    })
+
 
     // 1. Spatial Filter (Active Area)
     if (activeArea) {
@@ -141,7 +176,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
     })
 
     return data
-  }, [activeArea, filters, syntheticSites])
+  }, [activeArea, filters, syntheticSites, dbSites])
 
   return (
     <SpatialContext.Provider value={{
@@ -156,12 +191,9 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       filteredData,
       syntheticSites,
       // @ts-ignore
-      setSyntheticSites,
-      isCruiseActive,
-      setCruiseActive,
-      isNarrating,
-      setIsNarrating
+      setSyntheticSites
     }}>
+
       {children}
     </SpatialContext.Provider>
   )

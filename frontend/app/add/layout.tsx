@@ -1,8 +1,6 @@
 "use client"
 
 import { CreateSiteProvider } from "@/contexts/create-site-context"
-import { CreationFooter } from "./creation-footer"
-import { Header } from "@/components/headers/header"
 
 export default function AddLayout({
   children,
@@ -11,7 +9,7 @@ export default function AddLayout({
 }) {
   return (
     <CreateSiteProvider>
-      <main className="flex-1 w-full max-w-xl mx-auto p-6 pb-24">
+      <main className="h-svh w-full overflow-hidden">
         {children}
       </main>
     </CreateSiteProvider>

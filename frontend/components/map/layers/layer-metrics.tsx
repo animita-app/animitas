@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Layer, Component, HERITAGE_SITE_METRICS } from '../../paywall/types'
+import { Layer, Component, HERITAGE_SITE_METRICS, InsightConfig, ComponentType } from '../../paywall/types'
 import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
@@ -65,6 +65,8 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
         return <BarChartCard key={component.id} component={component} data={data} />
       case 'histogram':
         return <HistogramCard key={component.id} component={component} data={data} />
+      case 'insight':
+        return <InsightCard key={component.id} component={component} data={data} />
       default:
         return null
     }
@@ -84,6 +86,40 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
     </div>
   )
 }
+
+// --- Insight Card Hub ---
+
+function InsightCard({ component, data }: { component: Component, data: any[] }) {
+  const config = component.config as InsightConfig
+
+  // Transform InsightConfig to old component shapes for compatibility
+  // Or just render directly if visualization matches
+
+  switch (config.visualization) {
+    case 'statistic':
+      return <StatisticCard
+        component={{ ...component, config: { stat: config.metric, attribute: config.attribute } }}
+        data={data}
+      />
+    case 'bar':
+      return <BarChartCard
+        component={{ ...component, config: { horizontalAxis: config.groupBy || '', groupBy: config.segmentBy || '', stat: config.metric } as any }}
+        data={data}
+      />
+    case 'histogram':
+      return <HistogramCard
+        component={{ ...component, config: { horizontalAxis: config.groupBy || '', bins: 20, verticalAxis: config.metric } as any }}
+        data={data}
+      />
+    default:
+      return (
+        <div className="p-4 border rounded-lg bg-muted/20 text-xs text-muted-foreground">
+          Visualización "{config.visualization}" no implementada aún.
+        </div>
+      )
+  }
+}
+
 
 // --- Sub-components ---
 

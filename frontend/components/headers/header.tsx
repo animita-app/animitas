@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Plus } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
-import { useSpatialContext } from '@/contexts/spatial-context'
+
 import { ROLES } from '@/types/roles'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
@@ -24,9 +24,8 @@ interface HeaderProps {
   isLoading?: boolean
   componentCount?: number
   className?: string
-  variant?: 'gis' | 'default' | 'cruise'
+  variant?: 'gis' | 'default'
   onResetView?: () => void
-  onStopCruise?: () => void
 }
 
 const MENU_ITEMS = [
@@ -34,41 +33,21 @@ const MENU_ITEMS = [
   { label: 'Planes', href: '/pricing' },
 ]
 
-export function Header({ onExport, componentCount = 0, className, variant = 'default', onResetView, onStopCruise }: HeaderProps) {
+export function Header({ onExport, componentCount = 0, className, variant = 'default', onResetView }: HeaderProps) {
   const { role, currentUser } = useUser()
-  const { setCruiseActive } = useSpatialContext()
   const pathname = usePathname()
-  const isFree = role === ROLES.FREE
+  const isDefault = role === ROLES.DEFAULT
   const isUpdating = pathname.includes("add")
 
-  if ((pathname === '/map' && variant !== 'gis' && variant !== 'cruise') || pathname.includes("animita")) return null
+  if ((pathname === '/map' && variant !== 'gis') || pathname.includes("animita")) return null
 
-  // Cruise mode variant
-  if (variant === 'cruise') {
-    return (
-      <div className={cn("bg-transparent z-10 flex items-center justify-between p-4 w-full", className)}>
-        <Button variant="ghost" size="sm" className="!px-2.5 active:scale-100 text-black font-ibm-plex-mono slashed-zero cursor-default hover:bg-transparent">
-          [ÁNIMA]
-        </Button>
-        <Button
-          size="sm"
-          variant="link"
-          className="text-accent underline hover:text-accent/70 mr-2"
-          onClick={() => {
-            onStopCruise?.()
-          }}
-        >
-          Omitir
-        </Button>
-      </div>
-    )
-  }
+
 
   return (
     <div className={cn("bg-transparent z-10 flex items-center justify-between p-4 w-full", className)}>
       <div className="flex items-center gap-4">
         {variant === 'gis' ? (
-          isFree ? (
+          isDefault ? (
             <Button variant="ghost" size="sm" className="!px-2.5 active:scale-100 text-black font-ibm-plex-mono slashed-zero cursor-default hover:bg-transparent">
               [ÁNIMA]
             </Button>

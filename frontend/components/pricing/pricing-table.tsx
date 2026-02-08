@@ -76,9 +76,9 @@ export function PricingTable() {
 
   const isCurrentPlan = (planId: string) => {
     if (!currentUser) return false
-    if (planId === 'free' && (!role || role === ROLES.FREE)) return true
-    if (planId === 'pro' && role === ROLES.PRO) return true
-    if (planId === 'institutional' && role === ROLES.INSTITUTIONAL) return true
+    if (planId === 'free' && (!role || role === ROLES.DEFAULT)) return true
+    if (planId === 'pro' && role === ROLES.EDITOR) return true
+    if (planId === 'institutional' && role === ROLES.SUPERADMIN) return true
     return false
   }
 

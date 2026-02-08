@@ -37,7 +37,7 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
-        {(role !== ROLES.INSTITUTIONAL && role !== ROLES.EDITOR) && (
+        {role === ROLES.DEFAULT && (
           <>
             <DropdownMenuGroup>
               <div className="flex flex-col gap-2 p-2 mb-3">

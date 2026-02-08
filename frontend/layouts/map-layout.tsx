@@ -40,14 +40,10 @@ interface MapLayoutProps {
   onToggleProfile?: () => void
   onExport: (format: string, scope?: 'viewport' | 'all') => void
   onGenerateSynthetic: () => void
+
+
   onSearchLoading?: (loading: boolean) => void
   hasMoved?: boolean
-
-  // Cruise mode
-  activeCruiseSite?: any | null
-  onCruiseNext?: () => void
-  onCruisePrevious?: () => void
-  onStopCruise?: () => void
 }
 
 export function MapLayout({
@@ -73,29 +69,24 @@ export function MapLayout({
   onExport,
   onGenerateSynthetic,
   onSearchLoading,
-  hasMoved,
-  activeCruiseSite,
-  onCruiseNext,
-  onCruisePrevious,
-  onStopCruise
+  hasMoved
 }: MapLayoutProps) {
-  const { role } = useUser()
-  const { isCruiseActive, setCruiseActive } = useSpatialContext()
+  const { role, researchMode } = useUser()
   const pathname = usePathname()
-  const isFree = role === ROLES.FREE
+  const isDefault = role === ROLES.DEFAULT
   const isMobile = useIsMobile()
   const [snap, setSnap] = useState<number | string | null>(0.06)
-  const [hasDismissedCruise, setHasDismissedCruise] = useState(false)
+
+  const showResearchUI = researchMode || !isDefault // fallback if we want to preserve old behavior or just use researchMode
+  // Actually, let's strictly follow the "Research Mode" toggle.
+  // If toggled OFF, hide research UI even for editors.
+  const researchVisible = researchMode
+
 
   const heritageLayer = layers.find(l => l.id === 'heritage_sites')
   const componentCount = heritageLayer?.components?.length || 0
 
-  // Wrapper to track when user dismisses cruise mode
-  const handleStopCruise = () => {
-    setHasDismissedCruise(true)
-    setCruiseActive(false)
-    onStopCruise?.()
-  }
+
 
   if (isMobile) {
     return (
@@ -113,16 +104,15 @@ export function MapLayout({
         <div className="absolute top-0 inset-x-0 z-10 pointer-events-none">
           <Header
             className="pointer-events-auto"
-            variant={isFree && !hasDismissedCruise ? 'cruise' : 'gis'}
+            variant={'gis'}
             onExport={onExport}
             componentCount={componentCount}
             onResetView={onResetView}
-            onStopCruise={handleStopCruise}
           />
         </div>
 
 
-        {!isFree && (
+        {researchVisible && (
           <Drawer
             snapPoints={[0.06, 1]}
             activeSnapPoint={snap}
@@ -179,7 +169,7 @@ export function MapLayout({
 
         <div className={cn(
           "transition-opacity duration-500",
-          (isFree && isCruiseActive) ? "opacity-0 pointer-events-none" : "opacity-100"
+          "opacity-100"
         )}>
           <Toolbar
             onResetView={hasMoved ? onResetView : undefined}
@@ -187,38 +177,10 @@ export function MapLayout({
             showProfile={showProfileMarkers}
             onExport={onExport}
             onGenerateSynthetic={onGenerateSynthetic}
-            isFree={isFree}
+            isFree={isDefault}
           />
         </div>
 
-        {/* Cruise Mode Navigation */}
-        {isFree && isCruiseActive && activeCruiseSite && (
-          <div className="absolute bottom-6 inset-x-4 pointer-events-auto">
-            <div className="w-full p-2 rounded-sm flex justify-center items-center gap-2">
-              <Button
-                onClick={onCruisePrevious}
-                aria-label="Anterior"
-                size="icon"
-                variant="ghost"
-              >
-                <ArrowLeft />
-              </Button>
-
-              <span className="w-full flex-1 text-balance font-ibm-plex-mono uppercase text-sm font-medium text-center">
-                {activeCruiseSite.title}
-              </span>
-
-              <Button
-                onClick={onCruiseNext}
-                aria-label="Siguiente"
-                size="icon"
-                variant="ghost"
-              >
-                <ArrowRight />
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     )
   }
@@ -243,21 +205,20 @@ export function MapLayout({
         <div className="pointer-events-auto">
           {pathname !== '/pricing' && (
             <Header
-              variant={isFree && !hasDismissedCruise ? 'cruise' : 'gis'}
+              variant={'gis'}
               onExport={onExport}
               componentCount={componentCount}
               className="!p-0"
               onResetView={onResetView}
-              onStopCruise={handleStopCruise}
             />
           )}
         </div>
 
         <div className={cn(
           "relative flex-1 min-h-0 pointer-events-none transition-opacity duration-500",
-          (!isCruiseActive && !isFree) ? "opacity-100" : "opacity-0 pointer-events-none"
+          (researchVisible) ? "opacity-100" : "opacity-0 pointer-events-none"
         )}>
-          {!isFree && (
+          {researchVisible && (
             <Legend
               layers={layers}
               elements={elements}
@@ -269,7 +230,7 @@ export function MapLayout({
 
 
           {selectedLayer ? (
-            !isFree && (
+            researchVisible && (
               <LayerDetail
                 selectedLayer={selectedLayer}
                 onClose={onCloseLayerDetail}
@@ -295,7 +256,7 @@ export function MapLayout({
 
       <div className={cn(
         "transition-opacity duration-500",
-        (isFree && isCruiseActive) ? "opacity-0 pointer-events-none" : "opacity-100"
+        "opacity-100"
       )}>
         <Toolbar
           onResetView={hasMoved ? onResetView : undefined}
@@ -303,39 +264,11 @@ export function MapLayout({
           showProfile={showProfileMarkers}
           onExport={onExport}
           onGenerateSynthetic={onGenerateSynthetic}
-          isFree={isFree}
+          isFree={isDefault}
         />
       </div>
 
-      {/* Cruise Mode Navigation */}
-      {isFree && isCruiseActive && activeCruiseSite && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-auto">
-          <div className="min-w-80 p-2 rounded-sm flex justify-center items-center gap-2">
-            <Button
-              onClick={onCruisePrevious}
-              aria-label="Anterior"
-              size="icon"
-              variant="ghost"
-            >
-              <ArrowLeft />
-            </Button>
 
-            <span className="flex-1 w-full text-balance font-ibm-plex-mono uppercase text-sm font-medium text-center">
-              {activeCruiseSite.title}
-            </span>
-
-            <Button
-              onClick={onCruiseNext}
-              aria-label="Siguiente"
-              size="icon"
-              variant="ghost"
-              className="hover:bg-neutral-700 hover:text-white"
-            >
-              <ArrowRight />
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

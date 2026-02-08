@@ -1,0 +1,141 @@
+
+> animitas-mapper-frontend@1.0.0 test
+> jest __tests__/spatial-context.test.tsx
+
+FAIL __tests__/spatial-context.test.tsx
+  SpatialContext
+    ✕ should initialize with empty active area and filters (21 ms)
+    ✕ should update filters (1 ms)
+    ✕ should clear filters (1 ms)
+
+  ● SpatialContext › should initialize with empty active area and filters
+
+    TypeError: Cannot read properties of null (reading 'get')
+
+      23 |
+      24 |   useEffect(() => {
+    > 25 |     const roleParam = searchParams.get('role')
+         |                                    ^
+      26 |     if (
+      27 |       roleParam &&
+      28 |       Object.values(ROLES).includes(roleParam as UserRole) &&
+
+      at contexts/user-context.tsx:25:36
+      at Object.react-stack-bottom-frame (node_modules/react-dom/cjs/react-dom-client.development.js:22509:20)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:543:16)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom-client.development.js:10758:29)
+      at commitHookPassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:10880:11)
+      at reconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12802:11)
+      at recursivelyTraverseReconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12774:9)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12731:17)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12657:11)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15460:13)
+      at node_modules/react-dom/cjs/react-dom-client.development.js:15324:11
+      at flushActQueue (node_modules/react/cjs/react.development.js:862:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:1151:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:47:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:180:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:271:10)
+      at renderHook (node_modules/@testing-library/react/dist/pure.js:318:7)
+      at Object.<anonymous> (__tests__/spatial-context.test.tsx:38:34)
+
+  ● SpatialContext › should update filters
+
+    TypeError: Cannot read properties of null (reading 'get')
+
+      23 |
+      24 |   useEffect(() => {
+    > 25 |     const roleParam = searchParams.get('role')
+         |                                    ^
+      26 |     if (
+      27 |       roleParam &&
+      28 |       Object.values(ROLES).includes(roleParam as UserRole) &&
+
+      at contexts/user-context.tsx:25:36
+      at Object.react-stack-bottom-frame (node_modules/react-dom/cjs/react-dom-client.development.js:22509:20)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:543:16)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom-client.development.js:10758:29)
+      at commitHookPassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:10880:11)
+      at reconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12802:11)
+      at recursivelyTraverseReconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12774:9)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12731:17)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12657:11)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15460:13)
+      at node_modules/react-dom/cjs/react-dom-client.development.js:15324:11
+      at flushActQueue (node_modules/react/cjs/react.development.js:862:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:1151:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:47:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:180:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:271:10)
+      at renderHook (node_modules/@testing-library/react/dist/pure.js:318:7)
+      at __tests__/spatial-context.test.tsx:44:34
+      at __tests__/spatial-context.test.tsx:8:71
+      at Object.<anonymous>.__awaiter (__tests__/spatial-context.test.tsx:4:12)
+      at Object.<anonymous> (__tests__/spatial-context.test.tsx:43:42)
+
+  ● SpatialContext › should clear filters
+
+    TypeError: Cannot read properties of null (reading 'get')
+
+      23 |
+      24 |   useEffect(() => {
+    > 25 |     const roleParam = searchParams.get('role')
+         |                                    ^
+      26 |     if (
+      27 |       roleParam &&
+      28 |       Object.values(ROLES).includes(roleParam as UserRole) &&
+
+      at contexts/user-context.tsx:25:36
+      at Object.react-stack-bottom-frame (node_modules/react-dom/cjs/react-dom-client.development.js:22509:20)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:543:16)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom-client.development.js:10758:29)
+      at commitHookPassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:10880:11)
+      at reconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12802:11)
+      at recursivelyTraverseReconnectPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12774:9)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12731:17)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12755:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12646:11)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:12627:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:12657:11)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15460:13)
+      at node_modules/react-dom/cjs/react-dom-client.development.js:15324:11
+      at flushActQueue (node_modules/react/cjs/react.development.js:862:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:1151:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:47:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:180:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:271:10)
+      at renderHook (node_modules/@testing-library/react/dist/pure.js:318:7)
+      at __tests__/spatial-context.test.tsx:54:34
+      at __tests__/spatial-context.test.tsx:8:71
+      at Object.<anonymous>.__awaiter (__tests__/spatial-context.test.tsx:4:12)
+      at Object.<anonymous> (__tests__/spatial-context.test.tsx:53:41)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 3 total
+Snapshots:   0 total
+Time:        0.817 s, estimated 1 s
+Ran all test suites matching /__tests__\/spatial-context.test.tsx/i.

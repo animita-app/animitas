@@ -2,8 +2,28 @@ import { COLORS, LABELS } from '@/lib/map-style'
 
 export type LayerType = 'context' | 'data' | 'analysis'
 export type GISOperation = 'buffer' | 'intersect' | 'dissolve' | 'clip' | 'spatialJoin'
-export type ComponentType = 'bar_chart' | 'histogram' | 'statistic'
+export type ComponentType = 'bar_chart' | 'histogram' | 'statistic' | 'insight'
 export type StatType = 'count' | 'sum' | 'avg' | 'min' | 'max'
+export type VisualizationType = 'bar' | 'pie' | 'line' | 'table' | 'statistic' | 'histogram'
+
+export interface Filter {
+  id: string
+  attribute: string
+  operator: string
+  value: any
+}
+
+export interface InsightConfig {
+  metric: StatType
+  attribute?: string // For sum, avg, etc.
+  groupBy?: string
+  segmentBy?: string
+  visualization: VisualizationType
+  filters?: Filter[]
+  showAxisLabels?: boolean
+  showZeros?: boolean
+  sortBy?: 'alphabetical' | 'value'
+}
 
 export interface Layer {
   id: string
@@ -24,26 +44,10 @@ export interface Component {
   type: ComponentType
   title: string
   visible: boolean
-  config: BarChartConfig | HistogramConfig | StatisticConfig
+  config: any // Simplify for mixed types
 }
 
-export interface BarChartConfig {
-  verticalAxis: string
-  groupBy: string
-  horizontalAxis: string
-  stat: StatType
-}
 
-export interface HistogramConfig {
-  horizontalAxis: string
-  bins: number
-  verticalAxis: StatType
-}
-
-export interface StatisticConfig {
-  stat: StatType
-  attribute?: string
-}
 
 export type HeritageSiteProperty = 'typology' | 'death_cause' | 'social_roles'
 

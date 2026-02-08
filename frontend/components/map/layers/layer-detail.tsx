@@ -30,7 +30,7 @@ import {
   GISOperation,
   HeritageSiteProperty
 } from '../../paywall/types'
-import { MetricForm } from './metric-form'
+import { InsightBuilder } from './insight-builder'
 import { StyleTab } from './tabs/style-tab'
 import { MetricsTab } from './tabs/metrics-tab'
 import { AnalysisTab } from './tabs/analysis-tab'
@@ -90,15 +90,15 @@ export function LayerDetail({
       setComponentFormConfig(component.config)
     } else {
       setIsCreatingComponent(true)
-      setComponentFormType('statistic')
+      setComponentFormType('insight')
       setComponentFormTitle('')
       setComponentFormConfig({
-        stat: 'count',
-        bins: 10,
-        verticalAxis: '',
-        groupBy: '',
-        horizontalAxis: '',
-        attribute: ''
+        metric: 'count',
+        visualization: 'bar',
+        filters: [],
+        showAxisLabels: true,
+        showZeros: false,
+        sortBy: 'alphabetical'
       })
     }
   }
@@ -117,8 +117,8 @@ export function LayerDetail({
     })
   }
 
-  const saveComponent = () => {
-    if (!selectedLayer || !componentFormTitle) return
+  const saveComponentWithValues = (config: any, title: string) => {
+    if (!selectedLayer || !title) return
 
     if (editingComponent) {
       // Update existing component
@@ -126,30 +126,29 @@ export function LayerDetail({
         ...selectedLayer,
         components: (selectedLayer.components || []).map(c =>
           c.id === editingComponent.id
-            ? { ...c, type: componentFormType, title: componentFormTitle, config: componentFormConfig }
+            ? { ...c, type: 'insight' as ComponentType, title, config }
             : c
         )
       }
       onUpdateLayer(updatedLayer)
     } else {
       // Create new component
-      const newComponent: Component = {
-        id: `component-${Date.now()}`,
-        type: componentFormType,
-        title: componentFormTitle,
-        visible: true,
-        config: componentFormConfig
-      }
-
       const currentComponents = selectedLayer.components || []
 
-      // Pro Plan Limit Check
-      if (role === ROLES.PRO) {
+      // Editor Plan Limit Check
+      if (role === ROLES.EDITOR) {
         if (currentComponents.length >= 3) {
           setShowLimitAlert(true)
-          // Keep form open
           return
         }
+      }
+
+      const newComponent: Component = {
+        id: `component-${Date.now()}`,
+        type: 'insight',
+        title,
+        visible: true,
+        config: config
       }
 
       const updatedLayer = {
@@ -174,24 +173,21 @@ export function LayerDetail({
     closeComponentForm()
   }
 
-  // Mobile View: Component Form replaces Layer Detail
+  // Mobile View: Insight Builder replaces Layer Detail
   if (isMobile && (isCreatingComponent || editingComponent)) {
     return (
-      <MetricForm
+      <InsightBuilder
         component={editingComponent}
-        formType={componentFormType}
-        formTitle={componentFormTitle}
-        formConfig={componentFormConfig}
-        onTypeChange={setComponentFormType}
-        onTitleChange={setComponentFormTitle}
-        onConfigChange={setComponentFormConfig}
+        layerLabel={selectedLayer.label}
+        onSave={(config, title) => {
+          saveComponentWithValues(config, title)
+        }}
         onClose={closeComponentForm}
-        onSave={saveComponent}
         onDelete={editingComponent ? () => removeComponent(editingComponent.id) : undefined}
-        className="static w-full h-full border-none shadow-none !p-0 !m-0"
       />
     )
   }
+
 
   return (
     <>
@@ -291,16 +287,13 @@ export function LayerDetail({
       </Card>
 
       {!isMobile && (isCreatingComponent || editingComponent) && (
-        <MetricForm
+        <InsightBuilder
           component={editingComponent}
-          formType={componentFormType}
-          formTitle={componentFormTitle}
-          formConfig={componentFormConfig}
-          onTypeChange={setComponentFormType}
-          onTitleChange={setComponentFormTitle}
-          onConfigChange={setComponentFormConfig}
+          layerLabel={selectedLayer.label}
+          onSave={(config, title) => {
+            saveComponentWithValues(config, title)
+          }}
           onClose={closeComponentForm}
-          onSave={saveComponent}
           onDelete={editingComponent ? () => removeComponent(editingComponent.id) : undefined}
         />
       )}

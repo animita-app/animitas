@@ -11,14 +11,15 @@ import { ReactionsAndViews } from "./info-sidebar-components/reactions-and-views
 import { CreatorSection } from "./info-sidebar-components/creator-section"
 import { PollSection } from "./info-sidebar-components/poll-section"
 import { DetailedInfoSection } from "./info-sidebar-components/detailed-info-section"
+import { RevisionHistory } from "./info-sidebar-components/revision-history"
 
 interface InfoSidebarProps {
   site: HeritageSite
 }
 
 export function InfoSidebar({ site }: InfoSidebarProps) {
-  const { role } = useUser()
-  const isFreeUser = role === ROLES.FREE
+  const { role, researchMode } = useUser()
+  const isDefaultUser = role === ROLES.DEFAULT
 
   return (
     <aside className="w-full md:w-96 flex flex-col bg-background-weak md:min-h-svh h-full">
@@ -29,10 +30,13 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
 
           <CreatorSection site={site} />
 
-          {isFreeUser ? (
-            <PollSection />
+          {researchMode ? (
+            <>
+              <DetailedInfoSection site={site} />
+              <RevisionHistory siteId={site.id} />
+            </>
           ) : (
-            <DetailedInfoSection site={site} />
+            <PollSection />
           )}
 
           <ReactionsAndViews site={site} />

@@ -11,6 +11,8 @@ interface UserContextType {
   setUser: (user: User | null) => void
   setRole: (role: UserRole) => void // For dev/testing purposes
   isLoading: boolean
+  researchMode: boolean
+  setResearchMode: (enabled: boolean) => void
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -33,39 +35,108 @@ function UrlRoleSynchronizer() {
   return null
 }
 
+import { createClient } from '@/lib/supabase/client'
+
 export function UserProvider({ children }: { children: ReactNode }) {
-  // Mock initial user
-  const [currentUser, setCurrentUser] = useState<User | null>(CURRENT_USER)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [role, setRoleState] = useState<UserRole>(ROLES.DEFAULT)
+  const [isLoading, setIsLoading] = useState(true)
+  const [researchMode, setResearchMode] = useState(false)
 
-  const [isLoading, setIsLoading] = useState(false)
+  const fetchProfile = async (userId: string) => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
 
-  // Load role from local storage on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedRole = localStorage.getItem('user_role') as UserRole
-      if (savedRole && currentUser) {
-        setCurrentUser(prevResult => prevResult ? { ...prevResult, role: savedRole } : null)
-      }
+    if (data) {
+      setRoleState(data.role as UserRole)
+      setResearchMode(data.research_mode || false)
+      setCurrentUser({
+        id: data.id,
+        name: data.full_name || 'Usuario',
+        email: '', // Not stored in profiles by default
+        role: data.role as UserRole,
+        avatarUrl: data.avatar_url
+      })
     }
+  }
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    // 1. Check initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchProfile(session.user.id).finally(() => setIsLoading(false))
+      } else {
+        setIsLoading(false)
+      }
+    })
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await fetchProfile(session.user.id)
+      } else {
+        setCurrentUser(null)
+        setRoleState(ROLES.DEFAULT)
+        setResearchMode(false)
+      }
+      setIsLoading(false)
+    })
+
+    // 3. Load local research mode preference as fallback
+    if (typeof window !== 'undefined') {
+      const savedResearchMode = localStorage.getItem('research_mode') === 'true'
+      setResearchMode(savedResearchMode)
+    }
+
+    return () => subscription.unsubscribe()
   }, [])
 
-  const setRole = (newRole: UserRole) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('user_role', newRole)
-    }
-    if (currentUser) {
+  const setRole = async (newRole: UserRole) => {
+    if (!currentUser) return
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', currentUser.id)
+
+    if (!error) {
+      setRoleState(newRole)
       setCurrentUser(prev => prev ? { ...prev, role: newRole } : null)
+    }
+  }
+
+  const handleSetResearchMode = async (enabled: boolean) => {
+    setResearchMode(enabled)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('research_mode', String(enabled))
+    }
+
+    if (currentUser) {
+      const supabase = createClient()
+      await supabase
+        .from('profiles')
+        .update({ research_mode: enabled })
+        .eq('id', currentUser.id)
     }
   }
 
   return (
     <UserContext.Provider value={{
       currentUser,
-      role: currentUser?.role || ROLES.FREE,
+      role,
       setUser: setCurrentUser,
       setRole,
-      isLoading
+      isLoading,
+      researchMode,
+      setResearchMode: handleSetResearchMode
     }}>
+
       <Suspense fallback={null}>
         <UrlRoleSynchronizer />
       </Suspense>

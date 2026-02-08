@@ -1,4 +1,4 @@
-export type UserRole = 'free' | 'pro' | 'institutional' | 'editor'
+export type UserRole = 'default' | 'editor' | 'superadmin'
 
 export interface User {
   id: string
@@ -9,8 +9,7 @@ export interface User {
 }
 
 export const ROLES: Record<string, UserRole> = {
-  FREE: 'free',
-  PRO: 'pro',
-  INSTITUTIONAL: 'institutional',
+  DEFAULT: 'default',
   EDITOR: 'editor',
+  SUPERADMIN: 'superadmin',
 }

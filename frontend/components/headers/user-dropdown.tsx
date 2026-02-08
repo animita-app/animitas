@@ -18,10 +18,17 @@ import {
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
+import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 
 export function UserDropdown() {
-  const { role, setRole, currentUser, setUser } = useUser()
+  const { role, setRole, currentUser, setUser, researchMode, setResearchMode } = useUser()
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    window.location.reload()
+  }
 
   if (!currentUser) return null
 
@@ -58,31 +65,13 @@ export function UserDropdown() {
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuCheckboxItem
-                  checked={role === ROLES.FREE}
+                  checked={role === ROLES.DEFAULT}
                   onCheckedChange={() => {
-                    setRole(ROLES.FREE)
+                    setRole(ROLES.DEFAULT)
                     window.location.reload()
                   }}
                 >
-                  Gratis
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={role === ROLES.PRO}
-                  onCheckedChange={() => {
-                    setRole(ROLES.PRO)
-                    window.location.reload()
-                  }}
-                >
-                  Pro
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={role === ROLES.INSTITUTIONAL}
-                  onCheckedChange={() => {
-                    setRole(ROLES.INSTITUTIONAL)
-                    window.location.reload()
-                  }}
-                >
-                  Institucional
+                  Visitante (Default)
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
                   checked={role === ROLES.EDITOR}
@@ -93,14 +82,35 @@ export function UserDropdown() {
                 >
                   Editor
                 </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={role === ROLES.SUPERADMIN}
+                  onCheckedChange={() => {
+                    setRole(ROLES.SUPERADMIN)
+                    window.location.reload()
+                  }}
+                >
+                  Superadmin
+                </DropdownMenuCheckboxItem>
+
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
           </DropdownMenuSub>
         </DropdownMenuGroup>
 
+        {(role === ROLES.EDITOR || role === ROLES.SUPERADMIN) && (
+          <DropdownMenuGroup>
+            <DropdownMenuCheckboxItem
+              checked={researchMode}
+              onCheckedChange={setResearchMode}
+            >
+              Modo Investigación
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuGroup>
+        )}
+
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={() => setUser?.(null)}>
+        <DropdownMenuItem onClick={handleLogout}>
           Cerrar sesión
         </DropdownMenuItem>
       </DropdownMenuContent>

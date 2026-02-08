@@ -6,7 +6,10 @@ interface CreateSiteData {
   photos: File[]
   name: string
   story: string
-  location: { lat: number; lng: number } | null
+  location: { lat: number; lng: number; address: string; cityRegion: string } | null
+  themeColor: string
+  isPublic: boolean
+  tags: string[]
 }
 
 interface CreateSiteContextType {
@@ -22,6 +25,9 @@ export function CreateSiteProvider({ children }: { children: React.ReactNode }) 
     name: "",
     story: "",
     location: null,
+    themeColor: "Orange",
+    isPublic: true,
+    tags: [],
   })
 
   const updateData = (newData: Partial<CreateSiteData>) => {

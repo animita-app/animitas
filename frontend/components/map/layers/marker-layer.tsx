@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { COLORS, ICONS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/mock'
 import { MapMarker } from '../map-marker'
 
-const FALLBACK_IMAGE_URL = '/images/marker-fallback.webp'
-import { SEED_PEOPLE } from '@/constants/people'
+
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 import { Card, CardContent } from '@/components/ui/card'
@@ -47,7 +46,34 @@ export function MarkerLayer({
 }: MarkerLayerProps) {
   const isInitialized = useRef(false)
   const { role } = useUser()
-  const isFree = role === ROLES.FREE
+  const isDefault = role === ROLES.DEFAULT
+  const [activeId, setActiveId] = useState<string | null>(selectedSite?.id || null)
+  const [lockedId, setLockedId] = useState<string | null>(selectedSite?.id || null)
+
+  // Sync with selectedSite prop
+  useEffect(() => {
+    if (selectedSite?.id) {
+      setLockedId(selectedSite.id)
+      setActiveId(selectedSite.id)
+    }
+  }, [selectedSite?.id])
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Clear timeout helper
+  const cancelClose = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+      hoverTimeoutRef.current = null
+    }
+  }, [])
+
+  // Schedule close helper
+  const scheduleClose = useCallback(() => {
+    cancelClose()
+    hoverTimeoutRef.current = setTimeout(() => {
+      setActiveId(lockedId) // Revert to the locked marker if any
+    }, 300) // 300ms grace period
+  }, [cancelClose, lockedId])
 
   // 1. Initialize Source and Layers
   useEffect(() => {
@@ -104,7 +130,7 @@ export function MarkerLayer({
         type: 'circle',
         source: sourceId,
         filter: ['!', ['has', 'point_count']],
-        maxzoom: isFree ? 12 : 0, // Hide at zoom 10+ for free users
+        maxzoom: 24,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'],
             3, 8,
@@ -126,7 +152,7 @@ export function MarkerLayer({
         type: 'circle',
         source: sourceId,
         filter: ['!', ['has', 'point_count']],
-        maxzoom: isFree ? 12 : 0, // Hide at zoom 10+ for free users
+        maxzoom: 24,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'],
             3, 2.5,
@@ -140,131 +166,18 @@ export function MarkerLayer({
       })
     }
 
-    // --- Marker Image Layer (Free Only - Zoom >= 10) ---
-    if (isFree) {
-      // Layer 1: Default Markers (Zoom Scaled)
-      if (!map.getLayer(`${sourceId}-marker-default`)) {
-        map.addLayer({
-          id: `${sourceId}-marker-default`,
-          type: 'symbol',
-          source: sourceId,
-          minzoom: 0,
-          maxzoom: 10, // Hide when DOM markers appear
-          filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'icon_image_id'], 'marker-15']],
-          layout: {
-            'icon-image': 'marker-15',
-            'icon-size': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              10, 0.3,   // Small at zoom 10
-              12, 0.5,   // Medium-small at zoom 12
-              14, 1.5,   // Medium at zoom 14
-            ],
-            'icon-allow-overlap': true,
-            'icon-ignore-placement': true,
-            'icon-pitch-alignment': 'viewport',
-            'icon-rotation-alignment': 'viewport'
-          }
-        })
-      }
-
-      // Layer 2: Person Images (Zoom Scaled)
-      if (!map.getLayer(`${sourceId}-marker-image`)) {
-        map.addLayer({
-          id: `${sourceId}-marker-image`,
-          type: 'symbol',
-          source: sourceId,
-          minzoom: 0,
-          maxzoom: 10, // Hide when DOM markers appear
-          filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'icon_image_id'], 'marker-15']],
-          layout: {
-            'icon-image': ['get', 'icon_image_id'],
-            'icon-size': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              10, 0.15,  // Small at zoom 10
-              12, 0.25,  // Medium-small at zoom 12
-              14, 0.4,   // Medium at zoom 14
-              16, 0.45,  // Medium-large at zoom 16
-              18, 0.5    // Max size at zoom 18 (same as original)
-            ],
-            'icon-allow-overlap': true,
-            'icon-ignore-placement': true,
-            'icon-pitch-alignment': 'viewport',
-            'icon-rotation-alignment': 'viewport'
-          }
-        })
-      }
-    }
-
     // Apply Zoom Range Logic
     if (map.getLayer(`${sourceId}-outer`)) {
-      map.setLayerZoomRange(`${sourceId}-outer`, 0, isFree ? 12 : 24)
+      map.setLayerZoomRange(`${sourceId}-outer`, 0, 24)
     }
     if (map.getLayer(`${sourceId}-inner`)) {
-      map.setLayerZoomRange(`${sourceId}-inner`, 0, isFree ? 12 : 24)
+      map.setLayerZoomRange(`${sourceId}-inner`, 0, 24)
     }
 
     isInitialized.current = true
-  }, [map, isMapReady, sourceId, isFree])
+  }, [map, isMapReady, sourceId, isDefault])
 
-  // 1.5. Load Markers Images (People)
-  useEffect(() => {
-    if (!map || !isMapReady) return
 
-    const processAndAddImage = (id: string, image: any) => { // HTMLImageElement
-      if (map.hasImage(id)) return
-
-      const size = 256 // Fixed square size
-      const canvas = document.createElement('canvas')
-      canvas.width = size
-      canvas.height = size
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        const imgWidth = image.width
-        const imgHeight = image.height
-        const scale = Math.max(size / imgWidth, size / imgHeight)
-        const x = (size / 2) - (imgWidth / 2) * scale
-        const y = (size / 2) - (imgHeight / 2) * scale
-
-        // Create circular clipping path
-        ctx.beginPath()
-        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
-        ctx.closePath()
-        ctx.clip()
-
-        ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
-
-        const imageData = ctx.getImageData(0, 0, size, size)
-        map.addImage(id, imageData)
-      } else {
-        map.addImage(id, image)
-      }
-    }
-
-    // Load Fallback
-    if (!map.hasImage('marker-fallback')) {
-      map.loadImage(FALLBACK_IMAGE_URL, (error, image) => {
-        if (!error && image) processAndAddImage('marker-fallback', image)
-      })
-    }
-
-    // Load People Images
-    data.forEach(site => {
-      const person = SEED_PEOPLE.find(p => p.id === site.person_id)
-      if (person && person.image && !map.hasImage(person.id)) {
-        map.loadImage(person.image, (error, image) => {
-          if (error) {
-            console.warn(`Failed to load image for ${person.full_name}`, error)
-            return
-          }
-          if (image) processAndAddImage(person.id, image)
-        })
-      }
-    })
-  }, [map, isMapReady, data])
 
   // 2. Update Data
   useEffect(() => {
@@ -276,9 +189,6 @@ export function MarkerLayer({
       const geojson = {
         type: 'FeatureCollection',
         features: data.map((site) => {
-          const person = SEED_PEOPLE.find(p => p.id === site.person_id)
-          const iconId = person?.image ? person.id : 'marker-fallback'
-
           return {
             type: 'Feature',
             id: site.id, // Add feature ID for feature-state
@@ -287,8 +197,7 @@ export function MarkerLayer({
               coordinates: [site.location.lng, site.location.lat]
             },
             properties: {
-              ...site,
-              icon_image_id: iconId
+              ...site
             }
           }
         })
@@ -301,18 +210,46 @@ export function MarkerLayer({
   useEffect(() => {
     if (!map || !isMapReady) return
 
-    const layersToClick = [`${sourceId}-inner`, `${sourceId}-outer`, `${sourceId}-marker-default`, `${sourceId}-marker-image`]
+    const layersToClick = [`${sourceId}-inner`, `${sourceId}-outer`]
 
 
-    // Point Click
+    // Point Click (Mobile/Desktop)
     const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+      e.originalEvent.stopPropagation()
       if (!e.features || e.features.length === 0) return
       const feature = e.features[0]
       const id = feature.properties?.id
-
-      if (id && onSiteClick) {
-        onSiteClick(id, feature)
+      if (id) {
+        cancelClose()
+        setActiveId(id)
+        setLockedId(id) // Pin this marker open
+        if (onSiteClick) {
+          onSiteClick(id, feature)
+        }
       }
+    }
+
+    // Point Hover (Desktop)
+    const onPointEnter = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+      if (!e.features || e.features.length === 0) return
+      const feature = e.features[0]
+      const id = feature.properties?.id
+      if (id) {
+        cancelClose()
+        setActiveId(id)
+        map.getCanvas().style.cursor = 'pointer'
+      }
+    }
+
+    const onPointLeave = () => {
+      scheduleClose()
+      map.getCanvas().style.cursor = ''
+    }
+
+    // Map Click (Close on background click)
+    const onMapClick = () => {
+      // We don't clear the activeId or lockedId as per the requirement:
+      // "you cant dismiss the container with the link animita and ver detalle thing"
     }
 
     // Cluster Click
@@ -342,10 +279,13 @@ export function MarkerLayer({
     layersToClick.forEach(layerId => {
       if (map.getLayer(layerId)) {
         map.on('click', layerId, onPointClick)
-        map.on('mouseenter', layerId, onMouseEnter)
-        map.on('mouseleave', layerId, onMouseLeave)
+        map.on('mouseenter', layerId, onPointEnter)
+        map.on('mouseleave', layerId, onPointLeave)
       }
     })
+
+    // Global Map Click to close
+    map.on('click', onMapClick)
 
     // Register Cluster Events
     if (map.getLayer('clusters')) {
@@ -354,54 +294,7 @@ export function MarkerLayer({
       map.on('mouseleave', 'clusters', onMouseLeave)
     }
 
-    // Handle Missing Images (Dynamic Loading)
-    const onStyleImageMissing = (e: any) => {
-      const id = e.id
-      if (map.hasImage(id)) return
 
-      // Check if it's one of our people
-      const person = SEED_PEOPLE.find(p => p.id === id)
-      if (person?.image) {
-        map.loadImage(person.image, (error, image) => {
-          if (!error && image) {
-            if (!map.hasImage(id)) {
-              // Process image (circle clip)
-              const size = 256
-              const canvas = document.createElement('canvas')
-              canvas.width = size
-              canvas.height = size
-              const ctx = canvas.getContext('2d')
-              if (ctx) {
-                const imgWidth = image.width
-                const imgHeight = image.height
-                const scale = Math.max(size / imgWidth, size / imgHeight)
-                const x = (size / 2) - (imgWidth / 2) * scale
-                const y = (size / 2) - (imgHeight / 2) * scale
-
-                ctx.beginPath()
-                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2)
-                ctx.closePath()
-                ctx.clip()
-
-                ctx.drawImage(image as CanvasImageSource, x, y, imgWidth * scale, imgHeight * scale)
-                const imageData = ctx.getImageData(0, 0, size, size)
-                map.addImage(id, imageData)
-              } else {
-                map.addImage(id, image)
-              }
-            }
-          }
-        })
-      } else if (id === 'marker-fallback') {
-        map.loadImage(FALLBACK_IMAGE_URL, (error, image) => {
-          if (!error && image && !map.hasImage(id)) {
-            map.addImage(id, image)
-          }
-        })
-      }
-    }
-
-    map.on('styleimagemissing', onStyleImageMissing)
 
     return () => {
       // Cleanup
@@ -421,7 +314,7 @@ export function MarkerLayer({
           map.off('mouseleave', 'clusters', onMouseLeave)
         }
       } catch (e) { }
-      map.off('styleimagemissing', onStyleImageMissing)
+
     }
   }, [map, isMapReady, onSiteClick, sourceId])
 
@@ -435,7 +328,7 @@ export function MarkerLayer({
 
   return (
     <>
-      {role === 'institutional' && (
+      {role === 'superadmin' && ( // Was institutional
         <div className="flex md:hidden items-center justify-center backdrop-blur-sm text-center text-sm uppercase font-ibm-plex-mono absolute inset-0 bg-[#00e]/70 text-white z-50">
           Perdón =(
           <br /><br />
@@ -460,53 +353,47 @@ export function MarkerLayer({
               // Calculate text scale based on zoom (0.7 at zoom 10, 1.0 at zoom 18)
               const textScale = Math.min(1, Math.max(0.7, 0.7 + ((currentZoom - 10) / 8) * 0.3))
 
-              // Calculate top position based on zoom (scales with marker size)
-              // For free: 60px at zoom 10, 80px at zoom 18
-              // For paid: 48px at zoom 10, 48px at zoom 18 (fixed)
-              const topValue = isFree
-                ? 56 + ((currentZoom - 10) / 8) * 20
-                : 28 + ((currentZoom - 10) / 8) * 20
+              // Calculate top position based on zoom
+              // Calculate top position based on zoom (scales with circle radius to keep constant gap)
+              const effectiveZoom = Math.min(currentZoom, 18)
+              const topValue = 38 + ((effectiveZoom - 10) * 1.25)
 
-              const person = SEED_PEOPLE.find(p => p.id === site.person_id)
-              const iconImage = person?.image || FALLBACK_IMAGE_URL
+              const isActive = activeId === site.id
 
               return (
                 <MapMarker
                   key={site.id}
                   map={map}
                   coordinates={[site.location.lng, site.location.lat]}
-                  className="group-hover:scale-[102%] transition-all duration-150"
+                  className="z-20"
                 >
-                  <div className="relative flex flex-col items-center cursor-pointer">
-                    {/* Visual Pin Image */}
-                    <div className="-mt-6 relative z-20 shadow-md rounded-full bg-white p-[1px]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={iconImage}
-                        alt={name}
-                        className="w-10 h-10 rounded-full object-cover border-[1.5px] border-black"
-                      />
-                    </div>
-
-                    {isVisible && (
+                  <div className="relative flex flex-col items-center">
+                    <div
+                      onMouseEnter={cancelClose}
+                      onMouseLeave={scheduleClose}
+                      className={cn(
+                        "transition-all duration-200 ease-out origin-top-left",
+                        isActive ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
+                      )}
+                    >
                       <Link
                         href={href}
                         prefetch={false}
-                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-auto z-30 flex flex-col items-center gap-2"
+                        className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap z-50 flex flex-col items-center gap-2"
+                        // eslint-disable-next-line react/forbid-dom-props
                         style={{
                           top: `${topValue}px`,
-                          transform: `scale(${textScale})`
                         }}
                       >
                         <span className="font-ibm-plex-mono uppercase text-sm font-medium text-black">
                           {name || 'Animita'}
                         </span>
-                        <Button size="sm" variant="link" className="hover:underline group-hover:underline text-accent hover:text-accent/80 group-hover:text-accent/80 [&_svg]:opacity-50 gap-1">
+                        <Button size="sm" variant="link" className="text-black shadow-lg text-xs h-7 px-3 rounded-full hover:underline group-hover:underline flex items-center gap-1 transition-all">
                           Ver detalles
-                          <ArrowUpRight />
+                          <ArrowUpRight size={14} />
                         </Button>
                       </Link>
-                    )}
+                    </div>
                   </div>
                 </MapMarker>
               )
