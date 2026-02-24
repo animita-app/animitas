@@ -22,11 +22,12 @@ export default function EditSitePage() {
   const router = useRouter()
   const params = useParams()
   const { slug } = params as { slug: string }
-  const { currentUser, role } = useUser()
+  const { currentUser, role, isEditor, isAuthenticated } = useUser()
 
   const [site, setSite] = React.useState<any>(null)
   const [loading, setLoading] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [unauthorized, setUnauthorized] = React.useState(false)
 
   const [name, setName] = React.useState("")
   const [story, setStory] = React.useState("")
@@ -42,15 +43,28 @@ export default function EditSitePage() {
         .single()
 
       if (data) {
+        // Permission check: creator or editor+
+        const isCreator = currentUser?.id === data.creator_id
+        if (!isCreator && !isEditor) {
+          setUnauthorized(true)
+          setLoading(false)
+          return
+        }
         setSite(data)
         setName(data.title)
-        setStory(data.story)
+        setStory(data.story || '')
       }
       setLoading(false)
     }
 
-    if (slug) fetchSite()
-  }, [slug])
+    if (slug && !isAuthenticated) {
+      // Middleware should redirect, but extra safety
+      setUnauthorized(true)
+      setLoading(false)
+    } else if (slug && currentUser) {
+      fetchSite()
+    }
+  }, [slug, currentUser, isEditor, isAuthenticated])
 
   async function handleUpdate() {
     if (!name || !story) {
@@ -97,6 +111,12 @@ export default function EditSitePage() {
   }
 
   if (loading) return <div className="flex h-svh items-center justify-center font-ibm-plex-mono uppercase text-sm animate-pulse text-text-weak">Cargando...</div>
+  if (unauthorized) return (
+    <div className="flex h-svh items-center justify-center flex-col gap-4">
+      <p className="text-text-strong font-medium">No tienes permiso para editar esta animita</p>
+      <Button variant="ghost" onClick={() => router.back()}>Volver</Button>
+    </div>
+  )
   if (!site) return <div className="flex h-svh items-center justify-center text-text-strong">No se encontró la animita</div>
 
   return (

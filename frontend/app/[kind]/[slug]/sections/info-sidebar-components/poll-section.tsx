@@ -12,6 +12,9 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@/contexts/user-context"
+import { toast } from "sonner"
 
 type PollOption = {
   id: string
@@ -19,21 +22,68 @@ type PollOption = {
   votes: number
 }
 
-const POLL_OPTIONS: PollOption[] = [
-  { id: "correct", label: "Es correcta", votes: 10 },
-  { id: "incomplete", label: "Está incompleta", votes: 5 },
-  { id: "errors", label: "Contiene errores", votes: 2 },
+const OPTION_DEFINITIONS = [
+  { id: "correct", label: "Es correcta" },
+  { id: "incomplete", label: "Está incompleta" },
+  { id: "errors", label: "Contiene errores" },
 ]
 
-export function PollSection() {
+interface PollSectionProps {
+  siteId: string
+}
+
+export function PollSection({ siteId }: PollSectionProps) {
+  const { currentUser, isAuthenticated } = useUser()
   const [hasVoted, setHasVoted] = React.useState(false)
   const [showResults, setShowResults] = React.useState(false)
   const [selectedOption, setSelectedOption] = React.useState<string | null>(null)
   const [animateWidth, setAnimateWidth] = React.useState(false)
+  const [voteCounts, setVoteCounts] = React.useState<Record<string, number>>({})
+  const [isLoading, setIsLoading] = React.useState(true)
+
+  // Fetch existing votes and user's vote on mount
+  React.useEffect(() => {
+    async function fetchVotes() {
+      const supabase = createClient()
+
+      // Get vote counts grouped by option
+      const { data: votes } = await supabase
+        .from('heritage_site_votes')
+        .select('option')
+        .eq('site_id', siteId)
+
+      if (votes) {
+        const counts: Record<string, number> = {}
+        votes.forEach((v: { option: string }) => {
+          counts[v.option] = (counts[v.option] || 0) + 1
+        })
+        setVoteCounts(counts)
+      }
+
+      // Check if current user has already voted
+      if (currentUser) {
+        const { data: userVote } = await supabase
+          .from('heritage_site_votes')
+          .select('option')
+          .eq('site_id', siteId)
+          .eq('user_id', currentUser.id)
+          .maybeSingle()
+
+        if (userVote) {
+          setSelectedOption(userVote.option)
+          setHasVoted(true)
+          setShowResults(true)
+        }
+      }
+
+      setIsLoading(false)
+    }
+
+    fetchVotes()
+  }, [siteId, currentUser])
 
   React.useEffect(() => {
     if (showResults) {
-      // Small delay to ensure the progress bar is mounted before animating width
       const timer = setTimeout(() => setAnimateWidth(true), 50)
       return () => clearTimeout(timer)
     } else {
@@ -41,18 +91,71 @@ export function PollSection() {
     }
   }, [showResults])
 
-  // Calculate total votes for percentages
-  // If user votes, we increment the count for visual feedback
-  const totalVotes = POLL_OPTIONS.reduce((acc, curr) => acc + curr.votes, 0) + (hasVoted ? 1 : 0)
+  // Build options with real vote counts
+  const options: PollOption[] = OPTION_DEFINITIONS.map((def) => ({
+    ...def,
+    votes: voteCounts[def.id] || 0,
+  }))
 
-  const handleVote = (optionId: string) => {
+  const totalVotes = options.reduce((acc, curr) => acc + curr.votes, 0)
+
+  const handleVote = async (optionId: string) => {
+    if (!isAuthenticated || !currentUser) {
+      toast.error("Debes iniciar sesión para votar")
+      return
+    }
+
+    // Optimistic update
     setSelectedOption(optionId)
     setHasVoted(true)
     setShowResults(true)
+    setVoteCounts((prev) => ({
+      ...prev,
+      [optionId]: (prev[optionId] || 0) + 1,
+    }))
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('heritage_site_votes')
+      .upsert(
+        {
+          site_id: siteId,
+          user_id: currentUser.id,
+          option: optionId,
+        },
+        { onConflict: 'site_id,user_id' }
+      )
+
+    if (error) {
+      // Rollback optimistic update
+      toast.error("Error al votar")
+      setSelectedOption(null)
+      setHasVoted(false)
+      setShowResults(false)
+      setVoteCounts((prev) => ({
+        ...prev,
+        [optionId]: Math.max((prev[optionId] || 0) - 1, 0),
+      }))
+    }
   }
 
   const toggleResults = () => {
     setShowResults((prev) => !prev)
+  }
+
+  if (isLoading) {
+    return (
+      <Card className="!py-0 gap-0 shadow-none">
+        <CardHeader className="p-4">
+          <CardTitle className="text-sm font-medium">¿Qué te parece esta información?</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
+          ))}
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -62,12 +165,9 @@ export function PollSection() {
       </CardHeader>
 
       <CardContent className="p-4 pt-0 space-y-2">
-        {POLL_OPTIONS.map((option) => {
+        {options.map((option) => {
           const isSelected = selectedOption === option.id
-
-          // Calculate percentage
-          // We add 1 to the specific option if the user voted for it
-          const currentVotes = option.votes + (isSelected ? 1 : 0)
+          const currentVotes = option.votes
           const percentage = totalVotes > 0 ? Math.round((currentVotes / totalVotes) * 100) : 0
 
           return (
@@ -84,20 +184,19 @@ export function PollSection() {
 
                   {/* Content */}
                   <div className="relative z-10 flex items-center justify-between w-full text-sm">
-                    <span className="flex items-center gap-2 text-black font-medium truncate mr-2">
+                    <span className="flex items-center gap-2 text-text-strong font-medium truncate mr-2">
                       {option.label}
-                      {isSelected && <CheckCircle2 className="w-4 h-4 text-black" />}
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-text-strong" />}
                     </span>
 
-                    <div className="text-xs flex items-center gap-2 text-muted-foreground shrink-0">
+                    <div className="text-xs flex items-center gap-2 text-text-weak shrink-0">
                       <span className="font-normal">{currentVotes} votos</span>
                       <span className="font-normal text-right">{percentage}%</span>
 
-                      {/* Mock Avatar for visual fidelity to design - only show if selected */}
-                      {isSelected && hasVoted && (
+                      {isSelected && hasVoted && currentUser && (
                         <Avatar className="w-6 h-6 border border-background animate-in fade-in zoom-in-50 duration-150">
-                          <AvatarImage src="/pype.png" alt="@pype" />
-                          <AvatarFallback>FM</AvatarFallback>
+                          <AvatarImage src={currentUser.avatarUrl || "/pype.png"} alt={currentUser.name} />
+                          <AvatarFallback>{currentUser.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                       )}
                     </div>
@@ -122,7 +221,7 @@ export function PollSection() {
       <CardFooter className="px-4 py-2 !pt-2 border-t border-border-weak font-medium">
         <div className="w-full animate-in fade-in duration-500">
           {hasVoted ? (
-            <div className="h-9 w-full text-sm text-muted-foreground text-center flex items-center justify-center">
+            <div className="h-9 w-full text-sm text-text-weak text-center flex items-center justify-center">
               {totalVotes} votos
             </div>
           ) : (

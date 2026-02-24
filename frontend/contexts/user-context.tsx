@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { User, UserRole, ROLES } from '@/types/roles'
-import { CURRENT_USER } from '@/constants/users'
 
 interface UserContextType {
   currentUser: User | null
@@ -13,6 +12,9 @@ interface UserContextType {
   isLoading: boolean
   researchMode: boolean
   setResearchMode: (enabled: boolean) => void
+  isAuthenticated: boolean
+  isEditor: boolean
+  isSuperadmin: boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -134,7 +136,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setRole,
       isLoading,
       researchMode,
-      setResearchMode: handleSetResearchMode
+      setResearchMode: handleSetResearchMode,
+      isAuthenticated: !!currentUser,
+      isEditor: role === 'editor' || role === 'superadmin',
+      isSuperadmin: role === 'superadmin',
     }}>
 
       <Suspense fallback={null}>

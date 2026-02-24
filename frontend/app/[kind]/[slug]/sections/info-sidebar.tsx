@@ -36,7 +36,7 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
               <RevisionHistory siteId={site.id} />
             </>
           ) : (
-            <PollSection />
+            <PollSection siteId={site.id} />
           )}
 
           <ReactionsAndViews site={site} />
