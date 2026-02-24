@@ -34,7 +34,7 @@ const MENU_ITEMS = [
 ]
 
 export function Header({ onExport, componentCount = 0, className, variant = 'default', onResetView }: HeaderProps) {
-  const { role, currentUser } = useUser()
+  const { role, currentUser, isEditor, isSuperadmin } = useUser()
   const pathname = usePathname()
   const isDefault = role === ROLES.DEFAULT
   const isUpdating = pathname.includes("add")
@@ -77,6 +77,36 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
                       </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
+
+                  {isEditor && (
+                    <NavigationMenuItem>
+                      <NavigationMenuLink
+                        href="/editor"
+                        className={cn(
+                          navigationMenuTriggerStyle(),
+                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                          pathname.startsWith("/editor") && "text-text-strong"
+                        )}
+                      >
+                        Revisión
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  )}
+
+                  {isSuperadmin && (
+                    <NavigationMenuItem>
+                      <NavigationMenuLink
+                        href="/admin"
+                        className={cn(
+                          navigationMenuTriggerStyle(),
+                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                          pathname.startsWith("/admin") && "text-text-strong"
+                        )}
+                      >
+                        Admin
+                      </NavigationMenuLink>
+                    </NavigationMenuItem>
+                  )}
                 </NavigationMenuList>
               </NavigationMenu>
             )}

@@ -13,9 +13,10 @@
 - ✅ UI: Permisos de edición restringidos a creador y editores en `edit/page.tsx`
 - ✅ UI: Subida de fotos múltiples a Supabase Storage conectada al flujo de `/add`
 - ✅ UI: Historial de revisiones integrado en vista detalle y `/editor` creado
+- ✅ UI: Agregadas protecciones visuales al Header y vista de Admin con métricas básicas
 
 ### En progreso
-- 🔄 Próximo paso: Agregar protecciones visuales a botones de navegación globales (UI guards) y panel de administración (`/admin`)
+- 🔄 Próximo paso: S5 — Verificación, revisión final de bugs y preparación para entrega
 
 ### Observaciones
 - El schema actual tiene 3 tablas: `profiles`, `heritage_sites`, `heritage_site_revisions`

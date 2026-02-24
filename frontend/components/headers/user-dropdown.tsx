@@ -22,7 +22,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export function UserDropdown() {
-  const { role, setRole, currentUser, setUser, researchMode, setResearchMode } = useUser()
+  const { role, setRole, currentUser, setUser, researchMode, setResearchMode, isEditor, isSuperadmin } = useUser()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -50,13 +50,17 @@ export function UserDropdown() {
           <DropdownMenuItem>
             Perfil
           </DropdownMenuItem>
-          {role === ROLES.EDITOR && (
+          {isEditor && (
             <DropdownMenuItem asChild>
-              <Link href="/platform/revisions" className="justify-between w-full">
-                Por revisar
-                <Badge className="aspect-square w-5 items-center -mr-0.5 !pt-0.5 bg-accent text-white">
-                  5
-                </Badge>
+              <Link href="/editor" className="justify-between w-full">
+                Cola de Revisión
+              </Link>
+            </DropdownMenuItem>
+          )}
+          {isSuperadmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="justify-between w-full">
+                Panel Admin
               </Link>
             </DropdownMenuItem>
           )}
@@ -97,7 +101,7 @@ export function UserDropdown() {
           </DropdownMenuSub>
         </DropdownMenuGroup>
 
-        {(role === ROLES.EDITOR || role === ROLES.SUPERADMIN) && (
+        {(isEditor || isSuperadmin) && (
           <DropdownMenuGroup>
             <DropdownMenuCheckboxItem
               checked={researchMode}

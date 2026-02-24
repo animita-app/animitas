@@ -11,8 +11,8 @@
 - [x] **Sistema de votos persistente** (poll-section → DB)
 - [x] **Sistema de revisiones visible** (historial en detalle)
 - [x] **Vista de revisión para editores** (`/editor`)
-- [ ] **Métricas básicas `/admin`** (conteos + bar chart)
-- [ ] **Permisos coherentes por rol** (guards UI en todas las vistas)
+- [x] **Métricas básicas `/admin`** (conteos + bar chart)
+- [x] **Permisos coherentes por rol** (guards UI en todas las vistas)
 - [x] **UserContext helpers** (`isEditor`, `isSuperadmin`, `isAuthenticated`)
 
 ## Plan diario (24 feb → 14 mar)
