@@ -9,7 +9,8 @@ export const heritageSitePayloadSchema = z.object({
     lng: z.number().min(-180).max(180),
     address: z.string().min(1).max(255),
     cityRegion: z.string().min(1).max(255)
-  })
+  }),
+  images: z.array(z.string().url()).max(5).optional()
 })
 
 export type HeritageSitePayload = z.infer<typeof heritageSitePayloadSchema>

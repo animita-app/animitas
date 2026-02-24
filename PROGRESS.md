@@ -11,9 +11,10 @@
 - ✅ Auth: Agregados helpers `isAuthenticated`, `isEditor`, `isSuperadmin` en UserContext
 - ✅ UI: Votos persistentes integrados en `poll-section.tsx`
 - ✅ UI: Permisos de edición restringidos a creador y editores en `edit/page.tsx`
+- ✅ UI: Subida de fotos múltiples a Supabase Storage conectada al flujo de `/add`
 
 ### En progreso
-- 🔄 Próximo paso: Implementar subida de fotos en flujo de creación (`add/page.tsx`)
+- 🔄 Próximo paso: Vista de revisión para editores (`/editor`) y mostrar historial de revisiones
 
 ### Observaciones
 - El schema actual tiene 3 tablas: `profiles`, `heritage_sites`, `heritage_site_revisions`

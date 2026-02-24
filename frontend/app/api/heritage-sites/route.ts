@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const { name, story, location, isPublic } = parsed.data
+  const { name, story, location, isPublic, images } = parsed.data
 
   const baseSlug = slugify(name)
   const slug = await ensureUniqueSlug(supabase, baseSlug)
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     slug,
     location: geom,
     kind: 'Animita',
-    images: [] as string[],
+    images: images || [],
     status: isPublic ? 'published' : 'draft',
     creator_id: user.id,
   }

@@ -7,6 +7,8 @@ import { useForm, Controller } from "react-hook-form"
 import * as z from "zod"
 import { toast } from "sonner"
 
+import { Loader2, Camera, X } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/field"
 import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
 import { LocationPicker } from "./location-picker"
+import { createClient } from "@/lib/supabase/client"
 
 // Removed MOCK_HIGHLIGHTS - now using dynamic detection
 
@@ -47,6 +50,8 @@ export default function AddPage() {
   const [isPreview, setIsPreview] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
   const [detectedHighlights, setDetectedHighlights] = React.useState<Highlight[]>([])
+  const [imageFiles, setImageFiles] = React.useState<File[]>([])
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -133,6 +138,32 @@ export default function AddPage() {
 
     setIsSubmitting(true)
     try {
+      const supabase = createClient()
+      const imageUrls: string[] = []
+
+      // 1. Upload images to Supabase Storage if any
+      if (imageFiles.length > 0) {
+        toast.loading("Subiendo fotos...", { id: "uploading" })
+        const uploadPromises = imageFiles.map(async (file) => {
+          const fileExt = file.name.split('.').pop()
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+          const filePath = `animitas/${fileName}`
+
+          const { error: uploadError } = await supabase.storage
+            .from('base')
+            .upload(filePath, file)
+
+          if (uploadError) throw new Error("Error subiendo " + file.name)
+
+          const { data } = supabase.storage.from('base').getPublicUrl(filePath)
+          return data.publicUrl
+        })
+
+        const urls = await Promise.all(uploadPromises)
+        imageUrls.push(...urls)
+        toast.dismiss("uploading")
+      }
+
       const response = await fetch('/api/heritage-sites', {
         method: 'POST',
         headers: {
@@ -142,7 +173,8 @@ export default function AddPage() {
           name: values.name,
           story: values.story,
           isPublic: values.isPublic,
-          location: values.location
+          location: values.location,
+          images: imageUrls
         })
       })
 
@@ -174,12 +206,58 @@ export default function AddPage() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
           <div className="space-y-10">
             <FieldGroup className="space-y-10">
-              {/* Fotos (Simplified Placeholder for now) */}
+              {/* Fotos section */}
               <Field className="space-y-3">
-                <FieldLabel className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">Fotos</FieldLabel>
-                <div className="w-full h-32 border border-border-weak rounded-md flex items-center justify-center bg-background-weak cursor-pointer hover:bg-background-weaker transition-colors">
-                  <span className="text-sm text-text-weak font-medium">Click para subir imagenes</span>
-                </div>
+                <FieldLabel className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">
+                  Fotos <span className="text-xs font-normal">({imageFiles.length}/5)</span>
+                </FieldLabel>
+
+                {imageFiles.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-2">
+                    {imageFiles.map((file, i) => (
+                      <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="preview"
+                          className="object-cover w-full h-full"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))}
+                          className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {imageFiles.length < 5 && (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full h-32 border border-dashed border-border-weak rounded-md flex flex-col items-center justify-center bg-background-weak cursor-pointer hover:bg-background-weaker transition-colors text-text-weak hover:text-text-strong gap-2"
+                  >
+                    <Camera className="w-6 h-6" />
+                    <span className="text-sm font-medium">Click para subir imágenes</span>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || [])
+                    if (imageFiles.length + files.length > 5) {
+                      toast.error("Máximo 5 imágenes permitidas")
+                      return
+                    }
+                    setImageFiles(prev => [...prev, ...files])
+                  }}
+                />
               </Field>
 
               {/* Name Field */}

@@ -6,7 +6,7 @@
 - [x] **DB: Migración tabla `heritage_site_votes`**
 - [x] **Auth: `auth-guard.ts` helper server-side**
 - [x] **Auth: Protección de rutas en middleware**
-- [ ] **Crear animita con fotos** (conectar upload a Supabase Storage)
+- [x] **Crear animita con fotos** (conectar upload a Supabase Storage)
 - [x] **Editar animita propia** (fix permisos creator_id)
 - [x] **Sistema de votos persistente** (poll-section → DB)
 - [ ] **Sistema de revisiones visible** (historial en detalle)
