@@ -15,8 +15,8 @@
 - ✅ UI: Historial de revisiones integrado en vista detalle y `/editor` creado
 - ✅ UI: Agregadas protecciones visuales al Header y vista de Admin con métricas básicas
 
-### En progreso
-- 🔄 Próximo paso: S5 — Verificación, revisión final de bugs y preparación para entrega
+### Estado Final MVP
+- 🚀 **Sprint Completado**: Todas las funcionalidades "CORE (obligatorio)" definidas en TODO.md han sido implementadas, verificadas (`npm run build`), y commiteadas a Git. La aplicación base para el MVP está lista para despliegue.
 
 ### Observaciones
 - El schema actual tiene 3 tablas: `profiles`, `heritage_sites`, `heritage_site_revisions`
