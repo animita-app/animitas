@@ -22,7 +22,7 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
   const isDefaultUser = role === ROLES.DEFAULT
 
   return (
-    <aside className="w-full md:w-96 flex flex-col bg-background-weak md:min-h-svh h-full">
+    <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh h-full">
       {/* Scrollable Content */}
       <Scroller className="flex-1">
         <div className="p-6 md:p-8 space-y-8 pb-24">

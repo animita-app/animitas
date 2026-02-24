@@ -53,76 +53,67 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-svh w-full items-center justify-center bg-neutral-50 p-6 dark:bg-neutral-950">
-      <Card className="w-full max-w-sm border-none shadow-2xl shadow-neutral-200 dark:shadow-none">
-        <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-[#FF5A5F]/10 text-[#FF5A5F]">
-            <Sparkles className="size-6 shadow-sm" />
-          </div>
-          <CardTitle className="text-2xl font-extrabold tracking-tight">
+    <div className="flex h-svh w-full items-center justify-center bg-background-weak p-6">
+      <Card className="w-full max-w-sm border-none shadow-sm p-4">
+        <CardHeader className="space-y-2 text-center pb-8">
+          <CardTitle className="text-3xl font-bold tracking-tight text-text-strong">
             {isSignUp ? "Crea tu cuenta" : "Inicia sesión"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm text-text-weak">
             {isSignUp
               ? "Únete a la red de preservación de animitas"
               : "Ingresa tus credenciales para continuar"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleAuth} className="space-y-8">
+            <div className="space-y-3">
               <Label htmlFor="email">Correo electrónico</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="pl-10"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
+              <Input
+                id="email"
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="h-11 text-base placeholder:text-text-weaker"
+              />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Contraseña</Label>
                 {!isSignUp && (
-                  <Button variant="link" className="h-auto p-0 text-xs text-muted-foreground" type="button">
+                  <Button variant="link" className="p-0 h-auto text-sm text-text-weak hover:text-text-strong transition-colors" type="button">
                     ¿Olvidaste tu contraseña?
                   </Button>
                 )}
               </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="h-11 text-base placeholder:text-text-weaker"
+              />
             </div>
             <Button
               type="submit"
-              className="w-full bg-black text-white hover:bg-neutral-800"
+              className="w-full h-11 text-base font-bold"
               disabled={loading}
             >
-              {loading && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSignUp ? "Registrarse" : "Entrar"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="text-center text-sm text-muted-foreground">
+        <CardFooter className="flex flex-col space-y-4 pt-4">
+          <div className="text-center text-sm text-text-weak">
             {isSignUp ? "¿Ya tienes cuenta?" : "¿No tienes cuenta aún?"}{" "}
             <button
               onClick={() => setIsSignUp(!isSignUp)}
-              className="font-bold text-[#FF5A5F] hover:underline"
+              className="font-bold text-accent hover:underline"
               type="button"
             >
               {isSignUp ? "Inicia sesión" : "Crea una ahora"}

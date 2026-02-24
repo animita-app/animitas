@@ -48,7 +48,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
       <div className="flex items-center gap-4">
         {variant === 'gis' ? (
           isDefault ? (
-            <Button variant="ghost" size="sm" className="!px-2.5 active:scale-100 text-black font-ibm-plex-mono slashed-zero cursor-default hover:bg-transparent">
+            <Button variant="ghost" size="sm" className="!px-2.5 active:scale-100 text-text-strong font-ibm-plex-mono slashed-zero cursor-default hover:bg-transparent">
               [ÁNIMA]
             </Button>
           ) : (
@@ -56,7 +56,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
           )
         ) : (
           <div className="flex items-center gap-6">
-            <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-black font-ibm-plex-mono slashed-zero">
+            <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
               [ÁNIMA]
             </Link>
 
@@ -70,7 +70,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
                         className={cn(
                           navigationMenuTriggerStyle(),
                           "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                          pathname === item.href && "text-black"
+                          pathname === item.href && "text-text-strong"
                         )}
                       >
                         {item.label}
@@ -88,7 +88,7 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
 
         {currentUser ? (
           <>
-            <Button size="sm" className="!pl-2 gap-1 bg-black hover:bg-black/90" asChild>
+            <Button size="sm" className="!pl-2 gap-1" asChild>
               <Link href="/add">
                 <Plus />
                 Añadir

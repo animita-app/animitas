@@ -38,6 +38,7 @@ This file tracks the real-time progress of the Animita preservation platform dev
 - [x] ✅ Profiles & Roles trigger implementation.
 - [x] ✅ Real-time UserContext synchronization.
 - [ ] ⚪ Verification: Test signup flow with real email.
+- [ ] ⚠️ RLS Permission Fix: Requires Docker Desktop to run `supabase db reset`.
 
 ## 🔍 Phase 4: Polish & Research Mode
 - [x] ✅ Implement "Research Mode" toggle.
@@ -53,6 +54,8 @@ This file tracks the real-time progress of the Animita preservation platform dev
 - [x] **Visual Review**: `researchMode` toggle implemented in header.
 - [x] **Data Consistency**: SQL Seed matches `SEED_HERITAGE_SITES`.
 - [x] **QA Checklist**: See `docs/testing-playbook.md` for end-to-end manual/automated flow validation (2026-02-03).
+- [x] **Code Quality**: All TypeScript errors fixed, ESLint errors resolved (2026-02-12).
+- [x] **Production Build**: Successfully builds with 21 static/dynamic routes (2026-02-12).
 
 ---
 
@@ -62,6 +65,7 @@ This file tracks the real-time progress of the Animita preservation platform dev
 | 2026-01-28 | Updated plan to align with `frontend` codebase and added Extras/Assets. | Antigravity |
 | 2026-01-28 | Initial Project Plan & Progress tracking initialized. | Antigravity |
 | 2026-02-03 | Added `/api/heritage-sites` validation + Jest integration coverage for creation flow. | Codex |
+| 2026-02-12 | Fixed all TypeScript errors (4/4) and ESLint errors (4/4). Production build verified. | Antigravity |
 
 ---
 

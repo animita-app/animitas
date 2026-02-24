@@ -1,6 +1,6 @@
-import { USERS, FAKE_USERS } from './users'
+import { USERS } from './users'
 
-export { FAKE_USERS }
+// export { FAKE_USERS } // Not defined in users.ts
 
 // Raw seed data from JSON
 const RAW_SEED_DATA = {
@@ -574,6 +574,8 @@ const RAW_SEED_DATA = {
   ]
 }
 
+// Commented out - FAKE_USERS is not defined
+/*
 export interface MockStory {
   id: string;
   type: 'image' | 'video';
@@ -619,3 +621,4 @@ export function generateMockStories(count = 5): MockStory[] {
     };
   });
 };
+*/

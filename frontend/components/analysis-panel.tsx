@@ -11,26 +11,26 @@ interface AnalysisPanelProps {
   onClose?: () => void
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
+const COLORS = ['#00E', '#292625', '#75706E', '#CFCECC', '#F2F2F2']
 
 export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
   if (!data) return null
 
   return (
-    <Card className="absolute right-4 bottom-4 z-10">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b">
-        <CardTitle className="text-sm font-medium">Análisis Espacial</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X />
+    <Card className="absolute right-4 bottom-4 z-10 w-[350px] shadow-sm border-border-weak">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border-weak">
+        <CardTitle className="text-sm font-bold text-text-strong uppercase font-ibm-plex-mono">Análisis Espacial</CardTitle>
+        <Button variant="ghost" size="icon" onClick={onClose} className="w-8 h-8 rounded-full">
+          <X className="w-4 h-4" />
         </Button>
       </CardHeader>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 max-h-[500px]">
         <CardContent className="p-4 space-y-6">
           <Tabs defaultValue="typology" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="typology">Tipología</TabsTrigger>
-              <TabsTrigger value="context">Contexto</TabsTrigger>
-              <TabsTrigger value="distance">Distancia</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-background-weak">
+              <TabsTrigger value="typology" className="text-xs">Tipología</TabsTrigger>
+              <TabsTrigger value="context" className="text-xs">Contexto</TabsTrigger>
+              <TabsTrigger value="distance" className="text-xs">Distancia</TabsTrigger>
             </TabsList>
 
             <TabsContent value="typology" className="space-y-4">
@@ -43,7 +43,7 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={80}
-                      fill="#8884d8"
+                      fill="#00E"
                       paddingAngle={5}
                       dataKey="value"
                     >
@@ -55,12 +55,12 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-[10px] font-ibm-plex-mono uppercase">
                 {data.charts.typology.labels.map((label, i) => (
                   <div key={label} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                    <span className="font-medium">{label}:</span>
-                    <span className="text-muted-foreground">{data.charts.typology.datasets[0].data[i]}</span>
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <span className="font-bold text-text-strong truncate">{label}:</span>
+                    <span className="text-text-weak">{data.charts.typology.datasets[0].data[i]}</span>
                   </div>
                 ))}
               </div>
@@ -74,11 +74,11 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                     layout="vertical"
                     margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12 }} />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E2E2" />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: '#75706E' }} axisLine={{ stroke: '#E2E2E2' }} />
+                    <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: '#75706E' }} axisLine={{ stroke: '#E2E2E2' }} />
                     <Tooltip cursor={{ fill: 'transparent' }} />
-                    <Bar dataKey="count" fill="#82ca9d" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="count" fill="#00E" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -91,25 +91,25 @@ export function AnalysisPanel({ data, onClose }: AnalysisPanelProps) {
                     data={data.charts.distance.labels.map((label, i) => ({ range: label, count: data.charts.distance.datasets[0].data[i] }))}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="range" tick={{ fontSize: 12 }} />
-                    <YAxis />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E2E2" />
+                    <XAxis dataKey="range" tick={{ fontSize: 10, fill: '#75706E' }} axisLine={{ stroke: '#E2E2E2' }} />
+                    <YAxis tick={{ fontSize: 10, fill: '#75706E' }} axisLine={{ stroke: '#E2E2E2' }} />
                     <Tooltip cursor={{ fill: 'transparent' }} />
-                    <Bar dataKey="count" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="count" fill="#292625" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
           </Tabs>
 
-          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-weak">
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase">Total Elementos</p>
-              <p className="text-2xl font-bold">{data.charts.typology.datasets[0].data.reduce((a, b) => a + b, 0)}</p>
+              <p className="text-[10px] text-text-weak uppercase font-bold font-ibm-plex-mono">Total Elementos</p>
+              <p className="text-2xl font-bold text-text-strong">{data.charts.typology.datasets[0].data.reduce((a, b) => a + b, 0)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground uppercase">Densidad Promedio</p>
-              <p className="text-2xl font-bold">High</p>
+              <p className="text-[10px] text-text-weak uppercase font-bold font-ibm-plex-mono">Densidad Promedio</p>
+              <p className="text-2xl font-bold text-text-strong">High</p>
             </div>
           </div>
 

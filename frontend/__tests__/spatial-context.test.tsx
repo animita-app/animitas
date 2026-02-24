@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 
 // Mock Supabase
 jest.mock("@/lib/supabase/client", () => {
-  const queryBuilder = {
+  const queryBuilder: any = {
     select: jest.fn(() => queryBuilder),
     eq: jest.fn(async () => ({ data: [], error: null })),
   };

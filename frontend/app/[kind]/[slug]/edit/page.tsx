@@ -96,11 +96,11 @@ export default function EditSitePage() {
     }
   }
 
-  if (loading) return <div className="flex h-svh items-center justify-center font-ibm-plex-mono uppercase text-sm animate-pulse">Cargando...</div>
-  if (!site) return <div className="flex h-svh items-center justify-center">No se encontró la animita</div>
+  if (loading) return <div className="flex h-svh items-center justify-center font-ibm-plex-mono uppercase text-sm animate-pulse text-text-weak">Cargando...</div>
+  if (!site) return <div className="flex h-svh items-center justify-center text-text-strong">No se encontró la animita</div>
 
   return (
-    <div className="flex flex-col min-h-full bg-white dark:bg-neutral-950 px-6 max-w-2xl mx-auto">
+    <div className="flex flex-col min-h-full bg-background px-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between py-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-full">
           <X className="size-6" />
@@ -109,7 +109,7 @@ export default function EditSitePage() {
           <Button
             onClick={handleUpdate}
             disabled={isSubmitting || name === site.title && story === site.story}
-            className="bg-black hover:bg-black/90 text-white gap-2"
+            className="gap-2"
           >
             {isSubmitting ? "Guardando..." : (
               <>
@@ -121,41 +121,42 @@ export default function EditSitePage() {
         </div>
       </div>
 
-      <div className="space-y-12 pb-24">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Editar Animita</h1>
-          <p className="text-muted-foreground text-sm uppercase font-ibm-plex-mono">Tus cambios quedarán registrados en el historial.</p>
+      <div className="space-y-16 pb-24 px-4">
+        <header className="space-y-3">
+          <h1 className="text-4xl font-bold tracking-tight text-text-strong">Editar Animita</h1>
+          <p className="text-text-weak text-sm uppercase font-ibm-plex-mono tracking-wide">Tus cambios quedarán registrados en el historial.</p>
         </header>
 
-        <section className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nombre</Label>
+        <section className="space-y-10">
+          <div className="space-y-4">
+            <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wider text-text-weak font-ibm-plex-mono">Nombre</Label>
             <input
               id="name"
               type="text"
-              className="text-2xl font-bold w-full bg-transparent border-b border-neutral-200 focus:border-black focus:ring-0 pb-2 transition-colors"
+              className="text-3xl font-bold w-full bg-transparent border-b border-border-weak focus:border-accent focus:ring-0 pb-4 transition-colors text-text-strong outline-none"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="story" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Historia</Label>
+          <div className="space-y-4">
+            <Label htmlFor="story" className="text-sm font-bold uppercase tracking-wider text-text-weak font-ibm-plex-mono">Historia</Label>
             <textarea
               id="story"
-              className="w-full bg-transparent border border-neutral-200 rounded-xl p-4 focus:border-black focus:ring-0 min-h-[200px] text-lg leading-relaxed transition-colors"
+              className="w-full bg-background-weak border border-border-weak rounded-xl p-6 focus:border-accent focus:ring-0 min-h-[300px] text-lg leading-relaxed transition-colors text-text outline-none"
               value={story}
               onChange={(e) => setStory(e.target.value)}
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="summary" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumen de cambios (opcional)</Label>
+          <div className="space-y-4">
+            <Label htmlFor="summary" className="text-sm font-bold uppercase tracking-wider text-text-weak font-ibm-plex-mono">Resumen de cambios (opcional)</Label>
             <Input
               id="summary"
               placeholder="Ej: Corregí la fecha del accidente"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
+              className="h-12 text-base"
             />
           </div>
         </section>

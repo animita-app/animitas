@@ -83,7 +83,7 @@ describe("UserContext", () => {
         name: "Tester",
         email: "tester@example.com",
         role: ROLES.DEFAULT,
-        avatarUrl: null,
+        avatarUrl: undefined,
       });
       await flushAsync();
     });

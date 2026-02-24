@@ -135,13 +135,8 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">
-            {isLoading ? (
-              <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
-            ) : (
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-            )}
             <input
-              className="w-full bg-muted rounded-md border-none focus:outline-none pl-9 pr-8 text-sm h-9"
+              className="w-full bg-background-weak rounded-md border border-border-weak focus:border-accent focus:outline-none px-4 text-sm h-11 transition-colors"
               placeholder={isLoading ? "Cargando..." : "Buscar..."}
               value={searchQuery}
               onChange={handleSearch}
@@ -149,7 +144,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
               onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
             />
             {searchQuery && !isLoading && (
-              <button onClick={handleClearSearch} className="cursor-pointer [&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button onClick={handleClearSearch} className="cursor-pointer [&_svg]:size-4 absolute right-3 top-1/2 -translate-y-1/2 text-text-weak hover:text-text-strong transition-colors">
                 <XCircle />
               </button>
             )}

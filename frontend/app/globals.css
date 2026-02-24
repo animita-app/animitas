@@ -44,7 +44,7 @@
   --color-neutral-dark-11: #A9A6A5;
   --color-neutral-dark-12: #F0ECEB;
 
-  /* Primary Orange */
+  /* Primary Orange (DEPRECATED - use accent #00e instead) */
   --color-primary-1: #FEE9E5;
   --color-primary-2: #FCCABE;
   --color-primary-3: #FBA896;
@@ -126,7 +126,7 @@
   --color-border-weak: var(--color-neutral-dark-6);
   --color-icon: var(--color-neutral-light-1);
   --color-selection: var(--color-primary-2);
-  --color-accent: var(--color-primary-5);
+  --color-accent: #00e;
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
@@ -155,7 +155,7 @@
 
 @layer base {
   * {
-    border-color: var(--color-border);
+    @apply border-border outline-ring/50;
     font-feature-settings: "ss03", "zero";
   }
 
@@ -164,10 +164,8 @@
   }
 
   body {
-    @apply antialiased;
+    @apply antialiased bg-background text-foreground;
     font-family: var(--font-sans);
-    background-color: var(--color-background);
-    color: var(--color-text-strong);
     line-height: 1.6;
     font-size: 0.875rem;
     webkit-font-smoothing: antialiased;
@@ -229,15 +227,6 @@ img {
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-@layer base {
-  * {
-    @apply border-border-weak outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-  }
-}
 
 @keyframes heartbeat {
 
@@ -275,13 +264,4 @@ img {
 
 .animate-progress {
   animation: progress linear forwards;
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }

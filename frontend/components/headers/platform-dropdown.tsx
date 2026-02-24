@@ -31,7 +31,7 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
   return (
     <DropdownMenu openOnHover={true}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="active:scale-100 gap-0.5 [&_svg]:opacity-50 px-2 pr-1.5 text-black font-ibm-plex-mono">
+        <Button variant="ghost" size="sm" className="active:scale-100 gap-0.5 [&_svg]:opacity-50 px-2 pr-1.5 text-text-strong font-ibm-plex-mono">
           [ÁNIMA]
           <ChevronDown />
         </Button>
@@ -42,17 +42,17 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
             <DropdownMenuGroup>
               <div className="flex flex-col gap-2 p-2 mb-3">
                 <div className="-ml-1 mb-2 flex w-full justify-between items-center">
-                  <Badge className="bg-white text-black">
+                  <Badge className="bg-background text-text-strong">
                     Pro
                   </Badge>
 
-                  <Button variant="link" className="!py-0 !h-auto text-sm text-white underline hover:text-white items-end justify-end px-0" asChild>
+                  <Button variant="link" className="!py-0 !h-auto text-sm text-text-inverted underline hover:text-text-inverted items-end justify-end px-0" asChild>
                     <Link href="/pricing">Mejorar el plan</Link>
                   </Button>
                 </div>
 
                 <div className="flex w-full justify-between">
-                  <p className="text-sm text-balance text-white">
+                  <p className="text-sm text-balance text-text-inverted">
                     Uso
                   </p>
 
@@ -66,7 +66,7 @@ export function PlatformDropdown({ onExport, componentCount = 0 }: PlatformDropd
 
                 <div className="flex gap-1">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className={cn("h-0.5 w-full bg-neutral-700", i <= componentCount && "bg-white")} />
+                    <div key={i} className={cn("h-0.5 w-full bg-background-weaker/20", i <= componentCount && "bg-background")} />
                   ))}
                 </div>
               </div>

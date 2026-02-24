@@ -163,137 +163,139 @@ export default function AddPage() {
   }
 
   return (
-    <div className="min-h-svh w-full bg-white flex flex-col items-center pt-20 pb-20 px-6">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="min-h-svh w-full bg-background flex flex-col items-center pt-20 pb-20 px-6">
+      <div className="w-full max-w-sm space-y-12">
         {/* Simple Title Section */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-black">Registra una animita</h1>
-          <p className="text-sm text-text-weak font-normal">Preserva su memoria en el mapa colectivo</p>
+        <div className="space-y-3 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-text-strong">Registra una animita</h1>
+          <p className="text-base text-text-weak font-normal">Preserva su memoria en el mapa colectivo</p>
         </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FieldGroup className="space-y-6">
-            {/* Photos (Simplified Placeholder for now) */}
-            <Field>
-              <FieldLabel className="text-xs font-bold uppercase tracking-tight text-text-weak">Fotos</FieldLabel>
-              <div className="w-full h-32 border border-border-weak rounded-md flex items-center justify-center bg-neutral-light-1 cursor-pointer hover:bg-neutral-light-2 transition-colors">
-                <span className="text-xs text-text-weak font-medium">Click para subir imagenes</span>
-              </div>
-            </Field>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+          <div className="space-y-10">
+            <FieldGroup className="space-y-10">
+              {/* Fotos (Simplified Placeholder for now) */}
+              <Field className="space-y-3">
+                <FieldLabel className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">Fotos</FieldLabel>
+                <div className="w-full h-32 border border-border-weak rounded-md flex items-center justify-center bg-background-weak cursor-pointer hover:bg-background-weaker transition-colors">
+                  <span className="text-sm text-text-weak font-medium">Click para subir imagenes</span>
+                </div>
+              </Field>
 
-            {/* Name Field */}
-            <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name} className="text-xs font-bold uppercase tracking-tight text-text-weak">Nombre</FieldLabel>
-                  <Input
-                    {...field}
-                    id={field.name}
-                    placeholder="Ej: Animita de Romualdito"
-                    aria-invalid={fieldState.invalid}
-                    className="h-10 border-border-weak focus-visible:ring-black rounded-md"
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-
-            {/* Story Field */}
-            <Controller
-              name="story"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex items-center justify-between">
-                    <FieldLabel htmlFor={field.name} className="text-xs font-bold uppercase tracking-tight text-text-weak">Historia</FieldLabel>
-                    {field.value && (
-                      <button
-                        type="button"
-                        onClick={() => setIsPreview(!isPreview)}
-                        className="text-xs font-bold text-[#FF5A5F] hover:underline"
-                      >
-                        {isPreview ? "Editar" : "Ver análisis"}
-                      </button>
-                    )}
-                  </div>
-                  {isPreview && detectedHighlights.length > 0 ? (
-                    <div
-                      className="p-4 border border-border-weak rounded-md text-sm cursor-pointer bg-gray-50"
-                      onClick={() => setIsPreview(false)}
-                    >
-                      <StoryHighlights text={field.value} highlights={detectedHighlights} />
-                    </div>
-                  ) : isPreview && detectedHighlights.length === 0 ? (
-                    <div
-                      className="p-4 border border-border-weak rounded-md text-sm cursor-pointer bg-gray-50 text-center text-text-weak"
-                      onClick={() => setIsPreview(false)}
-                    >
-                      <p>No se detectaron palabras clave en la historia.</p>
-                      <p className="text-xs mt-1">Escribe más para ver el análisis automático.</p>
-                    </div>
-                  ) : (
-                    <Textarea
+              {/* Name Field */}
+              <Controller
+                name="name"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="space-y-3">
+                    <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">Nombre</FieldLabel>
+                    <Input
                       {...field}
                       id={field.name}
-                      placeholder="Escribe la historia de esta animita..."
-                      className="min-h-[120px] border-border-weak resize-none focus-visible:ring-black rounded-md"
+                      placeholder="Ej: Animita de Romualdito"
                       aria-invalid={fieldState.invalid}
+                      className="h-11 border-border-weak rounded-md text-base"
                     />
-                  )}
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-            {/* Location Field */}
-            <Controller
-              name="location"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel className="text-xs font-bold uppercase tracking-tight text-text-weak">Ubicación</FieldLabel>
-                  <LocationPicker
-                    value={field.value}
-                    onChange={(loc) => field.onChange(loc)}
-                  />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+              {/* Story Field */}
+              <Controller
+                name="story"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <FieldLabel htmlFor={field.name} className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">Historia</FieldLabel>
+                      {field.value && (
+                        <button
+                          type="button"
+                          onClick={() => setIsPreview(!isPreview)}
+                          className="text-sm font-bold text-accent hover:underline"
+                        >
+                          {isPreview ? "Editar" : "Ver análisis"}
+                        </button>
+                      )}
+                    </div>
+                    {isPreview && detectedHighlights.length > 0 ? (
+                      <div
+                        className="p-4 border border-border-weak rounded-md text-base cursor-pointer bg-background-weak"
+                        onClick={() => setIsPreview(false)}
+                      >
+                        <StoryHighlights text={field.value} highlights={detectedHighlights} />
+                      </div>
+                    ) : isPreview && detectedHighlights.length === 0 ? (
+                      <div
+                        className="p-4 border border-border-weak rounded-md text-base cursor-pointer bg-background-weak text-center text-text-weak"
+                        onClick={() => setIsPreview(false)}
+                      >
+                        <p>No se detectaron palabras clave en la historia.</p>
+                        <p className="text-sm mt-2">Escribe más para ver el análisis automático.</p>
+                      </div>
+                    ) : (
+                      <Textarea
+                        {...field}
+                        id={field.name}
+                        placeholder="Escribe la historia de esta animita..."
+                        className="min-h-[140px] border-border-weak resize-none rounded-md text-base p-3"
+                        aria-invalid={fieldState.invalid}
+                      />
+                    )}
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-            {/* Public Switch */}
-            <Controller
-              name="isPublic"
-              control={form.control}
-              render={({ field }) => (
-                <Field orientation="horizontal" className="justify-between items-center">
-                  <div className="space-y-0.5">
-                    <FieldLabel htmlFor={field.name} className="text-sm font-medium">Visible para todos</FieldLabel>
-                    <FieldDescription className="text-xs">Cualquiera podrá encontrarla en el mapa</FieldDescription>
-                  </div>
-                  <Switch
-                    id={field.name}
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </Field>
-              )}
-            />
-          </FieldGroup>
+              {/* Location Field */}
+              <Controller
+                name="location"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="space-y-3">
+                    <FieldLabel className="text-sm font-bold uppercase tracking-tight text-text-weak font-ibm-plex-mono">Ubicación</FieldLabel>
+                    <LocationPicker
+                      value={field.value}
+                      onChange={(loc) => field.onChange(loc)}
+                    />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              {/* Public Switch */}
+              <Controller
+                name="isPublic"
+                control={form.control}
+                render={({ field }) => (
+                  <Field orientation="horizontal" className="justify-between items-center bg-background-weak/30 p-4 rounded-lg border border-border-weak">
+                    <div className="space-y-1">
+                      <FieldLabel htmlFor={field.name} className="text-base font-bold text-text-strong">Visible para todos</FieldLabel>
+                      <FieldDescription className="text-sm">Cualquiera podrá encontrarla en el mapa</FieldDescription>
+                    </div>
+                    <Switch
+                      id={field.name}
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </Field>
+                )}
+              />
+            </FieldGroup>
+          </div>
 
           {/* Action Button */}
-          <div className="space-y-4 pt-4">
+          <div className="space-y-6 pt-6">
             <Button
               type="submit"
               disabled={isSubmitting || !form.formState.isValid}
-              className="w-full bg-black text-white hover:bg-neutral-800 h-10 font-bold rounded-md"
+              className="w-full h-12 font-bold rounded-md text-base shadow-sm"
             >
-              {isSubmitting ? "Publicando..." : "Continuar"}
+              {isSubmitting ? "Publicando..." : "Registrar ubicación"}
             </Button>
-            <p className="text-xs text-text-weak text-center leading-relaxed">
-              Al continuar, aceptas las <span className="font-bold text-black cursor-pointer hover:underline">Normas de la Comunidad</span>.
+            <p className="text-sm text-text-weak text-center leading-relaxed">
+              Al continuar, aceptas las <span className="font-bold text-text-strong cursor-pointer hover:underline">Normas de la Comunidad</span>.
             </p>
           </div>
         </form>

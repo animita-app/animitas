@@ -111,17 +111,17 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
   }
 
   return (
-    <div className="flex items-center gap-2 p-3 border border-border-weak rounded-md bg-white">
+    <div className="flex items-center gap-2 p-3 border border-border-weak rounded-md bg-background">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">{value?.address}</p>
         {value?.cityRegion && (
-          <p className="text-xs text-text-weak truncate">{value?.cityRegion}</p>
+          <p className="text-sm text-text-weak truncate">{value?.cityRegion}</p>
         )}
       </div>
       <button
         type="button"
         onClick={() => onChange(null)}
-        className="text-xs font-bold text-[#FF5A5F] hover:underline"
+        className="text-sm font-bold text-accent hover:underline"
       >
         Cambiar
       </button>

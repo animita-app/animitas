@@ -89,7 +89,7 @@ export function PricingTable() {
           onClick={() => setBillingPeriod('monthly')}
           className={cn(
             "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
-            billingPeriod === 'monthly' ? "bg-white shadow text-black" : "text-muted-foreground hover:text-black"
+            billingPeriod === 'monthly' ? "bg-background shadow text-text-strong" : "text-text-weak hover:text-text-strong"
           )}
         >
           Mensual
@@ -98,7 +98,7 @@ export function PricingTable() {
           onClick={() => setBillingPeriod('yearly')}
           className={cn(
             "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
-            billingPeriod === 'yearly' ? "bg-white shadow text-black" : "text-muted-foreground hover:text-black"
+            billingPeriod === 'yearly' ? "bg-background shadow text-text-strong" : "text-text-weak hover:text-text-strong"
           )}
         >
           Anual
@@ -132,11 +132,11 @@ export function PricingTable() {
 
                 <div className="mt-4 flex flex-col items-start gap-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-medium font-ibm-plex-mono text-black slashed-zero">
+                    <span className="text-3xl font-medium font-ibm-plex-mono text-text-strong slashed-zero">
                       {plan.price[billingPeriod]}
                     </span>
                     {plan.price[billingPeriod] !== '$0' && (
-                      <span className="-translate-y-0.5 text-sm font-normal text-muted-foreground">
+                      <span className="-translate-y-0.5 text-sm font-normal text-text-weak">
                         {plan.period ? plan.period[billingPeriod] : '/mes'}
                       </span>
                     )}
@@ -149,7 +149,7 @@ export function PricingTable() {
                   <Button
                     className={cn(
                       "w-full",
-                      isCurrent && "bg-muted text-muted-foreground disabled:!opacity-100 brightness-95"
+                      isCurrent && "bg-background-weaker text-text-weak disabled:!opacity-100 brightness-95"
                     )}
                     disabled={isCurrent}
                   >
@@ -169,7 +169,7 @@ export function PricingTable() {
                       .map((feature, i) => (
                         <li key={i} className="flex items-center gap-2.5">
                           <div className="bg-accent rounded-full p-0.5 shrink-0">
-                            <Check className="h-3 w-3 text-white" />
+                            <Check className="h-3 w-3 text-primary-foreground" />
                           </div>
                           <span className="text-accent leading-tight">{feature}</span>
                         </li>

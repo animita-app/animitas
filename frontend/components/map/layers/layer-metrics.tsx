@@ -114,7 +114,7 @@ function InsightCard({ component, data }: { component: Component, data: any[] })
     default:
       return (
         <div className="p-4 border rounded-lg bg-muted/20 text-xs text-muted-foreground">
-          Visualización "{config.visualization}" no implementada aún.
+          Visualización &quot;{config.visualization}&quot; no implementada aún.
         </div>
       )
   }

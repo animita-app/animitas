@@ -79,7 +79,7 @@ export function RevisionHistory({ siteId }: { siteId: string }) {
                 </span>
               </div>
               <p className="text-sm text-foreground/80 leading-relaxed italic">
-                "{rev.diff_summary || 'Edición sin resumen'}"
+                &quot;{rev.diff_summary || 'Edición sin resumen'}&quot;
               </p>
             </div>
           ))}
