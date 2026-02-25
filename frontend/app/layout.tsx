@@ -75,8 +75,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode
+  modal: React.ReactNode
 }) {
   return (
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
@@ -84,6 +86,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           {children}
+          {modal}
           <Toaster />
         </Providers>
       </body>
