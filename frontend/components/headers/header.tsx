@@ -49,21 +49,10 @@ export function Header({ className }: HeaderProps) {
               onValueChange={(value) => {
                 router.push(value === 'list' ? '/list' : '/map')
               }}
-              className="gap-0"
             >
-              <TabsList className="border-0 bg-background/60 backdrop-blur-md rounded-full p-1 gap-0 w-auto">
-                <TabsTrigger
-                  value="map"
-                  className="rounded-full border-0 px-5 h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-text-strong text-text-weak"
-                >
-                  Mapa
-                </TabsTrigger>
-                <TabsTrigger
-                  value="list"
-                  className="rounded-full border-0 px-5 h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-text-strong text-text-weak"
-                >
-                  Lista
-                </TabsTrigger>
+              <TabsList className="bg-background-weaker !py-1.5 rounded-full">
+                <TabsTrigger value="map" className="data-[state=active]:bg-background-strong">Mapa</TabsTrigger>
+                <TabsTrigger value="list" className="data-[state=active]:bg-background-strong">Lista</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -120,7 +109,7 @@ export function Header({ className }: HeaderProps) {
             </>
           ) : (
             <Button size="sm" asChild>
-              <Link href="/login">
+              <Link href="/auth">
                 Únete
               </Link>
             </Button>

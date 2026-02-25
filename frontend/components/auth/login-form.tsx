@@ -23,19 +23,24 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [otpCode, setOtpCode] = useState("")
 
   const handleGoogleLogin = async () => {
+    console.log('[Auth] Google login clicked')
     const supabase = createClient()
     setLoading(true)
     try {
+      console.log('[Auth] Calling signInWithOAuth...')
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         }
       })
+      console.log('[Auth] OAuth response:', { data, error })
       if (error) throw error
-      // Supabase returns a URL to redirect to
       if (data?.url) {
+        console.log('[Auth] Redirecting to:', data.url)
         window.location.href = data.url
+      } else {
+        console.warn('[Auth] No URL returned from signInWithOAuth')
       }
     } catch (error: any) {
       console.error('[Auth] Google login error:', error)
@@ -46,22 +51,26 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[Auth] Email submit clicked, email:', email)
     if (!email) return
 
     setLoading(true)
     const supabase = createClient()
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      console.log('[Auth] Calling signInWithOtp...')
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         }
       })
+      console.log('[Auth] OTP response:', { data, error })
       if (error) throw error
       setOtpSent(true)
       toast.success("Código enviado a tu correo")
     } catch (error: any) {
+      console.error('[Auth] Email OTP error:', error)
       toast.error(error.message || "Error al enviar el código")
     } finally {
       setLoading(false)
@@ -144,7 +153,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <div className="w-full space-y-4">
-      <div className="space-y-2 text-center pb-1">
+      <div className="space-y-2 text-center pb-0.5">
         <h2 className="text-xl font-medium tracking-tight text-text-strong">
           Bienvenido a <span className="font-ibm-plex-mono text-accent ml-px">[ÁNIMA]</span>
         </h2>

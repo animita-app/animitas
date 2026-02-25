@@ -13,7 +13,7 @@ export async function requireAuth() {
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
-    redirect('/login')
+    redirect('/auth')
   }
 
   return user
@@ -31,7 +31,7 @@ export async function requireProfile() {
     .single()
 
   if (!profile) {
-    redirect('/login')
+    redirect('/auth')
   }
 
   return { user, profile }

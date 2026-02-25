@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       // Redirect unauthenticated users to login
       const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/login'
+      loginUrl.pathname = '/auth'
       loginUrl.searchParams.set('next', pathname)
       return NextResponse.redirect(loginUrl)
     }

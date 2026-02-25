@@ -104,7 +104,7 @@ export function PollSection({ siteId }: PollSectionProps) {
 
   const handleVote = async (optionId: string) => {
     if (!isAuthenticated || !currentUser) {
-      router.push("/login")
+      router.push("/auth")
       return
     }
 
