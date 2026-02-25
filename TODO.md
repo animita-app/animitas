@@ -37,6 +37,7 @@
 
 ## Secundario (si hay tiempo)
 
+- [ ] **Vista "Lista" (`/list`)**: Implementar carruseles (`ui/carousel.tsx`) con tarjetas `heritage-site-card` categorizadas
 - [ ] Ajustes de UX en flujo de creación
 - [ ] Señales visuales de prioridad editorial en review queue
 - [ ] Mejoras menores en filtros del mapa
@@ -44,7 +45,6 @@
 
 ## Nice-to-have (fuera de foco)
 
+- [ ] **Recorridos (Rutas)**: Permitir agregar múltiples animitas y generar rutas desde la ubicación del usuario, con opción de incluir descripción e imágenes sobre el propósito del viaje.
 - [ ] IA para extraer datos desde historia/imágenes
 - [ ] Exportaciones o herramientas analíticas
-- [ ] Nuevos tipos de patrimonio más allá de animitas
-- [ ] Features tipo "cartografías críticas"

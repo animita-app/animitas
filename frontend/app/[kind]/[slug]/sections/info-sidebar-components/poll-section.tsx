@@ -1,5 +1,7 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+
 import * as React from "react"
 import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -33,6 +35,7 @@ interface PollSectionProps {
 }
 
 export function PollSection({ siteId }: PollSectionProps) {
+  const router = useRouter()
   const { currentUser, isAuthenticated } = useUser()
   const [hasVoted, setHasVoted] = React.useState(false)
   const [showResults, setShowResults] = React.useState(false)
@@ -101,7 +104,7 @@ export function PollSection({ siteId }: PollSectionProps) {
 
   const handleVote = async (optionId: string) => {
     if (!isAuthenticated || !currentUser) {
-      toast.error("Debes iniciar sesión para votar")
+      router.push("/login")
       return
     }
 

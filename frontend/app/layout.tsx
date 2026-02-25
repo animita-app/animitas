@@ -75,18 +75,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-  modal
 }: {
   children: React.ReactNode
-  modal: React.ReactNode
 }) {
   return (
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
-      <body className="overflow-y-auto">
+      <body className="overflow-y-auto w-full min-h-svh">
         <Providers>
           <Header />
           {children}
-          {modal}
           <Toaster />
         </Providers>
       </body>

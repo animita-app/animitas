@@ -29,7 +29,7 @@ export function ModalWrapper({
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("gap-8 py-12 md:p-16 md:max-w-5xl bg-background text-black border-none shadow-xl max-h-[90vh] overflow-y-auto", className)}>
+      <DialogContent className={cn("gap-8 md:max-w-sm bg-background text-black border-none shadow-xl max-h-[90vh] overflow-y-auto", className)}>
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

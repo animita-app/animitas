@@ -12,71 +12,62 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Plus } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
-
-import { ROLES } from '@/types/roles'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
-import { PlatformDropdown } from './platform-dropdown'
-
 
 interface HeaderProps {
-  onExport?: (format: string, scope?: 'viewport' | 'all') => void
-  isLoading?: boolean
-  componentCount?: number
   className?: string
-  variant?: 'gis' | 'default'
-  onResetView?: () => void
 }
 
-const MENU_ITEMS = [
-  { label: 'Explorar', href: '/map' },
-  { label: 'Planes', href: '/pricing' },
+const MAIN_VIEWS = [
+  { label: 'Mapa', href: '/map' },
+  { label: 'Lista', href: '/list' },
 ]
 
-export function Header({ onExport, componentCount = 0, className, variant = 'default', onResetView }: HeaderProps) {
-  const { role, currentUser, isEditor, isSuperadmin } = useUser()
+export function Header({ className }: HeaderProps) {
+  const { currentUser, isEditor, isSuperadmin } = useUser()
   const pathname = usePathname()
-  const isDefault = role === ROLES.DEFAULT
   const isUpdating = pathname.includes("add")
 
-  if ((pathname === '/map' && variant !== 'gis') || pathname.includes("animita")) return null
-
-
+  // Don't show header inside the specific animita detail views so it doesn't overlap the detail page.
+  if (pathname.includes("animita")) return null
 
   return (
-    <div className={cn("bg-transparent z-10 flex items-center justify-between p-4 w-full", className)}>
-      <div className="flex items-center gap-4">
-        {variant === 'gis' ? (
-          isDefault ? (
-            <Button variant="ghost" size="sm" className="!px-2.5 active:scale-100 text-text-strong font-ibm-plex-mono slashed-zero cursor-default hover:bg-transparent">
-              [ÁNIMA]
-            </Button>
-          ) : (
-            <PlatformDropdown onExport={onExport} componentCount={componentCount} />
-          )
-        ) : (
+    <header className={cn("fixed top-0 left-0 right-0 z-50 pointer-events-none w-full", className)}>
+      <div className="bg-transparent flex items-center justify-between p-4 w-full h-16 pointer-events-auto">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-6">
             <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
               [ÁNIMA]
             </Link>
 
             {!isUpdating && (
-              <NavigationMenu className="hidden md:flex absolute left-1/2 -translate-x-1/2">
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 bg-background/50 backdrop-blur-md border border-border-weak rounded-full p-1 gap-1">
+                {MAIN_VIEWS.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Button
+                      key={item.href}
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className={cn(
+                        "rounded-full h-8 px-5 transition-all",
+                        isActive
+                          ? "bg-background shadow-sm text-text-strong"
+                          : "text-text-weak hover:text-text-strong hover:bg-transparent"
+                      )}
+                    >
+                      <Link href={item.href}>{item.label}</Link>
+                    </Button>
+                  )
+                })}
+              </div>
+            )}
+
+            {!isUpdating && (
+              <NavigationMenu className="hidden md:flex ml-4">
                 <NavigationMenuList>
-                  {MENU_ITEMS.map((item) => (
-                    <NavigationMenuItem key={item.href}>
-                      <NavigationMenuLink
-                        href={item.href}
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                          pathname === item.href && "text-text-strong"
-                        )}
-                      >
-                        {item.label}
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  ))}
 
                   {isEditor && (
                     <NavigationMenuItem>
@@ -111,30 +102,29 @@ export function Header({ onExport, componentCount = 0, className, variant = 'def
               </NavigationMenu>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          {currentUser ? (
+            <>
+              <Button size="sm" className="!pl-2 gap-1" asChild>
+                <Link href="/add">
+                  <Plus />
+                  Añadir
+                </Link>
+              </Button>
 
-        {currentUser ? (
-          <>
-            <Button size="sm" className="!pl-2 gap-1" asChild>
-              <Link href="/add">
-                <Plus />
-                Añadir
+              <UserDropdown />
+            </>
+          ) : (
+            <Button size="sm" asChild>
+              <Link href="/login">
+                Únete
               </Link>
             </Button>
-
-            <UserDropdown />
-          </>
-        ) : (
-          <Button size="sm" asChild>
-            <Link href="/login">
-              Únete
-            </Link>
-          </Button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   )
 }
