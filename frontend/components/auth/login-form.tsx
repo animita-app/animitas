@@ -141,9 +141,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     <div className="w-full space-y-6">
       <div className="space-y-2 text-center pb-2">
         <h2 className="text-2xl font-bold tracking-tight text-text-strong">
-          Inicia sesión
+          Bienvenido a [ÁNIMA]
         </h2>
-        <p className="text-sm text-text-weak">
+        <p className="sr-only text-sm text-text-weak">
           Ingresa con Google o verificando tu correo
         </p>
       </div>
@@ -172,9 +172,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-border-weak" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
+        <div className="relative flex justify-center text-sm">
           <span className="bg-background px-2 text-text-weaker">
-            O usa tu correo
+            o también
           </span>
         </div>
       </div>

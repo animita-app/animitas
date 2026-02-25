@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   NavigationMenu,
@@ -10,6 +10,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
@@ -19,92 +20,93 @@ interface HeaderProps {
   className?: string
 }
 
-const MAIN_VIEWS = [
-  { label: 'Mapa', href: '/map' },
-  { label: 'Lista', href: '/list' },
-]
-
 export function Header({ className }: HeaderProps) {
   const { currentUser, isEditor, isSuperadmin } = useUser()
   const pathname = usePathname()
+  const router = useRouter()
   const isUpdating = pathname.includes("add")
 
-  // Don't show header inside the specific animita detail views so it doesn't overlap the detail page.
+  // Hide header on animita detail views
   if (pathname.includes("animita")) return null
+
+  const currentView = pathname === '/list' ? 'list' : 'map'
 
   return (
     <header className={cn("fixed top-0 left-0 right-0 z-50 pointer-events-none w-full", className)}>
       <div className="bg-transparent flex items-center justify-between p-4 w-full h-16 pointer-events-auto">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
-              [ÁNIMA]
-            </Link>
-
-            {!isUpdating && (
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 bg-background/50 backdrop-blur-md border border-border-weak rounded-full p-1 gap-1">
-                {MAIN_VIEWS.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <Button
-                      key={item.href}
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                      className={cn(
-                        "rounded-full h-8 px-5 transition-all",
-                        isActive
-                          ? "bg-background shadow-sm text-text-strong"
-                          : "text-text-weak hover:text-text-strong hover:bg-transparent"
-                      )}
-                    >
-                      <Link href={item.href}>{item.label}</Link>
-                    </Button>
-                  )
-                })}
-              </div>
-            )}
-
-            {!isUpdating && (
-              <NavigationMenu className="hidden md:flex ml-4">
-                <NavigationMenuList>
-
-                  {isEditor && (
-                    <NavigationMenuItem>
-                      <NavigationMenuLink
-                        href="/editor"
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                          pathname.startsWith("/editor") && "text-text-strong"
-                        )}
-                      >
-                        Revisión
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  )}
-
-                  {isSuperadmin && (
-                    <NavigationMenuItem>
-                      <NavigationMenuLink
-                        href="/admin"
-                        className={cn(
-                          navigationMenuTriggerStyle(),
-                          "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                          pathname.startsWith("/admin") && "text-text-strong"
-                        )}
-                      >
-                        Admin
-                      </NavigationMenuLink>
-                    </NavigationMenuItem>
-                  )}
-                </NavigationMenuList>
-              </NavigationMenu>
-            )}
-          </div>
+        {/* Left: Logo */}
+        <div className="flex items-center gap-6">
+          <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
+            [ÁNIMA]
+          </Link>
         </div>
 
+        {/* Center: Mapa / Lista tabs */}
+        {!isUpdating && (
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Tabs
+              value={currentView}
+              onValueChange={(value) => {
+                router.push(value === 'list' ? '/list' : '/map')
+              }}
+              className="gap-0"
+            >
+              <TabsList className="border-0 bg-background/60 backdrop-blur-md rounded-full p-1 gap-0 w-auto">
+                <TabsTrigger
+                  value="map"
+                  className="rounded-full border-0 px-5 h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-text-strong text-text-weak"
+                >
+                  Mapa
+                </TabsTrigger>
+                <TabsTrigger
+                  value="list"
+                  className="rounded-full border-0 px-5 h-8 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-text-strong text-text-weak"
+                >
+                  Lista
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        {/* Right: Role links + user actions */}
         <div className="flex items-center gap-3">
+          {!isUpdating && (isEditor || isSuperadmin) && (
+            <NavigationMenu className="hidden md:flex">
+              <NavigationMenuList>
+                {isEditor && (
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      href="/editor"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                        pathname.startsWith("/editor") && "text-text-strong"
+                      )}
+                    >
+                      Revisión
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )}
+
+                {isSuperadmin && (
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      href="/admin"
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
+                        pathname.startsWith("/admin") && "text-text-strong"
+                      )}
+                    >
+                      Admin
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
+
           {currentUser ? (
             <>
               <Button size="sm" className="!pl-2 gap-1" asChild>
