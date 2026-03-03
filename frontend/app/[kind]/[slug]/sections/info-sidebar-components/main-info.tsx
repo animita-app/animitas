@@ -15,13 +15,16 @@ export function MainInfo({ site }: MainInfoProps) {
   const { role } = useUser()
   const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN
 
+  const kindSlug = (site as any).kind || 'animita'
+  const displayTitle = kindSlug === 'animita' ? `Animita de ${site.title}` : site.title
+
   return (
     <div>
       <div className="flex items-start justify-between">
-        <h1 className="text-xl font-medium text-black">{site.title}</h1>
+        <h1 className="text-xl font-medium text-black">{displayTitle}</h1>
         {canEdit && (
           <Button variant="outline" size="sm" className="h-7 text-[10px] uppercase font-bold tracking-tight px-3" asChild>
-            <Link href={`/${(site as any).kind?.toLowerCase() || 'animita'}/${site.slug}/edit`}>
+            <Link href={`/${kindSlug}/${site.slug}/edit`}>
               Editar
             </Link>
           </Button>
