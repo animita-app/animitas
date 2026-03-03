@@ -15,11 +15,20 @@ export default async function SiteDetailPage({ params }: PageProps) {
   const supabase = await createClient()
 
   // 1. Try fetching from Supabase
-  const { data: dbSite } = await supabase
+  const { data: dbSiteRaw } = await supabase
     .from('heritage_sites')
-    .select('*')
+    .select('*, user_profiles!creator_id(id, display_name)')
     .eq('slug', slug)
     .single()
+
+  // Transform to match HeritageSite type
+  const dbSite = dbSiteRaw ? {
+    ...dbSiteRaw,
+    created_by: {
+      id: dbSiteRaw.user_profiles?.id || dbSiteRaw.creator_id || '',
+      name: dbSiteRaw.user_profiles?.display_name || 'Anonymous'
+    }
+  } : null
 
   // 2. Fallback to SEED
   const seedSite = SEED_HERITAGE_SITES.find((s) => s.slug === slug)

@@ -8,14 +8,17 @@ interface CreatorSectionProps {
 }
 
 export function CreatorSection({ site }: CreatorSectionProps) {
+  const creatorName = site.created_by?.name || 'Anonymous'
+  const creatorInitial = creatorName[0]?.toUpperCase() || 'A'
+
   return (
     <div className="grid grid-cols-2 gap-4 items-center">
       <InfoBlock label="Creado por">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarFallback>{site.created_by.name[0]}</AvatarFallback>
+            <AvatarFallback>{creatorInitial}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-normal text-black">{site.created_by.name}</span>
+          <span className="text-sm font-normal text-black">{creatorName}</span>
         </div>
       </InfoBlock>
 
