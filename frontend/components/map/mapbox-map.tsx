@@ -364,22 +364,16 @@ export default function MapboxMap({
         onExport={handleExport}
         onGenerateSynthetic={handleGenerateSynthetic}
 
-        activeAreaLabel={activeAreaLabel}
         activeProperties={activeProperties}
-        searchSuggestions={searchSuggestions}
         showProfileMarkers={showProfileMarkers}
-        onClearActiveArea={clearActiveArea}
         // @ts-ignore
         onPropertyToggle={handlePropertyToggle}
         onGISOperationSelect={handleGISOperationSelect}
         onElementRemove={handleElementRemove}
         onCloseLayerDetail={handleCloseLayerDetail}
-        onSearch={handleSearch}
-        onSelectResult={handleSelectResult}
 
         onResetView={handleResetView}
         hasMoved={hasMoved}
-        onSearchLoading={setIsSearching}
       />
     </div>
   )

@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { Legend } from '../components/paywall/legend'
+import { Legend } from '../components/map/legend'
 import { LayerDetail } from '../components/map/layers/layer-detail'
-import { SearchPanel } from '../components/paywall/search'
-import { ActiveAreaBanner } from '../components/paywall/active-area-banner'
-import { Toolbar } from '../components/paywall/toolbar'
-import { Layer, HeritageSiteProperty, GISOperation } from '../components/paywall/types'
+import { Toolbar } from '../components/map/toolbar'
+import { Layer, HeritageSiteProperty, GISOperation } from "@/components/map/types"
 import { useIsMobile } from '../hooks/use-mobile'
 import { Drawer, DrawerContentFloating, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { cn } from "@/lib/utils"
@@ -14,27 +12,21 @@ interface MapLayoutProps {
   layers: Layer[]
   elements: Layer[]
   selectedLayer: Layer | null
-  activeAreaLabel: string | null
   activeProperties: HeritageSiteProperty[]
-  searchSuggestions: any[]
   showProfileMarkers: boolean
 
   onLayerSelect: (layer: Layer) => void
   onLayerVisibilityChange: (id: string, isElement: boolean) => void
-  onClearActiveArea: () => void
   onLayerUpdate: (layer: Layer) => void
   onPropertyToggle: (property: HeritageSiteProperty, visible: boolean) => void
   onGISOperationSelect: (operation: GISOperation) => void
   onElementRemove: (id: string) => void
   onCloseLayerDetail: () => void
-  onSearch: (query: string) => void
-  onSelectResult: (location: any) => void
   onResetView?: () => void
   onToggleProfile?: () => void
   onExport: (format: string, scope?: 'viewport' | 'all') => void
   onGenerateSynthetic: () => void
 
-  onSearchLoading?: (loading: boolean) => void
   hasMoved?: boolean
 }
 
@@ -42,25 +34,19 @@ export function MapLayout({
   layers,
   elements,
   selectedLayer,
-  activeAreaLabel,
   activeProperties,
-  searchSuggestions,
   showProfileMarkers,
   onLayerSelect,
   onLayerVisibilityChange,
-  onClearActiveArea,
   onLayerUpdate,
   onPropertyToggle,
   onGISOperationSelect,
   onElementRemove,
   onCloseLayerDetail,
-  onSearch,
-  onSelectResult,
   onResetView,
   onToggleProfile,
   onExport,
   onGenerateSynthetic,
-  onSearchLoading,
   hasMoved
 }: MapLayoutProps) {
   const pathname = usePathname()
@@ -70,16 +56,6 @@ export function MapLayout({
   if (isMobile) {
     return (
       <div className="absolute inset-0 pointer-events-none flex flex-col">
-        <ActiveAreaBanner
-          label={activeAreaLabel}
-          onClear={() => {
-            onClearActiveArea()
-            setTimeout(() => {
-              onResetView?.()
-            }, 100)
-          }}
-        />
-
         <Drawer
           snapPoints={[0.06, 1]}
           activeSnapPoint={snap}
@@ -152,16 +128,6 @@ export function MapLayout({
 
   return (
     <div className="absolute inset-0 pointer-events-none flex flex-col">
-      <ActiveAreaBanner
-        label={activeAreaLabel}
-        onClear={() => {
-          onClearActiveArea()
-          setTimeout(() => {
-            onResetView?.()
-          }, 100)
-        }}
-      />
-
       <div className="absolute inset-4 z-10 flex flex-col gap-4 pt-12 pointer-events-none">
         <div className="relative flex-1 min-h-0 pointer-events-none transition-opacity duration-500">
           <Legend
@@ -172,7 +138,7 @@ export function MapLayout({
             onToggleVisibility={onLayerVisibilityChange}
           />
 
-          {selectedLayer ? (
+          {selectedLayer && (
             <LayerDetail
               selectedLayer={selectedLayer}
               onClose={onCloseLayerDetail}
@@ -182,15 +148,6 @@ export function MapLayout({
               onGISOperationSelect={onGISOperationSelect}
               onElementRemove={onElementRemove}
             />
-          ) : (
-            <div className="absolute right-0 top-0 pointer-events-auto max-h-full flex flex-col">
-              <SearchPanel
-                onSearch={onSearch}
-                searchResults={searchSuggestions}
-                onSelectResult={onSelectResult}
-                onLoadingChange={onSearchLoading}
-              />
-            </div>
           )}
         </div>
       </div>
