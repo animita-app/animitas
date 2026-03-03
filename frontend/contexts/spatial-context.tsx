@@ -51,9 +51,18 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
           .select('*')
           .eq('status', 'published')
 
-        if (error) throw error
+        if (error) {
+          console.error("[SpatialContext] Query error:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          })
+          throw error
+        }
 
         if (data) {
+          console.log("[SpatialContext] Fetched", data.length, "sites")
           // Normalize location for GIS engine
           const normalized = data.map((site: any) => ({
             ...site,
@@ -61,8 +70,12 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
           }))
           setDbSites(normalized)
         }
-      } catch (err) {
-        console.error("[SpatialContext] Error fetching sites:", err)
+      } catch (err: any) {
+        console.error("[SpatialContext] Error fetching sites:", {
+          message: err?.message,
+          code: err?.code,
+          status: err?.status
+        })
       }
     }
     fetchSites()

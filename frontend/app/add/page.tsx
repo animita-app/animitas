@@ -1,4 +1,4 @@
-import { AddForm } from "@/components/add/add-form"
+import { AddForm } from "@/components/forms/add-form"
 import { Card, CardContent } from "@/components/ui/card"
 
 export default function AddPage() {

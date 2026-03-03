@@ -3,76 +3,25 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Spinner } from "@/components/ui/spinner"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { cn } from "@/lib/utils"
 import { Camera } from "lucide-react"
 import { clearAuthCookies } from "@/lib/auth-utils"
-
-// ─── Layout ──────────────────────────────────────────────────
-
-interface StepLayoutProps {
-  title: React.ReactNode
-  description?: React.ReactNode
-  children: React.ReactNode
-  actions: React.ReactNode
-  stepIndex?: number
-  totalSteps?: number
-  className?: string
-}
-
-function StepLayout({ title, description, children, actions, stepIndex, totalSteps, className }: StepLayoutProps) {
-  const showStepper = stepIndex !== undefined && totalSteps !== undefined
-
-  return (
-    <div className={cn("w-full space-y-4", className)}>
-      <div className="space-y-0.5 text-center pb-1.5">
-        <h2 className="text-xl font-medium tracking-tight text-text-strong">{title}</h2>
-        {description && <p className="text-sm text-text-weak">{description}</p>}
-      </div>
-
-      {children}
-
-      <div className="flex flex-col gap-3 pt-2">{actions}</div>
-
-      {showStepper && (
-        <div className="flex items-center justify-center gap-1.5 pt-2">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                i === stepIndex
-                  ? "w-6 bg-accent"
-                  : i < stepIndex
-                    ? "w-3 bg-accent/25"
-                    : "w-3 bg-background-weaker"
-              )}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Form ────────────────────────────────────────────────────
+import { StepLayout } from "@/components/forms/atoms/step-layout"
 
 interface LoginFormProps {
   onSuccess?: () => void
 }
 
 type Step = 'login' | 'otp' | 'name' | 'username' | 'avatar'
-
 const ONBOARDING_STEPS: Step[] = ['name', 'username', 'avatar']
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const isOnboarding = searchParams.get('onboarding') === 'true'
   const onboardingStep = searchParams.get('step') as Step | null
@@ -80,7 +29,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [otpCode, setOtpCode] = useState("")
-
   const [fullName, setFullName] = useState("")
   const [username, setUsername] = useState("")
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -91,17 +39,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   useEffect(() => {
     const savedStep = localStorage.getItem('onboarding_step') as Step | null
-    if (savedStep && ONBOARDING_STEPS.includes(savedStep)) {
-      setStep(savedStep)
-    }
+    if (savedStep && ONBOARDING_STEPS.includes(savedStep)) setStep(savedStep)
   }, [])
 
-  // ─── Handlers ──────────────────────────────────────────────
-
   const saveOnboardingStep = (stepName: Step) => {
-    if (ONBOARDING_STEPS.includes(stepName)) {
-      localStorage.setItem('onboarding_step', stepName)
-    }
+    if (ONBOARDING_STEPS.includes(stepName)) localStorage.setItem('onboarding_step', stepName)
   }
 
   const finishAuth = () => {
@@ -117,18 +59,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     e.preventDefault()
     if (!fullName.trim()) return
     setLoadingAction('name')
-    const supabase = createClient()
-
     try {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
-
       await supabase.from('user_profiles').upsert({ id: user.id, display_name: fullName.trim() })
-
       saveOnboardingStep('username')
       setStep('username')
     } catch (error: any) {
-      console.error('[Auth] Save name error:', error)
       toast.error(error.message || "Error al guardar nombre")
     } finally {
       setLoadingAction(null)
@@ -139,67 +77,40 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     e.preventDefault()
     if (!username.trim()) return
     setLoadingAction('username')
-    const supabase = createClient()
-
     try {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
-
       const normalizedUsername = username.trim().toLowerCase()
-
       await supabase.from('user_profiles').upsert({ id: user.id, username: normalizedUsername })
-
       saveOnboardingStep('avatar')
       setStep('avatar')
     } catch (error: any) {
-      console.error('[Auth] Save username error:', error)
-      if (error.code === '23505') {
-        toast.error("Ese nombre de usuario ya está en uso")
-        return
-      }
+      if (error.code === '23505') { toast.error("Ese nombre de usuario ya está en uso"); return }
       toast.error(error.message || "Error al guardar usuario")
     } finally {
       setLoadingAction(null)
     }
   }
 
-  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setAvatarFile(file)
-    setAvatarPreview(URL.createObjectURL(file))
-  }
-
   const handleSaveAvatar = async () => {
     if (!avatarFile) return
     setLoadingAction('avatar')
-    const supabase = createClient()
-
-    const timeoutId = setTimeout(() => {
-      toast.error("Upload taking too long, please try again")
-      setLoadingAction(null)
-    }, 15000)
-
+    const timeoutId = setTimeout(() => { toast.error("Upload taking too long"); setLoadingAction(null) }, 15000)
     try {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
       const ext = avatarFile.name.split('.').pop()
       const path = `${user.id}/avatar.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, avatarFile, { upsert: true })
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true })
       if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(path)
-
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
       await supabase.from('user_profiles').upsert({ id: user.id, image: publicUrl })
-
       clearTimeout(timeoutId)
       finishAuth()
     } catch (error: any) {
       clearTimeout(timeoutId)
-      console.error('[Auth] Save avatar error:', error)
       toast.error(error.message || "Error al subir la foto")
       setLoadingAction(null)
     }
@@ -207,9 +118,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   const handleGoogleLogin = async () => {
     clearAuthCookies()
-    const supabase = createClient()
     setLoadingAction('google')
     try {
+      const supabase = createClient()
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: `${window.location.origin}/auth/callback` }
@@ -217,7 +128,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       if (error) throw error
       if (data?.url) window.location.href = data.url
     } catch (error: any) {
-      console.warn('[Auth] Google login error:', error.message)
       toast.error(error.message || "Error al conectar con Google")
       setLoadingAction(null)
     }
@@ -228,14 +138,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     if (!email) return
     clearAuthCookies()
     setLoadingAction('email')
-    const supabase = createClient()
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithOtp({ email })
       if (error) throw error
       setStep('otp')
-
     } catch (error: any) {
-      console.warn('[Auth] Email OTP error:', error.message)
       toast.error(error.message || "Error al enviar el código")
     } finally {
       setLoadingAction(null)
@@ -245,55 +153,28 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const handleVerifyOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (otpCode.length !== 6) return
-
     clearAuthCookies()
-    console.log('[Auth Debug] Verifying OTP...', { email, codeLength: otpCode.length })
     setLoadingAction('otp')
-    const supabase = createClient()
-
     try {
-      console.log('[Auth Debug] Calling API verify-otp...')
-
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 10000)
-
-      let result
-      try {
-        const res = await fetch('/api/auth/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, token: otpCode }),
-          signal: controller.signal,
-        })
-
-        clearTimeout(timeoutId)
-        result = await res.json()
-
-        if (!res.ok) {
-          throw new Error(result.error || 'Verification failed')
-        }
-      } catch (fetchError: any) {
-        clearTimeout(timeoutId)
-        if (fetchError.name === 'AbortError') {
-          throw new Error('Request timed out. Try clearing cache and try again.')
-        }
-        throw fetchError
-      }
-
-      console.log('[Auth Debug] verifyOtp success, starting onboarding...')
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, token: otpCode }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Verification failed')
       saveOnboardingStep('name')
       setStep('name')
-      setLoadingAction(null)
     } catch (error: any) {
-      console.error('[Auth Debug] Caught error:', error.message || error)
-      toast.error(error.message || "Código inválido o expirado")
+      toast.error(error.name === 'AbortError' ? 'Request timed out' : error.message || "Código inválido o expirado")
+    } finally {
       setLoadingAction(null)
     }
   }
-
-
-
-  // ─── Onboarding Steps ─────────────────────────────────────
 
   if (step === 'avatar') {
     return (
@@ -314,7 +195,12 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       >
         <div className="flex justify-center pt-2">
           <label className="relative cursor-pointer group">
-            <input type="file" accept="image/*" onChange={handleAvatarSelect} className="sr-only" />
+            <input type="file" accept="image/*" onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setAvatarFile(file)
+              setAvatarPreview(URL.createObjectURL(file))
+            }} className="sr-only" />
             {avatarPreview ? (
               <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-accent ring-offset-2 ring-offset-background">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -322,7 +208,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               </div>
             ) : (
               <div className="w-24 h-24 rounded-full bg-background-weaker flex items-center justify-center group-hover:bg-background-weak transition-colors">
-                <p className="text-text-weaker/70 font-ibm-plex-mono text-4xl">Á</p>
+                <Camera className="size-8 text-text-weaker" />
               </div>
             )}
           </label>
@@ -349,7 +235,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <Label htmlFor="username" className="sr-only">Nombre de usuario</Label>
           <Input
             id="username"
-            type="text"
             placeholder="tu_usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
@@ -377,27 +262,17 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       >
         <form id="name-form" onSubmit={handleSaveName}>
           <Label htmlFor="fullName" className="sr-only">Nombre completo</Label>
-          <Input
-            id="fullName"
-            type="text"
-            placeholder="Tu nombre"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            autoFocus
-          />
+          <Input id="fullName" placeholder="Tu nombre" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
         </form>
       </StepLayout>
     )
   }
 
-  // ─── OTP Step ──────────────────────────────────────────────
-
   if (step === 'otp') {
     return (
       <StepLayout
         title="Revisa tu correo"
-        description={<>Ingresa el código de 6 dígitos enviado a{" "}<span className="font-medium text-text-strong">{email}</span></>}
+        description={<>Ingresa el código enviado a <span className="font-medium text-text-strong">{email}</span></>}
         actions={
           <Button type="submit" form="otp-form" className="w-full" disabled={loading || otpCode.length !== 6}>
             {loadingAction === 'otp' ? <Spinner /> : "Verificar"}
@@ -406,14 +281,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       >
         <form id="otp-form" onSubmit={handleVerifyOtp}>
           <div className="flex justify-center">
-            <InputOTP maxLength={6} value={otpCode} onChange={(val) => setOtpCode(val)}>
+            <InputOTP maxLength={6} value={otpCode} onChange={setOtpCode}>
               <InputOTPGroup className="w-full *:w-12 *:h-12">
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                {[0, 1, 2, 3, 4, 5].map(i => <InputOTPSlot key={i} index={i} />)}
               </InputOTPGroup>
             </InputOTP>
           </div>
@@ -421,8 +291,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       </StepLayout>
     )
   }
-
-  // ─── Login (default) ───────────────────────────────────────
 
   return (
     <StepLayout
@@ -458,14 +326,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
       <form id="login-form" onSubmit={handleEmailSubmit}>
         <Label htmlFor="email" className="sr-only">Correo electrónico</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="tu@email.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <Input id="email" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </form>
     </StepLayout>
   )

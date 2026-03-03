@@ -20,7 +20,7 @@
 | Día | Fecha | Foco |
 |-----|-------|------|
 | 1 | 24 feb (lun) | Cleanup deprecated code ✅ · DB migration votes · `auth-guard.ts` |
-| 2 | 25 feb (mar) | Middleware route protection · UserContext helpers |
+| 2 | 25 feb (mar) | Middleware route protection ✅ · UserContext helpers |
 | 3 | 26 feb (mié) | Upload fotos en add flow (Supabase Storage) |
 | 4 | 27 feb (jue) | Fix permisos edit page (creator check) · UI guards |
 | 5 | 28 feb (vie) | Sistema de votos persistente (poll → DB) |

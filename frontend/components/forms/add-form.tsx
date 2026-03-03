@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Spinner } from "@/components/ui/spinner"
 import { LocationPicker } from "@/app/add/location-picker"
 import { createClient } from "@/lib/supabase/client"
-import { cn } from "@/lib/utils"
+import { StepLayout } from "@/components/forms/atoms/step-layout"
 
 type LocationValue = {
   lat: number
@@ -23,39 +23,6 @@ type LocationValue = {
 
 type Step = 'photos' | 'name' | 'story' | 'location' | 'publish'
 const STEPS: Step[] = ['photos', 'name', 'story', 'location', 'publish']
-
-interface StepLayoutProps {
-  title: React.ReactNode
-  description?: React.ReactNode
-  children: React.ReactNode
-  actions: React.ReactNode
-  stepIndex: number
-  className?: string
-}
-
-function StepLayout({ title, description, children, actions, stepIndex, className }: StepLayoutProps) {
-  return (
-    <div className={cn("w-full space-y-4", className)}>
-      <div className="space-y-0.5 text-center pb-1.5">
-        <h2 className="text-xl font-medium tracking-tight text-text-strong">{title}</h2>
-        {description && <p className="text-sm text-text-weak">{description}</p>}
-      </div>
-      {children}
-      <div className="flex flex-col gap-3 pt-2">{actions}</div>
-      <div className="flex items-center justify-center gap-1.5 pt-2">
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === stepIndex ? "w-6 bg-accent" : i < stepIndex ? "w-3 bg-accent/25" : "w-3 bg-background-weaker"
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function AddForm() {
   const router = useRouter()
@@ -75,9 +42,7 @@ export function AddForm() {
   const back = () => setStep(STEPS[stepIndex - 1])
 
   const backButton = stepIndex > 0 ? (
-    <Button variant="ghost" className="w-full text-text-weak" onClick={back} disabled={loading}>
-      Atrás
-    </Button>
+    <Button variant="ghost" className="w-full text-text-weak" onClick={back} disabled={loading}>Atrás</Button>
   ) : null
 
   const handleSubmit = async () => {
@@ -123,6 +88,7 @@ export function AddForm() {
         title="Añade fotos"
         description="Documentar visualmente la animita ayuda a preservarla."
         stepIndex={0}
+        totalSteps={STEPS.length}
         className="animate-fade-in"
         actions={<>
           <Button className="w-full" onClick={next}>Continuar</Button>
@@ -177,6 +143,7 @@ export function AddForm() {
         title="¿Cómo se llama?"
         description="El nombre de la persona o apodo de la animita."
         stepIndex={1}
+        totalSteps={STEPS.length}
         className="animate-slide-in-right"
         actions={<>
           <Button className="w-full" disabled={name.trim().length < 3} onClick={next}>Continuar</Button>
@@ -184,12 +151,7 @@ export function AddForm() {
         </>}
       >
         <form onSubmit={(e) => { e.preventDefault(); if (name.trim().length >= 3) next() }}>
-          <Input
-            autoFocus
-            placeholder="Ej: Animita de Romualdito"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <Input autoFocus placeholder="Ej: Animita de Romualdito" value={name} onChange={(e) => setName(e.target.value)} />
         </form>
       </StepLayout>
     )
@@ -201,6 +163,7 @@ export function AddForm() {
         title="Su historia"
         description="Cuenta lo que sabes sobre esta animita."
         stepIndex={2}
+        totalSteps={STEPS.length}
         className="animate-slide-in-right"
         actions={<>
           <Button className="w-full" disabled={story.trim().length < 10} onClick={next}>Continuar</Button>
@@ -224,6 +187,7 @@ export function AddForm() {
         title="¿Dónde está?"
         description="Marca la ubicación de la animita."
         stepIndex={3}
+        totalSteps={STEPS.length}
         className="animate-slide-in-right"
         actions={<>
           <Button className="w-full" disabled={!location} onClick={next}>Continuar</Button>
@@ -240,6 +204,7 @@ export function AddForm() {
       title="¿Lista para publicar?"
       description="Puedes cambiar la visibilidad cuando quieras."
       stepIndex={4}
+      totalSteps={STEPS.length}
       className="animate-slide-in-right"
       actions={<>
         <Button className="w-full" disabled={loading} onClick={handleSubmit}>

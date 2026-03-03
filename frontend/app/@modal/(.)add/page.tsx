@@ -1,6 +1,6 @@
 "use client"
 
-import { AddForm } from "@/components/add/add-form"
+import { AddForm } from "@/components/forms/add-form"
 import { ModalWrapper } from "@/components/modal/modal-wrapper"
 
 export default function AddModal() {

@@ -1,15 +1,14 @@
 "use client"
 
 import { ModalWrapper } from '@/components/modal/modal-wrapper'
-import { LoginForm } from '@/components/auth/login-form'
+import { LoginForm } from '@/components/forms/login-form'
 import { useRouter } from 'next/navigation'
 
 export default function LoginModal() {
   const router = useRouter()
 
   const handleSuccess = () => {
-    router.refresh()
-    router.back()
+    window.location.reload()
   }
 
   return (

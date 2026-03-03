@@ -45,7 +45,7 @@ export function UserDropdown() {
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
+      <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href={`/profile/@${currentUser.username}`}>
