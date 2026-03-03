@@ -1,12 +1,19 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { AddForm } from "@/components/forms/add-form"
 import { ModalWrapper } from "@/components/modal/modal-wrapper"
 
 export default function AddModal() {
+  const router = useRouter()
   return (
-    <ModalWrapper title="Registrar animita" description="Añade una animita al mapa" showTitle={false}>
-      <AddForm />
+    <ModalWrapper
+      title="Crea una entrada"
+      description="Registra una animita en el mapa"
+      showTitle={false}
+      className="p-0 gap-0 sm:max-w-lg h-[88vh] flex flex-col overflow-hidden"
+    >
+      <AddForm onCancel={() => router.back()} />
     </ModalWrapper>
   )
 }
