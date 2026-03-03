@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ImageIcon, MapPin, X, ChevronDown, User, ArrowLeft } from "lucide-react"
+import { MapPin, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,9 +16,24 @@ import { LocationPicker } from "@/app/add/location-picker"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
+import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
+import { reverseGeocode } from "@/lib/mapbox"
 import { cn } from "@/lib/utils"
 
 type LocationValue = { lat: number; lng: number; address: string; cityRegion: string }
+
+const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
+  animita: "¿A quién recordamos?",
+  "santuario-vial": "¿Cómo se conoce este santuario?",
+}
+
+function truncateAddress(address: string): string {
+  const parts = address.split(',')
+  if (parts.length > 2) {
+    return `${parts[0]}, ${parts[1]}`
+  }
+  return address
+}
 
 const KEYWORDS: Record<HighlightCategory, string[]> = {
   patrimonial: ["accidente", "tránsito", "choque", "curva", "ruta", "camino", "feria", "trabajo", "gruta", "fallec", "muerte"],
@@ -41,15 +56,6 @@ function detectHighlights(text: string): Highlight[] {
   return highlights
 }
 
-const KINDS = [
-  { label: "Animita", value: "animita", enabled: true },
-  { label: "Santuario vial", value: "santuario-vial", enabled: true },
-  { label: "Gruta votiva", value: "gruta-votiva", enabled: false },
-  { label: "Mausoleo", value: "mausoleo", enabled: false },
-  { label: "Placa conmemorativa", value: "placa-conmemorativa", enabled: false },
-  { label: "Memorial colectivo", value: "memorial-colectivo", enabled: false },
-]
-
 interface AddFormProps {
   onCancel?: () => void
 }
@@ -57,14 +63,16 @@ interface AddFormProps {
 export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
+  const { categories, kinds } = useHeritageTaxonomy()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
 
   const [kind, setKind] = useState("animita")
+  const [category, setCategory] = useState("patrimonio-funerario")
   const [title, setTitle] = useState("")
   const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
   const [location, setLocation] = useState<LocationValue | null>(null)
-  const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [isScanning, setIsScanning] = useState(false)
   const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,17 +83,21 @@ export function AddForm({ onCancel }: AddFormProps) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
+          const lat = pos.coords.latitude
+          const lng = pos.coords.longitude
+          const result = await reverseGeocode(lng, lat, accessToken)
+
           setLocation({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            address: "Ubicación detectada",
-            cityRegion: "Cerca de ti",
+            lat,
+            lng,
+            address: result?.address || "Ubicación detectada",
+            cityRegion: result?.cityRegion || "",
           })
         },
         () => {}
       )
     }
-  }, [])
+  }, [accessToken])
 
   const handleCancel = () => {
     if (onCancel) onCancel()
@@ -116,7 +128,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       toast.loading("Subiendo fotos...", { id: "uploading" })
       const urls = await Promise.all(photos.map(async (file) => {
         const ext = file.name.split('.').pop()
-        const path = `animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
+        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
         const { error } = await supabase.storage.from('base').upload(path, file)
         if (error) throw new Error(`Error subiendo ${file.name}`)
         return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
@@ -127,7 +139,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       const res = await fetch('/api/heritage-sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: title, story, isPublic: true, kind, location, images: imageUrls })
+        body: JSON.stringify({ name: title, story, isPublic: true, kind, location, images: imageUrls, categories: [category] })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
@@ -143,9 +155,9 @@ export function AddForm({ onCancel }: AddFormProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="relative flex items-center justify-between p-2 border-b border-border-weak shrink-0">
-        <Button variant="ghost" size="icon" className="text-text-weak" onClick={handleCancel}>
-          <ArrowLeft />
+      <div className="relative flex items-center justify-between p-3 border-b border-border-weak shrink-0">
+        <Button variant="ghost" size="icon" className="ml-auto text-text-weak" onClick={handleCancel}>
+          <X />
         </Button>
         <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-text-strong">Crea una entrada</span>
       </div>
@@ -157,25 +169,54 @@ export function AddForm({ onCancel }: AddFormProps) {
           <AvatarFallback>{currentUser?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
         </Avatar>
 
-        <div className="-ml-1.5 flex-1 flex flex-col gap-0 pb-4">
-          {/* Kind badge */}
-          <div className="*:!text-xs ml-2 mb-2 flex gap-2 items-center">
+        <div className="-ml-1.5 flex-1 flex flex-col gap-1 pb-4">
+          {/* Category and Kind badges */}
+          <div className="*:!text-xs ml-2 mb-2 flex gap-1 items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Badge variant="secondary" className="bg-accent/7 text-accent rounded-full">
-                  {kind}
-                  <ChevronDown />
+                <Badge
+                  variant="secondary"
+                  className={cn("rounded-full gap-0.5",
+                    category ? "bg-accent/7 text-accent" : "bg-transparent"
+                  )}
+                >
+                  {categories.find(c => c.slug === category)?.name || "Categoría"}
+                  {/* {category && <X className="-mr-1 opacity-50" />} */}
                 </Badge>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {KINDS.map(k => (
+                {categories.map(c => (
                   <DropdownMenuItem
-                    key={k.value}
-                    disabled={!k.enabled}
-                    onSelect={() => setKind(k.value)}
-                    className={cn(kind === k.value && "font-medium")}
+                    key={c.id}
+                    onSelect={() => setCategory(c.slug)}
+                    className={cn(category === c.slug && "font-medium")}
                   >
-                    {k.label}
+                    {c.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Badge
+                  variant="secondary"
+                  className={cn("rounded-full gap-0.5",
+                    kind ? "bg-accent/7 text-accent" : "bg-transparent"
+                  )}
+                >
+                  {kinds.find(k => k.slug === kind)?.name || "Tipo"}
+                  {/* {kind && <X className="-mr-1 opacity-50" />} */}
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {kinds.map(k => (
+                  <DropdownMenuItem
+                    key={k.id}
+                    onSelect={() => setKind(k.slug)}
+                    className={cn(kind === k.slug && "font-medium")}
+                  >
+                    {k.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -184,14 +225,14 @@ export function AddForm({ onCancel }: AddFormProps) {
 
           <Input
             autoFocus
-            placeholder="¿A quién recordamos?"
+            placeholder={KIND_TITLE_PLACEHOLDERS[kind] || "¿Cómo se llama este lugar?"}
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="md:text-base bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
+            className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
           />
 
           {isScanning ? (
-            <div className="text-sm text-text leading-relaxed">
+            <div className="text-sm text-text p-1">
               <StoryHighlights text={story} highlights={scannedHighlights} />
             </div>
           ) : (
@@ -204,95 +245,39 @@ export function AddForm({ onCancel }: AddFormProps) {
           )}
 
           {/* Photo thumbnails */}
-          {photos.length > 0 && (
-            <div className="grid grid-cols-3 gap-1.5 pt-1">
-              {photos.map((file, i) => (
-                <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={URL.createObjectURL(file)} alt="" className="object-cover w-full h-full" />
-                  <button
-                    type="button"
-                    onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                    className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Location chip */}
-          {/* {location && !showLocationPicker && (
+          <div className="ml-3 grid grid-cols-3 gap-1.5 pt-1">
+            {photos.map((file, i) => (
+              <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={URL.createObjectURL(file)} alt="" className="object-cover w-full h-full" />
+                <button
+                  type="button"
+                  onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                  className="cursor-pointer absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ))}
             <button
-              type="button"
-              onClick={() => setShowLocationPicker(true)}
-              className="flex items-center gap-1.5 text-xs text-accent font-medium w-fit"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center hover:brightness-95 cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group"
             >
-              <MapPin className="size-3" />
-              {location.cityRegion}
+              <Plus className="size-10 stroke-[1.5px] !text-text-weaker/70" />
             </button>
-          )} */}
-
-          {/* Inline location picker */}
-          {/* {showLocationPicker && (
-            <div className="pt-1">
-              <LocationPicker
-                value={location}
-                onChange={(val) => {
-                  setLocation(val)
-                  if (val) setShowLocationPicker(false)
-                }}
-              />
-            </div>
-          )} */}
+          </div>
         </div>
       </div>
 
       {/* Bottom toolbar */}
-      <div className="border-t border-border-weak px-3 py-2 flex items-center gap-1 shrink-0">
-        {showLocationPicker ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(location && "text-accent")}
-            onClick={() => setShowLocationPicker(v => !v)}
-            disabled={isScanning || isSubmitting}
-          >
-            <MapPin />
-            {location?.cityRegion}
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(location && "text-accent")}
-            onClick={() => setShowLocationPicker(v => !v)}
-            disabled={isScanning || isSubmitting}
-          >
-            <MapPin />
-          </Button>
-        )}
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn("relative", photos.length > 0 && "text-accent")}
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isScanning || isSubmitting}
-        >
-          <ImageIcon />
-          {photos.length > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 size-4 rounded-full bg-accent text-white text-[10px] flex items-center justify-center font-medium">
-              {photos.length}
-            </span>
-          )}
-        </Button>
-
-
-        <Button variant="ghost" size="icon" disabled className="text-text-weaker">
-          <User />
-        </Button>
+      <div className="border-t border-border-weak p-3 flex items-center gap-2 shrink-0">
+        <div className="flex-1 *:!text-xs">
+          <LocationPicker
+            value={location}
+            onChange={setLocation}
+            mode="point"
+          />
+        </div>
 
         <div className="ml-auto">
           <Button
