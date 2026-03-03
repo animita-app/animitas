@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { heritageSitePayloadSchema } from '@/lib/validators/heritage-site'
 import { slugify } from '@/lib/utils'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type HeritageSiteRow = {
@@ -37,10 +37,10 @@ async function ensureUniqueSlug(
 }
 
 export async function POST(request: Request) {
-  const authClient = await createClient()
+  const supabase = await createClient()
   const {
     data: { user },
-  } = await authClient.auth.getUser()
+  } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json(
@@ -48,8 +48,6 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
-
-  const supabase = createAdminClient()
 
   let json: unknown
   try {
