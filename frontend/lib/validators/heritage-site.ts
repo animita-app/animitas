@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const heritageSitePayloadSchema = z.object({
   name: z.string().min(3).max(120),
-  story: z.string().min(10).max(5000),
+  story: z.string().min(10).max(10000),
   isPublic: z.boolean().default(true),
   kind: z.string().default('animita'),
   categories: z.array(z.string()).optional(),
