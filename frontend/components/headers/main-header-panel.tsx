@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
@@ -96,8 +97,8 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         </Card>
       </div>
 
-      {/* Main Navigation - Wrapper with overflow for smooth width transitions */}
-      <div className="overflow-hidden transition-all duration-300 ease-out">
+      {/* Main Navigation - Framer Motion layout animation for smooth width transitions */}
+      <motion.div layout className="overflow-hidden">
         <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
       {/* Back button - list view only */}
       {isListView && !searchActive && (
@@ -211,7 +212,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                   onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
                 />
               </PopoverTrigger>
-              <PopoverContent className="border border-border-weak w-[268px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
+              <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
                 {searchResults.length === 0 ? (
                   <div className="p-4 text-sm w-full text-center text-muted-foreground">
                     {isLoading ? 'Buscando...' : 'Sin resultados'}
@@ -269,7 +270,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         </Fragment>
       )}
       </nav>
-      </div>
+      </motion.div>
     </div>
   )
 }
