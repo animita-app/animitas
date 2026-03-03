@@ -68,7 +68,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   if (isListView) {
     return (
       <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200">
-        <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full">
+        <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
           <ChevronLeft />
         </Button>
         <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategory} onSelect={v => setFilter('category', v ? [v] : [])} />
@@ -80,29 +80,30 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
     )
   }
 
+  // Map view
   return (
     <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200 will-change-[width]">
-      <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
-        <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-          <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
-          <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {!searchActive && (
+        <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+          <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
+            <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
+            <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
-      <Button variant="ghost" size="icon" onClick={() => setSearchActive(!searchActive)} className={cn("!h-[30px] !w-[30px] rounded-full transition-all duration-200", searchActive && "opacity-0 scale-90 pointer-events-none")}>
-        <SearchIcon />
-      </Button>
-
-      <input
-        autoFocus={searchActive}
-        type="text"
-        className={cn("h-[30px] px-3 focus:outline-none overflow-hidden transition-[max-width,opacity] duration-200 ease-out", searchActive ? "max-w-[220px] opacity-100" : "max-w-0 opacity-0")}
-        placeholder="Buscar..."
-        value={searchQuery}
-        onChange={(e) => handleSearch(e.target.value)}
-        disabled={isLoading}
-        onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
-      />
+      {searchActive && (
+        <input
+          autoFocus
+          type="text"
+          className="h-[30px] px-3 focus:outline-none flex-1 max-w-[280px]"
+          placeholder="Buscar..."
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+          disabled={isLoading}
+          onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+        />
+      )}
 
       {searchActive && (
         <Popover open={open} onOpenChange={setOpen}>
@@ -138,8 +139,8 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         </Popover>
       )}
 
-      <Button variant="ghost" size="icon" onClick={() => { setSearchActive(false); resetSearch() }} disabled={isLoading} className={cn("!h-[30px] !w-[30px] rounded-full transition-all duration-200", !searchActive && "opacity-0 scale-90 pointer-events-none")}>
-        {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X />}
+      <Button variant="ghost" size="icon" onClick={() => setSearchActive(!searchActive)} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+        {searchActive ? <X size={20} /> : <SearchIcon size={20} />}
       </Button>
     </nav>
   )
