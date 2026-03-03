@@ -96,8 +96,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         </Card>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-300 ease-out">
+      {/* Main Navigation - Wrapper with overflow for smooth width transitions */}
+      <div className="overflow-hidden transition-all duration-300 ease-out">
+        <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
       {/* Back button - list view only */}
       {isListView && !searchActive && (
         <Button
@@ -202,7 +203,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 <input
                   autoFocus
                   type="text"
-                  className="w-72 h-[30px] px-3 focus:outline-none"
+                  className="w-56 h-[30px] px-3 focus:outline-none"
                   placeholder="Buscar..."
                   value={searchQuery}
                   onChange={handleSearchInput}
@@ -210,9 +211,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                   onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
                 />
               </PopoverTrigger>
-              <PopoverContent className="border border-border-weak w-[332px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
+              <PopoverContent className="border border-border-weak w-[268px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
                 {searchResults.length === 0 ? (
-                  <div className="p-4 text-sm text-muted-foreground">
+                  <div className="p-4 text-sm w-full text-center text-muted-foreground">
                     {isLoading ? 'Buscando...' : 'Sin resultados'}
                   </div>
                 ) : (
@@ -268,6 +269,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         </Fragment>
       )}
       </nav>
+      </div>
     </div>
   )
 }
