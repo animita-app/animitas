@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   NavigationMenu,
@@ -10,11 +10,11 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
+import { MainHeaderPanel } from './main-header-panel'
 
 interface HeaderProps {
   className?: string
@@ -23,13 +23,9 @@ interface HeaderProps {
 export function Header({ className }: HeaderProps) {
   const { currentUser, isEditor, isSuperadmin, isLoading } = useUser()
   const pathname = usePathname()
-  const router = useRouter()
-  const isUpdating = pathname.includes("add")
 
   // Hide header on animita detail views
   if (pathname.includes("animita")) return null
-
-  const currentView = pathname === '/list' ? 'list' : 'map'
 
   return (
     <header className={cn("fixed top-0 left-0 right-0 z-50 pointer-events-none w-full", className)}>
@@ -41,26 +37,14 @@ export function Header({ className }: HeaderProps) {
           </Link>
         </div>
 
-        {/* Center: Mapa / Lista tabs */}
-        {!isUpdating && (
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Tabs
-              value={currentView}
-              onValueChange={(value) => {
-                router.push(value === 'list' ? '/list' : '/map')
-              }}
-            >
-              <TabsList className="bg-background-weaker !gap-1 !p-1 rounded-full">
-                <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black data-[state=active]:hover:!bg-black/90 px-2.5 rounded-full">Mapa</TabsTrigger>
-                <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black data-[state=active]:hover:!bg-black/90 px-2.5 rounded-full">Lista</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
+        {/* Center: Tabs + Filters/Search */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <MainHeaderPanel />
+        </div>
 
         {/* Right: Role links + user actions */}
         <div className="flex items-center gap-3">
-          {!isUpdating && (isEditor || isSuperadmin) && (
+          {(isEditor || isSuperadmin) && (
             <NavigationMenu className="hidden md:flex">
               <NavigationMenuList>
                 {isEditor && (

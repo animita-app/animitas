@@ -27,24 +27,18 @@ export function useVisibleSites({
     const updateVisible = () => {
       const zoom = map.getZoom()
       if (zoom >= zoomThreshold) {
-        // Query rendered features to see what's on screen
         const layersToQuery = [
           'memorials-inner',
-          'memorials-outer',
-          'memorials-marker-default',
-          'memorials-marker-image'
+          'memorials-outer'
         ].filter(id => map.getLayer(id))
 
         if (layersToQuery.length === 0) {
-          setVisibleSites([])
           return
         }
-        const features = map.queryRenderedFeatures({ layers: layersToQuery })
 
-        // Extract IDs
+        const features = map.queryRenderedFeatures({ layers: layersToQuery })
         const visibleIds = new Set(features.map(f => f.properties?.id).filter(Boolean))
 
-        // Find full site objects and limit to preserve performance
         const sites = filteredData
           .filter((s: HeritageSite) => visibleIds.has(s.id))
           .slice(0, maxVisibleSites)
@@ -57,14 +51,13 @@ export function useVisibleSites({
 
     map.on('moveend', updateVisible)
     map.on('zoomend', updateVisible)
-    // Run once
     updateVisible()
 
     return () => {
       map.off('moveend', updateVisible)
       map.off('zoomend', updateVisible)
     }
-  }, [isMapReady, filteredData, map, currentZoom, zoomThreshold, maxVisibleSites])
+  }, [isMapReady, filteredData, map, zoomThreshold, maxVisibleSites])
 
   return visibleSites
 }

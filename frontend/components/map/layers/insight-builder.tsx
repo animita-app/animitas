@@ -46,7 +46,7 @@ import {
   StatType,
   VisualizationType,
   MOCK_ATTRIBUTES
-} from "../../paywall/types"
+} from "@/components/map/types"
 import { cn } from "@/lib/utils"
 
 interface InsightBuilderProps {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { Layer, INITIAL_LAYERS } from '../../paywall/types'
+import { Layer, INITIAL_LAYERS } from "@/components/map/types"
 
 interface UseLayerManagementProps {
   map: mapboxgl.Map | null

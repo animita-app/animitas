@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const { name, story, location, isPublic, images, kind: kindSlug, categories: categoryNames } = parsed.data
+  const { name, story, location, isPublic, images, kind: kindSlug, categories: categoryNames, insights } = parsed.data
 
   const kindSlugLower = (kindSlug || 'animita').toLowerCase()
   const { data: kindData, error: kindError } = await supabase
@@ -95,6 +95,7 @@ export async function POST(request: Request) {
     images: images || [],
     status: isPublic ? 'published' : 'draft',
     creator_id: user.id,
+    insights: insights || {},
   }
 
   const { data, error } = await supabase

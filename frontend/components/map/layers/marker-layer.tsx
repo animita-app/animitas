@@ -326,6 +326,7 @@ export function MarkerLayer({
     return ICONS.deathCause[cause as keyof typeof ICONS.deathCause] || ICONS.deathCause.default
   }
 
+
   return (
     <>
       {role === 'superadmin' && ( // Was institutional
@@ -353,9 +354,8 @@ export function MarkerLayer({
               // Calculate text scale based on zoom (0.7 at zoom 10, 1.0 at zoom 18)
               const textScale = Math.min(1, Math.max(0.7, 0.7 + ((currentZoom - 10) / 8) * 0.3))
 
-              // Calculate top position based on zoom
-              // Calculate top position based on zoom (scales with circle radius to keep constant gap)
-              const effectiveZoom = Math.min(currentZoom, 18)
+              // Calculate top position based on zoom (capped to prevent overflow at extreme zoom)
+              const effectiveZoom = Math.min(currentZoom, 22)
               const topValue = 38 + ((effectiveZoom - 10) * 1.25)
 
               const isActive = activeId === site.id
@@ -367,7 +367,7 @@ export function MarkerLayer({
                   coordinates={[site.location.lng, site.location.lat]}
                   className="z-20"
                 >
-                  <div className="relative flex flex-col items-center">
+                  <div className="flex flex-col items-center overflow-visible">
                     <div
                       onMouseEnter={cancelClose}
                       onMouseLeave={scheduleClose}

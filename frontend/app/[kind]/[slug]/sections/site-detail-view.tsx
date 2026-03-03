@@ -17,7 +17,7 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
       <Button
         size="sm"
         variant="ghost"
-        className="text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 absolute top-4 left-4 !pl-1.5 gap-1.5 z-10 rounded-full"
+        className="!gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 absolute top-4 left-4 !pl-1.5 z-10"
         asChild
       >
         <Link href="/">

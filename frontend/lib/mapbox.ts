@@ -19,3 +19,33 @@ export async function searchLocation(query: string, accessToken: string) {
     return []
   }
 }
+
+export async function reverseGeocode(lng: number, lat: number, accessToken: string): Promise<{ address: string; cityRegion: string } | null> {
+  try {
+    const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json`
+    const params = new URLSearchParams({
+      access_token: accessToken,
+      types: 'address,place,locality',
+      language: 'es',
+      country: 'CL',
+      limit: '1'
+    })
+
+    const response = await fetch(`${endpoint}?${params}`)
+    const data = await response.json()
+
+    if (!data.features || data.features.length === 0) return null
+
+    const feature = data.features[0]
+    const address = feature.place_name || ''
+
+    const cityRegion = feature.context
+      ?.find((ctx: any) => ctx.id.match(/^(place|locality)\./))
+      ?.text || ''
+
+    return { address, cityRegion }
+  } catch (error) {
+    console.error('Error reverse geocoding:', error)
+    return null
+  }
+}

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Layer, Component, HERITAGE_SITE_METRICS, InsightConfig, ComponentType } from '../../paywall/types'
+import { Layer, Component, HERITAGE_SITE_METRICS, InsightConfig, ComponentType } from "@/components/map/types"
 import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'

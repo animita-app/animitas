@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react'
 import { Feature, Geometry, FeatureCollection, Point } from 'geojson'
-import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { clipFeatures } from '@/lib/gis-engine'
 import * as turf from '@turf/turf'
 import { useUser } from './user-context'
@@ -48,34 +47,36 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
         const { data, error } = await supabase
           .from('heritage_sites')
-          .select('*')
+          .select('*, heritage_kinds!kind_id(slug)')
           .eq('status', 'published')
 
         if (error) {
-          console.error("[SpatialContext] Query error:", {
-            code: error.code,
-            message: error.message,
-            details: error.details,
-            hint: error.hint
-          })
-          throw error
+          console.error("[SpatialContext] Query error:", error)
+          return
         }
 
         if (data) {
-          console.log("[SpatialContext] Fetched", data.length, "sites")
-          // Normalize location for GIS engine
-          const normalized = data.map((site: any) => ({
-            ...site,
-            location: site.location || { lat: 0, lng: 0 }
-          }))
+          const normalized = data.map((site: any) => {
+            let location = { lat: 0, lng: 0 }
+
+            if (site.location) {
+              if (site.location.type === 'Point' && site.location.coordinates) {
+                location = { lng: site.location.coordinates[0], lat: site.location.coordinates[1] }
+              } else if (site.location.lat !== undefined && site.location.lng !== undefined) {
+                location = { lat: site.location.lat, lng: site.location.lng }
+              }
+            }
+
+            return {
+              ...site,
+              location,
+              kind: (site.heritage_kinds as any)?.slug || 'animita'
+            }
+          })
           setDbSites(normalized)
         }
       } catch (err: any) {
-        console.error("[SpatialContext] Error fetching sites:", {
-          message: err?.message,
-          code: err?.code,
-          status: err?.status
-        })
+        console.error("[SpatialContext] Error fetching sites:", err?.message || err)
       }
     }
     fetchSites()
@@ -121,9 +122,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
   // Compute filtered data
   const filteredData = useMemo(() => {
-    // If we have sites from the database, use them. Otherwise fallback to seed data.
-    const baseSites = dbSites.length > 0 ? dbSites : SEED_HERITAGE_SITES
-    const allSites = [...baseSites, ...syntheticSites]
+    const allSites = [...dbSites, ...syntheticSites]
 
     let data = allSites.map(site => {
       // Ensure location exists to avoid crashes

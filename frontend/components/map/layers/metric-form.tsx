@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Component, ComponentType, MOCK_ATTRIBUTES } from '../../paywall/types'
+import { Component, ComponentType, MOCK_ATTRIBUTES } from "@/components/map/types"
 
 import { cn } from "@/lib/utils"
 

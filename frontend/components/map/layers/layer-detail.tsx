@@ -29,7 +29,7 @@ import {
   ComponentType,
   GISOperation,
   HeritageSiteProperty
-} from '../../paywall/types'
+} from "@/components/map/types"
 import { InsightBuilder } from './insight-builder'
 import { StyleTab } from './tabs/style-tab'
 import { MetricsTab } from './tabs/metrics-tab'

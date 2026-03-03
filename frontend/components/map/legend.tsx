@@ -1,11 +1,11 @@
 import React from 'react'
 import { Layer } from './types'
-import { LayerItem } from '../map/layers/layer-item'
+import { LayerItem } from './layers/layer-item'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 
-import { LayerMetrics } from '../map/layers/layer-metrics'
+import { LayerMetrics } from './layers/layer-metrics'
 
 import {
   Accordion,

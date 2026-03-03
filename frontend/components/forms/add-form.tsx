@@ -108,16 +108,52 @@ export function AddForm({ onCancel }: AddFormProps) {
     if (!location) { toast.error("La ubicación es obligatoria"); return }
     if (photos.length === 0) { toast.error("Agrega al menos una foto"); return }
 
-    const highlights = detectHighlights(story)
     setIsScanning(true)
     setScannedHighlights([])
 
-    for (let i = 0; i < highlights.length; i++) {
-      await new Promise(r => setTimeout(r, 250))
-      setScannedHighlights(prev => [...prev, highlights[i]])
+    let extractedInsights: any = {}
+
+    try {
+      toast.loading("Extrayendo insights...", { id: "scanning" })
+
+      const insightRes = await fetch('/api/extract-insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story, title })
+      })
+      const { insights } = await insightRes.json()
+      extractedInsights = insights
+
+      const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
+
+      if (insights?.memorial?.death_cause) {
+        highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
+      }
+      if (insights?.memorial?.social_roles?.length) {
+        highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
+      }
+      if (insights?.spiritual?.rituals_mentioned?.length) {
+        highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
+      }
+      if (insights?.patrimonial?.form) {
+        highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
+      }
+
+      toast.dismiss("scanning")
+
+      for (let i = 0; i < highlightsList.length; i++) {
+        await new Promise(r => setTimeout(r, 300))
+        setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
+      }
+
+      await new Promise(r => setTimeout(r, 600))
+    } catch (err) {
+      console.error('Error extracting insights:', err)
+      toast.dismiss("scanning")
+      toast.error("No se pudo extraer insights, continuando sin ellos...", { duration: 2000 })
+      await new Promise(r => setTimeout(r, 1000))
     }
 
-    await new Promise(r => setTimeout(r, highlights.length > 0 ? 700 : 400))
     setIsScanning(false)
     setIsSubmitting(true)
 
@@ -139,7 +175,16 @@ export function AddForm({ onCancel }: AddFormProps) {
       const res = await fetch('/api/heritage-sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: title, story, isPublic: true, kind, location, images: imageUrls, categories: [category] })
+        body: JSON.stringify({
+          name: title,
+          story,
+          isPublic: true,
+          kind,
+          location,
+          images: imageUrls,
+          categories: [category],
+          insights: extractedInsights
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
@@ -153,25 +198,49 @@ export function AddForm({ onCancel }: AddFormProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="w-full flex flex-col h-full">
       {/* Header */}
-      <div className="relative flex items-center justify-between p-3 border-b border-border-weak shrink-0">
-        <Button variant="ghost" size="icon" className="ml-auto text-text-weak" onClick={handleCancel}>
+      <div className="relative flex items-center justify-between p-2 border-b border-border-weak shrink-0">
+        <Button variant="ghost" size="icon" className="opacity-0 ml-auto text-text-weak" onClick={handleCancel}>
           <X />
         </Button>
         <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-text-strong">Crea una entrada</span>
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 gap-3 px-4 pt-6 overflow-y-auto min-h-0">
-        <Avatar className="size-8 shrink-0 mt-0.5">
-          <AvatarImage src={currentUser?.avatarUrl} />
-          <AvatarFallback>{currentUser?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
-        </Avatar>
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex gap-3 px-4 pt-6">
+          {/* <Avatar className="size-8 shrink-0 mt-0.5">
+            <AvatarImage src={currentUser?.avatarUrl} />
+            <AvatarFallback>{currentUser?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
+          </Avatar> */}
 
-        <div className="-ml-1.5 flex-1 flex flex-col gap-1 pb-4">
+          <div className="-ml-1.5 flex-1 flex flex-col gap-1 pb-4">
+          {/* Photo thumbnails */}
+          <div className="ml-3 grid grid-cols-3 gap-1.5 pb-4 pt-0 shrink-0">
+            {photos.map((file, i) => (
+              <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={URL.createObjectURL(file)} alt="" className="object-cover w-full h-full" />
+                <button
+                  type="button"
+                  onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                  className="cursor-pointer absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center hover:brightness-95 cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group"
+            >
+              <Plus className="size-10 stroke-[1.5px] !text-text-weaker/70" />
+            </button>
+          </div>
+
           {/* Category and Kind badges */}
-          <div className="*:!text-xs ml-2 mb-2 flex gap-1 items-center">
+          <div className="*:!text-xs ml-2 mb-2 flex gap-1 items-center shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Badge
@@ -228,7 +297,7 @@ export function AddForm({ onCancel }: AddFormProps) {
             placeholder={KIND_TITLE_PLACEHOLDERS[kind] || "¿Cómo se llama este lugar?"}
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
+            className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0 shrink-0"
           />
 
           {isScanning ? (
@@ -243,29 +312,7 @@ export function AddForm({ onCancel }: AddFormProps) {
               className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
             />
           )}
-
-          {/* Photo thumbnails */}
-          <div className="ml-3 grid grid-cols-3 gap-1.5 pt-1">
-            {photos.map((file, i) => (
-              <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={URL.createObjectURL(file)} alt="" className="object-cover w-full h-full" />
-                <button
-                  type="button"
-                  onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                  className="cursor-pointer absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center hover:brightness-95 cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group"
-            >
-              <Plus className="size-10 stroke-[1.5px] !text-text-weaker/70" />
-            </button>
-          </div>
+        </div>
         </div>
       </div>
 

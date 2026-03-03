@@ -11,7 +11,7 @@ export default function AddModal() {
       title="Crea una entrada"
       description="Registra una animita en el mapa"
       showTitle={false}
-      className="p-0 gap-0 sm:max-w-lg h-[88vh] flex flex-col overflow-hidden"
+      className="p-0 gap-0 !w-full md:!max-w-lg h-[60vh] flex flex-col overflow-hidden"
     >
       <AddForm onCancel={() => router.back()} />
     </ModalWrapper>

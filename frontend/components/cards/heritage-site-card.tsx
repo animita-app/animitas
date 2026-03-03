@@ -2,43 +2,51 @@ import * as React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, ArrowRight } from "lucide-react"
+import Image from "next/image"
+import { Button } from "../ui/button"
+import { ProgressiveBlur } from "../ui/progressive-blur"
 
 interface HeritageSiteCardProps {
   site: any // Replace with HeritageSite type if available
 }
 
 export function HeritageSiteCard({ site }: HeritageSiteCardProps) {
-  const imageUrl = site.images && site.images.length > 0
-    ? site.images[0]
-    : "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=2000&auto=format&fit=crop"
+  const imageUrl = site.images && site.images[0]
 
   return (
-    <Card className="group overflow-hidden rounded-xl border-border-weak shadow-none transition-all hover:shadow-md h-full flex flex-col bg-background">
-      <Link href={`/${site.kind?.toLowerCase() || 'animita'}/${site.slug}`} className="block relative aspect-square w-full overflow-hidden bg-background-weak">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+    <Link href={`/${site.kind?.toLowerCase() || 'animita'}/${site.slug}`}>
+      <Card className="hover:ring-2 hover:ring-offset-4 hover:ring-accent aspect-square relative group !py-0 overflow-hidden shadow-none transition-all hover:shadow-md bg-background">
+        <CardContent className="translate-y-8 group-hover:translate-y-0 duration-150 ease-out items-start z-20 p-4 flex flex-col gap-2 flex-grow justify-start">
+          <div className="space-y-0 mt-auto">
+            <h3 className="text-lg font-medium text-white line-clamp-1">{site.title}</h3>
+            {(site.city_region || site.address) && (
+              <p className="inline-flex items-center gap-1 text-sm text-white/80">
+                {site.city_region && <span className="shrink-0">{site.city_region}</span>}
+                {/* {site.address && <span className="shrink-0">{site.address}</span>} */}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="link"
+            className="text-white hover:text-white underline !decoration-current/25 gap-1"
+          >
+            Ver detalles
+            <ArrowRight />
+          </Button>
+        </CardContent>
+        <ProgressiveBlur
+          height="75%"
+          className="translate-y-12 group-hover:translate-y-0 duration-150 ease-out"
+        />
+        {/* <div className="z-10 absolute inset-x-0 bottom-0 w-full h-48 bg-gradiento-to-t from-background to-background-weak" /> */}
+        <Image
           src={imageUrl}
           alt={site.title}
-          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        />
-        <div className="absolute top-2 left-2 z-10">
-          <span className="inline-flex items-center rounded-full bg-background/90 px-2.5 py-0.5 text-[10px] font-semibold text-text-strong uppercase tracking-wider backdrop-blur-md">
-            {site.typology || site.kind || 'Patrimonio'}
-          </span>
-        </div>
-      </Link>
-      <CardContent className="p-4 flex flex-col gap-2 flex-grow justify-between">
-        <div className="space-y-1">
-          <h3 className="font-medium text-text-strong line-clamp-1">{site.title}</h3>
-          <div className="flex items-center text-xs text-text-weak">
-            <MapPin className="mr-1 h-3 w-3 shrink-0" />
-            <span className="truncate">Lat: {site.location?.coordinates?.[1]?.toFixed(3) || '-'}, Lng: {site.location?.coordinates?.[0]?.toFixed(3) || '-'}</span>
-          </div>
-        </div>
-        <div className="mt-2 text-xs font-medium text-accent flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-          Ver detalles <ArrowRight className="h-3 w-3" />
-        </div>
-      </CardContent>
-    </Card>
+          width={1080}
+          height={1080}
+          className="absolute top-0 left-0 h-full w-full object-cover"
+          />
+      </Card>
+    </Link>
   )
 }

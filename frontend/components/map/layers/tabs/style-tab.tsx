@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Layer, HeritageSiteProperty } from '../../../paywall/types'
+import { Layer, HeritageSiteProperty } from "@/components/map/types"
 
 const HEATMAP_GRADIENTS = [
   { value: 'default', label: 'Azul a Rojo (Default)' },

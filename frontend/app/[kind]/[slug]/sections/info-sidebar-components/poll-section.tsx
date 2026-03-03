@@ -177,7 +177,7 @@ export function PollSection({ siteId }: PollSectionProps) {
             <div key={option.id} className="min-h-9">
               {showResults ? (
                 <div
-                  className="relative px-4 h-9 w-full rounded-md overflow-hidden flex items-center animate-in fade-in slide-in-from-bottom-1 duration-150"
+                  className="relative pl-3 pr-2 h-9 w-full rounded-md overflow-hidden flex items-center animate-in fade-in slide-in-from-bottom-1 duration-150"
                 >
                   {/* Progress Bar Background */}
                   <div
@@ -193,7 +193,7 @@ export function PollSection({ siteId }: PollSectionProps) {
                     </span>
 
                     <div className="text-xs flex items-center gap-2 text-text-weak shrink-0">
-                      <span className="font-normal">{currentVotes} votos</span>
+                      <span className="font-normal">{currentVotes} {currentVotes === 1 ? "voto" : "votos"}</span>
                       <span className="font-normal text-right">{percentage}%</span>
 
                       {isSelected && hasVoted && currentUser && (
@@ -223,19 +223,18 @@ export function PollSection({ siteId }: PollSectionProps) {
 
       <CardFooter className="px-4 py-2 !pt-2 border-t border-border-weak font-medium">
         <div className="w-full animate-in fade-in duration-500">
-          {hasVoted ? (
             <div className="h-9 w-full text-sm text-text-weak text-center flex items-center justify-center">
-              {totalVotes} votos
+              {totalVotes} {totalVotes === 1 ? "voto" : "votos"}
+              {/* {showResults && (
+                <Button
+                  onClick={toggleResults}
+                  variant="link"
+                  className="w-fit !p-0 ml-1.5 text-text-weak underline text-sm"
+                >
+                  {showResults ? "Volver a votar" : "Ver resultados"}
+                </Button>
+              )} */}
             </div>
-          ) : (
-            <Button
-              onClick={toggleResults}
-              variant="ghost"
-              className="w-full"
-            >
-              {showResults ? "Volver a votar" : "Ver resultados"}
-            </Button>
-          )}
         </div>
       </CardFooter>
     </Card>

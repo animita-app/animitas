@@ -42,14 +42,14 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
             <span
               key={`highlight-${keyCounter++}`}
               className={cn(
-                "mix-blend-screen relative inline-block px-1 text-white font-medium transition-all duration-500 animate-in fade-in zoom-in-95",
-                highlight.category === 'patrimonial' && "bg-blue-600/20",
-                highlight.category === 'spiritual' && "bg-cyan-500/20",
-                highlight.category === 'memory' && "bg-neutral-500/20"
+                "relative inline-block px-0.5 font-medium transition-all duration-500 animate-in fade-in zoom-in-95",
+                highlight.category === 'patrimonial' && "bg-blue-600/20 text-blue-600",
+                highlight.category === 'spiritual' && "bg-cyan-500/20 text-cyan-600",
+                highlight.category === 'memory' && "bg-neutral-500/20 text-neutral-600"
               )}
             >
               {highlight.label && (
-                <span className="absolute -top-4 left-0 text-[10px] uppercase opacity-70 whitespace-nowrap">
+                <span className="absolute -top-4 left-0 text-[10px] uppercase opacity-25 whitespace-nowrap">
                   {highlight.label}:
                 </span>
               )}
@@ -63,12 +63,12 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
   })
 
   return (
-    <div className={cn("prose prose-sm dark:prose-invert max-w-none space-y-4 leading-relaxed", className)}>
-      <p>
+    <div className={cn("prose prose-sm dark:prose-invert max-w-none space-y-4 pt-1", className)}>
+      <p className="whitespace-pre-wrap ml-2 mr-1">
         {elements}
       </p>
 
-      {/* Legend */}
+      {/* Legend
       <div className="flex flex-wrap gap-x-4 gap-y-2 pt-4 mt-4 border-t border-border-weak">
         <div className="flex items-center gap-1.5">
           <div className="size-1.5 rounded-full bg-blue-600" />
@@ -82,7 +82,7 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
           <div className="size-1.5 rounded-full bg-neutral-500" />
           <span className="text-[9px] font-bold uppercase tracking-tight text-neutral-500">De Memoria</span>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
