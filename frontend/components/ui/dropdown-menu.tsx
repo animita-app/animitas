@@ -7,15 +7,23 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const DropdownMenuContext = React.createContext<{
+  open: boolean
   openOnHover: boolean
   setOpen: (open: boolean) => void
   onMouseEnter: () => void
   onMouseLeave: () => void
+  triggerRect: DOMRect | null
+  setTriggerRect: (rect: DOMRect | null) => void
+  mousePos: { x: number; y: number }
 }>({
+  open: false,
   openOnHover: false,
   setOpen: () => { },
   onMouseEnter: () => { },
   onMouseLeave: () => { },
+  triggerRect: null,
+  setTriggerRect: () => { },
+  mousePos: { x: 0, y: 0 }
 })
 
 function DropdownMenu({
@@ -40,6 +48,8 @@ function DropdownMenu({
     ? setControlledOpen ?? (() => { })
     : setUncontrolledOpen
 
+  const [triggerRect, setTriggerRect] = React.useState<DOMRect | null>(null)
+  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 })
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onMouseEnter = React.useCallback(() => {
@@ -56,6 +66,15 @@ function DropdownMenu({
   }, [openOnHover, setOpen])
 
   React.useEffect(() => {
+    if (!open || !openOnHover) return
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener("mousemove", handleMouseMove)
+    return () => window.removeEventListener("mousemove", handleMouseMove)
+  }, [open, openOnHover])
+
+  React.useEffect(() => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
@@ -63,7 +82,16 @@ function DropdownMenu({
 
   return (
     <DropdownMenuContext.Provider
-      value={{ openOnHover, setOpen: setOpen as (open: boolean) => void, onMouseEnter, onMouseLeave }}
+      value={{
+        open,
+        openOnHover,
+        setOpen: setOpen as (open: boolean) => void,
+        onMouseEnter,
+        onMouseLeave,
+        triggerRect,
+        setTriggerRect,
+        mousePos
+      }}
     >
       <DropdownMenuPrimitive.Root
         data-slot="dropdown-menu"
@@ -87,12 +115,13 @@ function DropdownMenuPortal({
 function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
-  const { onMouseEnter, onMouseLeave } = React.useContext(DropdownMenuContext)
+  const { onMouseEnter, onMouseLeave, setTriggerRect } = React.useContext(DropdownMenuContext)
   return (
     <DropdownMenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
       {...props}
       onMouseEnter={(e) => {
+        setTriggerRect(e.currentTarget.getBoundingClientRect())
         onMouseEnter()
         props.onMouseEnter?.(e)
       }}
@@ -110,33 +139,105 @@ function DropdownMenuContent({
   onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
-  const { openOnHover, onMouseEnter, onMouseLeave } = React.useContext(DropdownMenuContext)
+  const { open, openOnHover, onMouseEnter, onMouseLeave, triggerRect, mousePos } = React.useContext(DropdownMenuContext)
+  const [contentRect, setContentRect] = React.useState<DOMRect | null>(null)
+  const contentRef = React.useRef<HTMLDivElement>(null)
+
+  React.useLayoutEffect(() => {
+    if (open && contentRef.current) {
+      setContentRect(contentRef.current.getBoundingClientRect())
+    } else {
+      setContentRect(null)
+    }
+  }, [open])
+
   return (
     <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content
-        data-slot="dropdown-menu-content"
-        sideOffset={sideOffset}
-        className={cn(
-          "font-medium bg-black text-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-20 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border border-neutral-800 p-1 shadow-md",
-          className
+      <>
+        {open && openOnHover && triggerRect && contentRect && (
+          <PointerBridge
+            triggerRect={triggerRect}
+            contentRect={contentRect}
+            mousePos={mousePos}
+            side={props.side ?? "bottom"}
+          />
         )}
-        onMouseEnter={(e) => {
-          onMouseEnter()
-          props.onMouseEnter?.(e)
-        }}
-        onMouseLeave={(e) => {
-          onMouseLeave()
-          props.onMouseLeave?.(e)
-        }}
-        onCloseAutoFocus={(e) => {
-          if (openOnHover) {
-            e.preventDefault()
-          }
-          onCloseAutoFocus?.(e)
-        }}
-        {...props}
-      />
+        <DropdownMenuPrimitive.Content
+          ref={contentRef}
+          data-slot="dropdown-menu-content"
+          sideOffset={sideOffset}
+          className={cn(
+            "font-medium bg-black text-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-20 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border border-neutral-800 p-1 shadow-md",
+            className
+          )}
+          onMouseEnter={(e) => {
+            onMouseEnter()
+            props.onMouseEnter?.(e)
+          }}
+          onMouseLeave={(e) => {
+            onMouseLeave()
+            props.onMouseLeave?.(e)
+          }}
+          onCloseAutoFocus={(e) => {
+            if (openOnHover) {
+              e.preventDefault()
+            }
+            onCloseAutoFocus?.(e)
+          }}
+          {...props}
+        />
+      </>
     </DropdownMenuPrimitive.Portal>
+  )
+}
+
+function PointerBridge({
+  triggerRect,
+  contentRect,
+  mousePos,
+  side
+}: {
+  triggerRect: DOMRect,
+  contentRect: DOMRect,
+  mousePos: { x: number, y: number },
+  side: string
+}) {
+  const { left: L, top: T, right: R, bottom: B } = triggerRect
+  const { left: CL, top: CT, right: CR, bottom: CB } = contentRect
+
+  let points = ""
+  if (side === "top") {
+    // Content is at top. Project from Trigger Bottom corners to Mouse.
+    points = `${L},${T} ${R},${T} ${R},${B} ${mousePos.x},${mousePos.y} ${L},${B}`
+  } else if (side === "right") {
+    // Content is at right. Project from Trigger Left corners to Mouse.
+    points = `${R},${T} ${R},${B} ${L},${B} ${mousePos.x},${mousePos.y} ${L},${T}`
+  } else if (side === "left") {
+    // Content is at left. Project from Trigger Right corners to Mouse.
+    points = `${L},${T} ${L},${B} ${R},${B} ${mousePos.x},${mousePos.y} ${R},${T}`
+  } else {
+    // Default / Bottom: Content is below. Project from Trigger Top corners to Mouse.
+    points = `${L},${B} ${R},${B} ${R},${T} ${mousePos.x},${mousePos.y} ${L},${T}`
+  }
+
+  return (
+    <svg
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'none',
+        zIndex: 9999,
+        overflow: 'visible'
+      }}
+    >
+      <polygon
+        points={points}
+        className="fill-red-500/50"
+      />
+    </svg>
   )
 }
 

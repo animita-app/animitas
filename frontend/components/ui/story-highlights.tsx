@@ -23,6 +23,7 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
   // For now, we'll assume they are simple and non-overlapping.
 
   let elements: (string | React.ReactNode)[] = [text]
+  let keyCounter = 0
 
   highlights.forEach((highlight) => {
     const newElements: (string | React.ReactNode)[] = []
@@ -39,12 +40,12 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
         if (i < parts.length - 1) {
           newElements.push(
             <span
-              key={`${highlight.text}-${i}`}
+              key={`highlight-${keyCounter++}`}
               className={cn(
-                "relative inline-block px-1 rounded-sm text-white font-medium transition-all duration-500 animate-in fade-in zoom-in-95",
-                highlight.category === 'patrimonial' && "bg-blue-600",
-                highlight.category === 'spiritual' && "bg-cyan-500",
-                highlight.category === 'memory' && "bg-neutral-500"
+                "mix-blend-screen relative inline-block px-1 text-white font-medium transition-all duration-500 animate-in fade-in zoom-in-95",
+                highlight.category === 'patrimonial' && "bg-blue-600/20",
+                highlight.category === 'spiritual' && "bg-cyan-500/20",
+                highlight.category === 'memory' && "bg-neutral-500/20"
               )}
             >
               {highlight.label && (
