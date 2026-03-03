@@ -4,7 +4,7 @@ import * as React from "react"
 import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ImageIcon, MapPin, X, ChevronDown, User } from "lucide-react"
+import { ImageIcon, MapPin, X, ChevronDown, User, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,10 +42,12 @@ function detectHighlights(text: string): Highlight[] {
 }
 
 const KINDS = [
-  { label: "Animita", value: "Animita", enabled: true },
-  { label: "Gruta", value: "Gruta", enabled: false },
-  { label: "Mausoleo", value: "Mausoleo", enabled: false },
-  { label: "Placa", value: "Placa", enabled: false },
+  { label: "Animita", value: "animita", enabled: true },
+  { label: "Santuario vial", value: "santuario-vial", enabled: true },
+  { label: "Gruta votiva", value: "gruta-votiva", enabled: false },
+  { label: "Mausoleo", value: "mausoleo", enabled: false },
+  { label: "Placa conmemorativa", value: "placa-conmemorativa", enabled: false },
+  { label: "Memorial colectivo", value: "memorial-colectivo", enabled: false },
 ]
 
 interface AddFormProps {
@@ -57,7 +59,7 @@ export function AddForm({ onCancel }: AddFormProps) {
   const { currentUser } = useUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [kind, setKind] = useState("Animita")
+  const [kind, setKind] = useState("animita")
   const [title, setTitle] = useState("")
   const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
@@ -125,7 +127,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       const res = await fetch('/api/heritage-sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: title, story, isPublic: true, location, images: imageUrls })
+        body: JSON.stringify({ name: title, story, isPublic: true, kind, location, images: imageUrls })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
@@ -140,54 +142,52 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   return (
     <div className="flex flex-col h-full">
-
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-weak shrink-0">
-        <Button variant="ghost" size="sm" className="text-text-weak" onClick={handleCancel}>
-          Cancelar
+      <div className="relative flex items-center justify-between p-2 border-b border-border-weak shrink-0">
+        <Button variant="ghost" size="icon" className="text-text-weak" onClick={handleCancel}>
+          <ArrowLeft />
         </Button>
-        <span className="text-sm font-medium text-text-strong">Crea una entrada</span>
-        <div className="w-[68px]" />
-      </div>
-
-      {/* Kind badge */}
-      <div className="px-4 pt-3 shrink-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Badge variant="outline" className="cursor-pointer gap-1 font-normal select-none">
-              {kind}
-              <ChevronDown className="size-3" />
-            </Badge>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {KINDS.map(k => (
-              <DropdownMenuItem
-                key={k.value}
-                disabled={!k.enabled}
-                onSelect={() => setKind(k.value)}
-                className={cn(kind === k.value && "font-medium")}
-              >
-                {k.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-text-strong">Crea una entrada</span>
       </div>
 
       {/* Content */}
-      <div className="flex flex-1 gap-3 px-4 pt-3 overflow-y-auto min-h-0">
+      <div className="flex flex-1 gap-3 px-4 pt-6 overflow-y-auto min-h-0">
         <Avatar className="size-8 shrink-0 mt-0.5">
           <AvatarImage src={currentUser?.avatarUrl} />
           <AvatarFallback>{currentUser?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 flex flex-col gap-2 pb-4">
+        <div className="-ml-1.5 flex-1 flex flex-col gap-0 pb-4">
+          {/* Kind badge */}
+          <div className="*:!text-xs ml-2 mb-2 flex gap-2 items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Badge variant="secondary" className="bg-accent/7 text-accent rounded-full">
+                  {kind}
+                  <ChevronDown />
+                </Badge>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {KINDS.map(k => (
+                  <DropdownMenuItem
+                    key={k.value}
+                    disabled={!k.enabled}
+                    onSelect={() => setKind(k.value)}
+                    className={cn(kind === k.value && "font-medium")}
+                  >
+                    {k.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <Input
             autoFocus
             placeholder="¿A quién recordamos?"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            className="border-none shadow-none p-0 h-auto text-base font-medium placeholder:text-text-weaker focus-visible:ring-0"
+            className="md:text-base bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
           />
 
           {isScanning ? (
@@ -199,7 +199,7 @@ export function AddForm({ onCancel }: AddFormProps) {
               placeholder="¿Cuál es su historia?"
               value={story}
               onChange={e => setStory(e.target.value)}
-              className="border-none shadow-none p-0 resize-none text-sm placeholder:text-text-weaker focus-visible:ring-0 min-h-[120px]"
+              className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
             />
           )}
 
@@ -223,7 +223,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           )}
 
           {/* Location chip */}
-          {location && !showLocationPicker && (
+          {/* {location && !showLocationPicker && (
             <button
               type="button"
               onClick={() => setShowLocationPicker(true)}
@@ -232,10 +232,10 @@ export function AddForm({ onCancel }: AddFormProps) {
               <MapPin className="size-3" />
               {location.cityRegion}
             </button>
-          )}
+          )} */}
 
           {/* Inline location picker */}
-          {showLocationPicker && (
+          {/* {showLocationPicker && (
             <div className="pt-1">
               <LocationPicker
                 value={location}
@@ -245,12 +245,35 @@ export function AddForm({ onCancel }: AddFormProps) {
                 }}
               />
             </div>
-          )}
+          )} */}
         </div>
       </div>
 
       {/* Bottom toolbar */}
       <div className="border-t border-border-weak px-3 py-2 flex items-center gap-1 shrink-0">
+        {showLocationPicker ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(location && "text-accent")}
+            onClick={() => setShowLocationPicker(v => !v)}
+            disabled={isScanning || isSubmitting}
+          >
+            <MapPin />
+            {location?.cityRegion}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn(location && "text-accent")}
+            onClick={() => setShowLocationPicker(v => !v)}
+            disabled={isScanning || isSubmitting}
+          >
+            <MapPin />
+          </Button>
+        )}
+
         <Button
           variant="ghost"
           size="icon"
@@ -266,15 +289,6 @@ export function AddForm({ onCancel }: AddFormProps) {
           )}
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={cn(location && "text-accent")}
-          onClick={() => setShowLocationPicker(v => !v)}
-          disabled={isScanning || isSubmitting}
-        >
-          <MapPin />
-        </Button>
 
         <Button variant="ghost" size="icon" disabled className="text-text-weaker">
           <User />

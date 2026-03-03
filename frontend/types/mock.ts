@@ -1,6 +1,30 @@
 // --- PCI Platform Interfaces ---
 
-// 1. Person (Entidad biográfica)
+// 1. Heritage Category (UNESCO-aligned taxonomy domains)
+export interface HeritageCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  sort_order: number;
+  created_at: string;
+}
+
+// 2. Heritage Kind (specific types within a category)
+export interface HeritageKind {
+  id: string;
+  category_id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  enabled: boolean;
+  sort_order: number;
+  created_at: string;
+  category?: HeritageCategory;
+}
+
+// 3. Person (Entidad biográfica)
 export interface Person {
   id: string;
   full_name: string;
@@ -10,26 +34,27 @@ export interface Person {
   image?: string | null;
 }
 
-// 2. HeritageSite (Punto de patrimonio)
+// 4. HeritageSite (Punto de patrimonio)
 export interface HeritageSite {
   id: string;
   slug: string;
-  kind: "Animita";
+  kind_id: string;
+  kind?: HeritageKind;
   title: string;
-  person_id: string | null;
   location: { lat: number; lng: number };
-  typology: "Gruta" | "Iglesia" | "Casa" | "Cruz" | "Orgánica" | "Social" | "Moderna" | "Monumental" | "Tumba" | "Muro"; // (según Lautaro Ojeda en Animitas: deseos cristalizados de un duelo inacabado)
+  address?: string | null;
+  city_region?: string | null;
   images: string[] | null;
   story?: string;
   insights?: HeritageSiteInsights;
+  categories?: HeritageCategory[];
   created_at: string; // ISO 8601
   created_by: { id: string; name: string };
   allow_edits: boolean;
-  size?: "Pequeña" | "Mediana" | "Grande";
-  person_image?: string;
+  creator_id: string;
 }
 
-// 3. HeritageSite Story (Historia versionable)
+// 5. HeritageSite Story (Historia versionable)
 export interface HeritageSiteStory {
   id: string;
   heritage_site_id: string;
@@ -40,7 +65,7 @@ export interface HeritageSiteStory {
   approved: boolean;
 }
 
-// 4. Testimonial (Aportes)
+// 6. Testimonial (Aportes)
 export interface Testimonial {
   id: string;
   heritage_site_id: string;
@@ -65,7 +90,7 @@ export type DeathCause =
   | 'Suicidio'
   | 'Asesinato'
 
-// 5. HeritageSite Insights (Auto-extraídos)
+// 7. HeritageSite Insights (Auto-extraídos)
 export interface HeritageSiteInsights {
   heritage_site_id: string;
   memorial: {
@@ -82,6 +107,7 @@ export interface HeritageSiteInsights {
   patrimonial: {
     antiquity_year?: number | null;
     size?: 'Pequeña' | 'Mediana' | 'Grande';
+    form?: string; // Migrated from legacy typology column
   };
   generated_at: string;
 }
