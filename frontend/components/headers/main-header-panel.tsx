@@ -2,7 +2,6 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
@@ -16,6 +15,7 @@ import { LayerItem } from '@/components/map/layers/layer-item'
 import { Layer } from '@/components/map/types'
 import { COLORS } from '@/lib/map-style'
 import { formatPlaceName } from '@/lib/format-place'
+import { cn } from '@/lib/utils'
 
 interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
@@ -73,62 +73,135 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasBanner = !!activeAreaLabel
 
   return (
-    <motion.div layout className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
-      {hasBanner ? (
-        <motion.div key="banner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-          <div className="flex items-center gap-1 px-1">
-            <span className="text-sm text-muted-foreground">Área activa:</span>
-            <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
-            <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </motion.div>
-      ) : (
-        <motion.div key="nav" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }} className="flex items-center gap-1">
-          {isListView && !searchActive && (
-            <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground hover:bg-black/7">
-              <ChevronLeft />
-            </Button>
-          )}
+    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200 will-change-[width]">
+      {/* Active Area Banner - replaces content */}
+      <div
+        className={cn(
+          "flex items-center gap-1 px-1 transition-all duration-150",
+          hasBanner ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none w-0"
+        )}
+      >
+        <span className="text-sm text-muted-foreground">Área activa:</span>
+        <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
+        <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
+          <X className="h-3 w-3" />
+        </Button>
+      </div>
 
-          {!isListView && !searchActive && (
-            <Tabs value={currentView} onValueChange={(value) => { router.push(value === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
-              <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-                <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
-                <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
+      {/* Main Navigation Content */}
+      <div
+        className={cn(
+          "flex items-center gap-1 transition-all duration-150",
+          hasBanner ? "opacity-0 scale-95 pointer-events-none w-0" : "opacity-100 scale-100"
+        )}
+      >
+        {isListView && !searchActive && (
+          <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground hover:bg-black/7">
+            <ChevronLeft />
+          </Button>
+        )}
 
-          {isListView && !searchActive && (
-            <Fragment>
-              <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategory} onSelect={v => setFilter('category', v ? [v] : [])} />
-              <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKind} onSelect={v => setFilter('kind', v ? [v] : [])} />
-              <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCity} onSelect={v => setFilter('city_region', v ? [v] : [])} />
-              <div className="flex-1" />
-              {hasActiveFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5"><X />Limpiar</Button>}
-            </Fragment>
-          )}
+        {!isListView && !searchActive && (
+          <Tabs value={currentView} onValueChange={(value) => { router.push(value === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+            <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
+              <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
+              <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        )}
 
-          {!isListView && (
-            <Fragment>
-              {!searchActive && <Button variant="ghost" size="icon" onClick={() => setSearchActive(true)} className="!h-[30px] !w-[30px] rounded-full"><SearchIcon /></Button>}
-              {searchActive && (
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <input autoFocus type="text" className="w-56 h-[30px] px-3 focus:outline-none" placeholder="Buscar..." value={searchQuery} onChange={handleSearchInput} disabled={isLoading} onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }} />
-                  </PopoverTrigger>
-                  <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
-                    {searchResults.length === 0 ? <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div> : <ScrollArea className="max-h-60 p-1"><div className="space-y-1">{searchResults.map((result) => { let geometryType: 'point' | 'line' | 'polygon' = 'point'; if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'; else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'; else if (result.bbox) geometryType = 'polygon'; const layer: Layer = { id: result.id, label: formatPlaceName(result.title || result.text || result.place_name), type: 'data', geometry: geometryType, color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements, visible: true, opacity: 100, source: 'search' }; return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => { e.stopPropagation() }} />; })}</div></ScrollArea>}
-                  </PopoverContent>
-                </Popover>
+        {isListView && !searchActive && (
+          <Fragment>
+            <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategory} onSelect={v => setFilter('category', v ? [v] : [])} />
+            <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKind} onSelect={v => setFilter('kind', v ? [v] : [])} />
+            <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCity} onSelect={v => setFilter('city_region', v ? [v] : [])} />
+            <div className="flex-1" />
+            {hasActiveFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5"><X />Limpiar</Button>}
+          </Fragment>
+        )}
+
+        {!isListView && (
+          <Fragment>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchActive(true)}
+              className={cn(
+                "!h-[30px] !w-[30px] rounded-full transition-all duration-200",
+                searchActive ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
               )}
-              {searchActive && <Button variant="ghost" size="icon" onClick={() => { setSearchActive(false); resetSearch() }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full">{isLoading ? <div className="animate-spin"><X size={20} /></div> : <X />}</Button>}
-            </Fragment>
-          )}
-        </motion.div>
-      )}
-    </motion.div>
+            >
+              <SearchIcon />
+            </Button>
+
+            <input
+              autoFocus={searchActive}
+              type="text"
+              className={cn(
+                "h-[30px] px-3 focus:outline-none overflow-hidden",
+                "transition-[max-width,opacity] duration-200 ease-out",
+                searchActive ? "max-w-[220px] opacity-100" : "max-w-0 opacity-0"
+              )}
+              placeholder="Buscar..."
+              value={searchQuery}
+              onChange={handleSearchInput}
+              disabled={isLoading}
+              onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+            />
+
+            {searchActive && (
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <div />
+                </PopoverTrigger>
+                <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
+                  {searchResults.length === 0 ? (
+                    <div className="p-4 text-sm text-center text-muted-foreground">
+                      {isLoading ? 'Buscando...' : 'Sin resultados'}
+                    </div>
+                  ) : (
+                    <ScrollArea className="max-h-60 p-1">
+                      <div className="space-y-1">
+                        {searchResults.map((result) => {
+                          let geometryType: 'point' | 'line' | 'polygon' = 'point'
+                          if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
+                          else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
+                          else if (result.bbox) geometryType = 'polygon'
+
+                          const layer: Layer = {
+                            id: result.id,
+                            label: formatPlaceName(result.title || result.text || result.place_name),
+                            type: 'data',
+                            geometry: geometryType,
+                            color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
+                            visible: true,
+                            opacity: 100,
+                            source: 'search',
+                          }
+                          return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => { e.stopPropagation() }} />
+                        })}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </PopoverContent>
+              </Popover>
+            )}
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => { setSearchActive(false); resetSearch() }}
+              disabled={isLoading}
+              className={cn(
+                "!h-[30px] !w-[30px] rounded-full transition-all duration-200",
+                searchActive ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+              )}
+            >
+              {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X />}
+            </Button>
+          </Fragment>
+        )}
+      </div>
+    </nav>
   )
 }
