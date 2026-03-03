@@ -131,7 +131,7 @@ export function SearchPanel({ onSearch, searchResults = [], onSelectResult, onLo
   }
 
   return (
-    <Card className="flex flex-col gap-2 w-80 shadow-xs border border-border-weak !p-0 pointer-events-auto">
+    <Card className="flex flex-col gap-2 w-80 shadow-xs border-0 border-border-weak !p-0 pointer-events-auto">
       <Popover open={open && searchResults.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div className="relative flex-1">

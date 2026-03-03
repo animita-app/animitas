@@ -21,7 +21,7 @@ interface HeaderProps {
 }
 
 export function Header({ className }: HeaderProps) {
-  const { currentUser, isEditor, isSuperadmin } = useUser()
+  const { currentUser, isEditor, isSuperadmin, isLoading } = useUser()
   const pathname = usePathname()
   const router = useRouter()
   const isUpdating = pathname.includes("add")
@@ -50,9 +50,9 @@ export function Header({ className }: HeaderProps) {
                 router.push(value === 'list' ? '/list' : '/map')
               }}
             >
-              <TabsList className="bg-background-weaker !py-1.5 rounded-full">
-                <TabsTrigger value="map" className="data-[state=active]:bg-background-strong">Mapa</TabsTrigger>
-                <TabsTrigger value="list" className="data-[state=active]:bg-background-strong">Lista</TabsTrigger>
+              <TabsList className="bg-background-weaker !gap-1 !p-1 rounded-full">
+                <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black data-[state=active]:hover:!bg-black/90 px-2.5 rounded-full">Mapa</TabsTrigger>
+                <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black data-[state=active]:hover:!bg-black/90 px-2.5 rounded-full">Lista</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -96,7 +96,9 @@ export function Header({ className }: HeaderProps) {
             </NavigationMenu>
           )}
 
-          {currentUser ? (
+          {isLoading ? (
+            <div className="w-8 h-8" />
+          ) : currentUser ? (
             <>
               <Button size="sm" className="!pl-2 gap-1" asChild>
                 <Link href="/add">

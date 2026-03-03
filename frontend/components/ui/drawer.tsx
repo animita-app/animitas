@@ -96,7 +96,7 @@ function DrawerContentFloating({
       >
         <div
           onClick={onHandleClick}
-          className="bg-neutral-300 absolute left-1/2 -top-6 -translate-x-1/2 z-50 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block transition-opacity duration-300 group-[.drawer-expanded]/drawer-content:opacity-0 cursor-pointer"
+          className="bg-accent absolute left-1/2 -top-6 -translate-x-1/2 z-50 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block transition-opacity duration-300 group-[.drawer-expanded]/drawer-content:opacity-0 cursor-pointer"
         />
         <div
           onClick={onHandleClick}

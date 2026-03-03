@@ -3,12 +3,13 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { User, UserRole, ROLES } from '@/types/roles'
+import { createClient } from '@/lib/supabase/client'
 
 interface UserContextType {
   currentUser: User | null
   role: UserRole
   setUser: (user: User | null) => void
-  setRole: (role: UserRole) => void // For dev/testing purposes
+  setRole: (role: UserRole) => void
   isLoading: boolean
   researchMode: boolean
   setResearchMode: (enabled: boolean) => void
@@ -25,11 +26,7 @@ function UrlRoleSynchronizer() {
 
   useEffect(() => {
     const roleParam = searchParams.get('role')
-    if (
-      roleParam &&
-      Object.values(ROLES).includes(roleParam as UserRole) &&
-      role !== roleParam
-    ) {
+    if (roleParam && Object.values(ROLES).includes(roleParam as UserRole) && role !== roleParam) {
       setRole(roleParam as UserRole)
     }
   }, [searchParams, setRole, role])
@@ -37,60 +34,69 @@ function UrlRoleSynchronizer() {
   return null
 }
 
-import { createClient } from '@/lib/supabase/client'
-
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [role, setRoleState] = useState<UserRole>(ROLES.DEFAULT)
   const [isLoading, setIsLoading] = useState(true)
   const [researchMode, setResearchMode] = useState(false)
 
-  const fetchProfile = async (userId: string) => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (data) {
-      setRoleState(data.role as UserRole)
-      setResearchMode(data.research_mode || false)
-      setCurrentUser({
-        id: data.id,
-        name: data.full_name || 'Usuario',
-        email: '', // Not stored in profiles by default
-        role: data.role as UserRole,
-        avatarUrl: data.avatar_url
-      })
-    }
-  }
-
   useEffect(() => {
     const supabase = createClient()
 
-    // 1. Check initial session
+    const fetchUserProfile = async (userId: string) => {
+      try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
+
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('id, display_name, username, image, role')
+          .eq('id', userId)
+          .single()
+
+        clearTimeout(timeout)
+
+        if (error) throw error
+        if (data) {
+          setRoleState(data.role as UserRole)
+          setCurrentUser({
+            id: data.id,
+            name: data.display_name || 'Usuario',
+            email: '',
+            role: data.role as UserRole,
+            username: data.username,
+            avatarUrl: data.image
+          })
+        }
+      } catch (err) {
+        setCurrentUser(null)
+        setRoleState(ROLES.DEFAULT)
+      }
+      setIsLoading(false)
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setIsLoading(false))
+        fetchUserProfile(session.user.id)
       } else {
+        setCurrentUser(null)
+        setRoleState(ROLES.DEFAULT)
+        setIsLoading(false)
+      }
+    }).catch(() => {
+      setIsLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        fetchUserProfile(session.user.id)
+      } else {
+        setCurrentUser(null)
+        setRoleState(ROLES.DEFAULT)
         setIsLoading(false)
       }
     })
 
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        await fetchProfile(session.user.id)
-      } else {
-        setCurrentUser(null)
-        setRoleState(ROLES.DEFAULT)
-        setResearchMode(false)
-      }
-      setIsLoading(false)
-    })
-
-    // 3. Load local research mode preference as fallback
     if (typeof window !== 'undefined') {
       const savedResearchMode = localStorage.getItem('research_mode') === 'true'
       setResearchMode(savedResearchMode)
@@ -103,7 +109,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (!currentUser) return
     const supabase = createClient()
     const { error } = await supabase
-      .from('profiles')
+      .from('user_profiles')
       .update({ role: newRole })
       .eq('id', currentUser.id)
 
@@ -113,18 +119,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const handleSetResearchMode = async (enabled: boolean) => {
+  const handleSetResearchMode = (enabled: boolean) => {
     setResearchMode(enabled)
     if (typeof window !== 'undefined') {
       localStorage.setItem('research_mode', String(enabled))
-    }
-
-    if (currentUser) {
-      const supabase = createClient()
-      await supabase
-        .from('profiles')
-        .update({ research_mode: enabled })
-        .eq('id', currentUser.id)
     }
   }
 

@@ -38,17 +38,19 @@ export function UserDropdown() {
         <div className="relative cursor-pointer">
           <Avatar>
             <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-            <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
+            <AvatarFallback>{currentUser?.username?.[0].toUpperCase()}</AvatarFallback>
           </Avatar>
           {role === ROLES.EDITOR && (
             <div className="absolute -top-0.5 -right-0.5 size-2.5 bg-accent rounded-full border-[2px] border-background" />
           )}
         </div>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            Perfil
+          <DropdownMenuItem asChild>
+            <Link href={`/profile/@${currentUser.username}`}>
+              Perfil
+            </Link>
           </DropdownMenuItem>
           {isEditor && (
             <DropdownMenuItem asChild>
