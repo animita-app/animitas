@@ -51,7 +51,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
             const features = await searchLocation(query, MAPBOX_TOKEN)
             mapboxResults = features.map((feature: any) => ({
               id: feature.id,
-              title: feature.text || feature.place_name,
+              title: feature.place_name,
               place_name: feature.place_name,
               text: feature.text,
               type: 'mapbox',
