@@ -146,12 +146,12 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 onBlur={() => console.log('[Input] onBlur')}
               />
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(320px-24px)] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
+            <PopoverContent className="w-[280px] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
                 <ScrollArea className="max-h-60 p-1">
-                  <div className="space-y-1">
+                  <div className="space-y-1 break-words">
                     {searchResults.map((result) => {
                       let geometryType: 'point' | 'line' | 'polygon' = 'point'
                       if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
@@ -160,7 +160,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
                       const layer: Layer = {
                         id: result.id,
-                        label: result.type === 'mapbox' ? result.title : formatPlaceName(result.title || result.text || result.place_name),
+                        label: result.type === 'mapbox' ? result.text : formatPlaceName(result.title || result.text || result.place_name),
                         type: 'data',
                         geometry: geometryType,
                         color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
