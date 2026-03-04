@@ -54,7 +54,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (hasBanner) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
+      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 animate-in fade-in duration-200">
         <span className="text-sm text-muted-foreground px-1">Área activa:</span>
         <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
         <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
@@ -66,7 +66,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (isListView) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
+      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 animate-in fade-in duration-200">
         <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
           <ChevronLeft />
         </Button>
@@ -83,7 +83,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   return (
     <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
       {!searchActive && (
-        <>
+        <div className="flex items-center gap-1 animate-in fade-in duration-200">
           <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
             <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
               <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
@@ -94,28 +94,29 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
             variant="ghost"
             size="icon"
             onClick={() => setSearchActive(true)}
-            className="-ml-1 pb-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"
+            className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"
           >
             <SearchIcon size={20} />
           </Button>
-        </>
+        </div>
       )}
 
       {searchActive && (
-        <>
-          <input
-            autoFocus
-            type="text"
-            className="h-[30px] px-3 focus:outline-none bg-transparent text-sm flex-1"
-            placeholder="Buscar..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            disabled={isLoading}
-            onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
-          />
+        <div className="flex items-center gap-1 flex-1 animate-in fade-in duration-200">
           <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild><div /></PopoverTrigger>
-            <PopoverContent className="border border-border-weak w-[264px] max-h-60 p-0" align="center" sideOffset={4}>
+            <PopoverTrigger asChild>
+              <input
+                autoFocus
+                type="text"
+                className="w-full h-[30px] px-3 focus:outline-none bg-transparent text-sm"
+                placeholder="Buscar..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                disabled={isLoading}
+                onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-[calc(320px-24px)] border border-border-weak max-h-60 p-0" align="center" sideOffset={8}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
@@ -147,7 +148,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
           <Button variant="ghost" size="icon" onClick={() => { setSearchActive(false); resetSearch() }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
             {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
           </Button>
-        </>
+        </div>
       )}
     </nav>
   )
