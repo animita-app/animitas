@@ -49,18 +49,20 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
         if (MAPBOX_TOKEN) {
           try {
             const features = await searchLocation(query, MAPBOX_TOKEN)
-            console.log('[useSearchLocation] Mapbox features:', features)
-            mapboxResults = features.map((feature: any) => ({
-              id: feature.id,
-              title: feature.place_name,
-              place_name: feature.place_name,
-              text: feature.text,
-              type: 'mapbox',
-              geometry: feature.geometry,
-              bbox: feature.bbox,
-              center: feature.center
-            }))
-            console.log('[useSearchLocation] Mapbox results mapped:', mapboxResults)
+            console.log('[useSearchLocation] Raw Mapbox features count:', features.length)
+            mapboxResults = features
+              .slice(0, 3)
+              .map((feature: any) => ({
+                id: feature.id,
+                title: feature.place_name,
+                place_name: feature.place_name,
+                text: feature.text,
+                type: 'mapbox',
+                geometry: feature.geometry,
+                bbox: feature.bbox,
+                center: feature.center
+              }))
+            console.log('[useSearchLocation] Mapbox results after limiting to 3:', mapboxResults)
           } catch (error) {
             console.error('Mapbox search error:', error)
           }
