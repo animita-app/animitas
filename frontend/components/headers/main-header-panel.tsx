@@ -32,9 +32,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const { categories, kinds } = useHeritageTaxonomy()
   const { searchQuery, open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation(onSearch)
 
-  const activeCategory = filters.category?.[0] || null
-  const activeKind = filters.kind?.[0] || null
-  const activeCity = filters.city_region?.[0] || null
+  const activeCategories = filters.category || []
+  const activeKinds = filters.kind || []
+  const activeCities = filters.city_region || []
 
   const categoryOptions = useMemo<FilterOption[]>(() =>
     categories.map(cat => ({ value: cat.slug, label: cat.name })),
@@ -50,7 +50,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   }, [filteredData])
 
   const hasBanner = !!activeAreaLabel
-  const hasFilters = activeCategory || activeKind || activeCity
+  const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
   if (hasBanner) {
     return (
@@ -70,9 +70,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
           <ChevronLeft />
         </Button>
-        <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategory} onSelect={v => setFilter('category', v ? [v] : [])} />
-        <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKind} onSelect={v => setFilter('kind', v ? [v] : [])} />
-        <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCity} onSelect={v => setFilter('city_region', v ? [v] : [])} />
+        <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
+        <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
+        <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
         <div className="flex-1" />
         {hasFilters && <Button variant="ghost" size="icon" onClick={clearFilters} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>}
       </nav>
