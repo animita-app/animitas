@@ -160,7 +160,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
                       const layer: Layer = {
                         id: result.id,
-                        label: formatPlaceName(result.title || result.text || result.place_name),
+                        label: result.type === 'mapbox' ? result.title : formatPlaceName(result.title || result.text || result.place_name),
                         type: 'data',
                         geometry: geometryType,
                         color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
