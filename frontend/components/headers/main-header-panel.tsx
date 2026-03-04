@@ -25,6 +25,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [searchActive, setSearchActive] = useState(false)
+  const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -36,6 +37,8 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
     if (searchActive) {
       console.log('[MainHeaderPanel] Focusing input')
       inputRef.current?.focus()
+    } else {
+      setInputValue('')
     }
   }, [searchActive])
 
@@ -127,15 +130,16 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 type="text"
                 className="w-64 h-[30px] px-3 focus:outline-none bg-transparent text-sm"
                 placeholder="Buscar..."
-                value={searchQuery}
+                value={inputValue}
                 onChange={(e) => {
                   console.log('[Input] onChange:', e.target.value)
+                  setInputValue(e.target.value)
                   handleSearch(e.target.value)
                 }}
                 disabled={isLoading}
                 onFocus={() => {
                   console.log('[Input] onFocus')
-                  if (searchQuery.length >= 3) setOpen(true)
+                  if (inputValue.length >= 3) setOpen(true)
                 }}
                 onBlur={() => console.log('[Input] onBlur')}
               />
@@ -169,7 +173,12 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
               )}
             </PopoverContent>
           </Popover>
-          <Button variant="ghost" size="icon" onClick={() => { setSearchActive(false); resetSearch() }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+          <Button variant="ghost" size="icon" onClick={() => {
+            console.log('[Button] Close search clicked')
+            setSearchActive(false)
+            setInputValue('')
+            resetSearch()
+          }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
             {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
           </Button>
         </div>

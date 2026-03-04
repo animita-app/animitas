@@ -20,11 +20,11 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
 
     if (query.length >= 3) {
-      console.log('[useSearchLocation] Opening popover')
-      setOpen(true)
+      console.log('[useSearchLocation] Query >= 3, setting up debounce')
       setIsLoading(true)
 
       debounceTimer.current = setTimeout(() => {
+        console.log('[useSearchLocation] Opening popover after debounce')
         const results = filteredData.filter(site =>
           site.title?.toLowerCase().includes(query.toLowerCase()) ||
           site.address?.toLowerCase().includes(query.toLowerCase()) ||
@@ -42,6 +42,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
           },
           properties: site
         })))
+        setOpen(true)
         setIsLoading(false)
       }, 300)
     } else {
