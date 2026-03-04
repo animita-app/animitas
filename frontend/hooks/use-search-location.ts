@@ -65,7 +65,16 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
         }
 
         const combined = [...localResults, ...mapboxResults]
-        setSearchResults(combined)
+
+        const seen = new Set<string>()
+        const deduplicated = combined.filter(result => {
+          const key = result.place_name || result.title
+          if (seen.has(key)) return false
+          seen.add(key)
+          return true
+        })
+
+        setSearchResults(deduplicated)
         setOpen(true)
         setIsLoading(false)
       }, 300)
