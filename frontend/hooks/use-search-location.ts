@@ -3,6 +3,9 @@ import { useSpatialContext } from '@/contexts/spatial-context'
 import { Feature, Geometry } from 'geojson'
 import { formatPlaceName } from '@/lib/format-place'
 import { fetchPlaceBoundary } from '@/lib/boundary-service'
+import { searchLocation } from '@/lib/mapbox'
+
+const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
 
 export function useSearchLocation(onSearch?: (query: string) => void) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -22,14 +25,14 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     if (query.length >= 3) {
       console.log('[useSearchLocation] Query >= 3, setting up debounce')
 
-      debounceTimer.current = setTimeout(() => {
+      debounceTimer.current = setTimeout(async () => {
         console.log('[useSearchLocation] Opening popover after debounce')
-        const results = filteredData.filter(site =>
+
+        const localResults = filteredData.filter(site =>
           site.title?.toLowerCase().includes(query.toLowerCase()) ||
           site.address?.toLowerCase().includes(query.toLowerCase()) ||
           site.city_region?.toLowerCase().includes(query.toLowerCase())
-        )
-        setSearchResults(results.map(site => ({
+        ).map(site => ({
           id: site.id,
           title: site.title,
           place_name: `${site.title}, ${site.city_region || ''}`,
@@ -40,7 +43,29 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
             coordinates: [site.location.lng, site.location.lat]
           },
           properties: site
-        })))
+        }))
+
+        let mapboxResults: any[] = []
+        if (MAPBOX_TOKEN) {
+          try {
+            const features = await searchLocation(query, MAPBOX_TOKEN)
+            mapboxResults = features.map((feature: any) => ({
+              id: feature.id,
+              title: feature.text || feature.place_name,
+              place_name: feature.place_name,
+              text: feature.text,
+              type: 'mapbox',
+              geometry: feature.geometry,
+              bbox: feature.bbox,
+              center: feature.center
+            }))
+          } catch (error) {
+            console.error('Mapbox search error:', error)
+          }
+        }
+
+        const combined = [...localResults, ...mapboxResults]
+        setSearchResults(combined)
         setOpen(true)
         setIsLoading(false)
       }, 300)
