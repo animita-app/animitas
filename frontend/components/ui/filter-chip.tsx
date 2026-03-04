@@ -34,24 +34,24 @@ export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChi
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="secondary"
           size="sm"
           className={cn(
-            'h-[30px] -mt-px rounded-full bg-black text-white border-0 hover:bg-black/90 hover:text-white !px-2.5 gap-1.5 border-border font-normal relative !pr-1.5',
-            isActive && 'bg-accent text-background border-0 hover:bg-accent/90 hover:text-background'
+            'h-[30px] -mt-px bg-transparent hover:bg-muted shadow-none rounded-full !px-2.5 gap-1.5 font-normal relative !pr-1.5',
+            isActive && "bg-black text-white border-0 hover:bg-black/90 hover:text-white border-border"
           )}
         >
           {defaultLabel}
           {isActive ? (
-            <span className="bg-white text-black text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="-ml-px bg-white text-black text-xs font-medium rounded-full w-5 h-5 flex items-center justify-center">
               {count}
             </span>
           ) : (
-            <ChevronDown className="size-5 p-0.5 -ml-1 opacity-50" />
+            <ChevronDown className="size-5 p-0.5 -ml-0.5 opacity-50" />
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" className="!z-999" sideOffset={2}>
         {options.map(opt => (
           <DropdownMenuItem
             key={opt.value}
@@ -59,7 +59,7 @@ export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChi
             className="!font-normal flex items-center justify-between"
           >
             <span>{opt.label}</span>
-            {value.includes(opt.value) && <Check className="w-4 h-4 ml-2" />}
+            {value.includes(opt.value) && <Check className="w-4 h-4 ml-auto" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

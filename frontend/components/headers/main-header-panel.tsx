@@ -74,7 +74,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
         <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
         <div className="flex-1" />
-        {hasFilters && <Button variant="ghost" size="icon" onClick={clearFilters} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>}
+        <Button variant="ghost" size="icon" onClick={clearFilters} className="-ml-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>
       </nav>
     )
   }
@@ -116,7 +116,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
               />
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(320px-24px)] ml-8 border border-border-weak max-h-60 p-0" align="center" sideOffset={8}>
+            <PopoverContent className="w-[calc(320px-24px)] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
