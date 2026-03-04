@@ -151,7 +151,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
                 <ScrollArea className="max-h-60 p-1">
-                  <div className="space-y-1 [&_*]:break-words [&_*]:whitespace-normal">
+                  <div className="space-y-1 [&_*]:text-ellipsis [&_*]:whitespace-nowrap">
                     {searchResults.map((result) => {
                       let geometryType: 'point' | 'line' | 'polygon' = 'point'
                       if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
