@@ -1,5 +1,5 @@
 'use client'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ interface FilterChipProps {
 
 export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChipProps) {
   const isActive = value !== null
+  const count = isActive ? 1 : 0
 
   return (
     <DropdownMenu>
@@ -28,24 +29,21 @@ export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChi
           variant="outline"
           size="sm"
           className={cn(
-            'h-[30px] -mt-px rounded-full bg-black text-white border-0 hover:bg-black/90 hover:text-white !px-2.5 gap-1.5 border-border font-normal relative',
+            'h-[30px] -mt-px pr-2 rounded-full bg-black text-white border-0 hover:bg-black/90 hover:text-white !px-2.5 gap-1.5 border-border font-normal relative',
             isActive && 'bg-accent text-background border-0 hover:bg-accent/90 hover:text-background'
           )}
         >
-          <span className="text-lg">🐕</span>
-          {isActive && (
-            <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-              1
+          {defaultLabel}
+          {isActive ? (
+            <span className="bg-white text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {count}
             </span>
+          ) : (
+            <ChevronDown className="size-3 opacity-50" />
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        {value !== null && (
-          <DropdownMenuItem onSelect={() => onSelect(null)} className="!font-normal">
-            {defaultLabel}
-          </DropdownMenuItem>
-        )}
         {options.map(opt => (
           <DropdownMenuItem
             key={opt.value}
