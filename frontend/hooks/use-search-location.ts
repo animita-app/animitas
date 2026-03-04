@@ -21,7 +21,6 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
 
     if (query.length >= 3) {
       console.log('[useSearchLocation] Query >= 3, setting up debounce')
-      setIsLoading(true)
 
       debounceTimer.current = setTimeout(() => {
         console.log('[useSearchLocation] Opening popover after debounce')
@@ -48,6 +47,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     } else {
       setOpen(false)
       setSearchResults([])
+      setIsLoading(false)
     }
   }, [filteredData, onSearch])
 
