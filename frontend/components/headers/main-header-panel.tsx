@@ -74,7 +74,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKind} onSelect={v => setFilter('kind', v ? [v] : [])} />
         <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCity} onSelect={v => setFilter('city_region', v ? [v] : [])} />
         <div className="flex-1" />
-        {hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1.5"><X />Limpiar</Button>}
+        {hasFilters && <Button variant="ghost" size="icon" onClick={clearFilters} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>}
       </nav>
     )
   }
@@ -108,7 +108,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
               <input
                 autoFocus
                 type="text"
-                className="w-full h-[30px] px-3 focus:outline-none bg-transparent text-sm"
+                className="w-64 h-[30px] px-3 focus:outline-none bg-transparent text-sm"
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
@@ -116,7 +116,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
               />
             </PopoverTrigger>
-            <PopoverContent className="w-[calc(320px-24px)] border border-border-weak max-h-60 p-0" align="center" sideOffset={8}>
+            <PopoverContent className="w-[calc(320px-24px)] ml-8 border border-border-weak max-h-60 p-0" align="center" sideOffset={8}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
