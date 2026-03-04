@@ -95,7 +95,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
       <input
         autoFocus={searchActive}
         type="text"
-        className={cn("h-[30px] px-3 focus:outline-none transition-opacity duration-200", searchActive ? "opacity-100" : "opacity-0 pointer-events-none w-0")}
+        className={cn("h-[30px] px-3 focus:outline-none bg-transparent text-sm transition-opacity duration-200 flex-1", searchActive ? "opacity-100" : "opacity-0 pointer-events-none")}
         placeholder="Buscar..."
         value={searchQuery}
         onChange={(e) => handleSearch(e.target.value)}
