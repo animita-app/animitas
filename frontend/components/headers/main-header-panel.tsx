@@ -54,7 +54,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (hasBanner) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 animate-in fade-in duration-200">
+      <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
         <span className="text-sm text-muted-foreground px-1">Área activa:</span>
         <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
         <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
@@ -66,7 +66,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (isListView) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 animate-in fade-in duration-200">
+      <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
         <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
           <ChevronLeft />
         </Button>
@@ -81,7 +81,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   // Map view
   return (
-    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
+    <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
       {!searchActive && (
         <div className="flex items-center gap-1 animate-in fade-in duration-200">
           <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
