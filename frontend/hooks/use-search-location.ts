@@ -16,18 +16,13 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const debounceTimer = useRef<NodeJS.Timeout>()
 
   const handleSearch = useCallback((query: string) => {
-    console.log('[useSearchLocation] handleSearch called:', query)
     setSearchQuery(query)
     onSearch?.(query)
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
 
     if (query.length >= 3) {
-      console.log('[useSearchLocation] Query >= 3, setting up debounce')
-
       debounceTimer.current = setTimeout(async () => {
-        console.log('[useSearchLocation] Opening popover after debounce')
-
         const localResults = filteredData.filter(site =>
           site.title?.toLowerCase().includes(query.toLowerCase()) ||
           site.address?.toLowerCase().includes(query.toLowerCase()) ||
@@ -49,7 +44,6 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
         if (MAPBOX_TOKEN) {
           try {
             const features = await searchLocation(query, MAPBOX_TOKEN)
-            console.log('[useSearchLocation] Raw Mapbox features count:', features.length)
             mapboxResults = features
               .slice(0, 3)
               .map((feature: any) => ({
@@ -62,27 +56,22 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
                 bbox: feature.bbox,
                 center: feature.center
               }))
-            console.log('[useSearchLocation] Mapbox results after limiting to 3:', mapboxResults)
           } catch (error) {
-            console.error('Mapbox search error:', error)
           }
         }
 
         const combined = [...localResults, ...mapboxResults]
-        console.log('[useSearchLocation] Combined results before dedup:', combined.map(r => ({ id: r.id, place_name: r.place_name, type: r.type })))
 
         const seen = new Set<string>()
         const deduplicated = combined.filter(result => {
           const key = result.place_name || result.title
           if (seen.has(key)) {
-            console.log('[useSearchLocation] Skipping duplicate:', key)
             return false
           }
           seen.add(key)
           return true
         })
 
-        console.log('[useSearchLocation] After dedup:', deduplicated.map(r => ({ id: r.id, place_name: r.place_name, type: r.type })))
         setSearchResults(deduplicated)
         setOpen(true)
         setIsLoading(false)

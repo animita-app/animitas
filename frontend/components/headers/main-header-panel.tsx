@@ -29,13 +29,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    console.log('[MainHeaderPanel] rendered')
-  })
-
-  useEffect(() => {
-    console.log('[MainHeaderPanel] searchActive changed:', searchActive)
     if (searchActive) {
-      console.log('[MainHeaderPanel] Focusing input')
       requestAnimationFrame(() => {
         inputRef.current?.focus()
       })
@@ -134,16 +128,13 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 placeholder="Buscar..."
                 value={inputValue}
                 onChange={(e) => {
-                  console.log('[Input] onChange:', e.target.value)
                   setInputValue(e.target.value)
                   handleSearch(e.target.value)
                 }}
                 disabled={isLoading}
                 onFocus={() => {
-                  console.log('[Input] onFocus')
                   if (inputValue.length >= 3) setOpen(true)
                 }}
-                onBlur={() => console.log('[Input] onBlur')}
               />
             </PopoverTrigger>
             <PopoverContent className="w-[280px] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
@@ -176,7 +167,6 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
             </PopoverContent>
           </Popover>
           <Button variant="ghost" size="icon" onClick={() => {
-            console.log('[Button] Close search clicked')
             setSearchActive(false)
             setInputValue('')
             resetSearch()
