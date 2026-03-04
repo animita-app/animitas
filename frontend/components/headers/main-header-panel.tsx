@@ -36,7 +36,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
     console.log('[MainHeaderPanel] searchActive changed:', searchActive)
     if (searchActive) {
       console.log('[MainHeaderPanel] Focusing input')
-      inputRef.current?.focus()
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+      })
     } else {
       setInputValue('')
     }
