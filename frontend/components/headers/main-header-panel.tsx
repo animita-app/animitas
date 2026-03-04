@@ -90,7 +90,12 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
               <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button variant="ghost" size="icon" onClick={() => setSearchActive(true)} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSearchActive(true)}
+            className="-ml-1 pb-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"
+          >
             <SearchIcon size={20} />
           </Button>
         </>
@@ -110,7 +115,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
           />
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild><div /></PopoverTrigger>
-            <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
+            <PopoverContent className="border border-border-weak w-[264px] max-h-60 p-0" align="center" sideOffset={4}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
