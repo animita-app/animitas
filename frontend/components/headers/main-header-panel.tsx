@@ -82,28 +82,26 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   // Map view
   return (
-    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200 will-change-[width]">
-      {!searchActive && (
+    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200 will-change-[width] overflow-hidden">
+      <div className={cn("transition-all duration-200 overflow-hidden", searchActive ? "max-w-0 opacity-0" : "max-w-full opacity-100")}>
         <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
           <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
             <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
             <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
           </TabsList>
         </Tabs>
-      )}
+      </div>
 
-      {searchActive && (
-        <input
-          autoFocus
-          type="text"
-          className="h-[30px] px-3 focus:outline-none flex-1 max-w-[280px]"
-          placeholder="Buscar..."
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-          disabled={isLoading}
-          onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
-        />
-      )}
+      <input
+        autoFocus={searchActive}
+        type="text"
+        className={cn("h-[30px] px-3 focus:outline-none overflow-hidden transition-[max-width,opacity] duration-200", searchActive ? "max-w-[280px] opacity-100" : "max-w-0 opacity-0")}
+        placeholder="Buscar..."
+        value={searchQuery}
+        onChange={(e) => handleSearch(e.target.value)}
+        disabled={isLoading}
+        onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+      />
 
       {searchActive && (
         <Popover open={open} onOpenChange={setOpen}>
