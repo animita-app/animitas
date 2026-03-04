@@ -1,5 +1,5 @@
 'use client'
-import { ChevronDown } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
@@ -19,7 +19,6 @@ interface FilterChipProps {
 }
 
 export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChipProps) {
-  const activeLabel = options.find(o => o.value === value)?.label ?? null
   const isActive = value !== null
 
   return (
@@ -29,17 +28,21 @@ export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChi
           variant="outline"
           size="sm"
           className={cn(
-            'h-[30px] -mt-px rounded-full [&_svg]:opacity-50 [&_svg]:-mx-1 bg-black text-white border-0 hover:bg-black/90 hover:text-white !px-2.5 gap-1.5 border-border font-normal',
+            'h-[30px] -mt-px rounded-full bg-black text-white border-0 hover:bg-black/90 hover:text-white !px-2.5 gap-1.5 border-border font-normal relative',
             isActive && 'bg-accent text-background border-0 hover:bg-accent/90 hover:text-background'
           )}
         >
-          {activeLabel ?? defaultLabel}
-          <ChevronDown />
+          <span className="text-lg">🐕</span>
+          {isActive && (
+            <span className="absolute -top-2 -right-2 bg-white text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              1
+            </span>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {value !== null && (
-          <DropdownMenuItem onSelect={() => onSelect(null)}>
+          <DropdownMenuItem onSelect={() => onSelect(null)} className="!font-normal">
             {defaultLabel}
           </DropdownMenuItem>
         )}
@@ -47,9 +50,10 @@ export function FilterChip({ defaultLabel, options, value, onSelect }: FilterChi
           <DropdownMenuItem
             key={opt.value}
             onSelect={() => onSelect(opt.value)}
-            className="!font-normal"
+            className="!font-normal flex items-center justify-between"
           >
-            {opt.label}
+            <span>{opt.label}</span>
+            {value === opt.value && <Check className="w-4 h-4 ml-2" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
