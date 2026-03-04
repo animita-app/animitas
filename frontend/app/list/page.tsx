@@ -9,10 +9,6 @@ export default function ListPage() {
   const { filteredData, filters } = useSpatialContext()
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
 
-  const activeCategory = (filters.category || [])[0] || null
-  const activeKind = (filters.kind || [])[0] || null
-  const activeCity = (filters.city_region || [])[0] || null
-
   const sortedSites = useMemo(() => {
     const sites = [...filteredData]
     switch (sortOrder) {
@@ -27,9 +23,14 @@ export default function ListPage() {
   }, [filteredData, sortOrder])
 
   const gridKey = useMemo(() => {
-    const parts = [activeCategory, activeKind, activeCity, sortOrder].filter(Boolean)
+    const parts = [
+      (filters.category || []).join(','),
+      (filters.kind || []).join(','),
+      (filters.city_region || []).join(','),
+      sortOrder
+    ].filter(Boolean)
     return parts.join('-') || 'all'
-  }, [activeCategory, activeKind, activeCity, sortOrder])
+  }, [filters.category, filters.kind, filters.city_region, sortOrder])
 
   return (
     <div className="min-h-svh w-full bg-background py-20">

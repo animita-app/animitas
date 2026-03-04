@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { Feature, Geometry } from 'geojson'
 import { formatPlaceName } from '@/lib/format-place'
@@ -12,13 +12,15 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const { setActiveArea, filteredData } = useSpatialContext()
   const debounceTimer = useRef<NodeJS.Timeout>()
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
+    console.log('[useSearchLocation] handleSearch called:', query)
     setSearchQuery(query)
     onSearch?.(query)
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current)
 
     if (query.length >= 3) {
+      console.log('[useSearchLocation] Opening popover')
       setOpen(true)
       setIsLoading(true)
 
@@ -46,9 +48,9 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
       setOpen(false)
       setSearchResults([])
     }
-  }
+  }, [filteredData, onSearch])
 
-  const handleSelect = async (result: any) => {
+  const handleSelect = useCallback(async (result: any) => {
     setIsLoading(true)
     let geometry: Geometry | null = null
 
@@ -109,13 +111,13 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
 
     setIsLoading(false)
     resetSearch()
-  }
+  }, [setActiveArea])
 
-  const resetSearch = () => {
+  const resetSearch = useCallback(() => {
     setSearchQuery('')
     onSearch?.('')
     setOpen(false)
-  }
+  }, [onSearch])
 
   return {
     searchQuery,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -15,6 +15,7 @@ import { LayerItem } from '@/components/map/layers/layer-item'
 import { Layer } from '@/components/map/types'
 import { COLORS } from '@/lib/map-style'
 import { formatPlaceName } from '@/lib/format-place'
+import { cn } from '@/lib/utils'
 
 interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
@@ -24,6 +25,19 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [searchActive, setSearchActive] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    console.log('[MainHeaderPanel] rendered')
+  })
+
+  useEffect(() => {
+    console.log('[MainHeaderPanel] searchActive changed:', searchActive)
+    if (searchActive) {
+      console.log('[MainHeaderPanel] Focusing input')
+      inputRef.current?.focus()
+    }
+  }, [searchActive])
 
   if (pathname.includes('add')) return null
 
@@ -81,7 +95,10 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   // Map view
   return (
-    <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
+    <nav className={cn(
+      "rounded-full p-1 bg-background/50 backdrop-blur-sm inline-flex items-center gap-1 border animate-in fade-in duration-200",
+      searchActive ? "border-border-weak shadow-xs" : "border-transparent shadow-none"
+    )}>
       {!searchActive && (
         <div className="flex items-center gap-1 animate-in fade-in duration-200">
           <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
@@ -106,14 +123,21 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <input
-                autoFocus
+                ref={inputRef}
                 type="text"
                 className="w-64 h-[30px] px-3 focus:outline-none bg-transparent text-sm"
                 placeholder="Buscar..."
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => {
+                  console.log('[Input] onChange:', e.target.value)
+                  handleSearch(e.target.value)
+                }}
                 disabled={isLoading}
-                onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+                onFocus={() => {
+                  console.log('[Input] onFocus')
+                  if (searchQuery.length >= 3) setOpen(true)
+                }}
+                onBlur={() => console.log('[Input] onBlur')}
               />
             </PopoverTrigger>
             <PopoverContent className="w-[calc(320px-24px)] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
