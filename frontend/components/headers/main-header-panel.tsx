@@ -15,7 +15,6 @@ import { LayerItem } from '@/components/map/layers/layer-item'
 import { Layer } from '@/components/map/types'
 import { COLORS } from '@/lib/map-style'
 import { formatPlaceName } from '@/lib/format-place'
-import { cn } from '@/lib/utils'
 
 interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
@@ -55,7 +54,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (hasBanner) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200">
+      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
         <span className="text-sm text-muted-foreground px-1">Área activa:</span>
         <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
         <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
@@ -67,7 +66,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   if (isListView) {
     return (
-      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200">
+      <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
         <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
           <ChevronLeft />
         </Button>
@@ -82,64 +81,69 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   // Map view
   return (
-    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1 transition-all duration-200 will-change-[width]">
-      <div className={cn("transition-opacity duration-200", searchActive ? "opacity-0 pointer-events-none" : "opacity-100")}>
-        <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
-          <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-            <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
-            <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <input
-        autoFocus={searchActive}
-        type="text"
-        className={cn("h-[30px] px-3 focus:outline-none bg-transparent text-sm transition-opacity duration-200 flex-1", searchActive ? "opacity-100" : "opacity-0 pointer-events-none")}
-        placeholder="Buscar..."
-        value={searchQuery}
-        onChange={(e) => handleSearch(e.target.value)}
-        disabled={isLoading}
-        onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
-      />
-
-      {searchActive && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild><div /></PopoverTrigger>
-          <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
-            {searchResults.length === 0 ? (
-              <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
-            ) : (
-              <ScrollArea className="max-h-60 p-1">
-                <div className="space-y-1">
-                  {searchResults.map((result) => {
-                    let geometryType: 'point' | 'line' | 'polygon' = 'point'
-                    if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
-                    else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
-                    else if (result.bbox) geometryType = 'polygon'
-
-                    const layer: Layer = {
-                      id: result.id,
-                      label: formatPlaceName(result.title || result.text || result.place_name),
-                      type: 'data',
-                      geometry: geometryType,
-                      color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
-                      visible: true,
-                      opacity: 100,
-                      source: 'search',
-                    }
-                    return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => e.stopPropagation()} />
-                  })}
-                </div>
-              </ScrollArea>
-            )}
-          </PopoverContent>
-        </Popover>
+    <nav className="rounded-full p-1 bg-background border border-border-weak shadow-xs inline-flex items-center gap-1">
+      {!searchActive && (
+        <>
+          <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+            <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
+              <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
+              <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button variant="ghost" size="icon" onClick={() => setSearchActive(true)} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+            <SearchIcon size={20} />
+          </Button>
+        </>
       )}
 
-      <Button variant="ghost" size="icon" onClick={() => setSearchActive(!searchActive)} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
-        {searchActive ? <X size={20} /> : <SearchIcon size={20} />}
-      </Button>
+      {searchActive && (
+        <>
+          <input
+            autoFocus
+            type="text"
+            className="h-[30px] px-3 focus:outline-none bg-transparent text-sm flex-1"
+            placeholder="Buscar..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            disabled={isLoading}
+            onFocus={() => { if (searchQuery.length >= 3) setOpen(true) }}
+          />
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild><div /></PopoverTrigger>
+            <PopoverContent className="border border-border-weak w-[264px] -ml-1 max-h-60 p-0" align="start" sideOffset={8}>
+              {searchResults.length === 0 ? (
+                <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
+              ) : (
+                <ScrollArea className="max-h-60 p-1">
+                  <div className="space-y-1">
+                    {searchResults.map((result) => {
+                      let geometryType: 'point' | 'line' | 'polygon' = 'point'
+                      if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
+                      else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
+                      else if (result.bbox) geometryType = 'polygon'
+
+                      const layer: Layer = {
+                        id: result.id,
+                        label: formatPlaceName(result.title || result.text || result.place_name),
+                        type: 'data',
+                        geometry: geometryType,
+                        color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
+                        visible: true,
+                        opacity: 100,
+                        source: 'search',
+                      }
+                      return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => e.stopPropagation()} />
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </PopoverContent>
+          </Popover>
+          <Button variant="ghost" size="icon" onClick={() => { setSearchActive(false); resetSearch() }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+            {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
+          </Button>
+        </>
+      )}
     </nav>
   )
 }
