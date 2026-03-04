@@ -49,6 +49,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
         if (MAPBOX_TOKEN) {
           try {
             const features = await searchLocation(query, MAPBOX_TOKEN)
+            console.log('[useSearchLocation] Mapbox features:', features)
             mapboxResults = features.map((feature: any) => ({
               id: feature.id,
               title: feature.place_name,
@@ -59,21 +60,27 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
               bbox: feature.bbox,
               center: feature.center
             }))
+            console.log('[useSearchLocation] Mapbox results mapped:', mapboxResults)
           } catch (error) {
             console.error('Mapbox search error:', error)
           }
         }
 
         const combined = [...localResults, ...mapboxResults]
+        console.log('[useSearchLocation] Combined results before dedup:', combined.map(r => ({ id: r.id, place_name: r.place_name, type: r.type })))
 
         const seen = new Set<string>()
         const deduplicated = combined.filter(result => {
           const key = result.place_name || result.title
-          if (seen.has(key)) return false
+          if (seen.has(key)) {
+            console.log('[useSearchLocation] Skipping duplicate:', key)
+            return false
+          }
           seen.add(key)
           return true
         })
 
+        console.log('[useSearchLocation] After dedup:', deduplicated.map(r => ({ id: r.id, place_name: r.place_name, type: r.type })))
         setSearchResults(deduplicated)
         setOpen(true)
         setIsLoading(false)
