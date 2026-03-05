@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect, useTransition } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -207,22 +207,30 @@ function SearchPanelContent({
 export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
   const [searchActive, setSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleTabChange = (route: string) => {
-    startTransition(() => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        router.push(route)
+      })
+    } else {
       router.push(route)
-    })
+    }
   }
 
   const handleBackClick = () => {
-    startTransition(() => {
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        router.push('/map')
+        setSearchActive(false)
+      })
+    } else {
       router.push('/map')
       setSearchActive(false)
-    })
+    }
   }
 
   useEffect(() => {
@@ -267,7 +275,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
       className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
         hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
       }`}
-      style={{ width: hasBanner || isListView ? PANEL_WIDTH : 'auto' }}
+      style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
     >
       {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
       {isListView && (
