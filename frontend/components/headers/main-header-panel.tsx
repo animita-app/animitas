@@ -65,9 +65,9 @@ function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void
 function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
   return (
     <>
-      <span className="text-sm text-muted-foreground px-1">Área activa:</span>
-      <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
-      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
+      <span className="text-sm text-white/50 px-1">Área activa:</span>
+      <span className="text-sm font-medium text-white">{activeAreaLabel}</span>
+      <Button variant="ghost" size="icon" className="h-5 w-5 text-white/50 hover:text-white/70" onClick={clearActiveArea}>
         <X className="h-3 w-3" />
       </Button>
     </>
@@ -126,7 +126,6 @@ interface SearchPanelContentProps {
   handleSelect: (result: any) => void
   resetSearch: () => void
   setSearchActive: (active: boolean) => void
-  isActive?: boolean
 }
 
 function SearchPanelContent({
@@ -141,27 +140,20 @@ function SearchPanelContent({
   handleSearch,
   handleSelect,
   resetSearch,
-  setSearchActive,
-  isActive
+  setSearchActive
 }: SearchPanelContentProps) {
   return (
     <div
       style={{ width: panelWidth }}
-      className={`box-border pl-3 pr-1 flex items-center gap-1 flex-shrink-0 transition-colors duration-200 ${
-        isActive ? 'bg-black border-l border-black' : ''
-      }`}
+      className="box-border pl-3 pr-1 flex items-center gap-1 flex-shrink-0"
     >
-      <SearchIcon className={`w-4 h-4 pointer-events-none flex-shrink-0 transition-colors duration-200 ${
-        isActive ? 'text-white/50' : 'text-muted-foreground'
-      }`} />
+      <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <input
             ref={inputRef}
             type="text"
-            className={`flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm transition-colors duration-200 ${
-              isActive ? 'text-white placeholder-white/50' : 'text-foreground placeholder-muted-foreground'
-            }`}
+            className="flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm text-foreground placeholder-muted-foreground"
             placeholder="Buscar..."
             value={inputValue}
             onChange={(e) => {
@@ -207,9 +199,7 @@ function SearchPanelContent({
         setSearchActive(false)
         setInputValue('')
         resetSearch()
-      }} disabled={isLoading} className={`!h-[30px] !w-[30px] rounded-full flex-shrink-0 transition-colors duration-200 ${
-        isActive ? 'text-white/50 hover:text-white/70' : 'text-muted-foreground'
-      }`}>
+      }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0">
         {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
       </Button>
     </div>
@@ -262,7 +252,9 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   return (
     <nav
-      className="rounded-full py-1 bg-background/50 backdrop-blur-sm border border-border-weak inline-flex items-center gap-1 animate-in fade-in duration-200 p-1"
+      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in duration-200 p-1 transition-colors duration-200 ${
+        hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
+      }`}
       style={{ width: hasBanner || isListView ? PANEL_WIDTH : 'auto' }}
     >
       {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
@@ -295,7 +287,6 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
             handleSelect={handleSelect}
             resetSearch={resetSearch}
             setSearchActive={setSearchActive}
-            isActive={searchActive}
           />
         </SlidingPanels>
       )}
