@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { ViewTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -24,13 +25,13 @@ interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
 }
 
-const PANEL_WIDTH = 248
+const PANEL_WIDTH = 244
 
 function TabsPanelContent({ onSearch, setSearchActive, onTabChange }: { onSearch?: () => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void }) {
   return (
     <div
       style={{ width: PANEL_WIDTH }}
-      className="box-border px-1 flex items-center gap-1 flex-shrink-0"
+      className="box-border flex items-center gap-1 flex-shrink-0"
     >
       <Tabs value="map" onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
@@ -212,25 +213,12 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleTabChange = (route: string) => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        router.push(route)
-      })
-    } else {
-      router.push(route)
-    }
+    router.push(route)
   }
 
   const handleBackClick = () => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
-        router.push('/map')
-        setSearchActive(false)
-      })
-    } else {
-      router.push('/map')
-      setSearchActive(false)
-    }
+    router.push('/map')
+    setSearchActive(false)
   }
 
   useEffect(() => {
@@ -271,46 +259,48 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
   return (
-    <nav
-      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
-        hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
-      }`}
-      style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
-    >
-      {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
-      {isListView && (
-        <ListViewContent
-          categoryOptions={categoryOptions}
-          kindOptions={kindOptions}
-          cityOptions={cityOptions}
-          activeCategories={activeCategories}
-          activeKinds={activeKinds}
-          activeCities={activeCities}
-          setFilter={setFilter}
-          clearFilters={clearFilters}
-          setSearchActive={setSearchActive}
-          onBackClick={handleBackClick}
-        />
-      )}
-      {!hasBanner && !isListView && (
-        <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
-          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
-          <SearchPanelContent
-            panelWidth={PANEL_WIDTH}
-            inputRef={inputRef}
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            open={open}
-            setOpen={setOpen}
-            isLoading={isLoading}
-            searchResults={searchResults}
-            handleSearch={handleSearch}
-            handleSelect={handleSelect}
-            resetSearch={resetSearch}
+    <ViewTransition name="main-header">
+      <nav
+        className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
+          hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
+        }`}
+        style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
+      >
+        {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
+        {isListView && (
+          <ListViewContent
+            categoryOptions={categoryOptions}
+            kindOptions={kindOptions}
+            cityOptions={cityOptions}
+            activeCategories={activeCategories}
+            activeKinds={activeKinds}
+            activeCities={activeCities}
+            setFilter={setFilter}
+            clearFilters={clearFilters}
             setSearchActive={setSearchActive}
+            onBackClick={handleBackClick}
           />
-        </SlidingPanels>
-      )}
-    </nav>
+        )}
+        {!hasBanner && !isListView && (
+          <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
+            <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
+            <SearchPanelContent
+              panelWidth={PANEL_WIDTH}
+              inputRef={inputRef}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              open={open}
+              setOpen={setOpen}
+              isLoading={isLoading}
+              searchResults={searchResults}
+              handleSearch={handleSearch}
+              handleSelect={handleSelect}
+              resetSearch={resetSearch}
+              setSearchActive={setSearchActive}
+            />
+          </SlidingPanels>
+        )}
+      </nav>
+    </ViewTransition>
   )
 }
