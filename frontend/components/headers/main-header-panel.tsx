@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -24,17 +24,15 @@ interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
 }
 
-const PANEL_WIDTH = 248+4
+const PANEL_WIDTH = 248
 
-function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void; setSearchActive: (active: boolean) => void }) {
-  const router = useRouter()
-
+function TabsPanelContent({ onSearch, setSearchActive, onTabChange }: { onSearch?: () => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void }) {
   return (
     <div
       style={{ width: PANEL_WIDTH }}
       className="box-border px-1 flex items-center gap-1 flex-shrink-0"
     >
-      <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+      <Tabs value="map" onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
           <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
           <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
@@ -64,13 +62,13 @@ function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void
 
 function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
   return (
-    <>
-      <span className="text-sm text-white/50 px-1">Área activa:</span>
+    <div className="pl-3 pr-0 w-full flex gap-1 items-center justify-center">
+      <span className="text-sm text-white/50">Área activa:</span>
       <span className="text-sm font-medium text-white">{activeAreaLabel}</span>
-      <Button variant="ghost" size="icon" className="h-5 w-5 text-white/50 hover:text-white/70" onClick={clearActiveArea}>
+      <Button variant="ghost" size="icon" className="ml-auto h-[30px] w-[30px] text-white/50 hover:bg-white/10 rounded-full hover:text-white/70" onClick={clearActiveArea}>
         <X className="h-3 w-3" />
       </Button>
-    </>
+    </div>
   )
 }
 
@@ -84,6 +82,7 @@ interface ListViewContentProps {
   setFilter: (key: string, value: string[]) => void
   clearFilters: () => void
   setSearchActive: (active: boolean) => void
+  onBackClick: () => void
 }
 
 function ListViewContent({
@@ -95,13 +94,12 @@ function ListViewContent({
   activeCities,
   setFilter,
   clearFilters,
-  setSearchActive
+  setSearchActive,
+  onBackClick
 }: ListViewContentProps) {
-  const router = useRouter()
-
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+      <Button variant="ghost" size="icon" onClick={onBackClick} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
         <ChevronLeft />
       </Button>
       <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
@@ -145,7 +143,7 @@ function SearchPanelContent({
   return (
     <div
       style={{ width: panelWidth }}
-      className="box-border pl-3 pr-1 flex items-center gap-1 flex-shrink-0"
+      className="box-border pl-2 pr-0 flex items-center gap-1 flex-shrink-0"
     >
       <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
       <Popover open={open} onOpenChange={setOpen}>
@@ -209,9 +207,23 @@ function SearchPanelContent({
 export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [searchActive, setSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleTabChange = (route: string) => {
+    startTransition(() => {
+      router.push(route)
+    })
+  }
+
+  const handleBackClick = () => {
+    startTransition(() => {
+      router.push('/map')
+      setSearchActive(false)
+    })
+  }
 
   useEffect(() => {
     if (searchActive) {
@@ -252,7 +264,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
 
   return (
     <nav
-      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in duration-200 p-1 transition-colors duration-200 ${
+      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
         hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
       }`}
       style={{ width: hasBanner || isListView ? PANEL_WIDTH : 'auto' }}
@@ -269,11 +281,12 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
           setFilter={setFilter}
           clearFilters={clearFilters}
           setSearchActive={setSearchActive}
+          onBackClick={handleBackClick}
         />
       )}
       {!hasBanner && !isListView && (
         <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
-          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} />
+          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
           <SearchPanelContent
             panelWidth={PANEL_WIDTH}
             inputRef={inputRef}
