@@ -32,7 +32,7 @@ function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void
   return (
     <div
       style={{ width: PANEL_WIDTH }}
-      className="box-border pl-1 pr-2 flex items-center gap-1 flex-shrink-0"
+      className="box-border px-1 flex items-center gap-1 flex-shrink-0"
     >
       <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
@@ -62,6 +62,57 @@ function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void
   )
 }
 
+function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
+  return (
+    <>
+      <span className="text-sm text-muted-foreground px-1">Área activa:</span>
+      <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
+      <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
+        <X className="h-3 w-3" />
+      </Button>
+    </>
+  )
+}
+
+interface ListViewContentProps {
+  categoryOptions: FilterOption[]
+  kindOptions: FilterOption[]
+  cityOptions: FilterOption[]
+  activeCategories: string[]
+  activeKinds: string[]
+  activeCities: string[]
+  setFilter: (key: string, value: string[]) => void
+  clearFilters: () => void
+  setSearchActive: (active: boolean) => void
+}
+
+function ListViewContent({
+  categoryOptions,
+  kindOptions,
+  cityOptions,
+  activeCategories,
+  activeKinds,
+  activeCities,
+  setFilter,
+  clearFilters,
+  setSearchActive
+}: ListViewContentProps) {
+  const router = useRouter()
+
+  return (
+    <>
+      <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+        <ChevronLeft />
+      </Button>
+      <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
+      <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
+      <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
+      <div className="flex-1" />
+      <Button variant="ghost" size="icon" onClick={clearFilters} className="-ml-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>
+    </>
+  )
+}
+
 interface SearchPanelContentProps {
   panelWidth: number
   inputRef: React.RefObject<HTMLInputElement>
@@ -75,6 +126,7 @@ interface SearchPanelContentProps {
   handleSelect: (result: any) => void
   resetSearch: () => void
   setSearchActive: (active: boolean) => void
+  isActive?: boolean
 }
 
 function SearchPanelContent({
@@ -89,20 +141,27 @@ function SearchPanelContent({
   handleSearch,
   handleSelect,
   resetSearch,
-  setSearchActive
+  setSearchActive,
+  isActive
 }: SearchPanelContentProps) {
   return (
     <div
       style={{ width: panelWidth }}
-      className="box-border pl-3 pr-1.5 flex items-center gap-1 flex-shrink-0"
+      className={`box-border pl-3 pr-1 flex items-center gap-1 flex-shrink-0 transition-colors duration-200 ${
+        isActive ? 'bg-black border-l border-black' : ''
+      }`}
     >
-      <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
+      <SearchIcon className={`w-4 h-4 pointer-events-none flex-shrink-0 transition-colors duration-200 ${
+        isActive ? 'text-white/50' : 'text-muted-foreground'
+      }`} />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <input
             ref={inputRef}
             type="text"
-            className="flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm text-foreground placeholder-muted-foreground"
+            className={`flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm transition-colors duration-200 ${
+              isActive ? 'text-white placeholder-white/50' : 'text-foreground placeholder-muted-foreground'
+            }`}
             placeholder="Buscar..."
             value={inputValue}
             onChange={(e) => {
@@ -115,7 +174,7 @@ function SearchPanelContent({
             }}
           />
         </PopoverTrigger>
-        <PopoverContent className="border border-border-weak max-h-60 p-0 z-50" style={{ width: `${panelWidth}px` }} align="start" sideOffset={8}>
+        <PopoverContent className="border border-border-weak max-h-60 p-0 z-50" style={{ width: `${panelWidth}px` }} align="center" sideOffset={8}>
           {searchResults.length === 0 ? (
             <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
           ) : (
@@ -148,7 +207,9 @@ function SearchPanelContent({
         setSearchActive(false)
         setInputValue('')
         resetSearch()
-      }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0">
+      }} disabled={isLoading} className={`!h-[30px] !w-[30px] rounded-full flex-shrink-0 transition-colors duration-200 ${
+        isActive ? 'text-white/50 hover:text-white/70' : 'text-muted-foreground'
+      }`}>
         {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
       </Button>
     </div>
@@ -199,55 +260,45 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasBanner = !!activeAreaLabel
   const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
-  if (hasBanner) {
-    return (
-      <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
-        <span className="text-sm text-muted-foreground px-1">Área activa:</span>
-        <span className="text-sm font-medium text-text-strong">{activeAreaLabel}</span>
-        <Button variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground" onClick={clearActiveArea}>
-          <X className="h-3 w-3" />
-        </Button>
-      </nav>
-    )
-  }
-
-  if (isListView) {
-    return (
-      <nav className="rounded-full p-1 bg-background/50 backdrop-blur-sm border-0 inline-flex items-center gap-1 animate-in fade-in duration-200">
-        <Button variant="ghost" size="icon" onClick={() => { router.push('/map'); setSearchActive(false) }} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
-          <ChevronLeft />
-        </Button>
-        <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
-        <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
-        <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" onClick={clearFilters} className="-ml-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>
-      </nav>
-    )
-  }
-
-  // Map view
   return (
     <nav
-      className="rounded-full py-1 bg-background/50 backdrop-blur-sm inline-flex items-center border border-border-weak animate-in fade-in duration-200"
+      className="rounded-full py-1 bg-background/50 backdrop-blur-sm border border-border-weak inline-flex items-center gap-1 animate-in fade-in duration-200 p-1"
+      style={{ width: hasBanner || isListView ? PANEL_WIDTH : 'auto' }}
     >
-      <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
-        <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} />
-        <SearchPanelContent
-          panelWidth={PANEL_WIDTH}
-          inputRef={inputRef}
-          inputValue={inputValue}
-          setInputValue={setInputValue}
-          open={open}
-          setOpen={setOpen}
-          isLoading={isLoading}
-          searchResults={searchResults}
-          handleSearch={handleSearch}
-          handleSelect={handleSelect}
-          resetSearch={resetSearch}
+      {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
+      {isListView && (
+        <ListViewContent
+          categoryOptions={categoryOptions}
+          kindOptions={kindOptions}
+          cityOptions={cityOptions}
+          activeCategories={activeCategories}
+          activeKinds={activeKinds}
+          activeCities={activeCities}
+          setFilter={setFilter}
+          clearFilters={clearFilters}
           setSearchActive={setSearchActive}
         />
-      </SlidingPanels>
+      )}
+      {!hasBanner && !isListView && (
+        <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
+          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} />
+          <SearchPanelContent
+            panelWidth={PANEL_WIDTH}
+            inputRef={inputRef}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            open={open}
+            setOpen={setOpen}
+            isLoading={isLoading}
+            searchResults={searchResults}
+            handleSearch={handleSearch}
+            handleSelect={handleSelect}
+            resetSearch={resetSearch}
+            setSearchActive={setSearchActive}
+            isActive={searchActive}
+          />
+        </SlidingPanels>
+      )}
     </nav>
   )
 }
