@@ -20,7 +20,15 @@ export function useLayerManagement({ map, setActiveLayers }: UseLayerManagementP
         const parsed = JSON.parse(savedLayers)
         const merged = INITIAL_LAYERS.map(initLayer => {
           const saved = parsed.find((l: Layer) => l.id === initLayer.id)
-          return saved ? { ...initLayer, ...saved } : initLayer
+          if (saved) {
+            // Preserve components from initial layer if not in saved version
+            return {
+              ...initLayer,
+              ...saved,
+              components: saved.components || initLayer.components
+            }
+          }
+          return initLayer
         })
         setLayers(merged)
       } catch (e) {

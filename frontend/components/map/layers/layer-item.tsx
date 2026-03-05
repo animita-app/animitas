@@ -31,7 +31,7 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center justify-center w-6 h-6">
+          <div className="flex items-center justify-center min-w-5">
             {icon}
           </div>
         </TooltipTrigger>
@@ -60,7 +60,7 @@ export const LayerItem = ({ layer, isSearchResult = false, onClick, onToggleVisi
   >
     <div className="flex items-center gap-1">
       <LayerIcon layer={layer} />
-      <span className={cn("text-sm font-normal text-black truncate select-none", isSearchResult ? "max-w-[220px]" : "max-w-56")}>{layer.label}</span>
+      <span className={cn("w-full text-sm font-normal text-black truncate select-none", isSearchResult ? "max-w-80" : "max-w-80")}>{layer.label}</span>
     </div>
     {!isSearchResult && (
       <Button

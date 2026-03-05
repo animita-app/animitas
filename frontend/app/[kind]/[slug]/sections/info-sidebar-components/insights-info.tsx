@@ -1,5 +1,5 @@
 import React from "react"
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 import { Badge } from "@/components/ui/badge"
 
 interface InsightsInfoProps {
@@ -27,7 +27,7 @@ export function InsightsInfo({ site }: InsightsInfoProps) {
         </Badge>
       )}
       <Badge variant="secondary" className="rounded-md font-normal text-sm">
-        #{site.kind}
+        #{site.kind?.name || site.kind_id}
       </Badge>
     </div>
   )

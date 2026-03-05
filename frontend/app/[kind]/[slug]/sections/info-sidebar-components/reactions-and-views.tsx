@@ -33,7 +33,7 @@ const INITIAL_REACTIONS: Reaction[] = [
 
 const AVAILABLE_EMOJIS = ["🙏", "🕯️", "❤️", "🌺", "✨", "🕊️"]
 
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 
 interface ReactionsAndViewsProps {
   site?: HeritageSite

@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
 import { Scroller } from "@/components/ui/scroller"

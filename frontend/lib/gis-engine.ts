@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf'
 import { Feature, Geometry, Polygon, Point, FeatureCollection, LineString } from 'geojson'
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 import { Layer } from "@/components/map/types"
 
 export interface GISOperationResult {

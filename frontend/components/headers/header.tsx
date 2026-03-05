@@ -83,16 +83,7 @@ export function Header({ className }: HeaderProps) {
           {isLoading ? (
             <div className="w-8 h-8" />
           ) : currentUser ? (
-            <>
-              <Button size="sm" className="!pl-2 gap-1" asChild>
-                <Link href="/add">
-                  <Plus />
-                  Añadir
-                </Link>
-              </Button>
-
-              <UserDropdown />
-            </>
+            <UserDropdown />
           ) : (
             <Button size="sm" asChild>
               <Link href="/auth">

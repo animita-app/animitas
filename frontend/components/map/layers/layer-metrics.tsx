@@ -3,7 +3,6 @@ import { useSpatialContext } from '@/contexts/spatial-context'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Layer, Component, HERITAGE_SITE_METRICS, InsightConfig, ComponentType } from "@/components/map/types"
-import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -22,10 +21,9 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
   // Get data source based on layer type
   const data = useMemo(() => {
     if (selectedLayer.id === 'heritage_sites') {
-      // Use SEED_SITES + syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
+      // Use syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
       // This ensures charts show all available options in the current area, even when an attribute filter is active.
-      const allSites = [...SEED_HERITAGE_SITES, ...(syntheticSites || [])]
-      let baseData = allSites
+      let baseData = syntheticSites || []
 
       if (activeArea) {
         baseData = baseData.filter(site => {
@@ -37,8 +35,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
       // Map data to include flattened properties for charts
       return baseData.map(site => ({
         ...site,
-        death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
-        typology: site.typology || 'unknown',
+        death_cause: site.insights?.memorial?.death_cause || 'unknown',
         antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
         size: site.insights?.patrimonial?.size || 'unknown'
       }))

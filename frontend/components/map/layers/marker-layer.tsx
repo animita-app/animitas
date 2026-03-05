@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { COLORS, ICONS } from '@/lib/map-style'
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 import { MapMarker } from '../map-marker'
 
 
@@ -318,10 +318,6 @@ export function MarkerLayer({
     }
   }, [map, isMapReady, onSiteClick, sourceId])
 
-  // Helper to get iconography
-  const getTypologyData = (type?: string) => {
-    return ICONS.typology[type as keyof typeof ICONS.typology] || ICONS.typology.default
-  }
   const getDeathCauseData = (cause?: string) => {
     return ICONS.deathCause[cause as keyof typeof ICONS.deathCause] || ICONS.deathCause.default
   }
@@ -341,12 +337,10 @@ export function MarkerLayer({
           {(currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : []))
             .map((site, index) => {
               const name = site.title
-              const typology = site.typology
               const death_cause = site.insights?.memorial?.death_cause
               const kind = (site as any).kind || 'animita'
               const slug = site.slug || site.id
 
-              const typologyData = getTypologyData(typology)
               const deathCauseData = getDeathCauseData(death_cause)
               const isVisible = currentZoom >= 10
               const href = `/${kind.toLowerCase()}/${slug}`

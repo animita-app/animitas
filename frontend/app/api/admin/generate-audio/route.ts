@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(req: Request) {
   const VOICE_ID = 'cMKZRsVE5V7xf6qCp9fF';
@@ -29,9 +29,20 @@ export async function GET(req: Request) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
+  // Fetch from Supabase
+  const supabase = await createClient();
+  const { data: sites, error } = await supabase
+    .from('heritage_sites')
+    .select('id, story')
+    .not('story', 'is', null);
+
+  if (error || !sites) {
+    return NextResponse.json({ error: 'Failed to fetch sites from Supabase' }, { status: 500 });
+  }
+
   const results = [];
 
-  for (const site of SEED_HERITAGE_SITES) {
+  for (const site of sites) {
     if (!site.story) continue;
 
     const filePath = path.join(OUTPUT_DIR, `${site.id}.mp3`);
@@ -49,28 +60,28 @@ export async function GET(req: Request) {
         },
         body: JSON.stringify({
           text: site.story,
-          model_id: 'eleven_multilingual_v2',
-          output_format: 'mp3_44100_128'
+          model_id: 'eleven_monolingual_v1',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          }
         }),
       });
 
       if (!response.ok) {
-        const err = await response.text();
-        results.push({ id: site.id, status: 'error', error: err });
+        results.push({ id: site.id, status: 'failed', error: response.statusText });
         continue;
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
+      const buffer = await response.arrayBuffer();
+      fs.writeFileSync(filePath, Buffer.from(buffer));
       results.push({ id: site.id, status: 'generated' });
-
-      // Delay to avoid rate limits? ElevenLabs rate limits are usually high enough for small batches, but safeguards help.
-      await new Promise(r => setTimeout(r, 500));
-
-    } catch (error: any) {
-      results.push({ id: site.id, status: 'error', error: error.message });
+    } catch (err: any) {
+      results.push({ id: site.id, status: 'error', message: err.message });
     }
   }
+
+  console.log(`Processed ${sites.length} sites. Generated: ${results.filter(r => r.status === 'generated').length}`);
 
   return NextResponse.json({ success: true, results });
 }

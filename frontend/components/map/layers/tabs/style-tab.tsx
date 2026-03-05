@@ -35,15 +35,6 @@ export function StyleTab({ layer, activeProperties, onPropertyToggle, onUpdateLa
       {isAnimitas && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label htmlFor="prop-typology">Tipología</Label>
-            <Switch
-              id="prop-typology"
-              checked={activeProperties?.includes('typology')}
-              onCheckedChange={(checked) => onPropertyToggle?.('typology', checked)}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
             <Label htmlFor="prop-death-cause">Causa</Label>
             <Switch
               id="prop-death-cause"

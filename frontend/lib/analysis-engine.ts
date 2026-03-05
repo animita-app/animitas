@@ -1,4 +1,4 @@
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 import * as turf from '@turf/turf'
 import { Feature, Point, Polygon } from 'geojson'
 
@@ -63,22 +63,5 @@ export function getDistanceHistogram(animitas: HeritageSite[]): ChartData {
         backgroundColor: 'rgba(54, 162, 235, 0.5)',
       },
     ],
-  }
-}
-
-export function getTypologyDistribution(animitas: HeritageSite[]): ChartData {
-  const counts: Record<string, number> = {}
-  animitas.forEach(a => {
-    const t = a.typology || 'Desconocida'
-    counts[t] = (counts[t] || 0) + 1
-  })
-
-  return {
-    labels: Object.keys(counts),
-    datasets: [{
-      label: 'Tipología',
-      data: Object.values(counts),
-      backgroundColor: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8']
-    }]
   }
 }

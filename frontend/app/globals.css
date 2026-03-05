@@ -71,7 +71,7 @@
   --color-border-weak: var(--color-neutral-light-5);
   --color-icon: var(--color-neutral-dark-1);
   --color-selection: var(--color-primary-2);
-  --color-accent: #00e;
+  --color-accent: #0000ee;
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
@@ -131,7 +131,7 @@
   --color-border-weak: var(--color-neutral-dark-6);
   --color-icon: var(--color-neutral-light-1);
   --color-selection: var(--color-primary-2);
-  --color-accent: #00e;
+  --color-accent: #0000ee;
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
@@ -212,7 +212,7 @@
 }
 
 body {
-  @apply selection:bg-[#00e] selection:text-white;
+  @apply selection:bg-[#0000ee] selection:text-white;
   pointer-events: auto !important;
   touch-action: manipulation;
 }

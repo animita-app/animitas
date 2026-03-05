@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, MousePointer2 } from 'lucide-react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useRouter } from 'next/navigation'
-import { MapLayout } from '@/layouts/map-layout'
 import { useMapInitialization, CHILE_BOUNDS } from './hooks/useMapInitialization'
 import { useActiveArea } from './hooks/useActiveArea'
 import { useOverpassData } from './hooks/useOverpassData'
@@ -12,13 +11,19 @@ import { useLayerManagement } from './hooks/useLayerManagement'
 import { useMapEvents } from './hooks/useMapEvents'
 import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
-import { HeritageSiteProperty, GISOperation } from '../paywall/types'
+import { HeritageSiteProperty, GISOperation } from '@/components/map/types'
 import { searchLocation } from '@/lib/mapbox'
 import { MapMarker } from './map-marker'
 import { MarkerLayer } from './layers/marker-layer'
 import { COLORS } from '@/lib/map-style'
+import { Legend } from './legend'
+import { LayerDetail } from './layers/layer-detail'
+import { Button } from '@/components/ui/button'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Drawer, DrawerContentFloating, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { cn } from '@/lib/utils'
 
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 import { useUser } from '@/contexts/user-context'
 import { ROLES } from '@/types/roles'
 
@@ -46,10 +51,11 @@ export default function MapboxMap({
   // Spatial Context
   // @ts-ignore
   // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData } = useSpatialContext()
+  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel } = useSpatialContext()
 
   // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
+  const isMobile = useIsMobile()
 
   // Heritage Site Selection
   const { selectedHeritageSite, handleHeritageSiteSelect } = useHeritageSiteSelection({
@@ -59,7 +65,7 @@ export default function MapboxMap({
 
   // UI State
   const [showProfileMarkers, setShowProfileMarkers] = useState(false)
-  const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['typology', 'death_cause'])
+  const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['death_cause'])
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [currentZoom, setCurrentZoom] = useState<number>(0)
 
@@ -269,8 +275,7 @@ export default function MapboxMap({
     // 1. Search Local Data (Heritage Sites)
     const localResults = filteredData
       .filter((site: HeritageSite) =>
-        site.title.toLowerCase().includes(query.toLowerCase()) ||
-        site.typology?.toLowerCase().includes(query.toLowerCase())
+        site.title.toLowerCase().includes(query.toLowerCase())
       )
       .map((site: HeritageSite) => ({
         id: site.id,
@@ -334,7 +339,7 @@ export default function MapboxMap({
 
   return (
     <div className="relative w-full h-full pointer-events-auto">
-      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
+      <div ref={mapContainer} className="absolute inset-0 top-4 pointer-events-auto" />
 
       <MarkerLayer
         map={map.current}
@@ -353,28 +358,92 @@ export default function MapboxMap({
         </div>
       )}
 
-      <MapLayout
-        layers={layers}
-        elements={elements}
-        selectedLayer={selectedLayer}
-        onLayerVisibilityChange={handleLayerVisibilityChange}
-        onLayerUpdate={handleLayerUpdate}
-        onLayerSelect={handleLayerSelect}
-        onToggleProfile={handleProfileToggle}
-        onExport={handleExport}
-        onGenerateSynthetic={handleGenerateSynthetic}
+      {hasMoved && (
+        <Button
+          size="icon"
+          variant="secondary"
+          className="absolute bottom-8 md:bottom-4 right-4 z-10 shadow-xs"
+          onClick={handleResetView}
+          title="Restablecer Vista"
+        >
+          <MousePointer2 className="size-4 rotate-90 stroke-[0.5px] fill-white" />
+        </Button>
+      )}
 
-        activeProperties={activeProperties}
-        showProfileMarkers={showProfileMarkers}
-        // @ts-ignore
-        onPropertyToggle={handlePropertyToggle}
-        onGISOperationSelect={handleGISOperationSelect}
-        onElementRemove={handleElementRemove}
-        onCloseLayerDetail={handleCloseLayerDetail}
+      {!isMobile && showResearchPanel && (
+        <div className="absolute inset-4 z-10 pt-12 pointer-events-none animate-in fade-in duration-150 flex items-start gap-4">
+          <div className="pointer-events-auto flex-shrink-0">
+            <Legend
+              layers={layers}
+              elements={elements}
+              selectedLayerId={selectedLayer?.id}
+              onLayerClick={handleLayerSelect}
+              onToggleVisibility={handleLayerVisibilityChange}
+            />
+          </div>
+          {selectedLayer && (
+            <div className="pointer-events-auto ml-auto flex-shrink-0">
+              <LayerDetail
+                selectedLayer={selectedLayer}
+                onClose={handleCloseLayerDetail}
+                onUpdateLayer={handleLayerUpdate}
+                activeProperties={activeProperties}
+                onPropertyToggle={handlePropertyToggle}
+                onGISOperationSelect={handleGISOperationSelect}
+                onElementRemove={handleElementRemove}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
-        onResetView={handleResetView}
-        hasMoved={hasMoved}
-      />
+      {isMobile && (
+        <Drawer
+          snapPoints={[0.06, 1]}
+          activeSnapPoint={0.06}
+          setActiveSnapPoint={() => {}}
+          open={true}
+          modal={false}
+          onOpenChange={() => {}}
+        >
+          <DrawerHeader className="sr-only">
+            <DrawerTitle>Detalle de Capa</DrawerTitle>
+            <DrawerDescription>Detalle de Capa</DrawerDescription>
+          </DrawerHeader>
+          <DrawerContentFloating
+            className="w-screen"
+            onHandleClick={() => {}}
+            showOverlay={false}
+          >
+            <div className="flex-1 justify-between overflow-y-auto w-full px-0 pb-0 space-y-4">
+              <Legend
+                layers={layers}
+                elements={elements}
+                selectedLayerId={selectedLayer?.id}
+                onLayerClick={(l) => {
+                  handleLayerSelect(l)
+                }}
+                onToggleVisibility={handleLayerVisibilityChange}
+                className="w-full h-auto border-none shadow-none p-0 !bg-transparent"
+              />
+              {selectedLayer && (
+                <LayerDetail
+                  selectedLayer={selectedLayer}
+                  onClose={() => {
+                    handleCloseLayerDetail()
+                  }}
+                  onUpdateLayer={handleLayerUpdate}
+                  activeProperties={activeProperties}
+                  onPropertyToggle={handlePropertyToggle}
+                  onGISOperationSelect={handleGISOperationSelect}
+                  onElementRemove={handleElementRemove}
+                  className="ml-auto w-full h-auto border-none shadow-none static slide-in-from-right-0 animate-none p-0 !bg-transparent"
+                />
+              )}
+            </div>
+          </DrawerContentFloating>
+        </Drawer>
+      )}
     </div>
   )
 }

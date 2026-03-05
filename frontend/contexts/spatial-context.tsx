@@ -11,8 +11,9 @@ interface SpatialContextType {
   setActiveArea: (area: Feature<Geometry> | FeatureCollection, label: string) => void
   clearActiveArea: () => void
 
-
-
+  // Research Panel
+  showResearchPanel: boolean
+  setShowResearchPanel: (show: boolean) => void
 
   // Filtering
   filters: Record<string, string[]>
@@ -34,6 +35,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
+  const [showResearchPanel, setShowResearchPanel] = useState(false)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
   const [dbSites, setDbSites] = useState<any[]>([])
@@ -196,6 +198,8 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       activeAreaLabel,
       setActiveArea,
       clearActiveArea,
+      showResearchPanel,
+      setShowResearchPanel,
       filters,
       setFilter,
       toggleFilter,

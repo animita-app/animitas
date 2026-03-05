@@ -1,5 +1,5 @@
 import React from "react"
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/contexts/user-context"

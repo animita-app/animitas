@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 
 interface UseVisibleSitesProps {
   map: mapboxgl.Map | null

@@ -49,7 +49,7 @@ export interface Component {
 
 
 
-export type HeritageSiteProperty = 'typology' | 'death_cause' | 'social_roles'
+export type HeritageSiteProperty = 'death_cause' | 'social_roles'
 
 export interface LayersPanelProps {
   className?: string
@@ -77,7 +77,7 @@ export const HERITAGE_SITE_METRICS: Component[] = [
     type: 'bar_chart',
     title: 'Causa de muerte',
     visible: true,
-    config: { horizontalAxis: 'death_cause', groupBy: 'typology', stat: 'count' }
+    config: { horizontalAxis: 'death_cause', stat: 'count' }
   },
   {
     id: 'antiquity-hist',
@@ -119,4 +119,4 @@ export const INITIAL_LAYERS: Layer[] = [
 
 ]
 
-export const MOCK_ATTRIBUTES = ['typology', 'death_cause', 'social_roles', 'antiquity_year', 'size']
+export const MOCK_ATTRIBUTES = ['death_cause', 'social_roles', 'antiquity_year', 'size']

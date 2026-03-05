@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { SEED_HERITAGE_SITES } from '@/constants/heritage-sites'
 import { createClient } from '@/lib/supabase/server'
 import { SiteDetailView } from './sections/site-detail-view'
 
@@ -14,7 +13,7 @@ export default async function SiteDetailPage({ params }: PageProps) {
   const { slug, kind } = await params
   const supabase = await createClient()
 
-  // 1. Try fetching from Supabase
+  // Fetch from Supabase
   const { data: dbSiteRaw } = await supabase
     .from('heritage_sites')
     .select('*, user_profiles!creator_id(id, display_name), heritage_kinds!kind_id(slug, name)')
@@ -22,7 +21,7 @@ export default async function SiteDetailPage({ params }: PageProps) {
     .single()
 
   // Transform to match HeritageSite type
-  const dbSite = dbSiteRaw ? {
+  const site = dbSiteRaw ? {
     ...dbSiteRaw,
     kind: dbSiteRaw.heritage_kinds?.slug,
     created_by: {
@@ -30,10 +29,6 @@ export default async function SiteDetailPage({ params }: PageProps) {
       name: dbSiteRaw.user_profiles?.display_name || 'Anonymous'
     }
   } : null
-
-  // 2. Fallback to SEED
-  const seedSite = SEED_HERITAGE_SITES.find((s) => s.slug === slug)
-  const site = dbSite || seedSite
 
   if (!site) {
     notFound()

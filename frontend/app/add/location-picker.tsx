@@ -272,10 +272,10 @@ export function LocationPicker({ value, onChange, mode = 'both' }: LocationPicke
         selectedAreas.forEach(area => {
           if (area.geometry.type === 'Polygon') {
             const coords = area.geometry.coordinates[0]
-            coords.forEach((coord: [number, number]) => bounds.extend(coord))
+            coords.forEach((coord: any) => { bounds.extend(coord as [number, number]) })
           } else if (area.geometry.type === 'MultiPolygon') {
             area.geometry.coordinates.forEach((polygon: any) => {
-              polygon[0].forEach((coord: [number, number]) => bounds.extend(coord))
+              polygon[0].forEach((coord: any) => { bounds.extend(coord as [number, number]) })
             })
           }
         })
@@ -292,10 +292,10 @@ export function LocationPicker({ value, onChange, mode = 'both' }: LocationPicke
       selectedAreas.forEach(area => {
         if (area.geometry.type === 'Polygon') {
           const coords = area.geometry.coordinates[0]
-          coords.forEach((coord: [number, number]) => allBounds.extend(coord))
+          coords.forEach((coord: any) => { allBounds.extend(coord as [number, number]) })
         } else if (area.geometry.type === 'MultiPolygon') {
           area.geometry.coordinates.forEach((polygon: any) => {
-            polygon[0].forEach((coord: [number, number]) => allBounds.extend(coord))
+            polygon[0].forEach((coord: any) => { allBounds.extend(coord as [number, number]) })
           })
         }
       })

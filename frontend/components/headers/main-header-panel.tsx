@@ -18,6 +18,7 @@ import { formatPlaceName } from '@/lib/format-place'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
+import { SlidingPanels } from '@/components/ui/sliding-panels'
 
 interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
@@ -97,21 +98,11 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   }
 
   // Map view
-  const translateX = searchActive ? -PANEL_WIDTH : 0
-
   return (
     <nav
-      className="rounded-full py-1 bg-background/50 backdrop-blur-sm inline-flex items-center border border-border-weak animate-in fade-in duration-200 overflow-clip"
-      style={{ width: PANEL_WIDTH }}
+      className="rounded-full py-1 bg-background/50 backdrop-blur-sm inline-flex items-center border border-border-weak animate-in fade-in duration-200"
     >
-      <div
-        className="flex"
-        style={{
-          width: PANEL_WIDTH * 2,
-          transform: `translateX(${translateX}px)`,
-          transition: 'transform 200ms cubic-bezier(.4,0,.2,1)'
-        }}
-      >
+      <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
         {/* Tabs Panel */}
         <div
           style={{ width: PANEL_WIDTH }}
@@ -204,7 +195,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
             {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
           </Button>
         </div>
-      </div>
+      </SlidingPanels>
     </nav>
   )
 }

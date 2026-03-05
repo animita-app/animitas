@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 
 interface UseHeritageSiteSelectionProps {
   onHeritageSiteSelect?: (site: HeritageSite | null) => void

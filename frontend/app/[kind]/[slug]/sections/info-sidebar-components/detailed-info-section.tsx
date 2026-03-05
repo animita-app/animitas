@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 import { InfoBlock } from "./info-block"
 import { cn } from "@/lib/utils"
 

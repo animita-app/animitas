@@ -16,13 +16,16 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/contexts/user-context'
+import { useSpatialContext } from '@/contexts/spatial-context'
 import { ROLES } from '@/types/roles'
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 export function UserDropdown() {
   const { role, setRole, currentUser, setUser, researchMode, setResearchMode, isEditor, isSuperadmin } = useUser()
+  const { showResearchPanel, setShowResearchPanel } = useSpatialContext()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -103,16 +106,27 @@ export function UserDropdown() {
           </DropdownMenuSub>
         </DropdownMenuGroup>
 
-        {(isEditor || isSuperadmin) && (
-          <DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <DropdownMenuCheckboxItem
+            checked={showResearchPanel}
+            onCheckedChange={(checked) => {
+              setResearchMode(checked)
+              if (!checked) setShowResearchPanel(false)
+            }}          >
+            Modo investigación
+          </DropdownMenuCheckboxItem>
+          {/* {(isEditor || isSuperadmin) && (
             <DropdownMenuCheckboxItem
               checked={researchMode}
-              onCheckedChange={setResearchMode}
+              onCheckedChange={(checked) => {
+                setResearchMode(checked)
+                if (!checked) setShowResearchPanel(false)
+              }}
             >
               Modo Investigación
             </DropdownMenuCheckboxItem>
-          </DropdownMenuGroup>
-        )}
+          )} */}
+        </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 

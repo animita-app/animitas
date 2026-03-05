@@ -1,4 +1,4 @@
-import { HeritageSite } from '@/types/mock'
+import { HeritageSite } from '@/types/heritage'
 import { Feature, FeatureCollection, LineString, MultiLineString, Polygon, MultiPolygon, Point } from 'geojson'
 import * as turf from '@turf/turf'
 
@@ -113,14 +113,17 @@ function generateRandomAttributes(seed: HeritageSite, index: number): Partial<He
   const realPersonImage = `https://i.pravatar.cc/150?u=${index}-${Date.now()}`;
 
   return {
+    id: `synthetic-${index}-${Date.now()}`,
     title: title,
     slug: slugify(title),
-    person_id: `synthetic-person-${index}-${Date.now()}`,
-    person_image: realPersonImage,
-    typology: typology,
-    size: size,
+    kind_id: "11111111-1111-1111-1111-111111111111",
+    images: [realPersonImage],
+    location: { lat: 0, lng: 0 },
     story: story,
     created_at: createdAt,
+    created_by: { id: "system", name: "Sistema" },
+    allow_edits: false,
+    creator_id: "system",
     insights: {
       heritage_site_id: `synthetic-${index}-${Date.now()}`,
       memorial: {

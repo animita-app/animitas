@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { HeritageCategory, HeritageKind } from '@/types/mock'
+import { HeritageCategory, HeritageKind } from '@/types/heritage'
 import { createClient } from '@/lib/supabase/client'
 
 export function useHeritageTaxonomy() {

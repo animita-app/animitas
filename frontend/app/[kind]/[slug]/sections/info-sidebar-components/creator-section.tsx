@@ -1,5 +1,5 @@
 import React from "react"
-import { HeritageSite } from "@/types/mock"
+import { HeritageSite } from "@/types/heritage"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { InfoBlock } from "./info-block"
 
