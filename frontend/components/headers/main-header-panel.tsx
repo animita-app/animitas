@@ -26,6 +26,135 @@ interface MainHeaderPanelProps {
 
 const PANEL_WIDTH = 248+4
 
+function TabsPanelContent({ onSearch, setSearchActive }: { onSearch?: () => void; setSearchActive: (active: boolean) => void }) {
+  const router = useRouter()
+
+  return (
+    <div
+      style={{ width: PANEL_WIDTH }}
+      className="box-border pl-1 pr-2 flex items-center gap-1 flex-shrink-0"
+    >
+      <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+        <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
+          <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
+          <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <Separator orientation="vertical" className='!h-6 mx-1' />
+
+      <Button size="sm" className="h-[30px] !pl-2 gap-1 !rounded-full" asChild>
+        <Link href="/add">
+          <Plus />
+          Añadir
+        </Link>
+      </Button>
+
+      <Button
+        size="icon"
+        variant="ghost"
+        onClick={() => setSearchActive(true)}
+        className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"
+      >
+        <SearchIcon size={20} />
+      </Button>
+    </div>
+  )
+}
+
+interface SearchPanelContentProps {
+  panelWidth: number
+  inputRef: React.RefObject<HTMLInputElement>
+  inputValue: string
+  setInputValue: (value: string) => void
+  open: boolean
+  setOpen: (open: boolean) => void
+  isLoading: boolean
+  searchResults: any[]
+  handleSearch: (query: string) => void
+  handleSelect: (result: any) => void
+  resetSearch: () => void
+  setSearchActive: (active: boolean) => void
+}
+
+function SearchPanelContent({
+  panelWidth,
+  inputRef,
+  inputValue,
+  setInputValue,
+  open,
+  setOpen,
+  isLoading,
+  searchResults,
+  handleSearch,
+  handleSelect,
+  resetSearch,
+  setSearchActive
+}: SearchPanelContentProps) {
+  return (
+    <div
+      style={{ width: panelWidth }}
+      className="box-border pl-3 pr-1.5 flex items-center gap-1 flex-shrink-0"
+    >
+      <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <input
+            ref={inputRef}
+            type="text"
+            className="flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm text-foreground placeholder-muted-foreground"
+            placeholder="Buscar..."
+            value={inputValue}
+            onChange={(e) => {
+              setInputValue(e.target.value)
+              handleSearch(e.target.value)
+            }}
+            disabled={isLoading}
+            onFocus={() => {
+              if (inputValue.length >= 3) setOpen(true)
+            }}
+          />
+        </PopoverTrigger>
+        <PopoverContent className="border border-border-weak max-h-60 p-0 z-50" style={{ width: `${panelWidth}px` }} align="start" sideOffset={8}>
+          {searchResults.length === 0 ? (
+            <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
+          ) : (
+            <ScrollArea className="max-h-60 p-1">
+              <div className="space-y-1 [&_*]:text-ellipsis [&_*]:whitespace-nowrap">
+                {searchResults.map((result) => {
+                  let geometryType: 'point' | 'line' | 'polygon' = 'point'
+                  if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
+                  else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
+                  else if (result.bbox) geometryType = 'polygon'
+
+                  const layer: Layer = {
+                    id: result.id,
+                    label: result.title || result.text || result.place_name,
+                    type: 'data',
+                    geometry: geometryType,
+                    color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
+                    visible: true,
+                    opacity: 100,
+                    source: 'search',
+                  }
+                  return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => e.stopPropagation()} />
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </PopoverContent>
+      </Popover>
+      <Button variant="ghost" size="icon" onClick={() => {
+        setSearchActive(false)
+        setInputValue('')
+        resetSearch()
+      }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0">
+        {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
+      </Button>
+    </div>
+  )
+}
+
 export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -103,98 +232,21 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
       className="rounded-full py-1 bg-background/50 backdrop-blur-sm inline-flex items-center border border-border-weak animate-in fade-in duration-200"
     >
       <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
-        {/* Tabs Panel */}
-        <div
-          style={{ width: PANEL_WIDTH }}
-          className="box-border pl-1 pr-2 flex items-center gap-1 flex-shrink-0"
-        >
-          <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
-            <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-              <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
-              <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <Separator orientation="vertical" className='!h-6 mx-1' />
-
-          <Button size="sm" className="h-[30px] !pl-2 gap-1 !rounded-full" asChild>
-            <Link href="/add">
-              <Plus />
-              Añadir
-            </Link>
-          </Button>
-
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => setSearchActive(true)}
-            className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"
-          >
-            <SearchIcon size={20} />
-          </Button>
-        </div>
-
-        {/* Search Panel */}
-        <div
-          style={{ width: PANEL_WIDTH }}
-          className="box-border pl-3 pr-1.5 flex items-center gap-1 flex-shrink-0"
-        >
-          <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <input
-                ref={inputRef}
-                type="text"
-                className="flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm text-foreground placeholder-muted-foreground"
-                placeholder="Buscar..."
-                value={inputValue}
-                onChange={(e) => {
-                  setInputValue(e.target.value)
-                  handleSearch(e.target.value)
-                }}
-                disabled={isLoading}
-                onFocus={() => {
-                  if (inputValue.length >= 3) setOpen(true)
-                }}
-              />
-            </PopoverTrigger>
-            <PopoverContent className="border border-border-weak max-h-60 p-0 z-50" style={{ width: `${PANEL_WIDTH}px` }} align="start" sideOffset={8}>
-              {searchResults.length === 0 ? (
-                <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
-              ) : (
-                <ScrollArea className="max-h-60 p-1">
-                  <div className="space-y-1 [&_*]:text-ellipsis [&_*]:whitespace-nowrap">
-                    {searchResults.map((result) => {
-                      let geometryType: 'point' | 'line' | 'polygon' = 'point'
-                      if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') geometryType = 'polygon'
-                      else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') geometryType = 'line'
-                      else if (result.bbox) geometryType = 'polygon'
-
-                      const layer: Layer = {
-                        id: result.id,
-                        label: result.title || result.text || result.place_name,
-                        type: 'data',
-                        geometry: geometryType,
-                        color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
-                        visible: true,
-                        opacity: 100,
-                        source: 'search',
-                      }
-                      return <LayerItem key={result.id} layer={layer} isSearchResult={true} onClick={() => handleSelect(result)} onToggleVisibility={(e) => e.stopPropagation()} />
-                    })}
-                  </div>
-                </ScrollArea>
-              )}
-            </PopoverContent>
-          </Popover>
-          <Button variant="ghost" size="icon" onClick={() => {
-            setSearchActive(false)
-            setInputValue('')
-            resetSearch()
-          }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0">
-            {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
-          </Button>
-        </div>
+        <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} />
+        <SearchPanelContent
+          panelWidth={PANEL_WIDTH}
+          inputRef={inputRef}
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          open={open}
+          setOpen={setOpen}
+          isLoading={isLoading}
+          searchResults={searchResults}
+          handleSearch={handleSearch}
+          handleSelect={handleSelect}
+          resetSearch={resetSearch}
+          setSearchActive={setSearchActive}
+        />
       </SlidingPanels>
     </nav>
   )
