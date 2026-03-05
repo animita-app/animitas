@@ -8,7 +8,7 @@ import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { useSearchLocation } from '@/hooks/use-search-location'
 import { FilterChip, type FilterOption } from '@/components/ui/filter-chip'
 import { Button } from '@/components/ui/button'
-import { X, Search as SearchIcon, ChevronLeft } from 'lucide-react'
+import { X, Search as SearchIcon, ChevronLeft, Plus } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LayerItem } from '@/components/map/layers/layer-item'
@@ -16,10 +16,14 @@ import { Layer } from '@/components/map/types'
 import { COLORS } from '@/lib/map-style'
 import { formatPlaceName } from '@/lib/format-place'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import { Separator } from '@/components/ui/separator'
 
 interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
 }
+
+const PANEL_WIDTH = 248+4
 
 export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
@@ -93,38 +97,64 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   }
 
   // Map view
+  const translateX = searchActive ? -PANEL_WIDTH : 0
+
   return (
-    <nav className={cn(
-      "rounded-full p-1 bg-background/50 backdrop-blur-sm inline-flex items-center gap-1 border animate-in fade-in duration-200",
-      searchActive ? "border-border-weak shadow-xs" : "border-transparent shadow-none"
-    )}>
-      {!searchActive && (
-        <div className="flex items-center gap-1 animate-in fade-in duration-200">
+    <nav
+      className="rounded-full py-1 bg-background/50 backdrop-blur-sm inline-flex items-center border border-border-weak animate-in fade-in duration-200 overflow-clip"
+      style={{ width: PANEL_WIDTH }}
+    >
+      <div
+        className="flex"
+        style={{
+          width: PANEL_WIDTH * 2,
+          transform: `translateX(${translateX}px)`,
+          transition: 'transform 200ms cubic-bezier(.4,0,.2,1)'
+        }}
+      >
+        {/* Tabs Panel */}
+        <div
+          style={{ width: PANEL_WIDTH }}
+          className="box-border pl-1 pr-2 flex items-center gap-1 flex-shrink-0"
+        >
           <Tabs value="map" onValueChange={(v) => { router.push(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
             <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
               <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
               <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <Separator orientation="vertical" className='!h-6 mx-1' />
+
+          <Button size="sm" className="h-[30px] !pl-2 gap-1 !rounded-full" asChild>
+            <Link href="/add">
+              <Plus />
+              Añadir
+            </Link>
+          </Button>
+
           <Button
-            variant="ghost"
             size="icon"
+            variant="ghost"
             onClick={() => setSearchActive(true)}
             className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"
           >
             <SearchIcon size={20} />
           </Button>
         </div>
-      )}
 
-      {searchActive && (
-        <div className="flex items-center gap-1 flex-1 animate-in fade-in duration-200">
+        {/* Search Panel */}
+        <div
+          style={{ width: PANEL_WIDTH }}
+          className="box-border pl-3 pr-1.5 flex items-center gap-1 flex-shrink-0"
+        >
+          <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <input
                 ref={inputRef}
                 type="text"
-                className="w-64 h-[30px] px-3 focus:outline-none bg-transparent text-sm"
+                className="flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm text-foreground placeholder-muted-foreground"
                 placeholder="Buscar..."
                 value={inputValue}
                 onChange={(e) => {
@@ -137,7 +167,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
                 }}
               />
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] border border-border-weak max-h-60 p-0 z-50" align="start" sideOffset={8}>
+            <PopoverContent className="border border-border-weak max-h-60 p-0 z-50" style={{ width: `${PANEL_WIDTH}px` }} align="start" sideOffset={8}>
               {searchResults.length === 0 ? (
                 <div className="p-4 text-sm text-center text-muted-foreground">{isLoading ? 'Buscando...' : 'Sin resultados'}</div>
               ) : (
@@ -170,11 +200,11 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
             setSearchActive(false)
             setInputValue('')
             resetSearch()
-          }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+          }} disabled={isLoading} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0">
             {isLoading ? <div className="animate-spin"><X size={20} /></div> : <X size={20} />}
           </Button>
         </div>
-      )}
+      </div>
     </nav>
   )
 }
