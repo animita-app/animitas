@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { ViewTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -213,12 +212,25 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleTabChange = (route: string) => {
-    router.push(route)
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        router.push(route)
+      })
+    } else {
+      router.push(route)
+    }
   }
 
   const handleBackClick = () => {
-    router.push('/map')
-    setSearchActive(false)
+    if (document.startViewTransition) {
+      document.startViewTransition(() => {
+        router.push('/map')
+        setSearchActive(false)
+      })
+    } else {
+      router.push('/map')
+      setSearchActive(false)
+    }
   }
 
   useEffect(() => {
@@ -259,48 +271,46 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
   return (
-    <ViewTransition name="main-header">
-      <nav
-        className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
-          hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
-        }`}
-        style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
-      >
-        {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
-        {isListView && (
-          <ListViewContent
-            categoryOptions={categoryOptions}
-            kindOptions={kindOptions}
-            cityOptions={cityOptions}
-            activeCategories={activeCategories}
-            activeKinds={activeKinds}
-            activeCities={activeCities}
-            setFilter={setFilter}
-            clearFilters={clearFilters}
+    <nav
+      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
+        hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
+      }`}
+      style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
+    >
+      {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
+      {isListView && (
+        <ListViewContent
+          categoryOptions={categoryOptions}
+          kindOptions={kindOptions}
+          cityOptions={cityOptions}
+          activeCategories={activeCategories}
+          activeKinds={activeKinds}
+          activeCities={activeCities}
+          setFilter={setFilter}
+          clearFilters={clearFilters}
+          setSearchActive={setSearchActive}
+          onBackClick={handleBackClick}
+        />
+      )}
+      {!hasBanner && !isListView && (
+        <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
+          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
+          <SearchPanelContent
+            panelWidth={PANEL_WIDTH}
+            inputRef={inputRef}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            open={open}
+            setOpen={setOpen}
+            isLoading={isLoading}
+            searchResults={searchResults}
+            handleSearch={handleSearch}
+            handleSelect={handleSelect}
+            resetSearch={resetSearch}
             setSearchActive={setSearchActive}
-            onBackClick={handleBackClick}
           />
-        )}
-        {!hasBanner && !isListView && (
-          <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
-            <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
-            <SearchPanelContent
-              panelWidth={PANEL_WIDTH}
-              inputRef={inputRef}
-              inputValue={inputValue}
-              setInputValue={setInputValue}
-              open={open}
-              setOpen={setOpen}
-              isLoading={isLoading}
-              searchResults={searchResults}
-              handleSearch={handleSearch}
-              handleSelect={handleSelect}
-              resetSearch={resetSearch}
-              setSearchActive={setSearchActive}
-            />
-          </SlidingPanels>
-        )}
-      </nav>
-    </ViewTransition>
+        </SlidingPanels>
+      )}
+    </nav>
   )
 }
