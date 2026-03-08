@@ -339,7 +339,7 @@ export default function MapboxMap({
 
   return (
     <div className="relative w-full h-full pointer-events-auto">
-      <div ref={mapContainer} className="absolute inset-0 top-4 pointer-events-auto" />
+      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
 
       <MarkerLayer
         map={map.current}

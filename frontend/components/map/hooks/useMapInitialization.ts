@@ -7,8 +7,6 @@ export const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-66.4, -17.5]
 ]
 
-
-
 interface UseMapInitializationProps {
   accessToken: string
   style?: string
@@ -42,7 +40,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       const mapInstance = map.current!
       setIsMapReady(true)
       mapInstance.touchZoomRotate.disableRotation()
-      mapInstance.fitBounds(CHILE_BOUNDS, { padding: { top: 72, bottom: 56, left: 64, right: 64 }, duration: 0 })
+      mapInstance.fitBounds(CHILE_BOUNDS, { padding: { top: 96, bottom: 48, left: 64, right: 64 }, duration: 0 })
 
       const currentZoom = mapInstance.getZoom()
       const bounds = mapInstance.getBounds()

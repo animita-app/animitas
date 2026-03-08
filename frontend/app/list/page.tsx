@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
+import { cn } from '@/lib/utils'
 
 type SortOrder = 'newest' | 'oldest' | 'name'
 
@@ -34,10 +35,10 @@ export default function ListPage() {
 
   return (
     <div className="min-h-svh w-full bg-background py-20">
-      <div className="max-w-6xl mx-auto">
+      <div className="px-4 mx-auto">
         {sortedSites.length > 0 ? (
           <>
-            <div className="mb-6">
+            <div className="sr-only mb-6">
               <p className="text-sm text-text-weak">
                 {sortedSites.length} {sortedSites.length === 1 ? 'sitio' : 'sitios'} encontrado{sortedSites.length === 1 ? '' : 's'}
               </p>
@@ -45,12 +46,16 @@ export default function ListPage() {
 
             <div
               key={gridKey}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
             >
               {sortedSites.map((site, index) => (
                 <div
                   key={site.id}
-                  className="animate-in fade-in zoom-in-95 [animation-fill-mode:both]"
+                  className={cn(
+                    "animate-in fade-in zoom-in-95 [animation-fill-mode:both]",
+                    // "group-hover:scale-[97%] hover:scale-100",
+                    "transition-all duration-200 ease-out-expo"
+                  )}
                   style={{
                     animationDelay: `${Math.min(index * 40, 400)}ms`
                   }}

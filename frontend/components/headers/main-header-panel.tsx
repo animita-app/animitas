@@ -24,13 +24,13 @@ interface MainHeaderPanelProps {
   onSearch?: (query: string) => void
 }
 
-const PANEL_WIDTH = 244
+const TABS_WIDTH = 253
+const SEARCH_WIDTH = 320
 
-function TabsPanelContent({ onSearch, setSearchActive, onTabChange }: { onSearch?: () => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void }) {
+function TabsPanelContent({ onSearch, setSearchActive, onTabChange }: { onSearch?: (query: string) => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void }) {
   return (
     <div
-      style={{ width: PANEL_WIDTH }}
-      className="box-border flex items-center gap-1 flex-shrink-0"
+      className="box-border flex items-center gap-1 flex-shrink-0 w-full"
     >
       <Tabs value="map" onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
@@ -111,6 +111,18 @@ function ListViewContent({
   )
 }
 
+interface SearchResult {
+  id: string | number
+  title: string
+  place_name: string
+  text: string
+  type: 'local' | 'mapbox'
+  geometry?: any
+  bbox?: number[]
+  center?: number[]
+  properties?: any
+}
+
 interface SearchPanelContentProps {
   panelWidth: number
   inputRef: React.RefObject<HTMLInputElement>
@@ -119,9 +131,9 @@ interface SearchPanelContentProps {
   open: boolean
   setOpen: (open: boolean) => void
   isLoading: boolean
-  searchResults: any[]
+  searchResults: SearchResult[]
   handleSearch: (query: string) => void
-  handleSelect: (result: any) => void
+  handleSelect: (result: SearchResult) => void
   resetSearch: () => void
   setSearchActive: (active: boolean) => void
 }
@@ -142,8 +154,7 @@ function SearchPanelContent({
 }: SearchPanelContentProps) {
   return (
     <div
-      style={{ width: panelWidth }}
-      className="box-border pl-2 pr-0 flex items-center gap-1 flex-shrink-0"
+      className="box-border pl-2 pr-2.5 flex items-center gap-1 flex-shrink-0 w-full"
     >
       <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
       <Popover open={open} onOpenChange={setOpen}>
@@ -177,7 +188,7 @@ function SearchPanelContent({
                   else if (result.bbox) geometryType = 'polygon'
 
                   const layer: Layer = {
-                    id: result.id,
+                    id: String(result.id),
                     label: result.title || result.text || result.place_name,
                     type: 'data',
                     geometry: geometryType,
@@ -212,8 +223,8 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleTabChange = (route: string) => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
+    if ('startViewTransition' in document) {
+      (document as any).startViewTransition(() => {
         router.push(route)
       })
     } else {
@@ -222,8 +233,8 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   }
 
   const handleBackClick = () => {
-    if (document.startViewTransition) {
-      document.startViewTransition(() => {
+    if ('startViewTransition' in document) {
+      (document as any).startViewTransition(() => {
         router.push('/map')
         setSearchActive(false)
       })
@@ -242,8 +253,6 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
       setInputValue('')
     }
   }, [searchActive])
-
-  if (pathname.includes('add')) return null
 
   const isListView = pathname === '/list'
   const { filteredData, clearFilters, setFilter, filters, activeAreaLabel, clearActiveArea } = useSpatialContext()
@@ -270,12 +279,16 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasBanner = !!activeAreaLabel
   const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
+  if (pathname.includes('add')) return null
+
   return (
     <nav
-      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-colors duration-500 ${
+      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-all duration-300 ease-out-expo ${
         hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
       }`}
-      style={{ width: hasBanner ? PANEL_WIDTH : 'auto' }}
+      style={{
+        width: hasBanner ? TABS_WIDTH : (isListView ? 'auto' : (searchActive ? SEARCH_WIDTH : TABS_WIDTH))
+      }}
     >
       {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
       {isListView && (
@@ -293,10 +306,10 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
         />
       )}
       {!hasBanner && !isListView && (
-        <SlidingPanels activeIndex={searchActive ? 1 : 0} panelWidth={PANEL_WIDTH}>
+        <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[TABS_WIDTH, SEARCH_WIDTH]}>
           <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
           <SearchPanelContent
-            panelWidth={PANEL_WIDTH}
+            panelWidth={SEARCH_WIDTH}
             inputRef={inputRef}
             inputValue={inputValue}
             setInputValue={setInputValue}
