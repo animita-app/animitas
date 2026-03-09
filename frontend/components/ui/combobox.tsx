@@ -64,12 +64,12 @@ function ComboboxInput({
   showClear?: boolean
 }) {
   return (
-    <InputGroup className={cn("relative w-auto !bg-transparent !border-0 !rounded-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
+    <InputGroup className={cn("relative w-auto !bg-transparent !border-0 !rounded-none !shadow-none has-[[data-slot=input-group-control]:focus-visible]:!ring-0 has-[[data-slot=input-group-control]:focus-visible]:!shadow-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} className="pl-8 -mx-1.5 !border-b !border-b-neutral-800 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
+        render={<InputGroupInput disabled={disabled} className="pl-9 !font-normal -mx-1.5 !border-b !border-b-neutral-800 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
         {...props}
       />
-      <Search className="absolute left-0 top-1/2 -transla size-4" />
+      <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 size-4 -mt-[0.5px] opacity-50" />
       {children}
     </InputGroup>
   )
