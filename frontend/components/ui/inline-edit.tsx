@@ -31,6 +31,7 @@ interface InlineEditBaseProps {
   onEditingChange?: (editing: boolean) => void
   externalCancelToken?: number
   externalConfirmToken?: number
+  deferredSave?: boolean
 }
 
 interface InlineEditTextProps extends InlineEditBaseProps {
@@ -69,24 +70,42 @@ export function InlineEdit(props: InlineEditProps) {
   const [saving, setSaving] = useState(false)
   const [localValue, setLocalValue] = useState<string | string[]>(props.value)
   const [draft, setDraft] = useState<string | string[]>(props.value)
+  const [deferredValue, setDeferredValue] = useState<string | string[] | undefined>(undefined)
 
   const startEdit = () => {
     if (disabled) return
-    setDraft(localValue)
+    setDraft(deferredValue !== undefined ? deferredValue : localValue)
     setEditing(true)
     onEditingChange?.(true)
   }
 
   const cancel = () => {
-    setDraft(localValue)
+    if (deferredValue !== undefined) {
+      setLocalValue(props.value)
+      setDraft(props.value)
+      setDeferredValue(undefined)
+    } else {
+      setDraft(localValue)
+    }
     setEditing(false)
     onEditingChange?.(false)
   }
 
-  const save = useCallback(async (valueToSave?: string | string[]) => {
+  const save = useCallback(async (valueToSave?: string | string[], forceCommit = false) => {
     const raw = valueToSave ?? draft
     const val = typeof raw === 'string' ? raw.trim() : raw
-    if (JSON.stringify(val) === JSON.stringify(localValue)) {
+
+    if (!forceCommit && props.deferredSave) {
+      if (JSON.stringify(val) !== JSON.stringify(localValue)) {
+        setDeferredValue(val)
+        setLocalValue(val)
+        onEditingChange?.(true)
+      }
+      setEditing(false)
+      return
+    }
+
+    if (!forceCommit && JSON.stringify(val) === JSON.stringify(localValue)) {
       setEditing(false)
       onEditingChange?.(false)
       return
@@ -99,6 +118,7 @@ export function InlineEdit(props: InlineEditProps) {
         await (props as InlineEditTextProps | InlineEditSelectProps).onSave(val as string)
       }
       setLocalValue(val)
+      setDeferredValue(undefined)
       toast.success(successMessage)
     } catch {
       toast.error('Error al guardar')
@@ -111,11 +131,21 @@ export function InlineEdit(props: InlineEditProps) {
   }, [draft, localValue, props, successMessage, onEditingChange])
 
   useEffect(() => {
-    if (externalCancelToken && editing) cancel()
+    if (externalCancelToken) {
+      if (editing || deferredValue !== undefined) cancel()
+    }
   }, [externalCancelToken])
 
   useEffect(() => {
-    if (externalConfirmToken && editing) save()
+    if (externalConfirmToken) {
+      if (editing) {
+        save(draft, true)
+      } else if (deferredValue !== undefined) {
+        save(deferredValue, true)
+      } else {
+        onEditingChange?.(false)
+      }
+    }
   }, [externalConfirmToken])
 
   if (props.type === 'multiselect') {
@@ -141,6 +171,14 @@ export function InlineEdit(props: InlineEditProps) {
                 const next = current.includes(opt.value)
                   ? current.filter((v) => v !== opt.value)
                   : [...current, opt.value]
+
+                if (props.deferredSave) {
+                  setDeferredValue(next)
+                  setLocalValue(next)
+                  onEditingChange?.(true)
+                  return
+                }
+
                 setLocalValue(next)
                 setSaving(true)
                 try {
@@ -183,6 +221,14 @@ export function InlineEdit(props: InlineEditProps) {
         <Select
           value={draft as string}
           onValueChange={async (val) => {
+            if (props.deferredSave) {
+              setDeferredValue(val)
+              setLocalValue(val)
+              setEditing(false)
+              onEditingChange?.(true)
+              return
+            }
+
             setSaving(true)
             try {
               await selectProps.onSave(val)
@@ -196,7 +242,7 @@ export function InlineEdit(props: InlineEditProps) {
               onEditingChange?.(false)
             }
           }}
-          onOpenChange={(open) => { if (!open) { setEditing(false); onEditingChange?.(false) } }}
+          onOpenChange={(open) => { if (!open) { setEditing(false); if (!deferredValue) onEditingChange?.(false) } }}
           defaultOpen
         >
           <SelectTrigger className={cn('h-auto', className)}>

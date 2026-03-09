@@ -66,10 +66,10 @@ function ComboboxInput({
   return (
     <InputGroup className={cn("relative w-auto !bg-transparent text-white !border-0 !rounded-none !shadow-none has-[[data-slot=input-group-control]:focus-visible]:!ring-0 has-[[data-slot=input-group-control]:focus-visible]:!shadow-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} className="text-white pl-9 !font-normal -mx-1.5 !border-b !border-b-neutral-800 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
+        render={<InputGroupInput disabled={disabled} className="text-white pl-9 !font-normal -mx-1.5 !border-b !border-b-neutral-900 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
         {...props}
       />
-      <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 size-4 -mt-[0.5px] opacity-50" />
+      <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 size-4 -mt-[0.5px] !opacity-25" />
       {children}
     </InputGroup>
   )
@@ -102,7 +102,7 @@ function ComboboxContent({
           data-slot="combobox-content"
           data-chips={!!anchor}
           className={cn(
-            "font-medium bg-black text-white relative max-h-96 w-(--anchor-width) max-w-(--available-width) min-w-[min(calc(var(--anchor-width)+--spacing(7)),8rem)] min-w-[8rem] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-md shadow-md border border-neutral-800 p-1 duration-100 data-[chips=true]:min-w-(--anchor-width) data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "font-medium bg-black text-white relative max-h-96 w-(--anchor-width) max-w-(--available-width) min-w-[min(calc(var(--anchor-width)+--spacing(7)),8rem)] min-w-[8rem] origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-md shadow-md border border-neutral-900 p-1 duration-100 data-[chips=true]:min-w-(--anchor-width) data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}

@@ -44,6 +44,7 @@ export function MainInfo({ site }: MainInfoProps) {
     onEditingChange: setIsEditing,
     externalCancelToken: cancelToken,
     externalConfirmToken: confirmToken,
+    deferredSave: true,
   } : {}
 
   return (

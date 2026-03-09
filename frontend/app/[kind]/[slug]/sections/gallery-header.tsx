@@ -78,11 +78,11 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
   }
 
   return (
-    <div className="bg-background border-b absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
+    <div className="bg-background-weak border-b absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
       <Button
         size="sm"
         variant="ghost"
-        className="pointer-events-auto gap-1 bg-muted hover:bg-neutral-200 h-8 text-text [&_svg]:!opacity-50 !pl-1.5"
+        className="pointer-events-auto gap-1 bg-neutral-200 hover:bg-neutral-300 h-8 text-text [&_svg]:!opacity-50 !pl-1.5"
         asChild
       >
         <Link href="/">
@@ -138,14 +138,14 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
               !isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative animate-in fade-in-0 slide-in-from-bottom-2"
             )}
           >
-            <div className="flex items-center gap-1.5 bg-background border shadow-xs rounded-md pl-3 pr-1.5 py-1.5 h-10">
-              <span className="pr-4 pl-1 text-sm whitespace-nowrap text-text-strong">
+            <div className="flex items-center gap-1 bg-background bg-black text-white rounded-md pl-3 pr-1 py-1.5 h-10">
+              <span className="pr-4 pl-1 text-sm font-normal whitespace-nowrap">
                 Creando <span className="font-semibold">{nextVersionLabel}</span>
               </span>
               <Button size="sm" onClick={requestConfirm}>
                 Confirmar
               </Button>
-              <Button size="sm" className="bg-muted hover:bg-neutral-200 text-text" variant="ghost" onClick={requestCancel}>
+              <Button size="sm" className="bg-neutral-800/70 hover:bg-neutral-800 text-white" variant="ghost" onClick={requestCancel}>
                 Cancelar
               </Button>
             </div>
@@ -156,7 +156,7 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
       <Button
         size="icon"
         variant="ghost"
-        className="pointer-events-auto bg-muted hover:bg-neutral-200 h-8 text-text w-8"
+        className="pointer-events-auto bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
         onClick={handleCopyLink}
       >
         {hasCopied ? <CheckCircle2 /> : <Link2 />}

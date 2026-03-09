@@ -161,7 +161,7 @@ function CategoryDropdownContent({
       )}
 
       {isEmpty && (
-        <div className="px-2 py-3 text-sm text-neutral-400 text-center">
+        <div className="px-2 py-3 text-sm text-neutral-400 !font-normal text-center">
           Sin resultados
         </div>
       )}
