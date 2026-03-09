@@ -170,6 +170,12 @@ function CategoryDropdownContent({
         value={query}
         onChange={(e: any) => setQuery(e.target.value)}
         onKeyDown={(e: any) => {
+          if (activeSubcategory && (e.key === 'Escape' || (e.key === 'ArrowLeft' && !query))) {
+            e.preventDefault();
+            e.stopPropagation();
+            onSubcategoryChange(null);
+            return;
+          }
           if (e.key === 'Enter' && canCreate) {
             e.preventDefault();
             onToggle(query.trim(), activeSubcategory || "General", false);
@@ -196,7 +202,7 @@ function CategoryDropdownContent({
       <div className="relative overflow-hidden">
         {/* Step 1: Subcategories */}
         {showSubcategoriesList && visibleSubcategories.length > 0 && (
-          <div className={cn(
+          <ComboboxList className={cn(
             "p-1 flex flex-col gap-0.5",
             !isFirstRender.current && "animate-in fade-in slide-in-from-left-4"
           )}>
@@ -205,11 +211,11 @@ function CategoryDropdownContent({
               const multi = isMultiSelectCaseInsensitive(sub)
 
               return (
-                <button
+                <ComboboxItem
                   key={sub}
-                  type="button"
-                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
-                  onClick={() => {
+                  value={sub}
+                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
+                  onSelect={() => {
                     onSubcategoryChange(sub)
                     setQuery("")
                   }}
@@ -235,10 +241,10 @@ function CategoryDropdownContent({
                     )}
                     <ChevronRight className="size-4 text-white/20 group-hover:text-white/50 transition-colors" />
                   </div>
-                </button>
+                </ComboboxItem>
               )
             })}
-          </div>
+          </ComboboxList>
         )}
 
         {/* Step 2: Tags & JSONB */}
@@ -248,15 +254,15 @@ function CategoryDropdownContent({
             !isFirstRender.current && "animate-in fade-in slide-in-from-right-4"
           )}>
             {visibleTags.length > 0 && (
-              <div className="p-1 flex flex-col gap-0.5">
+              <ComboboxList className="p-1 flex flex-col gap-0.5">
                 {visibleTags.map(({ label, subcategory }) => {
                   const isSelected = selectedLabels.has(label)
                   return (
-                    <button
+                    <ComboboxItem
                       key={label}
-                      type="button"
-                      className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
-                      onClick={() => onToggle(label, subcategory, isSelected)}
+                      value={label}
+                      className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
+                      onSelect={() => onToggle(label, subcategory, isSelected)}
                     >
                       <span className={cn(
                         "text-white transition-colors",
@@ -265,10 +271,10 @@ function CategoryDropdownContent({
                         {label}
                       </span>
                       {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
-                    </button>
+                    </ComboboxItem>
                   )
                 })}
-              </div>
+              </ComboboxList>
             )}
 
             {canCreate && (
@@ -297,15 +303,15 @@ function CategoryDropdownContent({
             <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/30 border-b border-white/5 mb-1 pb-1">
               Etiquetas coincidentes
             </div>
-            <div className="flex flex-col gap-0.5">
+            <ComboboxList className="flex flex-col gap-0.5">
               {visibleTags.map(({ label, subcategory }) => {
                 const isSelected = selectedLabels.has(label)
                 return (
-                  <button
+                  <ComboboxItem
                     key={`${subcategory}-${label}`}
-                    type="button"
-                    className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
-                    onClick={() => onToggle(label, subcategory, isSelected)}
+                    value={label}
+                    className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
+                    onSelect={() => onToggle(label, subcategory, isSelected)}
                   >
                     <div className="flex flex-col items-start gap-0.5 overflow-hidden">
                       <span className={cn(
@@ -319,10 +325,10 @@ function CategoryDropdownContent({
                       </span>
                     </div>
                     {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
-                  </button>
+                  </ComboboxItem>
                 )
               })}
-            </div>
+            </ComboboxList>
           </div>
         )}
 
@@ -417,10 +423,15 @@ export function InsightsSection({ site }: InsightsSectionProps) {
           const count = insightsForCat.length
           const isActive = activeCategory === cat
 
+          // Pool of items for keyboard navigation
+          const visibleTagsOrCategories = activeSubcategory
+             ? FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === activeSubcategory).map(t => t.label)
+             : Array.from(new Set(FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General")))
+
           return (
             <Combobox
               key={cat}
-              items={insightsForCat}
+              items={visibleTagsOrCategories}
               value={insightsForCat}
               onValueChange={() => {}} // Handled by inner checkboxes
               multiple
