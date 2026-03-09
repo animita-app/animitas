@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { HeritageSite } from "@/types/heritage"
@@ -132,7 +133,7 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
 
   const hasAnyReaction = reactions.some((r) => r.hasReacted)
 
-  if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
+  if (loading) return <Skeleton className="h-8" />
 
   return (
     <div className="flex items-center gap-1.5 w-full flex-wrap">
@@ -167,8 +168,8 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
                 variant="outline"
                 onClick={() => toggleReaction(reaction.emoji)}
                 className={cn(
-                  "bg-background h-8 font-normal gap-1 transition-colors cursor-pointer",
-                  reaction.hasReacted && "border-text-strong text-text-strong bg-text-strong/5 hover:bg-text-strong/10"
+                  "bg-background h-8 font-normal gap-1 transition-colors cursor-pointer font-medium",
+                  reaction.hasReacted && "border-[1.5px] border-text-strong text-text-strong bg-text-strong/5 hover:bg-text-strong/10"
                 )}
               >
                 <span>{reaction.emoji}</span>

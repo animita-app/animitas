@@ -8,6 +8,7 @@ import { HeritageSite } from "@/types/heritage"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface InsightTag {
   id: string
@@ -137,7 +138,7 @@ export function DetailedInfoSection({ site }: DetailedInfoSectionProps) {
     await addTag(data)
   }
 
-  if (loading) return <div className="h-16 animate-pulse bg-background-weaker rounded-md" />
+  if (loading) return <Skeleton className="h-16" />
   if (siteTags.length === 0 && !canManageInsights) return null
 
   // Read-only: just chips

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { formatDistanceToNow } from "date-fns"
@@ -115,7 +116,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
       {loading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="h-12 animate-pulse bg-background-weaker rounded-md" />
+            <Skeleton key={i} className="h-12" />
           ))}
         </div>
       ) : comments.length > 0 ? (

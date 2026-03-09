@@ -7,6 +7,7 @@ import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite } from "@/types/heritage"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   INSIGHT_CATEGORY_CONFIG,
   INSIGHT_CATEGORIES,
@@ -252,10 +253,10 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   const totalTags = siteTags.length
   if (totalJsonb === 0 && totalTags === 0 && !canManageInsights) return null
 
-  if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
+  if (loading) return <Skeleton className="h-8" />
 
   return (
-    <div ref={containerRef} className="relative mb-2">
+    <div ref={containerRef} className="relative mb-4">
       {/* 3 category triggers — shown for all users */}
       <div className="flex gap-3">
         {INSIGHT_CATEGORIES.map(cat => {
@@ -270,12 +271,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               key={cat}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               className={cn(
-                "text-sm transition-colors",
-                isActive
-                  ? "text-text-strong font-medium"
-                  : count > 0
-                    ? "text-text"
-                    : "text-text-weak hover:text-text"
+                "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+                count > 0 && "text-text"
               )}
             >
               {cfg.label}
