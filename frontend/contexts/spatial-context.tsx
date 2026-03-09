@@ -15,6 +15,10 @@ interface SpatialContextType {
   showResearchPanel: boolean
   setShowResearchPanel: (show: boolean) => void
 
+  // Map Reset
+  mapResetToken: number
+  requestMapReset: () => void
+
   // Filtering
   filters: Record<string, string[]>
   setFilter: (attribute: string, values: string[]) => void
@@ -36,6 +40,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [showResearchPanel, setShowResearchPanel] = useState(false)
+  const [mapResetToken, setMapResetToken] = useState(0)
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
   const [dbSites, setDbSites] = useState<any[]>([])
@@ -93,6 +98,11 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const clearActiveArea = () => {
     setActiveAreaState(null)
     setActiveAreaLabel(null)
+    requestMapReset()
+  }
+
+  const requestMapReset = () => {
+    setMapResetToken(t => t + 1)
   }
 
   const setFilter = (attribute: string, values: string[]) => {
@@ -200,6 +210,8 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       clearActiveArea,
       showResearchPanel,
       setShowResearchPanel,
+      mapResetToken,
+      requestMapReset,
       filters,
       setFilter,
       toggleFilter,

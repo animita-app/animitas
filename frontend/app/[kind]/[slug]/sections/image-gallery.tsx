@@ -5,12 +5,15 @@ import Image from "next/image"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { ImageIcon } from "lucide-react"
 
+import { HeritageSite } from "@/types/heritage"
+
 interface ImageGalleryProps {
+  site?: HeritageSite
   images: string[] | null
   title: string
 }
 
-export function ImageGallery({ images, title }: ImageGalleryProps) {
+export function ImageGallery({ site, images, title }: ImageGalleryProps) {
   if (!images || images.length === 0) return null
 
   return (

@@ -41,17 +41,11 @@ export function UserDropdown() {
     <div className="flex items-center gap-2">
       <NotificationsBell />
       <DropdownMenu>
-        {/* ... rest of the code is unchanged up until the end of the file, wait I have to replace everything from line 25 down */}
         <DropdownMenuTrigger asChild>
-          <div className="relative cursor-pointer">
-            <Avatar>
-              <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-              <AvatarFallback>{currentUser?.username?.[0].toUpperCase()}</AvatarFallback>
-            </Avatar>
-            {role === ROLES.EDITOR && (
-              <div className="absolute -top-0.5 -right-0.5 size-2.5 bg-accent rounded-full border-[2px] border-background" />
-            )}
-          </div>
+          <Avatar>
+            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+            <AvatarFallback>{currentUser?.username?.[0].toUpperCase()}</AvatarFallback>
+          </Avatar>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuGroup>
@@ -60,13 +54,6 @@ export function UserDropdown() {
                 Perfil
               </Link>
             </DropdownMenuItem>
-            {isEditor && (
-              <DropdownMenuItem asChild>
-                <Link href="/editor" className="justify-between w-full">
-                  Cola de Revisión
-                </Link>
-              </DropdownMenuItem>
-            )}
             {isSuperadmin && (
               <DropdownMenuItem asChild>
                 <Link href="/admin" className="justify-between w-full">
@@ -112,14 +99,19 @@ export function UserDropdown() {
           </DropdownMenuGroup>
 
           <DropdownMenuGroup>
-            <DropdownMenuCheckboxItem
-              checked={showResearchPanel}
-              onCheckedChange={(checked) => {
-                setResearchMode(checked)
-                if (!checked) setShowResearchPanel(false)
-              }}          >
-              Modo investigación
-            </DropdownMenuCheckboxItem>
+            <DropdownMenuItem
+              className="flex items-center justify-between outline-none cursor-pointer"
+              onSelect={(e) => {
+                e.preventDefault()
+                setShowResearchPanel(!showResearchPanel)
+              }}
+            >
+              Investigación
+              <Switch
+                checked={showResearchPanel}
+                onCheckedChange={setShowResearchPanel}
+              />
+            </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />

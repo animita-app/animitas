@@ -69,7 +69,10 @@ export function SidebarHeader({ site }: SidebarHeaderProps) {
               Editar insights
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={handleCopyLink}>
+          <DropdownMenuItem onSelect={(e) => {
+            e.preventDefault()
+            handleCopyLink()
+          }}>
             <span className="inline-flex items-center gap-2 transition-all duration-200">
               {copied ? (
                 <span

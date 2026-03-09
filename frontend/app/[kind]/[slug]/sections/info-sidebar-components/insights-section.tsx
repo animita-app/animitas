@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Check, Plus } from "lucide-react"
+import { Check, Plus, ChevronRight, ChevronLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite } from "@/types/heritage"
@@ -90,13 +90,30 @@ function CategoryDropdownContent({
   onClose,
 }: CategoryDropdownProps) {
   const [query, setQuery] = useState("")
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    isFirstRender.current = false
+  }, [])
+
   const selectedIds = new Set(siteTags.filter(t => t.category === category).map(t => t.id))
 
+  const subcategories = useMemo(() => {
+    const list = allTags.filter(t => t.category === category).map(t => t.subcategory || "General")
+    // If we only have "General", we might want to still show it if the user wants two-step,
+    // but the user seems to want to see the "menus" (menus de categorias primarias).
+    return Array.from(new Set(list)).sort()
+  }, [allTags, category])
+
   const visibleTags = useMemo(() => {
-    const pool = allTags.filter(t => t.category === category)
+    let pool = allTags.filter(t => t.category === category)
+    if (activeSubcategory && !query.trim()) {
+      pool = pool.filter(t => (t.subcategory || "General") === activeSubcategory)
+    }
     if (!query.trim()) return pool
     return pool.filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
-  }, [allTags, query, category])
+  }, [allTags, query, category, activeSubcategory])
 
   const canCreate = canEdit && !!query.trim() && !allTags.some(
     t => t.category === category && t.label.toLowerCase() === query.trim().toLowerCase()
@@ -109,8 +126,10 @@ function CategoryDropdownContent({
 
   const isEmpty = visibleJsonbItems.length === 0 && visibleTags.length === 0 && !canCreate
 
+  const showSubcategoriesList = !query.trim() && !activeSubcategory && subcategories.length > 0
+
   return (
-    <>
+    <div className="flex flex-col overflow-hidden w-full relative">
       <ComboboxInput
         showTrigger={false}
         placeholder="Buscar..."
@@ -120,25 +139,65 @@ function CategoryDropdownContent({
         onKeyDown={(e: any) => {
           if (e.key === 'Enter' && canCreate) {
             e.preventDefault();
-            onCreate(query.trim(), category);
+            onCreate(query.trim(), activeSubcategory || "General");
             setQuery("")
           }
         }}
       />
 
-      {/* JSONB read-only items are rendered directly */}
-      {visibleJsonbItems.length > 0 && (
-        <div className="px-2 pb-1">
-          {visibleJsonbItems.map((label, i) => (
-            <div
-              key={`jsonb-${i}`}
-              className="flex items-center gap-2 rounded-sm py-1.5 text-sm text-muted-foreground select-none"
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="relative overflow-hidden">
+        {/* Step 1: Subcategories */}
+        {showSubcategoriesList && (
+          <div className={cn(
+            "p-1 flex flex-col gap-0.5",
+            !isFirstRender.current && "animate-in fade-in slide-in-from-left-4"
+          )}>
+            {subcategories.map(sub => (
+              <button
+                key={sub}
+                type="button"
+                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                onClick={() => setActiveSubcategory(sub)}
+              >
+                <span className="text-text-strong">{sub}</span>
+                <ChevronRight className="size-4 text-text-weak" />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Step 2: Tags & JSONB */}
+        {!showSubcategoriesList && (
+          <div className={cn(
+            "w-full flex flex-col",
+            !isFirstRender.current && "animate-in fade-in slide-in-from-right-4"
+          )}>
+            {activeSubcategory && !query.trim() && (
+              <div className="p-1 pb-0 mt-1 shrink-0 border-b border-border-weak pb-1.5 mb-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveSubcategory(null)}
+                  className="flex items-center text-xs font-medium text-text-weak hover:text-text-strong px-1"
+                >
+                  <ChevronLeft className="h-3 w-3 mr-1" />
+                  Volver a {INSIGHT_CATEGORY_CONFIG[category]?.label.toLowerCase() || 'todas'}
+                </button>
+              </div>
+            )}
+
+            {/* JSONB read-only items are rendered directly */}
+            {visibleJsonbItems.length > 0 && (
+              <div className="px-2 pb-1">
+                {visibleJsonbItems.map((label, i) => (
+                  <div
+                    key={`jsonb-${i}`}
+                    className="text-white flex items-center gap-2 rounded-sm py-1.5 text-sm select-none"
+                  >
+                    {label}
+                  </div>
+                ))}
+              </div>
+            )}
 
       {/* ComboboxList groups tags by subcategory natively */}
       {visibleTags.length > 0 && (
@@ -164,25 +223,30 @@ function CategoryDropdownContent({
       )}
 
       {canCreate && (
-        <button
-          onClick={(e) => {
-            e.preventDefault()
-            onCreate(query.trim(), category)
-            setQuery("")
-          }}
-          className="w-full relative flex items-center px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-neutral-800 hover:text-white focus:bg-neutral-800 focus:text-white outline-none rounded-sm transition-colors mt-1"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Crear &quot;{query.trim()}&quot;
-        </button>
+        <div className="p-1 px-2 border-t border-border-weak mt-1">
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              onCreate(query.trim(), activeSubcategory || "General")
+              setQuery("")
+            }}
+            className="w-full relative flex items-center px-1.5 py-1.5 text-sm font-medium text-text-weak hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-text-strong rounded-sm outline-none transition-colors"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Crear &quot;{query.trim()}&quot; en {activeSubcategory || "General"}
+          </button>
+        </div>
       )}
 
       {isEmpty && (
-        <div className="px-2 py-3 text-sm text-neutral-400 !font-normal text-center">
+        <div className="px-2 py-3 text-sm text-text-weak !font-normal text-center">
           Sin resultados
         </div>
       )}
-    </>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 

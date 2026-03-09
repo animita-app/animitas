@@ -19,7 +19,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       "bg-pink-100 text-pink-700",
     ),
     dot: "bg-pink-300/60",
-    trigger: "rounded-full bg-pink-200 text-pink-700",
+    trigger: "rounded-full bg-pink-100 text-pink-700",
   },
   spiritual: {
     label: "Espiritual",
@@ -28,7 +28,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       "bg-sky-400 text-sky-700",
     ),
     dot: "bg-sky-300/60",
-    trigger: "rounded-full bg-sky-200 text-sky-700",
+    trigger: "rounded-full bg-sky-100 text-sky-700",
   },
   patrimonial: {
     label: "Patrimonial",
@@ -37,7 +37,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       "rounded-full bg-amber-100 text-amber-700",
     ),
     dot: "bg-amber-300/60",
-    trigger: "rounded-full bg-amber-200 text-amber-700",
+    trigger: "rounded-full bg-amber-100 text-amber-700",
   },
 };
 

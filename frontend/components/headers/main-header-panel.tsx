@@ -64,8 +64,8 @@ function TabsPanelContent({ onSearch, setSearchActive, onTabChange, pathname }: 
 function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
   return (
     <div className="pl-3 pr-0 w-full flex gap-1 items-center justify-center">
-      <span className="text-sm text-white/50">Área activa:</span>
-      <span className="text-sm font-medium text-white">{activeAreaLabel}</span>
+      <span className="text-sm text-white/50 text-nowrap">Área activa:</span>
+      <span className="text-sm font-medium text-white truncate">{activeAreaLabel}</span>
       <Button variant="ghost" size="icon" className="ml-auto h-[30px] w-[30px] text-white/50 hover:bg-white/10 rounded-full hover:text-white/70" onClick={clearActiveArea}>
         <X className="h-3 w-3" />
       </Button>

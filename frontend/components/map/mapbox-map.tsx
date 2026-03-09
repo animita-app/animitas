@@ -4,11 +4,11 @@ import { useState, useEffect, useRef } from 'react'
 import { Loader2, MousePointer2 } from 'lucide-react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useRouter } from 'next/navigation'
-import { useMapInitialization, CHILE_BOUNDS } from './hooks/useMapInitialization'
-import { useActiveArea } from './hooks/useActiveArea'
-import { useOverpassData } from './hooks/useOverpassData'
-import { useLayerManagement } from './hooks/useLayerManagement'
-import { useMapEvents } from './hooks/useMapEvents'
+import { useMapInitialization, CHILE_BOUNDS } from './hooks/use-map-initialization'
+import { useActiveArea } from './hooks/use-active-area'
+import { useOverpassData } from './hooks/use-overpass-data'
+import { useLayerManagement } from './hooks/use-layer-management'
+import { useMapEvents } from './hooks/use-map-events'
 import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
 import { HeritageSiteProperty, GISOperation } from '@/components/map/types'
@@ -51,7 +51,7 @@ export default function MapboxMap({
   // Spatial Context
   // @ts-ignore
   // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel } = useSpatialContext()
+  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel, mapResetToken } = useSpatialContext()
 
   // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
@@ -152,6 +152,12 @@ export default function MapboxMap({
       map.current?.off('moveend', checkMovement)
     }
   }, [isMapReady])
+
+  useEffect(() => {
+    if (mapResetToken > 0 && map.current && isMapReady) {
+      handleResetView()
+    }
+  }, [mapResetToken, isMapReady])
 
 
 

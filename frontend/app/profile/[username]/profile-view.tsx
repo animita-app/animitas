@@ -30,17 +30,9 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
-  if (!profile) {
-    return (
-      <div className="flex min-h-svh items-center justify-center text-text-weak text-sm">
-        Perfil no encontrado.
-      </div>
-    )
-  }
-
-  const [imageUrl, setImageUrl] = useState(profile.image)
-  const isOwnProfile = currentUser?.username?.toLowerCase() === username.toLowerCase()
-  const isElevated = profile.role === 'editor' || profile.role === 'superadmin'
+  const [imageUrl, setImageUrl] = useState(profile?.image || null)
+  const isOwnProfile = profile && currentUser?.username?.toLowerCase() === username.toLowerCase()
+  const isElevated = profile?.role === 'editor' || profile?.role === 'superadmin'
 
   const saveDisplayName = async (value: string) => {
     const supabase = createClient()
@@ -101,18 +93,19 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
   const [tabLoading, setTabLoading] = useState(true)
 
   useEffect(() => {
+    if (!profile) return
     async function fetchUserContent() {
       const supabase = createClient()
       const [sitesRes, routesRes] = await Promise.all([
         supabase
           .from('heritage_sites')
           .select('id, slug, title, images, heritage_kinds!kind_id(slug)')
-          .eq('creator_id', profile.id)
+          .eq('creator_id', profile!.id)
           .order('created_at', { ascending: false }),
         supabase
           .from('site_routes')
           .select('id, title, description, site_route_items(count)')
-          .eq('creator_id', profile.id)
+          .eq('creator_id', profile!.id)
           .order('created_at', { ascending: false }),
       ])
       if (sitesRes.data) setSites(sitesRes.data)
@@ -120,7 +113,15 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
       setTabLoading(false)
     }
     fetchUserContent()
-  }, [profile.id])
+  }, [profile?.id])
+
+  if (!profile) {
+    return (
+      <div className="flex min-h-svh items-center justify-center text-text-weak text-sm">
+        Perfil no encontrado.
+      </div>
+    )
+  }
 
   return (
     <div className="flex w-full flex-col items-center bg-background">

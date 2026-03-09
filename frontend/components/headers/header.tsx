@@ -50,18 +50,8 @@ export function Header() {
             <NavigationMenu className="hidden md:flex">
               <NavigationMenuList>
                 {isEditor && (
-                  <NavigationMenuItem>
-                    <NavigationMenuLink
-                      href="/editor"
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        "font-medium bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent data-[active]:bg-transparent data-[state=open]:bg-transparent",
-                        pathname.startsWith("/editor") && "text-text-strong"
-                      )}
-                    >
-                      Revisión
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
+                  // The Editor link was moved to Notifications Bell
+                  <span className="hidden" />
                 )}
 
                 {isSuperadmin && (

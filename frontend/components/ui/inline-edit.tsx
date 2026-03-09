@@ -32,6 +32,7 @@ interface InlineEditBaseProps {
   externalCancelToken?: number
   externalConfirmToken?: number
   deferredSave?: boolean
+  inline?: boolean
 }
 
 interface InlineEditTextProps extends InlineEditBaseProps {
@@ -304,8 +305,10 @@ export function InlineEdit(props: InlineEditProps) {
     )
   }
 
+  const isInline = props.inline || false
+
   return (
-    <div className={cn('min-h-[1lh]', className)}>
+    <span className={cn('min-h-[1lh]', isInline ? 'inline' : 'block', className)}>
       {editing ? (
         <input
           value={draft as string}
@@ -328,10 +331,10 @@ export function InlineEdit(props: InlineEditProps) {
           autoFocus
         />
       ) : (
-        <div onClick={startEdit} className={cn(!disabled && 'cursor-text')}>
+        <span onClick={startEdit} className={cn(!disabled && 'cursor-text', isInline ? 'inline' : 'block')}>
           {(localValue as string) || <span className="opacity-50">{placeholder}</span>}
-        </div>
+        </span>
       )}
-    </div>
+    </span>
   )
 }
