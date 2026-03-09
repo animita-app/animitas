@@ -153,7 +153,7 @@ function CategoryDropdownContent({
             onCreate(query.trim(), category)
             setQuery("")
           }}
-          className="w-full flex items-center px-4 py-2 text-sm text-muted-foreground hover:bg-muted mt-1"
+          className="w-full relative flex items-center px-2 py-1.5 text-sm font-medium text-muted-foreground hover:bg-neutral-800 hover:text-white focus:bg-neutral-800 focus:text-white outline-none rounded-sm transition-colors mt-1"
         >
           <Plus className="mr-2 h-4 w-4" />
           Crear &quot;{query.trim()}&quot;
@@ -161,7 +161,7 @@ function CategoryDropdownContent({
       )}
 
       {isEmpty && (
-        <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+        <div className="px-2 py-3 text-sm text-neutral-400 text-center">
           Sin resultados
         </div>
       )}
@@ -309,7 +309,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                   </span>
                 </button>
               } />
-              <ComboboxContent align="start" className="w-64 max-h-52 overflow-y-auto">
+              <ComboboxContent align="start" className="w-48 max-h-52 overflow-y-auto">
                 <CategoryDropdownContent
                   category={cat}
                   jsonbItems={jsonbChips
