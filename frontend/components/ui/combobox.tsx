@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Combobox as ComboboxPrimitive } from "@base-ui/react"
-import { CheckIcon, ChevronDownIcon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, Search, XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -64,26 +64,12 @@ function ComboboxInput({
   showClear?: boolean
 }) {
   return (
-    <InputGroup className={cn("w-auto !bg-transparent !border-0 !rounded-none", className)}>
+    <InputGroup className={cn("relative w-auto !bg-transparent !border-0 !rounded-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} className="!rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
+        render={<InputGroupInput disabled={disabled} className="pl-8 -mx-1.5 !border-b !border-b-neutral-800 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
         {...props}
       />
-      <InputGroupAddon align="inline-end">
-        {showTrigger && (
-          <InputGroupButton
-            size="icon-xs"
-            variant="ghost"
-            asChild
-            data-slot="input-group-button"
-            className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
-            disabled={disabled}
-          >
-            <ComboboxTrigger />
-          </InputGroupButton>
-        )}
-        {showClear && <ComboboxClear disabled={disabled} />}
-      </InputGroupAddon>
+      <Search className="absolute left-0 top-1/2 -transla size-4" />
       {children}
     </InputGroup>
   )

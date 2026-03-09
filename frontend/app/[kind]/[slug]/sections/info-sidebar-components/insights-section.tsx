@@ -46,11 +46,17 @@ function getJsonbChips(site: HeritageSite): { label: string; category: string }[
   if (!ins) return []
   const chips: { label: string; category: string }[] = []
   if (ins.memorial?.death_cause) chips.push({ label: ins.memorial.death_cause, category: 'memorial' })
+  if (ins.memorial?.narrator_relation) chips.push({ label: ins.memorial.narrator_relation, category: 'memorial' })
   ins.memorial?.social_roles?.forEach((r: string) => chips.push({ label: r, category: 'memorial' }))
+
   ins.spiritual?.rituals_mentioned?.forEach((r: string) => chips.push({ label: r, category: 'spiritual' }))
   ins.spiritual?.offerings_mentioned?.forEach((o: string) => chips.push({ label: o, category: 'spiritual' }))
+  if (ins.spiritual?.digital_visit_count) chips.push({ label: `Visitas digitales: ${ins.spiritual.digital_visit_count}`, category: 'spiritual' })
+
   if (ins.patrimonial?.size) chips.push({ label: ins.patrimonial.size, category: 'patrimonial' })
   if (ins.patrimonial?.form) chips.push({ label: ins.patrimonial.form, category: 'patrimonial' })
+  if (ins.patrimonial?.antiquity_year) chips.push({ label: `Año: ${ins.patrimonial.antiquity_year}`, category: 'patrimonial' })
+
   return chips
 }
 
