@@ -76,11 +76,12 @@ export function InlineEdit(props: InlineEditProps) {
     if (disabled) return
     setDraft(deferredValue !== undefined ? deferredValue : localValue)
     setEditing(true)
-    onEditingChange?.(true)
+    if (!props.deferredSave) onEditingChange?.(true)
   }
 
   const cancel = () => {
-    if (deferredValue !== undefined) {
+    const wasDirty = deferredValue !== undefined
+    if (wasDirty) {
       setLocalValue(props.value)
       setDraft(props.value)
       setDeferredValue(undefined)
@@ -242,7 +243,7 @@ export function InlineEdit(props: InlineEditProps) {
               onEditingChange?.(false)
             }
           }}
-          onOpenChange={(open) => { if (!open) { setEditing(false); if (!deferredValue) onEditingChange?.(false) } }}
+          onOpenChange={(open) => { if (!open) { setEditing(false); if (!props.deferredSave) onEditingChange?.(false) } }}
           defaultOpen
         >
           <SelectTrigger className={cn('h-auto', className)}>
@@ -269,7 +270,16 @@ export function InlineEdit(props: InlineEditProps) {
       return (
         <textarea
           value={draft as string}
-          onChange={(e) => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }}
+          onChange={(e) => {
+            const val = e.target.value
+            setDraft(val)
+            if (props.deferredSave) {
+              if (val !== localValue) onEditingChange?.(true)
+              else if (deferredValue === undefined) onEditingChange?.(false)
+            }
+            e.target.style.height = 'auto'
+            e.target.style.height = e.target.scrollHeight + 'px'
+          }}
           onBlur={() => save()}
           onKeyDown={(e) => {
             if (e.key === 'Escape') cancel()
@@ -299,7 +309,14 @@ export function InlineEdit(props: InlineEditProps) {
       {editing ? (
         <input
           value={draft as string}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value
+            setDraft(val)
+            if (props.deferredSave) {
+              if (val !== localValue) onEditingChange?.(true)
+              else if (deferredValue === undefined) onEditingChange?.(false)
+            }
+          }}
           onBlur={() => save()}
           onKeyDown={(e) => {
             if (e.key === 'Enter') { e.preventDefault(); save() }

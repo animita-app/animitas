@@ -16,7 +16,7 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
       <div className="flex flex-col md:flex-row h-svh w-full overflow-hidden">
         <div className="bg-black flex-1 aspect-square md:aspect-auto w-full overflow-hidden relative flex items-center justify-center">
           <GalleryHeader site={site} />
-          <ImageGallery images={site.images} title={site.title} />
+          <ImageGallery site={site} images={site.images} title={site.title} />
         </div>
 
         <InfoSidebar site={site} />

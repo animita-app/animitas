@@ -189,7 +189,7 @@ export function PollSection({ siteId }: PollSectionProps) {
                   <div className="relative z-10 flex items-center justify-between w-full text-sm">
                     <span className="flex items-center gap-2 text-text-strong font-medium truncate mr-2">
                       {option.label}
-                      {isSelected && <CheckCircle2 className="w-4 h-4 text-text-strong" />}
+                      {isSelected && <CheckCircle2 className="text-text-strong" />}
                     </span>
 
                     <div className="text-xs flex items-center gap-2 text-text-weak shrink-0">

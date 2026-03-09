@@ -12,8 +12,10 @@ import {
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
+  ComboboxLabel,
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/ui/combobox"
@@ -27,6 +29,7 @@ import {
 interface InsightTag {
   id: string
   category: string
+  subcategory?: string
   label: string
 }
 
@@ -137,14 +140,28 @@ function CategoryDropdownContent({
         </div>
       )}
 
-      {/* ComboboxList maps across selected options natively */}
-      <ComboboxList>
-        {(item: any) => (
-          <ComboboxItem key={item.id} value={item}>
-            {item.label}
-          </ComboboxItem>
-        )}
-      </ComboboxList>
+      {/* ComboboxList groups tags by subcategory natively */}
+      {visibleTags.length > 0 && (
+        <ComboboxList>
+          {Object.entries(
+            visibleTags.reduce((acc, tag) => {
+              const sub = tag.subcategory || "General";
+              if (!acc[sub]) acc[sub] = [];
+              acc[sub].push(tag);
+              return acc;
+            }, {} as Record<string, InsightTag[]>)
+          ).map(([subcat, tags]) => (
+            <ComboboxGroup key={subcat} className="mb-0.5">
+              <ComboboxLabel className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground/70">{subcat}</ComboboxLabel>
+              {tags.map((item) => (
+                <ComboboxItem key={item.id} value={item}>
+                  {item.label}
+                </ComboboxItem>
+              ))}
+            </ComboboxGroup>
+          ))}
+        </ComboboxList>
+      )}
 
       {canCreate && (
         <button
