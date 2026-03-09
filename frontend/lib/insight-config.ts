@@ -18,7 +18,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       badgeVariants({ variant: "outline" }),
       "bg-pink-100 text-pink-700",
     ),
-    dot: "bg-pink-200",
+    dot: "bg-pink-300/60",
     trigger: "rounded-full bg-pink-200 text-pink-700",
   },
   spiritual: {
@@ -27,7 +27,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       badgeVariants({ variant: "outline" }),
       "bg-sky-400 text-sky-700",
     ),
-    dot: "bg-sky-200",
+    dot: "bg-sky-300/60",
     trigger: "rounded-full bg-sky-200 text-sky-700",
   },
   patrimonial: {
@@ -36,7 +36,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       badgeVariants({ variant: "outline" }),
       "rounded-full bg-amber-100 text-amber-700",
     ),
-    dot: "bg-amber-200",
+    dot: "bg-amber-300/60",
     trigger: "rounded-full bg-amber-200 text-amber-700",
   },
 };

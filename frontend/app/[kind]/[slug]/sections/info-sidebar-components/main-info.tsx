@@ -17,7 +17,7 @@ interface MainInfoProps {
 export function MainInfo({ site }: MainInfoProps) {
   const [isExpanded, setIsExpanded] = React.useState(false)
   const { role, currentUser } = useUser()
-  const { setIsEditing, cancelToken, confirmToken } = useSiteEditing()
+  const { isEditing, setIsEditing, cancelToken, confirmToken } = useSiteEditing()
   const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
 
   const kindSlug = (site as any).kind || 'animita'
@@ -86,14 +86,16 @@ export function MainInfo({ site }: MainInfoProps) {
         </p>
       )}
 
-      <Button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="mt-2 text-accent hover:text-accent/80"
-        size="sm"
-        variant="link"
-      >
-        {isExpanded ? "Leer menos" : "Leer más"}
-      </Button>
+      {!isEditing && (
+        <Button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 text-accent hover:text-accent/80"
+          size="sm"
+          variant="link"
+        >
+          {isExpanded ? "Leer menos" : "Leer más"}
+        </Button>
+      )}
     </div>
   )
 }

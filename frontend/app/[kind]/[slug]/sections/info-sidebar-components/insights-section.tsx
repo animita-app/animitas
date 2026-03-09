@@ -9,13 +9,14 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuCheckboxItem,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from "@/components/ui/combobox"
 import {
   INSIGHT_CATEGORY_CONFIG,
   INSIGHT_CATEGORIES,
@@ -101,57 +102,60 @@ function CategoryDropdownContent({
 
   return (
     <>
-      {/* Search — editors only */}
-      {canEdit && (
-        <div className="px-2 py-2 border-b border-border/10 mb-1">
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Escape') { onClose() }
-              if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
-            }}
-            placeholder="Buscar o crear..."
-            autoFocus
-          />
+      <div className="px-2 py-2 border-b border-border/10 mb-1">
+        <ComboboxInput
+          showTrigger={false}
+          placeholder="Buscar o crear..."
+          autoFocus
+          value={query}
+          onChange={(e: any) => setQuery(e.target.value)}
+          onKeyDown={(e: any) => {
+            if (e.key === 'Enter' && canCreate) {
+              e.preventDefault();
+              onCreate(query.trim(), category);
+              setQuery("")
+            }
+          }}
+        />
+      </div>
+
+      <ComboboxEmpty>No items found.</ComboboxEmpty>
+
+      {/* JSONB read-only items are rendered directly */}
+      {visibleJsonbItems.length > 0 && (
+        <div className="px-2 pb-1">
+          {visibleJsonbItems.map((label, i) => (
+            <div
+              key={`jsonb-${i}`}
+              className="flex items-center gap-2 rounded-sm py-1.5 text-sm text-muted-foreground select-none"
+            >
+              {label}
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Editor-managed tags with checkmarks */}
-      {canEdit && visibleTags.map(tag => {
-        const isSelected = selectedIds.has(tag.id)
-        return (
-          <DropdownMenuCheckboxItem
-            key={tag.id}
-            checked={isSelected}
-            onSelect={(e) => {
-              e.preventDefault() // prevent closing menu!
-              onToggle(tag, isSelected)
-            }}
-          >
-            {tag.label}
-          </DropdownMenuCheckboxItem>
-        )
-      })}
+      {/* ComboboxList maps across selected options natively */}
+      <ComboboxList>
+        {(item: any) => (
+          <ComboboxItem key={item.id} value={item}>
+            {item.label}
+          </ComboboxItem>
+        )}
+      </ComboboxList>
 
-      {/* Create new */}
       {canCreate && (
-        <DropdownMenuItem
-          onSelect={(e) => {
+        <button
+          onClick={(e) => {
             e.preventDefault()
             onCreate(query.trim(), category)
             setQuery("")
           }}
+          className="w-full flex items-center px-4 py-2 text-sm text-muted-foreground hover:bg-muted mt-1"
         >
-          <Plus />
-          Crear
-        </DropdownMenuItem>
-      )}
-
-      {isEmpty && (
-        <div className="px-2 py-3 text-sm text-muted-foreground text-center">
-          Sin resultados
-        </div>
+          <Plus className="mr-2 h-4 w-4" />
+          Crear &quot;{query.trim()}&quot;
+        </button>
       )}
     </>
   )
@@ -251,9 +255,31 @@ export function InsightsSection({ site }: InsightsSectionProps) {
           const count = jsonbCount + tagCount
           const isActive = activeCategory === cat
 
+          const allTagsForCat = allTags.filter(t => t.category === cat)
+          const selectedTagIdsForCat = siteTags.filter(t => t.category === cat).map(t => t.id)
+
           return (
-            <DropdownMenu key={cat} open={isActive} onOpenChange={(open) => setActiveCategory(open ? cat : null)}>
-              <DropdownMenuTrigger asChild>
+            <Combobox
+              key={cat}
+              items={allTagsForCat}
+              value={allTagsForCat.filter(t => selectedTagIdsForCat.includes(t.id))}
+              onValueChange={(newSelection: any[]) => {
+                const newIds = newSelection.map(s => s.id)
+                const added = newIds.find(id => !selectedTagIdsForCat.includes(id))
+                const removed = selectedTagIdsForCat.find(id => !newIds.includes(id))
+                if (added) {
+                  const tag = allTagsForCat.find(t => t.id === added)
+                  if (tag) toggleTag(tag, false)
+                } else if (removed) {
+                  const tag = allTagsForCat.find(t => t.id === removed)
+                  if (tag) toggleTag(tag, true)
+                }
+              }}
+              multiple
+              open={isActive}
+              onOpenChange={(open) => setActiveCategory(open ? cat : null)}
+            >
+              <ComboboxTrigger render={
                 <button
                   className={cn(
                     "inline-flex items-center justify-center rounded-full pl-2.5 pr-1 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
@@ -263,33 +289,33 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                   )}
                 >
                   {cfg.label}
-                  {count > 0 && (
-                    <span
-                      className={cn(
-                        "ml-1.5 tabular-nums min-w-4 min-h-4 rounded-full text-xs",
-                        cfg.dot
-                      )}
-                    >
-                      {count}
-                    </span>
-                  )}
+                  <span
+                    className={cn(
+                      "ml-1.5 tabular-nums min-w-4 min-h-4 rounded-full text-xs flex items-center justify-center",
+                      count > 0
+                        ? cfg.dot
+                        : "bg-neutral-300"
+                    )}
+                  >
+                    {count || "0"}
+                  </span>
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 max-h-52 overflow-y-auto">
+              } />
+              <ComboboxContent align="start" className="w-64 max-h-52 overflow-y-auto">
                 <CategoryDropdownContent
                   category={cat}
                   jsonbItems={jsonbChips
                     .filter(c => c.category === cat)
                     .map(c => c.label)}
                   siteTags={siteTags}
-                  allTags={allTags}
+                  allTags={allTagsForCat}
                   canEdit={canManageInsights}
                   onToggle={toggleTag}
                   onCreate={createAndAdd}
                   onClose={() => setActiveCategory(null)}
                 />
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </ComboboxContent>
+            </Combobox>
           )
         })}
       </div>
