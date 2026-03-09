@@ -16,28 +16,28 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
     label: "Memorial",
     chip: cn(
       badgeVariants({ variant: "outline" }),
-      "border-pink-200 bg-pink-50 text-pink-700",
+      "bg-pink-100 text-pink-700",
     ),
-    dot: "bg-rose-400",
-    trigger: "bg-pink-100 text-pink-700",
+    dot: "bg-pink-200",
+    trigger: "rounded-full bg-pink-200 text-pink-700",
   },
   spiritual: {
     label: "Espiritual",
     chip: cn(
       badgeVariants({ variant: "outline" }),
-      "border-sky-200 bg-sky-50 text-sky-700",
+      "bg-sky-400 text-sky-700",
     ),
-    dot: "bg-violet-400",
-    trigger: "bg-sky-100 text-sky-700",
+    dot: "bg-sky-400",
+    trigger: "rounded-full bg-sky-200 text-sky-700",
   },
   patrimonial: {
     label: "Patrimonial",
     chip: cn(
       badgeVariants({ variant: "outline" }),
-      "border-amber-200 bg-amber-50 text-amber-700",
+      "rounded-full bg-amber-100 text-amber-700",
     ),
-    dot: "bg-amber-400",
-    trigger: "bg-amber-100 text-amber-700",
+    dot: "bg-amber-200",
+    trigger: "rounded-full bg-amber-200 text-amber-700",
   },
 };
 
@@ -50,4 +50,4 @@ export const INSIGHT_CATEGORIES = [
 export type InsightCategory = typeof INSIGHT_CATEGORIES[number];
 
 /** Base chip class — use with cfg.chip which already includes badgeVariants */
-export const INSIGHT_CHIP_BASE = "";
+export const INSIGHT_CHIP_BASE = "rounded-full";

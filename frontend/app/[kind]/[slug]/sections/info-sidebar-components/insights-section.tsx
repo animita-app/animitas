@@ -9,6 +9,13 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu"
+import {
   INSIGHT_CATEGORY_CONFIG,
   INSIGHT_CATEGORIES,
 } from "@/lib/insight-config"
@@ -61,7 +68,7 @@ interface CategoryDropdownProps {
   onClose: () => void
 }
 
-function CategoryDropdown({
+function CategoryDropdownContent({
   category,
   jsonbItems,
   siteTags,
@@ -92,74 +99,72 @@ function CategoryDropdown({
   const isEmpty = visibleJsonbItems.length === 0 && visibleTags.length === 0 && !canCreate
 
   return (
-    <div className="absolute top-full mt-2 left-0 z-50 w-64 origin-top-left rounded-md border border-neutral-800 bg-black p-1 text-white shadow-md animate-in fade-in-0 zoom-in-95">
+    <>
       {/* Search — editors only */}
       {canEdit && (
-        <div className="px-2 py-1.5 border-b border-neutral-800 mb-1">
+        <div className="px-2 py-1.5 border-b border-border/10 mb-1">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Escape') { e.stopPropagation(); onClose() }
+              if (e.key === 'Escape') { onClose() }
               if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
             }}
             placeholder="Buscar o crear..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
         </div>
       )}
 
-      <div className="max-h-52 overflow-y-auto">
-        {/* JSONB read-only items */}
-        {visibleJsonbItems.map((label, i) => (
-          <div
-            key={`jsonb-${i}`}
-            className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-neutral-400 select-none"
+      {/* JSONB read-only items */}
+      {visibleJsonbItems.map((label, i) => (
+        <div
+          key={`jsonb-${i}`}
+          className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-muted-foreground select-none"
+        >
+          {label}
+        </div>
+      ))}
+
+      {/* Editor-managed tags with checkmarks */}
+      {canEdit && visibleTags.map(tag => {
+        const isSelected = selectedIds.has(tag.id)
+        return (
+          <DropdownMenuCheckboxItem
+            key={tag.id}
+            checked={isSelected}
+            onSelect={(e) => {
+              e.preventDefault() // prevent closing menu!
+              onToggle(tag, isSelected)
+            }}
           >
-            {/* fixed-width slot to align with editor checkmarks */}
-            <span className="w-4 shrink-0 flex justify-center items-center" />
-            {label}
-          </div>
-        ))}
+            {tag.label}
+          </DropdownMenuCheckboxItem>
+        )
+      })}
 
-        {/* Editor-managed tags with checkmarks */}
-        {canEdit && visibleTags.map(tag => {
-          const isSelected = selectedIds.has(tag.id)
-          return (
-            <button
-              key={tag.id}
-              onPointerDown={e => e.preventDefault()}
-              onClick={() => onToggle(tag, isSelected)}
-              className="flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-neutral-800 focus:bg-neutral-800 data-[highlighted]:bg-neutral-800"
-            >
-              <span className="w-4 shrink-0 flex items-center justify-center">
-                {isSelected && <Check className="h-4 w-4" />}
-              </span>
-              {tag.label}
-            </button>
-          )
-        })}
+      {/* Create new */}
+      {canCreate && (
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault()
+            onCreate(query.trim(), category)
+            setQuery("")
+          }}
+          className="text-muted-foreground mt-1"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Crear &quot;{query.trim()}&quot;
+        </DropdownMenuItem>
+      )}
 
-        {/* Create new */}
-        {canCreate && (
-          <button
-            onPointerDown={e => e.preventDefault()}
-            onClick={() => { onCreate(query.trim(), category); setQuery("") }}
-            className="flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-400 mt-1"
-          >
-            <span className="w-4 shrink-0 flex items-center justify-center">
-              <Plus className="h-4 w-4" />
-            </span>
-            Crear &quot;{query.trim()}&quot;
-          </button>
-        )}
-
-        {isEmpty && (
-          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin resultados</p>
-        )}
-      </div>
-    </div>
+      {isEmpty && (
+        <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+          Sin resultados
+        </div>
+      )}
+    </>
   )
 }
 
@@ -197,15 +202,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     })
   }, [site.id, canManageInsights])
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    function onPointerDown(e: PointerEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node))
-        setActiveCategory(null)
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [])
+
 
   const toggleTag = async (tag: InsightTag, isSelected: boolean) => {
     if (isSelected) {
@@ -256,9 +253,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   if (loading) return <Skeleton className="h-8" />
 
   return (
-    <div ref={containerRef} className="relative mb-4">
-      {/* 3 category triggers — shown for all users */}
-      <div className="flex gap-3">
+    <div className="relative mb-4">
+      <div className="flex gap-1.5 -ml-2.5">
         {INSIGHT_CATEGORIES.map(cat => {
           const cfg = INSIGHT_CATEGORY_CONFIG[cat]
           const jsonbCount = jsonbChips.filter(c => c.category === cat).length
@@ -267,40 +263,47 @@ export function InsightsSection({ site }: InsightsSectionProps) {
           const isActive = activeCategory === cat
 
           return (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(isActive ? null : cat)}
-              className={cn(
-                "inline-flex items-center justify-center rounded-sm pl-2.5 pr-0.5 py-0.5 text-sm font-medium transition-colors cursor-pointer",
-                count > 0
-                  ? cfg.trigger
-                  : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
-              )}
-            >
-              {cfg.label}
-              {count > 0 && (
-                <span className="ml-1 tabular-nums min-w-3 min-h-3 rounded-full text-xs bg-black/10">{count}</span>
-              )}
-            </button>
+            <DropdownMenu key={cat} open={isActive} onOpenChange={(open) => setActiveCategory(open ? cat : null)}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={cn(
+                    "inline-flex items-center justify-center rounded-full pl-2.5 pr-0.5 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
+                    count > 0
+                      ? cfg.trigger
+                      : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                  )}
+                >
+                  {cfg.label}
+                  {count > 0 && (
+                    <span
+                      className={cn(
+                        "ml-1.5 tabular-nums min-w-4 min-h-4 rounded-full text-xs",
+                        cfg.dot
+                      )}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64 max-h-52 overflow-y-auto">
+                <CategoryDropdownContent
+                  category={cat}
+                  jsonbItems={jsonbChips
+                    .filter(c => c.category === cat)
+                    .map(c => c.label)}
+                  siteTags={siteTags}
+                  allTags={allTags}
+                  canEdit={canManageInsights}
+                  onToggle={toggleTag}
+                  onCreate={createAndAdd}
+                  onClose={() => setActiveCategory(null)}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
           )
         })}
       </div>
-
-      {/* Per-category dropdown */}
-      {activeCategory && (
-        <CategoryDropdown
-          category={activeCategory}
-          jsonbItems={jsonbChips
-            .filter(c => c.category === activeCategory)
-            .map(c => c.label)}
-          siteTags={siteTags}
-          allTags={allTags}
-          canEdit={canManageInsights}
-          onToggle={toggleTag}
-          onCreate={createAndAdd}
-          onClose={() => setActiveCategory(null)}
-        />
-      )}
     </div>
   )
 }
