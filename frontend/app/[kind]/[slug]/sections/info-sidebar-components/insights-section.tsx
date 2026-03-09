@@ -92,10 +92,10 @@ function CategoryDropdown({
   const isEmpty = visibleJsonbItems.length === 0 && visibleTags.length === 0 && !canCreate
 
   return (
-    <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-md border border-neutral-800 bg-black text-white shadow-md overflow-hidden">
+    <div className="absolute top-full mt-2 left-0 z-50 w-64 origin-top-left rounded-md border border-neutral-800 bg-black p-1 text-white shadow-md animate-in fade-in-0 zoom-in-95">
       {/* Search — editors only */}
       {canEdit && (
-        <div className="px-3 py-2 border-b border-neutral-800">
+        <div className="px-2 py-1.5 border-b border-neutral-800 mb-1">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -110,15 +110,15 @@ function CategoryDropdown({
         </div>
       )}
 
-      <div className="max-h-52 overflow-y-auto p-1">
+      <div className="max-h-52 overflow-y-auto">
         {/* JSONB read-only items */}
         {visibleJsonbItems.map((label, i) => (
           <div
             key={`jsonb-${i}`}
-            className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-neutral-400"
+            className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-neutral-400 select-none"
           >
             {/* fixed-width slot to align with editor checkmarks */}
-            <span className="w-4 shrink-0" />
+            <span className="w-4 shrink-0 flex justify-center items-center" />
             {label}
           </div>
         ))}
@@ -131,10 +131,10 @@ function CategoryDropdown({
               key={tag.id}
               onPointerDown={e => e.preventDefault()}
               onClick={() => onToggle(tag, isSelected)}
-              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-neutral-800 transition-colors text-left"
+              className="flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-neutral-800 focus:bg-neutral-800 data-[highlighted]:bg-neutral-800"
             >
               <span className="w-4 shrink-0 flex items-center justify-center">
-                {isSelected && <Check className="size-3.5" />}
+                {isSelected && <Check className="h-4 w-4" />}
               </span>
               {tag.label}
             </button>
@@ -146,17 +146,17 @@ function CategoryDropdown({
           <button
             onPointerDown={e => e.preventDefault()}
             onClick={() => { onCreate(query.trim(), category); setQuery("") }}
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-neutral-800 text-neutral-400 transition-colors text-left"
+            className="flex w-full select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-neutral-800 focus:bg-neutral-800 text-neutral-400 mt-1"
           >
             <span className="w-4 shrink-0 flex items-center justify-center">
-              <Plus className="size-3.5" />
+              <Plus className="h-4 w-4" />
             </span>
             Crear &quot;{query.trim()}&quot;
           </button>
         )}
 
         {isEmpty && (
-          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin información</p>
+          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin resultados</p>
         )}
       </div>
     </div>
@@ -271,7 +271,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               key={cat}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               className={cn(
-                "inline-flex items-center justify-center rounded-sm px-2.5 py-0.5 text-xs font-medium transition-colors cursor-pointer",
+                "inline-flex items-center justify-center rounded-sm pl-2.5 pr-0.5 py-0.5 text-sm font-medium transition-colors cursor-pointer",
                 count > 0
                   ? cfg.trigger
                   : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
@@ -279,7 +279,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
             >
               {cfg.label}
               {count > 0 && (
-                <span className="ml-1 tabular-nums opacity-60">{count}</span>
+                <span className="ml-1 tabular-nums min-w-3 min-h-3 rounded-full text-xs bg-black/10">{count}</span>
               )}
             </button>
           )
