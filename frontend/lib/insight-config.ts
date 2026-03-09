@@ -27,7 +27,7 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
       badgeVariants({ variant: "outline" }),
       "bg-sky-400 text-sky-700",
     ),
-    dot: "bg-sky-400",
+    dot: "bg-sky-200",
     trigger: "rounded-full bg-sky-200 text-sky-700",
   },
   patrimonial: {

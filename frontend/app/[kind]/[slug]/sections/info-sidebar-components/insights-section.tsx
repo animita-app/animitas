@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
   INSIGHT_CATEGORY_CONFIG,
   INSIGHT_CATEGORIES,
@@ -102,8 +103,8 @@ function CategoryDropdownContent({
     <>
       {/* Search — editors only */}
       {canEdit && (
-        <div className="px-2 py-1.5 border-b border-border/10 mb-1">
-          <input
+        <div className="px-2 py-2 border-b border-border/10 mb-1">
+          <Input
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => {
@@ -111,21 +112,10 @@ function CategoryDropdownContent({
               if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
             }}
             placeholder="Buscar o crear..."
-            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
         </div>
       )}
-
-      {/* JSONB read-only items */}
-      {visibleJsonbItems.map((label, i) => (
-        <div
-          key={`jsonb-${i}`}
-          className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-muted-foreground select-none"
-        >
-          {label}
-        </div>
-      ))}
 
       {/* Editor-managed tags with checkmarks */}
       {canEdit && visibleTags.map(tag => {
@@ -152,10 +142,9 @@ function CategoryDropdownContent({
             onCreate(query.trim(), category)
             setQuery("")
           }}
-          className="text-muted-foreground mt-1"
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Crear &quot;{query.trim()}&quot;
+          <Plus />
+          Crear
         </DropdownMenuItem>
       )}
 
@@ -253,8 +242,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   if (loading) return <Skeleton className="h-8" />
 
   return (
-    <div className="relative mb-4">
-      <div className="flex gap-1.5 -ml-2.5">
+    <div className="relative mb-6">
+      <div className="flex gap-1.5">
         {INSIGHT_CATEGORIES.map(cat => {
           const cfg = INSIGHT_CATEGORY_CONFIG[cat]
           const jsonbCount = jsonbChips.filter(c => c.category === cat).length
@@ -267,7 +256,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    "inline-flex items-center justify-center rounded-full pl-2.5 pr-0.5 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
+                    "inline-flex items-center justify-center rounded-full pl-2.5 pr-1 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
                     count > 0
                       ? cfg.trigger
                       : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
