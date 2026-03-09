@@ -204,7 +204,9 @@ function CategoryDropdownContent({
         autoFocus
         value={query}
         onChange={(e: any) => setQuery(e.target.value)}
+        className="border-b border-white/5"
         onKeyDown={(e: any) => {
+          // 1. Back navigation (Esc or Left Arrow)
           if (activeSubcategory && (e.key === 'Escape' || (e.key === 'ArrowLeft' && !query))) {
             e.preventDefault();
             e.stopPropagation();
@@ -212,9 +214,12 @@ function CategoryDropdownContent({
             return;
           }
 
-          // Enter logic: If we have a query, only create if we aren't about to select a subcategory
+          // 2. Enter logic
           if (e.key === 'Enter') {
-            if (canCreate && !visibleSubcategories.length) {
+            // Priority: If we are at root (subcategories), the highlight selection
+            // will be handled by the primitive's onSelect.
+            // If we are in query mode and can create a tag:
+            if (activeSubcategory && canCreate && !visibleSubcategories.length) {
               e.preventDefault();
               onToggle(query.trim(), activeSubcategory || "General", false);
               setQuery("")
@@ -235,7 +240,6 @@ function CategoryDropdownContent({
             </div>
           )
         }
-        className="border-b border-white/5"
       />
 
       <div className="relative overflow-hidden">
@@ -255,8 +259,8 @@ function CategoryDropdownContent({
                   value={sub}
                   className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2 cursor-pointer select-none"
                   onSelect={(e) => {
-                    console.log("👉 Triggering navigation to:", sub);
-                    // Prevent the primitive from toggling the value
+                    console.log("👉 TAPPING / ENTER on:", sub);
+                    // CRITICAL: Prevent the primitive from toggling this 'sub' as a value
                     e.preventDefault();
                     onSubcategoryChange(sub)
                     setQuery("")
@@ -497,7 +501,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                     count > 0
                       ? cfg.trigger
                       : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
-                    isActive && "brightness-80 shadow-inner ring-1 ring-white/10"
+                    isActive && "brightness-90 shadow-inner ring-1 ring-white/10"
                   )}
                 >
                   {cfg.label}

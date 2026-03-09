@@ -18,6 +18,7 @@ import { useUser } from '@/contexts/user-context'
 import { useSiteEditing } from './site-edit-context'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useMobileScrollThreshold } from '@/hooks/use-mobile'
 
 interface Revision {
   id: string
@@ -37,6 +38,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const { isEditing, requestCancel, requestConfirm } = useSiteEditing()
   const isCreator = currentUser?.id === site.creator_id
   const canSeeVersions = isEditor || isCreator
+  const isOverThreshold = useMobileScrollThreshold()
 
   const [revisions, setRevisions] = useState<Revision[]>([])
   const [selectedRevision, setSelectedRevision] = useState<string>('current')
@@ -75,11 +77,20 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   }
 
   return (
-    <div className="md:bg-background-weak md:border-b fixed md:absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
+    <div className={cn(
+      "md:bg-background-weak md:border-b fixed md:absolute h-14 inset-x-0 top-0 z-40 flex items-center justify-between px-3 py-3 pointer-events-none transition-all duration-300",
+      isOverThreshold ? "bg-white/90 backdrop-blur-md border-b border-black/5" : "bg-transparent"
+    )}>
       <Button
         size="sm"
         variant="ghost"
-        className="pointer-events-auto gap-1 bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text [&_svg]:!opacity-50 !pl-1.5"
+        className={cn(
+          "pointer-events-auto z-10 gap-1 h-8 transition-all duration-300 !pl-1.5",
+          isOverThreshold
+            ? "bg-neutral-200/50 hover:bg-neutral-200 text-black md:bg-neutral-200"
+            : "bg-black/40 backdrop-blur-sm hover:bg-black/50 text-white md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none md:text-text",
+          "[&_svg]:!opacity-50"
+        )}
         asChild
       >
         <Link href="/">
@@ -93,25 +104,25 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
           <div
             className={cn(
               "flex items-center h-8 gap-2 justify-center pointer-events-auto transition-all duration-300",
-              isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative"
+              isEditing ? "opacity-0 invisible absolute" : "visible relative"
             )}
           >
             <Select
               value={selectedRevision}
               onValueChange={setSelectedRevision}
             >
-              <SelectTrigger className="w-32 bg-background !h-10 text-sm gap-3 px-3">
+              <SelectTrigger className={cn(
+                "min-w-fit md:mix-blend-normal border-0 !shadow-none bg-transparent !h-10 text-sm px-3 gap-3 transition-colors duration-300",
+                isOverThreshold
+                  ? "!text-black mix-blend-normal"
+                  : "text-white mix-blend-difference"
+              )}>
                 <SelectValue placeholder={currentVersionLabel} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="current">
                   <div className="inline-flex items-center gap-2.5">
                     <span>{currentVersionLabel}</span>
-                    {/* <span>
-                      {revisions[revisions.length - 1]?.author_name || site.created_by?.display_name || site.created_by?.name || "Anónimo"}
-                      {" • "}
-                      {formatDistanceToNow(new Date(revisions[revisions.length - 1]?.created_at || site.created_at), { addSuffix: true, locale: es })}
-                    </span> */}
                   </div>
                 </SelectItem>
                 {[...revisions].reverse().map((rev) => (
@@ -157,12 +168,17 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 pointer-events-auto">
+      <div className="flex items-center z-10 gap-1.5 pointer-events-auto">
         {(isEditor || isCreator) && !isEditing && (
           <Button
             size="icon"
             variant="ghost"
-            className="bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text w-8"
+            className={cn(
+              "h-8 w-8 transition-all duration-300",
+              isOverThreshold
+                ? "bg-neutral-200/50 hover:bg-neutral-200 text-black md:bg-neutral-200"
+                : "bg-black/40 backdrop-blur-sm hover:bg-black/50 text-white md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none md:text-text"
+            )}
             onClick={onEditGallery}
           >
             <Pencil />
@@ -171,7 +187,12 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
         <Button
           size="icon"
           variant="ghost"
-          className="bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text w-8"
+          className={cn(
+            "h-8 w-8 transition-all duration-300",
+            isOverThreshold
+              ? "bg-neutral-200/50 hover:bg-neutral-200 text-black md:bg-neutral-200"
+              : "bg-black/40 backdrop-blur-sm hover:bg-black/50 text-white md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none md:text-text"
+          )}
           onClick={handleCopyLink}
         >
           {hasCopied ? <CheckCircle2 /> : <Link2 />}
