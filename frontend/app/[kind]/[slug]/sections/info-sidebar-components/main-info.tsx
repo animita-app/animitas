@@ -9,6 +9,7 @@ import { ROLES } from "@/types/roles"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { useSiteEditing } from "../site-edit-context"
+import { toast } from "sonner"
 
 interface MainInfoProps {
   site: HeritageSite
@@ -23,21 +24,41 @@ export function MainInfo({ site }: MainInfoProps) {
   const kindSlug = (site as any).kind || 'animita'
   const prefix = kindSlug === 'animita' ? 'Animita de ' : ''
 
+  const pendingChangesRef = React.useRef<Record<string, any>>({})
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
   const saveField = async (field: string, value: string) => {
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('heritage_sites')
-      .update({ [field]: value, updated_at: new Date().toISOString() })
-      .eq('id', site.id)
+    pendingChangesRef.current[field] = value
 
-    if (error) throw error
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
 
-    await supabase.from('heritage_site_revisions').insert({
-      site_id: site.id,
-      snapshot: { [field]: value },
-      diff_summary: `Campo "${field}" actualizado`,
-      author_id: currentUser?.id,
-    })
+    timeoutRef.current = setTimeout(async () => {
+      const changes = { ...pendingChangesRef.current }
+      pendingChangesRef.current = {}
+
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('heritage_sites')
+        .update({ ...changes, updated_at: new Date().toISOString() })
+        .eq('id', site.id)
+
+      if (error) { toast.error("Error al actualizar datos"); return }
+
+      const keys = Object.keys(changes)
+      const summary = keys.length === 1
+        ? `Campo "${keys[0]}" actualizado`
+        : `Campos actualizados: ${keys.join(', ')}`
+
+      await supabase.from('heritage_site_revisions').insert({
+        site_id: site.id,
+        snapshot: changes,
+        diff_summary: summary,
+        author_id: currentUser?.id,
+      })
+
+      setIsEditing(false)
+      window.location.reload()
+    }, 150)
   }
 
   const editingProps = canEdit ? {
