@@ -50,7 +50,7 @@ export function MainInfo({ site }: MainInfoProps) {
     <div>
       <span className="inline-flex items-baseline gap-0">
         {prefix && (
-          <p className="text-2xl shrink-0 font-medium text-text-strong">{prefix}</p>
+          <p className="text-2xl shrink-0 font-medium text-text-strong mr-1.5">{prefix}</p>
         )}
         {canEdit ? (
           <InlineEdit
@@ -63,7 +63,7 @@ export function MainInfo({ site }: MainInfoProps) {
         ) : (
           <h1 className="text-2xl font-medium text-text-strong">{site.title}</h1>
         )}
-      </div>
+      </span>
 
       {canEdit ? (
         <InlineEdit
@@ -72,14 +72,14 @@ export function MainInfo({ site }: MainInfoProps) {
           onSave={(val) => saveField('story', val)}
           placeholder="Agrega una historia..."
           className={cn(
-            "mt-4 text-sm leading-relaxed text-text/70",
+            "mt-4 text-sm leading-relaxed text-text-strong",
             !isExpanded && "line-clamp-4"
           )}
           {...editingProps}
         />
       ) : (
         <p className={cn(
-          "mt-4 text-sm leading-relaxed text-text/70 whitespace-pre-line",
+          "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line",
           !isExpanded && "line-clamp-4"
         )}>
           {site.story}

@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils"
 import {
   INSIGHT_CATEGORY_CONFIG,
   INSIGHT_CATEGORIES,
-  INSIGHT_CHIP_BASE,
 } from "@/lib/insight-config"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -45,52 +44,86 @@ function getJsonbChips(site: HeritageSite): { label: string; category: string }[
   return chips
 }
 
-// ─── Per-category dropdown ────────────────────────────────────────────────────
+// ─── Dropdown ─────────────────────────────────────────────────────────────────
 
 interface CategoryDropdownProps {
   category: string
+  /** JSONB-derived chips for this category */
+  jsonbItems: string[]
+  /** Junction-table tags for this site */
   siteTags: SiteTag[]
+  /** All tags from db for this category */
   allTags: InsightTag[]
+  canEdit: boolean
   onToggle: (tag: InsightTag, isSelected: boolean) => void
   onCreate: (label: string, category: string) => void
   onClose: () => void
 }
 
-function CategoryDropdown({ category, siteTags, allTags, onToggle, onCreate, onClose }: CategoryDropdownProps) {
+function CategoryDropdown({
+  category,
+  jsonbItems,
+  siteTags,
+  allTags,
+  canEdit,
+  onToggle,
+  onCreate,
+  onClose,
+}: CategoryDropdownProps) {
   const [query, setQuery] = useState("")
-  const cfg = INSIGHT_CATEGORY_CONFIG[category]
   const selectedIds = new Set(siteTags.filter(t => t.category === category).map(t => t.id))
 
-  const visible = useMemo(() => {
+  const visibleTags = useMemo(() => {
     const pool = allTags.filter(t => t.category === category)
     if (!query.trim()) return pool
     return pool.filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
   }, [allTags, query, category])
 
-  const canCreate = !!query.trim() && !allTags.some(
+  const canCreate = canEdit && !!query.trim() && !allTags.some(
     t => t.category === category && t.label.toLowerCase() === query.trim().toLowerCase()
   )
 
+  // Filter jsonb items by query too when editor is searching
+  const visibleJsonbItems = query.trim()
+    ? jsonbItems.filter(l => l.toLowerCase().includes(query.toLowerCase()))
+    : jsonbItems
+
+  const isEmpty = visibleJsonbItems.length === 0 && visibleTags.length === 0 && !canCreate
+
   return (
     <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-md border border-neutral-800 bg-black text-white shadow-md overflow-hidden">
-      {/* Search input */}
-      <div className="px-3 py-2 border-b border-neutral-800">
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Escape') { e.stopPropagation(); onClose() }
-            if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
-          }}
-          placeholder={`Buscar en ${cfg.label.toLowerCase()}...`}
-          className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500 text-white"
-          autoFocus
-        />
-      </div>
+      {/* Search — editors only */}
+      {canEdit && (
+        <div className="px-3 py-2 border-b border-neutral-800">
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') { e.stopPropagation(); onClose() }
+              if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
+            }}
+            placeholder="Buscar o crear..."
+            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500"
+            autoFocus
+          />
+        </div>
+      )}
 
-      {/* Tag list — checkmarks for selected */}
-      <div className="max-h-48 overflow-y-auto p-1">
-        {visible.map(tag => {
+      <div className="max-h-52 overflow-y-auto p-1">
+        {/* JSONB read-only items */}
+        {visibleJsonbItems.map((label, i) => (
+          <div
+            key={`jsonb-${i}`}
+            className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-neutral-400"
+          >
+            {/* fixed-width slot to align with editor checkmarks */}
+            <span className="w-4 shrink-0" />
+            {label}
+          </div>
+        ))}
+
+        {/* Editor-managed tags with checkmarks */}
+        {canEdit && visibleTags.map(tag => {
           const isSelected = selectedIds.has(tag.id)
           return (
             <button
@@ -107,6 +140,7 @@ function CategoryDropdown({ category, siteTags, allTags, onToggle, onCreate, onC
           )
         })}
 
+        {/* Create new */}
         {canCreate && (
           <button
             onPointerDown={e => e.preventDefault()}
@@ -120,28 +154,29 @@ function CategoryDropdown({ category, siteTags, allTags, onToggle, onCreate, onC
           </button>
         )}
 
-        {visible.length === 0 && !canCreate && (
-          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin resultados</p>
+        {isEmpty && (
+          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin información</p>
         )}
       </div>
     </div>
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function InsightsSection({ site }: InsightsSectionProps) {
   const { canManageInsights } = useSitePermissions(site)
   const [siteTags, setSiteTags] = useState<SiteTag[]>([])
   const [allTags, setAllTags] = useState<InsightTag[]>([])
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(canManageInsights) // only load if editor
   const containerRef = useRef<HTMLDivElement>(null)
 
   const jsonbChips = useMemo(() => getJsonbChips(site), [site])
 
+  // Editors fetch junction-table tags; non-editors only see JSONB
   useEffect(() => {
-    if (!canManageInsights) { setLoading(false); return }
+    if (!canManageInsights) return
     const supabase = createClient()
     Promise.all([
       supabase.from('insight_tags').select('*').order('label'),
@@ -161,7 +196,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     })
   }, [site.id, canManageInsights])
 
-  // Close on outside click
+  // Close dropdown on outside click
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node))
@@ -173,7 +208,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
 
   const toggleTag = async (tag: InsightTag, isSelected: boolean) => {
     if (isSelected) {
-      // Remove
       const removed = siteTags.find(t => t.id === tag.id)
       setSiteTags(prev => prev.filter(t => t.id !== tag.id))
       const supabase = createClient()
@@ -187,7 +221,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
         if (removed) setSiteTags(prev => [...prev, removed])
       }
     } else {
-      // Add
       setSiteTags(prev => [...prev, { ...tag, site_id: site.id, tag_id: tag.id }])
       const supabase = createClient()
       const { error } = await supabase
@@ -209,74 +242,65 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       .single()
     if (error || !data) { toast.error("Error al crear insight"); return }
     setAllTags(prev => [...prev, data])
-    // auto-add (not selected yet)
     setSiteTags(prev => [...prev, { ...data, site_id: site.id, tag_id: data.id }])
     const supabase2 = createClient()
     await supabase2.from('heritage_site_insight_tags').insert({ site_id: site.id, tag_id: data.id })
   }
 
-  const hasAnything = jsonbChips.length > 0 || siteTags.length > 0 || canManageInsights
-  if (!hasAnything) return null
+  // Don't render if there's truly nothing to show
+  const totalJsonb = jsonbChips.length
+  const totalTags = siteTags.length
+  if (totalJsonb === 0 && totalTags === 0 && !canManageInsights) return null
+
   if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
 
   return (
-    <div className="space-y-3">
-      {/* ── JSONB read-only chips ── */}
-      {jsonbChips.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {jsonbChips.map((chip, i) => {
-            const cfg = INSIGHT_CATEGORY_CONFIG[chip.category] ?? INSIGHT_CATEGORY_CONFIG.memorial
-            return (
-              <span key={i} className={cn(INSIGHT_CHIP_BASE, cfg.chip)}>
-                {chip.label}
-              </span>
-            )
-          })}
-        </div>
-      )}
+    <div ref={containerRef} className="relative">
+      {/* 3 category triggers — shown for all users */}
+      <div className="flex gap-3">
+        {INSIGHT_CATEGORIES.map(cat => {
+          const cfg = INSIGHT_CATEGORY_CONFIG[cat]
+          const jsonbCount = jsonbChips.filter(c => c.category === cat).length
+          const tagCount = siteTags.filter(t => t.category === cat).length
+          const count = jsonbCount + tagCount
+          const isActive = activeCategory === cat
 
-      {/* ── Editor category triggers ── */}
-      {canManageInsights && (
-        <div ref={containerRef} className="relative">
-          <div className="flex gap-3">
-            {INSIGHT_CATEGORIES.map(cat => {
-              const cfg = INSIGHT_CATEGORY_CONFIG[cat]
-              const count = siteTags.filter(t => t.category === cat).length
-              const isActive = activeCategory === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(isActive ? null : cat)}
+              className={cn(
+                "text-sm transition-colors",
+                isActive
+                  ? "text-text-strong font-medium"
+                  : count > 0
+                    ? "text-text"
+                    : "text-text-weak hover:text-text"
+              )}
+            >
+              {cfg.label}
+              {count > 0 && (
+                <span className="ml-1 tabular-nums text-xs opacity-60">{count}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(isActive ? null : cat)}
-                  className={cn(
-                    "text-sm transition-colors",
-                    isActive
-                      ? "text-text-strong font-medium"
-                      : count > 0
-                        ? "text-text"
-                        : "text-text-weak hover:text-text"
-                  )}
-                >
-                  {cfg.label}
-                  {count > 0 && (
-                    <span className="ml-1 tabular-nums text-xs">{count}</span>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {activeCategory && (
-            <CategoryDropdown
-              category={activeCategory}
-              siteTags={siteTags}
-              allTags={allTags}
-              onToggle={toggleTag}
-              onCreate={createAndAdd}
-              onClose={() => setActiveCategory(null)}
-            />
-          )}
-        </div>
+      {/* Per-category dropdown */}
+      {activeCategory && (
+        <CategoryDropdown
+          category={activeCategory}
+          jsonbItems={jsonbChips
+            .filter(c => c.category === activeCategory)
+            .map(c => c.label)}
+          siteTags={siteTags}
+          allTags={allTags}
+          canEdit={canManageInsights}
+          onToggle={toggleTag}
+          onCreate={createAndAdd}
+          onClose={() => setActiveCategory(null)}
+        />
       )}
     </div>
   )
