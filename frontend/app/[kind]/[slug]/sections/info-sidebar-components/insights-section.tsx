@@ -271,13 +271,15 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               key={cat}
               onClick={() => setActiveCategory(isActive ? null : cat)}
               className={cn(
-                "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-                count > 0 && "text-text"
+                "inline-flex items-center justify-center rounded-sm px-2.5 py-0.5 text-xs font-medium transition-colors cursor-pointer",
+                count > 0
+                  ? cfg.trigger
+                  : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
               )}
             >
               {cfg.label}
               {count > 0 && (
-                <span className="ml-1 tabular-nums text-sm opacity-60">{count}</span>
+                <span className="ml-1 tabular-nums opacity-60">{count}</span>
               )}
             </button>
           )
