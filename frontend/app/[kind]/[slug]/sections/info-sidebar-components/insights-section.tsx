@@ -174,7 +174,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   if (loading) return <div className="h-10 animate-pulse bg-background-weaker rounded-md" />
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative -mx-2">
       {/* Single inline flex row: JSONB readonly chips + editor chips + input */}
       <div
         className="flex flex-wrap gap-1.5 min-h-8 rounded-md px-2 py-1.5 cursor-text"
@@ -210,9 +210,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
         {/* Combobox input (editor only) */}
         {canManageInsights && (
           <>
-            {siteTags.length === 0 && jsonbChips.length === 0 && !query && (
-              <Plus className="size-3.5 text-text-weak shrink-0 self-center" />
-            )}
+            <Plus className="size-4 text-text-weak shrink-0 self-center" />
             <input
               ref={inputRef}
               value={query}
@@ -223,8 +221,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                 if (e.key === 'Backspace' && !query && siteTags.length > 0)
                   removeTag(siteTags[siteTags.length - 1].id)
               }}
-              placeholder={siteTags.length === 0 && jsonbChips.length === 0 ? "Añadir insights" : ""}
-              className="flex-1 min-w-24 bg-transparent text-xs outline-none placeholder:text-text-weak py-0.5"
+              placeholder="Añadir insights"
+              className="flex-1 min-w-24 bg-transparent outline-none placeholder:text-text-weak h-8"
             />
           </>
         )}
@@ -232,7 +230,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
 
       {/* Dropdown */}
       {open && canManageInsights && (
-        <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-md border border-border-weak bg-background shadow-md">
+        <div className="absolute top-full inset-x-4 mt-1 z-50 rounded-md border border-border-weak bg-background shadow-md">
           <div className="max-h-56 overflow-y-auto p-1">
 
             {/* Existing tags grouped by category */}

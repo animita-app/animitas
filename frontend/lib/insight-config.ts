@@ -10,20 +10,20 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
 }> = {
   memorial: {
     label: "Memorial",
-    chip: "bg-rose-50 text-rose-700 border-rose-200",
+    chip: "bg-rose-50 text-rose-700",
     dot: "bg-rose-400",
   },
   spiritual: {
     label: "Espiritual",
-    chip: "bg-violet-50 text-violet-700 border-violet-200",
+    chip: "bg-violet-50 text-violet-700",
     dot: "bg-violet-400",
   },
   patrimonial: {
     label: "Patrimonial",
-    chip: "bg-amber-50 text-amber-700 border-amber-200",
+    chip: "bg-amber-50 text-amber-700",
     dot: "bg-amber-400",
   },
 };
 
 export const INSIGHT_CHIP_BASE =
-  "inline-flex items-center gap-1 px-2 h-6 rounded-full border text-xs font-normal";
+  "inline-flex items-center gap-1 px-2 h-8 rounded-full text-sm font-normal";
