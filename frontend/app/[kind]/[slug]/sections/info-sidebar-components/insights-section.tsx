@@ -117,8 +117,6 @@ function CategoryDropdownContent({
         }}
       />
 
-      <ComboboxEmpty>No items found.</ComboboxEmpty>
-
       {/* JSONB read-only items are rendered directly */}
       {visibleJsonbItems.length > 0 && (
         <div className="px-2 pb-1">
@@ -154,6 +152,12 @@ function CategoryDropdownContent({
           <Plus className="mr-2 h-4 w-4" />
           Crear &quot;{query.trim()}&quot;
         </button>
+      )}
+
+      {isEmpty && (
+        <div className="px-2 py-3 text-sm text-muted-foreground text-center">
+          Sin resultados
+        </div>
       )}
     </>
   )

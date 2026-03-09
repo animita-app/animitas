@@ -64,9 +64,9 @@ function ComboboxInput({
   showClear?: boolean
 }) {
   return (
-    <InputGroup className={cn("w-auto", className)}>
+    <InputGroup className={cn("w-auto !bg-transparent !border-0 !rounded-none", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} className="rounded-none focus:ring-0 focus:outline-0 focus-visible:ring-0 focus-visible:outline-0" />}
+        render={<InputGroupInput disabled={disabled} className="!rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
         {...props}
       />
       <InputGroupAddon align="inline-end">
