@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SiteDetailView } from './sections/site-detail-view'
@@ -7,6 +8,27 @@ interface PageProps {
     kind: string
     slug: string
   }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('heritage_sites')
+    .select('title, heritage_kinds!kind_id(slug)')
+    .eq('slug', slug)
+    .single()
+
+  if (!data) return { title: 'Animita' }
+
+  const kindSlug = (data as any).heritage_kinds?.slug ?? 'animita'
+  const displayTitle = kindSlug === 'animita' ? `Animita de ${data.title}` : data.title
+
+  return {
+    title: displayTitle,
+    description: `Conoce la historia de ${displayTitle} en Animitas.`,
+  }
 }
 
 export default async function SiteDetailPage({ params }: PageProps) {
