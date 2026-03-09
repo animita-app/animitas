@@ -16,20 +16,20 @@ import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
 import { MainHeaderPanel } from './main-header-panel'
 
-interface HeaderProps {
-  className?: string
-}
-
-export function Header({ className }: HeaderProps) {
+export function Header() {
   const { currentUser, isEditor, isSuperadmin, isLoading } = useUser()
   const pathname = usePathname()
 
-  // Hide header on animita detail views
   if (pathname.includes("animita")) return null
 
+  const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list'
+
   return (
-    <header className={cn("fixed top-0 left-0 right-0 z-50 pointer-events-none w-full", className)}>
-      <div className="bg-transparent flex items-center justify-between p-4 w-full h-16 pointer-events-auto">
+    <header className={cn(
+      isMapRoute ? "fixed" : "sticky",
+      "top-0 left-0 right-0 z-50 pointer-events-none w-full",
+    )}>
+      <div className="bg-transparent flex items-center justify-between p-4 w-full h-14 pointer-events-auto">
         {/* Left: Logo */}
         <div className="flex items-center gap-6">
           <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
@@ -38,9 +38,11 @@ export function Header({ className }: HeaderProps) {
         </div>
 
         {/* Center: Tabs + Filters/Search */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <MainHeaderPanel />
-        </div>
+        {isMapRoute && (
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <MainHeaderPanel />
+          </div>
+        )}
 
         {/* Right: Role links + user actions */}
         <div className="flex items-center gap-3">

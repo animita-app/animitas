@@ -85,7 +85,8 @@
   --color-secondary: var(--color-background-weaker);
   --color-secondary-foreground: var(--color-text);
   --color-accent-foreground: var(--color-text);
-  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive: oklch(57.7% 0.245 27.325);
+  --color-success: oklch(52.7% 0.154 150.069);
   --color-input: var(--color-border);
   --color-ring: var(--color-text-weaker);
 
@@ -167,6 +168,7 @@
   --color-secondary-foreground: var(--color-text);
   --color-accent-foreground: var(--color-text);
   --color-destructive: oklch(0.704 0.191 22.216);
+  --color-success: oklch(0.596 0.175 153.449);
   --color-input: var(--color-border);
   --color-ring: var(--color-text-weaker);
   --sidebar: hsl(240 5.9% 10%);
@@ -194,7 +196,6 @@
     font-family: var(--font-sans);
     line-height: 1.6;
     font-size: 0.875rem;
-    webkit-font-smoothing: antialiased;
     font-feature-settings: "ss03", "zero";
     /* text-sm */
   }
@@ -233,7 +234,7 @@
 }
 
 body {
-  @apply selection:bg-[#0000ee] selection:text-white;
+  @apply selection:bg-[#0000ee]/20 selection:text-[#0000ee];
   pointer-events: auto !important;
   touch-action: manipulation;
 }

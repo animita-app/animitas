@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  CheckCircle,
-  Info,
-  Loader2,
-  XCircle,
-  Triangle,
-} from "lucide-react"
+import { CheckCircle2, XCircle } from "lucide-react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
@@ -16,22 +10,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      className="!font-sans gap-2"
       icons={{
-        success: <CheckCircle className="size-4" />,
-        info: <Info className="size-4" />,
-        warning: <Triangle className="size-4" />,
-        error: <XCircle className="size-4" />,
-        loading: <Loader2 className="size-4 animate-spin" />,
+        success: <CheckCircle2 className="!size-4" />,
+        error: <XCircle className="!size-4" />
       }}
-      style={
-        {
-          "--normal-bg": "var(--black)",
-          "--normal-text": "var(--white)",
-          "--normal-border": "var(--neutral-800)",
-          "--border-radius": "var(--radius)",
-        } as React.CSSProperties
-      }
+      toastOptions={{
+        classNames: {
+          success: '!bg-success !text-white !border-success',
+          error: '!bg-destructive !text-white !border-destructive',
+          icon: '[&_svg]:text-current',
+        },
+      }}
       {...props}
     />
   )
