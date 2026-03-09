@@ -48,9 +48,9 @@ export function MainInfo({ site }: MainInfoProps) {
 
   return (
     <div>
-      <div className="flex items-baseline gap-0">
+      <span className="inline-flex items-baseline gap-0">
         {prefix && (
-          <span className="text-2xl font-medium text-text-strong">{prefix}</span>
+          <p className="text-2xl shrink-0 font-medium text-text-strong">{prefix}</p>
         )}
         {canEdit ? (
           <InlineEdit

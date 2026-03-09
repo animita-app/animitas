@@ -94,9 +94,9 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
         <SlidingPanels
           activeIndex={isEditing ? 1 : 0}
           widths={[VERSION_WIDTH, EDITING_WIDTH]}
-          className="rounded-none"
+          className="rounded-md"
         >
-          <div className="flex items-center gap-2 justify-center pointer-events-auto">
+          <div className="flex items-center h-8 gap-2 justify-center pointer-events-auto">
             <Select
               value={selectedRevision}
               onValueChange={setSelectedRevision}
@@ -128,16 +128,15 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 justify-center pl-2 pointer-events-auto">
-            <div className="flex items-center gap-2 bg-black rounded-full px-3 py-1.5">
-              <span className="text-white text-xs whitespace-nowrap">
+          <div className="flex items-center gap-4 justify-center pointer-events-auto">
+            <div className="flex items-center gap-1.5 bg-white pl-3 pr-1.5 py-1.5">
+              <span className="pr-4 pl-1 text-sm whitespace-nowrap">
                 Creando <span className="font-semibold">{nextVersionLabel}</span>
               </span>
-              <div className="w-px h-3 bg-white/25 shrink-0" />
               <Button size="sm" onClick={requestConfirm}>
                 Confirmar
               </Button>
-              <Button size="sm" variant="ghost" onClick={requestCancel}>
+              <Button size="sm" className="bg-muted hover:bg-black/10 text-text-weak" variant="ghost" onClick={requestCancel}>
                 Cancelar
               </Button>
             </div>

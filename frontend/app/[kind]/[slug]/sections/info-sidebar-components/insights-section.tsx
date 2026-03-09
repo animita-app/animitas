@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { X } from "lucide-react"
+import { Check, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite } from "@/types/heritage"
@@ -36,133 +36,92 @@ function getJsonbChips(site: HeritageSite): { label: string; category: string }[
   const ins = site.insights
   if (!ins) return []
   const chips: { label: string; category: string }[] = []
-
-  if (ins.memorial?.death_cause)
-    chips.push({ label: ins.memorial.death_cause, category: 'memorial' })
-  ins.memorial?.social_roles?.forEach((r: string) =>
-    chips.push({ label: r, category: 'memorial' })
-  )
-  ins.spiritual?.rituals_mentioned?.forEach((r: string) =>
-    chips.push({ label: r, category: 'spiritual' })
-  )
-  ins.spiritual?.offerings_mentioned?.forEach((o: string) =>
-    chips.push({ label: o, category: 'spiritual' })
-  )
-  if (ins.patrimonial?.size)
-    chips.push({ label: ins.patrimonial.size, category: 'patrimonial' })
-  if (ins.patrimonial?.form)
-    chips.push({ label: ins.patrimonial.form, category: 'patrimonial' })
-
+  if (ins.memorial?.death_cause) chips.push({ label: ins.memorial.death_cause, category: 'memorial' })
+  ins.memorial?.social_roles?.forEach((r: string) => chips.push({ label: r, category: 'memorial' }))
+  ins.spiritual?.rituals_mentioned?.forEach((r: string) => chips.push({ label: r, category: 'spiritual' }))
+  ins.spiritual?.offerings_mentioned?.forEach((o: string) => chips.push({ label: o, category: 'spiritual' }))
+  if (ins.patrimonial?.size) chips.push({ label: ins.patrimonial.size, category: 'patrimonial' })
+  if (ins.patrimonial?.form) chips.push({ label: ins.patrimonial.form, category: 'patrimonial' })
   return chips
 }
 
-// ─── Per-category dropdown ─────────────────────────────────────────────────────
+// ─── Per-category dropdown ────────────────────────────────────────────────────
 
 interface CategoryDropdownProps {
   category: string
   siteTags: SiteTag[]
   allTags: InsightTag[]
-  onAdd: (tag: InsightTag) => void
-  onRemove: (tagId: string) => void
+  onToggle: (tag: InsightTag, isSelected: boolean) => void
   onCreate: (label: string, category: string) => void
   onClose: () => void
-  inputRef: React.RefObject<HTMLInputElement | null>
 }
 
-function CategoryDropdown({
-  category,
-  siteTags,
-  allTags,
-  onAdd,
-  onRemove,
-  onCreate,
-  onClose,
-  inputRef,
-}: CategoryDropdownProps) {
+function CategoryDropdown({ category, siteTags, allTags, onToggle, onCreate, onClose }: CategoryDropdownProps) {
   const [query, setQuery] = useState("")
   const cfg = INSIGHT_CATEGORY_CONFIG[category]
-
   const selectedIds = new Set(siteTags.filter(t => t.category === category).map(t => t.id))
 
-  const available = useMemo(() => {
-    const pool = allTags.filter(t => t.category === category && !selectedIds.has(t.id))
+  const visible = useMemo(() => {
+    const pool = allTags.filter(t => t.category === category)
     if (!query.trim()) return pool
     return pool.filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
-  }, [allTags, selectedIds, query, category])
+  }, [allTags, query, category])
 
   const canCreate = !!query.trim() && !allTags.some(
     t => t.category === category && t.label.toLowerCase() === query.trim().toLowerCase()
   )
 
-  const selected = siteTags.filter(t => t.category === category)
-
   return (
-    <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-md border border-border-weak bg-background shadow-md">
-      {/* Selected chips for this category */}
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1 p-2 pb-0">
-          {selected.map(tag => (
-            <span key={tag.id} className={cn(INSIGHT_CHIP_BASE, cfg.chip)}>
-              {tag.label}
-              <button
-                onPointerDown={e => e.preventDefault()}
-                onClick={() => onRemove(tag.id)}
-                className="opacity-50 hover:opacity-100 transition-opacity"
-              >
-                <X className="size-3" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
+    <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-md border border-neutral-800 bg-black text-white shadow-md overflow-hidden">
       {/* Search input */}
-      <div className="p-2">
+      <div className="px-3 py-2 border-b border-neutral-800">
         <input
-          ref={inputRef}
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => {
-            if (e.key === 'Escape') onClose()
-            if (e.key === 'Enter' && canCreate) {
-              e.preventDefault()
-              onCreate(query.trim(), category)
-              setQuery("")
-            }
+            if (e.key === 'Escape') { e.stopPropagation(); onClose() }
+            if (e.key === 'Enter' && canCreate) { e.preventDefault(); onCreate(query.trim(), category); setQuery("") }
           }}
           placeholder={`Buscar en ${cfg.label.toLowerCase()}...`}
-          className="w-full bg-transparent text-sm outline-none placeholder:text-text-weak"
+          className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500 text-white"
           autoFocus
         />
       </div>
 
-      {/* Available tags */}
-      <div className="max-h-44 overflow-y-auto p-1 border-t border-border-weak">
-        {available.map(tag => (
-          <button
-            key={tag.id}
-            onPointerDown={e => e.preventDefault()}
-            onClick={() => { onAdd(tag); setQuery("") }}
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-background-weak transition-colors text-left"
-          >
-            <span className={cn("size-2 rounded-full shrink-0", cfg.dot)} />
-            {tag.label}
-          </button>
-        ))}
+      {/* Tag list — checkmarks for selected */}
+      <div className="max-h-48 overflow-y-auto p-1">
+        {visible.map(tag => {
+          const isSelected = selectedIds.has(tag.id)
+          return (
+            <button
+              key={tag.id}
+              onPointerDown={e => e.preventDefault()}
+              onClick={() => onToggle(tag, isSelected)}
+              className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-neutral-800 transition-colors text-left"
+            >
+              <span className="w-4 shrink-0 flex items-center justify-center">
+                {isSelected && <Check className="size-3.5" />}
+              </span>
+              {tag.label}
+            </button>
+          )
+        })}
 
         {canCreate && (
           <button
             onPointerDown={e => e.preventDefault()}
             onClick={() => { onCreate(query.trim(), category); setQuery("") }}
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-background-weak text-text-weak transition-colors text-left"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-neutral-800 text-neutral-400 transition-colors text-left"
           >
-            <span className={cn("size-2 rounded-full shrink-0 border-2", cfg.dot.replace('bg-', 'border-'))} />
+            <span className="w-4 shrink-0 flex items-center justify-center">
+              <Plus className="size-3.5" />
+            </span>
             Crear &quot;{query.trim()}&quot;
           </button>
         )}
 
-        {available.length === 0 && !canCreate && (
-          <p className="px-2 py-3 text-sm text-text-weak text-center">Sin resultados</p>
+        {visible.length === 0 && !canCreate && (
+          <p className="px-2 py-3 text-sm text-neutral-500 text-center">Sin resultados</p>
         )}
       </div>
     </div>
@@ -178,7 +137,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
   const jsonbChips = useMemo(() => getJsonbChips(site), [site])
 
@@ -213,30 +171,32 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [])
 
-  const addTag = async (tag: InsightTag) => {
-    setSiteTags(prev => [...prev, { ...tag, site_id: site.id, tag_id: tag.id }])
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('heritage_site_insight_tags')
-      .insert({ site_id: site.id, tag_id: tag.id })
-    if (error) {
-      toast.error("Error al agregar insight")
+  const toggleTag = async (tag: InsightTag, isSelected: boolean) => {
+    if (isSelected) {
+      // Remove
+      const removed = siteTags.find(t => t.id === tag.id)
       setSiteTags(prev => prev.filter(t => t.id !== tag.id))
-    }
-  }
-
-  const removeTag = async (tagId: string) => {
-    const removed = siteTags.find(t => t.id === tagId)
-    setSiteTags(prev => prev.filter(t => t.id !== tagId))
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('heritage_site_insight_tags')
-      .delete()
-      .eq('site_id', site.id)
-      .eq('tag_id', tagId)
-    if (error) {
-      toast.error("Error al quitar insight")
-      if (removed) setSiteTags(prev => [...prev, removed])
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('heritage_site_insight_tags')
+        .delete()
+        .eq('site_id', site.id)
+        .eq('tag_id', tag.id)
+      if (error) {
+        toast.error("Error al quitar insight")
+        if (removed) setSiteTags(prev => [...prev, removed])
+      }
+    } else {
+      // Add
+      setSiteTags(prev => [...prev, { ...tag, site_id: site.id, tag_id: tag.id }])
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('heritage_site_insight_tags')
+        .insert({ site_id: site.id, tag_id: tag.id })
+      if (error) {
+        toast.error("Error al agregar insight")
+        setSiteTags(prev => prev.filter(t => t.id !== tag.id))
+      }
     }
   }
 
@@ -249,7 +209,10 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       .single()
     if (error || !data) { toast.error("Error al crear insight"); return }
     setAllTags(prev => [...prev, data])
-    await addTag(data)
+    // auto-add (not selected yet)
+    setSiteTags(prev => [...prev, { ...data, site_id: site.id, tag_id: data.id }])
+    const supabase2 = createClient()
+    await supabase2.from('heritage_site_insight_tags').insert({ site_id: site.id, tag_id: data.id })
   }
 
   const hasAnything = jsonbChips.length > 0 || siteTags.length > 0 || canManageInsights
@@ -275,51 +238,42 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       {/* ── Editor category triggers ── */}
       {canManageInsights && (
         <div ref={containerRef} className="relative">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {INSIGHT_CATEGORIES.map(cat => {
               const cfg = INSIGHT_CATEGORY_CONFIG[cat]
               const count = siteTags.filter(t => t.category === cat).length
               const isActive = activeCategory === cat
-              const hasItems = count > 0
 
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(isActive ? null : cat)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-xs font-medium transition-all",
-                    hasItems || isActive
-                      ? cfg.trigger
-                      : "bg-background-weak text-text-weak hover:text-text"
+                    "text-sm transition-colors",
+                    isActive
+                      ? "text-text-strong font-medium"
+                      : count > 0
+                        ? "text-text"
+                        : "text-text-weak hover:text-text"
                   )}
                 >
-                  <span className={cn(
-                    "size-1.5 rounded-full",
-                    hasItems || isActive ? cfg.dot : "bg-text-weak"
-                  )} />
                   {cfg.label}
-                  <span className={cn(
-                    "tabular-nums",
-                    !hasItems && "opacity-50"
-                  )}>
-                    {count}
-                  </span>
+                  {count > 0 && (
+                    <span className="ml-1 tabular-nums text-xs">{count}</span>
+                  )}
                 </button>
               )
             })}
           </div>
 
-          {/* Per-category dropdown */}
           {activeCategory && (
             <CategoryDropdown
               category={activeCategory}
               siteTags={siteTags}
               allTags={allTags}
-              onAdd={addTag}
-              onRemove={removeTag}
+              onToggle={toggleTag}
               onCreate={createAndAdd}
               onClose={() => setActiveCategory(null)}
-              inputRef={inputRef}
             />
           )}
         </div>
