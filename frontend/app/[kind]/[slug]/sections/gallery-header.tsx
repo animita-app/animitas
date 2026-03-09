@@ -78,7 +78,7 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
   }
 
   return (
-    <div className="bg-background border-b absolute h-14 inset-x-0 top-0 z-[999] *:z-[99] flex items-center justify-between px-3 py-3 pointer-events-none">
+    <div className="bg-background border-b absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
       <Button
         size="sm"
         variant="ghost"

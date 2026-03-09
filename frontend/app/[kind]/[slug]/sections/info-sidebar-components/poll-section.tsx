@@ -174,7 +174,7 @@ export function PollSection({ siteId }: PollSectionProps) {
           const percentage = totalVotes > 0 ? Math.round((currentVotes / totalVotes) * 100) : 0
 
           return (
-            <div key={option.id} className="min-h-9">
+            <div key={option.id} className="-ml-1.5 -mr-1 min-h-9">
               {showResults ? (
                 <div
                   className="relative pl-3 pr-2 h-9 w-full rounded-md overflow-hidden flex items-center animate-in fade-in slide-in-from-bottom-1 duration-150"
