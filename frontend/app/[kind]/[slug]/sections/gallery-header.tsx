@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, Link2, Check, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, Link2, CheckCircle2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -16,7 +16,6 @@ import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/contexts/user-context'
 import { useSiteEditing } from './site-edit-context'
-import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -30,12 +29,10 @@ interface Revision {
 
 interface GalleryHeaderProps {
   site: any
+  onEditGallery?: () => void
 }
 
-const VERSION_WIDTH = 260
-const EDITING_WIDTH = 320
-
-export function GalleryHeader({ site }: GalleryHeaderProps) {
+export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const { currentUser, isEditor } = useUser()
   const { isEditing, requestCancel, requestConfirm } = useSiteEditing()
   const isCreator = currentUser?.id === site.creator_id
@@ -93,7 +90,6 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
 
       {canSeeVersions && (
         <div className="relative flex items-center justify-center">
-          {/* Default / Version Select State */}
           <div
             className={cn(
               "flex items-center h-8 gap-2 justify-center pointer-events-auto transition-all duration-300",
@@ -104,19 +100,28 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
               value={selectedRevision}
               onValueChange={setSelectedRevision}
             >
-              <SelectTrigger className="w-32 bg-background !h-8">
+              <SelectTrigger className="w-32 bg-background !h-10 text-sm gap-3 px-3">
                 <SelectValue placeholder={currentVersionLabel} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="current">
-                  {currentVersionLabel}
+                  <div className="inline-flex items-center gap-2.5">
+                    <span>{currentVersionLabel}</span>
+                    {/* <span>
+                      {revisions[revisions.length - 1]?.author_name || site.created_by?.display_name || site.created_by?.name || "Anónimo"}
+                      {" • "}
+                      {formatDistanceToNow(new Date(revisions[revisions.length - 1]?.created_at || site.created_at), { addSuffix: true, locale: es })}
+                    </span> */}
+                  </div>
                 </SelectItem>
                 {[...revisions].reverse().map((rev) => (
                   <SelectItem key={rev.id} value={rev.id}>
-                    <div className="text-sm flex flex-col gap-0.5 py-0.5">
-                      <span className="font-medium !text-text-strong">{rev.version_label}</span>
-                      <span className="text-text-weak">
-                        por {rev.author_name} · {formatDistanceToNow(new Date(rev.created_at), { addSuffix: true, locale: es })}
+                    <div className="inline-flex items-center gap-2.5">
+                      <span>{currentVersionLabel}</span>
+                      <span>
+                        {revisions[revisions.length - 1]?.author_name || site.created_by?.display_name || site.created_by?.name || "Anónimo"}
+                        {" • "}
+                        {formatDistanceToNow(new Date(revisions[revisions.length - 1]?.created_at || site.created_at), { addSuffix: true, locale: es })}
                       </span>
                     </div>
                   </SelectItem>
@@ -125,27 +130,26 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
             </Select>
 
             {isEditor && (
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="h-6">
                 Publicado
               </Badge>
             )}
           </div>
 
-          {/* Editing State */}
           <div
             className={cn(
               "flex items-center gap-4 justify-center pointer-events-auto transition-all duration-300",
               !isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative animate-in fade-in-0 slide-in-from-bottom-2"
             )}
           >
-            <div className="flex items-center gap-1 bg-background bg-black text-white rounded-md pl-3 pr-1 py-1.5 h-10">
+            <div className="flex items-center gap-1 bg-background bg-black text-white rounded-md pl-3 pr-1 py-1 h-10">
               <span className="pr-4 pl-1 text-sm font-normal whitespace-nowrap">
                 Creando <span className="font-semibold">{nextVersionLabel}</span>
               </span>
-              <Button size="sm" onClick={requestConfirm}>
+              <Button size="sm" onClick={requestConfirm} className="h-8 shadow-none">
                 Confirmar
               </Button>
-              <Button size="sm" className="bg-neutral-800/70 hover:bg-neutral-800 text-white" variant="ghost" onClick={requestCancel}>
+              <Button size="sm" className="bg-neutral-800/70 hover:bg-neutral-800 text-white h-full shadow-none" variant="ghost" onClick={requestCancel}>
                 Cancelar
               </Button>
             </div>
@@ -153,14 +157,26 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
         </div>
       )}
 
-      <Button
-        size="icon"
-        variant="ghost"
-        className="pointer-events-auto bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
-        onClick={handleCopyLink}
-      >
-        {hasCopied ? <CheckCircle2 /> : <Link2 />}
-      </Button>
+      <div className="flex items-center gap-1.5 pointer-events-auto">
+        {(isEditor || isCreator) && !isEditing && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
+            onClick={onEditGallery}
+          >
+            <Pencil />
+          </Button>
+        )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
+          onClick={handleCopyLink}
+        >
+          {hasCopied ? <CheckCircle2 /> : <Link2 />}
+        </Button>
+      </div>
     </div>
   )
 }

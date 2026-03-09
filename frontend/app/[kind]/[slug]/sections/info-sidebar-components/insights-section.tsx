@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Check, Plus, ChevronRight, ChevronLeft } from "lucide-react"
+import { Check, Plus, ChevronRight, ChevronLeft, Search } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite } from "@/types/heritage"
@@ -24,112 +24,145 @@ import {
   INSIGHT_CATEGORIES,
 } from "@/lib/insight-config"
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-interface InsightTag {
-  id: string
-  category: string
-  subcategory?: string
-  label: string
+const FALLBACK_TAGS: any[] = [
+  // Memorial: Causa de muerte
+  { id: 'f1', category: 'memorial', subcategory: 'Causa de muerte', label: 'Homicidios y Violencia' },
+  { id: 'f2', category: 'memorial', subcategory: 'Causa de muerte', label: 'Suicidio' },
+  { id: 'f3', category: 'memorial', subcategory: 'Causa de muerte', label: 'Natural' },
+  { id: 'f4', category: 'memorial', subcategory: 'Causa de muerte', label: 'Accidente vehicular' },
+  { id: 'f5', category: 'memorial', subcategory: 'Causa de muerte', label: 'Desconocida o Misteriosa' },
+
+  // Memorial: Rol social
+  { id: 'f6', category: 'memorial', subcategory: 'Rol social', label: 'Obrero / Trabajador' },
+  { id: 'f7', category: 'memorial', subcategory: 'Rol social', label: 'Militar / Uniformado' },
+  { id: 'f8', category: 'memorial', subcategory: 'Rol social', label: 'Estudiante / Joven' },
+  { id: 'f9', category: 'memorial', subcategory: 'Rol social', label: 'Dirigente / Líder social' },
+  { id: 'f10', category: 'memorial', subcategory: 'Rol social', label: 'Deportista / Figura pública' },
+
+  // Spiritual: Rituales
+  { id: 'f11', category: 'spiritual', subcategory: 'Rituales', label: 'Prender Velas' },
+  { id: 'f12', category: 'spiritual', subcategory: 'Rituales', label: 'Rezos y Oraciones' },
+  { id: 'f13', category: 'spiritual', subcategory: 'Rituales', label: 'Peregrinación / Procesión' },
+  { id: 'f14', category: 'spiritual', subcategory: 'Rituales', label: 'Cumplimiento de Mandas' },
+  { id: 'f15', category: 'spiritual', subcategory: 'Rituales', label: 'Coronación de Cruz' },
+
+  // Spiritual: Ofrendas
+  { id: 'f16', category: 'spiritual', subcategory: 'Ofrendas', label: 'Juguetes y Peluches' },
+  { id: 'f17', category: 'spiritual', subcategory: 'Ofrendas', label: 'Placas de Agradecimiento' },
+  { id: 'f18', category: 'spiritual', subcategory: 'Ofrendas', label: 'Monedas / Dinero' },
+  { id: 'f19', category: 'spiritual', subcategory: 'Ofrendas', label: 'Cigarrillos / Alcohol' },
+  { id: 'f20', category: 'spiritual', subcategory: 'Ofrendas', label: 'Fotos y Recuerdos' },
+
+  // Patrimonial: Tipología
+  { id: 'f21', category: 'patrimonial', subcategory: 'Tipología', label: 'Muro Conmemorativo' },
+  { id: 'f22', category: 'patrimonial', subcategory: 'Tipología', label: 'Gruta o Cueva' },
+  { id: 'f23', category: 'patrimonial', subcategory: 'Tipología', label: 'Capilla o Templete' },
+  { id: 'f24', category: 'patrimonial', subcategory: 'Tipología', label: 'Tumba Devocional' },
+  { id: 'f25', category: 'patrimonial', subcategory: 'Tipología', label: 'Cenotafio' },
+
+  // Patrimonial: Escala
+  { id: 'f26', category: 'patrimonial', subcategory: 'Escala', label: 'Monumental' },
+  { id: 'f27', category: 'patrimonial', subcategory: 'Escala', label: 'Pequeña / Íntima' },
+  { id: 'f28', category: 'patrimonial', subcategory: 'Escala', label: 'Mediana' },
+  { id: 'f29', category: 'patrimonial', subcategory: 'Escala', label: 'Grande' },
+]
+
+const IS_MULTI_SELECT: Record<string, boolean> = {
+  "rol social": true,
+  "rituales": true,
+  "ofrendas": true,
+  "social_roles": true,
+  "rituals_mentioned": true,
+  "offerings_mentioned": true,
+  "General": true,
 }
 
-interface SiteTag extends InsightTag {
+const isMultiSelect = (subcategory: string) => IS_MULTI_SELECT[subcategory] ?? false
+const isMultiSelectCaseInsensitive = (subcategory: string) => {
+  const s = subcategory.toLowerCase()
+  if (s.includes("rol") || s.includes("ritual") || s.includes("ofrenda") || s.includes("mencionado")) return true
+  return IS_MULTI_SELECT[subcategory] ?? false
+}
+
+interface SiteInsight {
+  id: string
   site_id: string
-  tag_id: string
+  category: string
+  subcategory: string
+  label: string
 }
 
 interface InsightsSectionProps {
   site: HeritageSite
 }
 
-// ─── JSONB helpers ────────────────────────────────────────────────────────────
-
-function getJsonbChips(site: HeritageSite): { label: string; category: string }[] {
-  const ins = site.insights
-  if (!ins) return []
-  const chips: { label: string; category: string }[] = []
-  if (ins.memorial?.death_cause) chips.push({ label: ins.memorial.death_cause, category: 'memorial' })
-  if (ins.memorial?.narrator_relation) chips.push({ label: ins.memorial.narrator_relation, category: 'memorial' })
-  ins.memorial?.social_roles?.forEach((r: string) => chips.push({ label: r, category: 'memorial' }))
-
-  ins.spiritual?.rituals_mentioned?.forEach((r: string) => chips.push({ label: r, category: 'spiritual' }))
-  ins.spiritual?.offerings_mentioned?.forEach((o: string) => chips.push({ label: o, category: 'spiritual' }))
-  if (ins.spiritual?.digital_visit_count) chips.push({ label: `Visitas digitales: ${ins.spiritual.digital_visit_count}`, category: 'spiritual' })
-
-  if (ins.patrimonial?.size) chips.push({ label: ins.patrimonial.size, category: 'patrimonial' })
-  if (ins.patrimonial?.form) chips.push({ label: ins.patrimonial.form, category: 'patrimonial' })
-  if (ins.patrimonial?.antiquity_year) chips.push({ label: `Año: ${ins.patrimonial.antiquity_year}`, category: 'patrimonial' })
-
-  return chips
-}
-
 // ─── Dropdown ─────────────────────────────────────────────────────────────────
 
 interface CategoryDropdownProps {
   category: string
-  /** JSONB-derived chips for this category */
-  jsonbItems: string[]
-  /** Junction-table tags for this site */
-  siteTags: SiteTag[]
-  /** All tags from db for this category */
-  allTags: InsightTag[]
+  /** Current rows from site_insights for this category */
+  activeInsights: SiteInsight[]
   canEdit: boolean
-  onToggle: (tag: InsightTag, isSelected: boolean) => void
-  onCreate: (label: string, category: string) => void
+  activeSubcategory: string | null
+  onSubcategoryChange: (sub: string | null) => void
+  onToggle: (label: string, subcategory: string, isSelected: boolean) => void
   onClose: () => void
 }
 
 function CategoryDropdownContent({
   category,
-  jsonbItems,
-  siteTags,
-  allTags,
+  activeInsights,
   canEdit,
+  activeSubcategory,
+  onSubcategoryChange,
   onToggle,
-  onCreate,
   onClose,
 }: CategoryDropdownProps) {
   const [query, setQuery] = useState("")
-  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
   const isFirstRender = useRef(true)
 
   useEffect(() => {
     isFirstRender.current = false
   }, [])
 
-  const selectedIds = new Set(siteTags.filter(t => t.category === category).map(t => t.id))
+  const selectedLabels = new Set(activeInsights.map(t => t.label))
 
   const subcategories = useMemo(() => {
-    const list = allTags.filter(t => t.category === category).map(t => t.subcategory || "General")
-    // If we only have "General", we might want to still show it if the user wants two-step,
-    // but the user seems to want to see the "menus" (menus de categorias primarias).
+    const list = FALLBACK_TAGS.filter(t => t.category === category).map(t => t.subcategory || "General")
     return Array.from(new Set(list)).sort()
-  }, [allTags, category])
+  }, [category])
+
+  const visibleSubcategories = useMemo(() => {
+    if (activeSubcategory) return []
+    if (!query.trim()) return subcategories
+    return subcategories.filter(s => s.toLowerCase().includes(query.toLowerCase()))
+  }, [subcategories, query, activeSubcategory])
 
   const visibleTags = useMemo(() => {
-    let pool = allTags.filter(t => t.category === category)
+    let pool = FALLBACK_TAGS.filter(t => t.category === category)
     if (activeSubcategory && !query.trim()) {
       pool = pool.filter(t => (t.subcategory || "General") === activeSubcategory)
     }
-    if (!query.trim()) return pool
-    return pool.filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
-  }, [allTags, query, category, activeSubcategory])
+    if (!query.trim()) {
+      return activeSubcategory ? pool.map(p => ({ label: p.label, subcategory: p.subcategory || "General" })) : []
+    }
+    return pool
+      .map(p => ({ label: p.label, subcategory: p.subcategory || "General" }))
+      .filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
+  }, [query, category, activeSubcategory])
 
-  const canCreate = canEdit && !!query.trim() && !allTags.some(
-    t => t.category === category && t.label.toLowerCase() === query.trim().toLowerCase()
+  const canCreate = canEdit && !!query.trim() && !visibleTags.some(
+    t => t.label.toLowerCase() === query.trim().toLowerCase()
   )
 
-  // Filter jsonb items by query too when editor is searching
-  const visibleJsonbItems = query.trim()
-    ? jsonbItems.filter(l => l.toLowerCase().includes(query.toLowerCase()))
-    : jsonbItems
+  const isEmpty = visibleSubcategories.length === 0 && visibleTags.length === 0 && !canCreate
 
-  const isEmpty = visibleJsonbItems.length === 0 && visibleTags.length === 0 && !canCreate
-
-  const showSubcategoriesList = !query.trim() && !activeSubcategory && subcategories.length > 0
+  const showSubcategoriesList = !activeSubcategory
 
   return (
-    <div className="flex flex-col overflow-hidden w-full relative">
+    <div className="flex flex-col overflow-hidden w-full relative bg-neutral-900/50 backdrop-blur-md rounded-md">
       <ComboboxInput
         showTrigger={false}
         placeholder="Buscar..."
@@ -139,110 +172,163 @@ function CategoryDropdownContent({
         onKeyDown={(e: any) => {
           if (e.key === 'Enter' && canCreate) {
             e.preventDefault();
-            onCreate(query.trim(), activeSubcategory || "General");
+            onToggle(query.trim(), activeSubcategory || "General", false);
             setQuery("")
           }
         }}
+        customLeftSection={
+          activeSubcategory ? (
+            <button
+              onClick={() => onSubcategoryChange(null)}
+              className="group size-6 flex items-center justify-center transition-all hover:bg-white/10 rounded-full cursor-pointer"
+            >
+              <ChevronLeft className="size-4 text-white/25 group-hover:text-white transition-colors" />
+            </button>
+          ) : (
+            <div className="size-6 flex items-center justify-center">
+              <Search className="size-4 text-white/25" />
+            </div>
+          )
+        }
+        className="border-b border-white/5"
       />
 
       <div className="relative overflow-hidden">
         {/* Step 1: Subcategories */}
-        {showSubcategoriesList && (
+        {showSubcategoriesList && visibleSubcategories.length > 0 && (
           <div className={cn(
             "p-1 flex flex-col gap-0.5",
             !isFirstRender.current && "animate-in fade-in slide-in-from-left-4"
           )}>
-            {subcategories.map(sub => (
-              <button
-                key={sub}
-                type="button"
-                className="flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                onClick={() => setActiveSubcategory(sub)}
-              >
-                <span className="text-text-strong">{sub}</span>
-                <ChevronRight className="size-4 text-text-weak" />
-              </button>
-            ))}
+            {visibleSubcategories.map(sub => {
+              const selectedInSub = activeInsights.filter(t => (t.subcategory || "General") === sub)
+              const multi = isMultiSelectCaseInsensitive(sub)
+
+              return (
+                <button
+                  key={sub}
+                  type="button"
+                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
+                  onClick={() => {
+                    onSubcategoryChange(sub)
+                    setQuery("")
+                  }}
+                >
+                  <div className="flex flex-col items-start gap-0.5 overflow-hidden pr-2">
+                    <span className="text-white font-medium truncate w-full text-left">{sub}</span>
+                    {!multi && selectedInSub.length > 0 && (
+                      <span className="text-white/40 text-[10px] font-normal leading-tight truncate w-full text-left italic">
+                        {selectedInSub[0].label}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {selectedInSub.length > 0 && (
+                      multi ? (
+                        <span className="bg-white/20 text-white tabular-nums min-w-4 h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center">
+                          {selectedInSub.length}
+                        </span>
+                      ) : (
+                        <Check className="size-3.5 text-blue-400" />
+                      )
+                    )}
+                    <ChevronRight className="size-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
 
         {/* Step 2: Tags & JSONB */}
-        {!showSubcategoriesList && (
+        {activeSubcategory && (
           <div className={cn(
             "w-full flex flex-col",
             !isFirstRender.current && "animate-in fade-in slide-in-from-right-4"
           )}>
-            {activeSubcategory && !query.trim() && (
-              <div className="p-1 pb-0 mt-1 shrink-0 border-b border-border-weak pb-1.5 mb-1.5">
+            {visibleTags.length > 0 && (
+              <div className="p-1 flex flex-col gap-0.5">
+                {visibleTags.map(({ label, subcategory }) => {
+                  const isSelected = selectedLabels.has(label)
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
+                      onClick={() => onToggle(label, subcategory, isSelected)}
+                    >
+                      <span className={cn(
+                        "text-white transition-colors",
+                        isSelected ? "font-semibold text-blue-400" : "font-normal"
+                      )}>
+                        {label}
+                      </span>
+                      {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {canCreate && (
+              <div className="p-1 px-1 border-t border-white/5 mt-1">
                 <button
-                  type="button"
-                  onClick={() => setActiveSubcategory(null)}
-                  className="flex items-center text-xs font-medium text-text-weak hover:text-text-strong px-1"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    onToggle(query.trim(), activeSubcategory || "General", false)
+                    setQuery("")
+                  }}
+                  className="w-full relative flex items-center px-2 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-sm outline-none transition-colors"
                 >
-                  <ChevronLeft className="h-3 w-3 mr-1" />
-                  Volver a {INSIGHT_CATEGORY_CONFIG[category]?.label.toLowerCase() || 'todas'}
+                  <Plus className="mr-2 h-4 w-4" />
+                  Crear &quot;{query.trim()}&quot;
                 </button>
               </div>
             )}
+          </div>
+        )}
 
-            {/* JSONB read-only items are rendered directly */}
-            {visibleJsonbItems.length > 0 && (
-              <div className="px-2 pb-1">
-                {visibleJsonbItems.map((label, i) => (
-                  <div
-                    key={`jsonb-${i}`}
-                    className="text-white flex items-center gap-2 rounded-sm py-1.5 text-sm select-none"
+        {/* Search Results (When query is present but no active subcategory) */}
+        {!activeSubcategory && query.trim() && visibleTags.length > 0 && (
+          <div className={cn(
+            "w-full flex flex-col p-1 animate-in fade-in zoom-in-95",
+          )}>
+            <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/30 border-b border-white/5 mb-1 pb-1">
+              Etiquetas coincidentes
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {visibleTags.map(({ label, subcategory }) => {
+                const isSelected = selectedLabels.has(label)
+                return (
+                  <button
+                    key={`${subcategory}-${label}`}
+                    type="button"
+                    className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none hover:bg-white/10 transition-colors"
+                    onClick={() => onToggle(label, subcategory, isSelected)}
                   >
-                    {label}
-                  </div>
-                ))}
-              </div>
-            )}
+                    <div className="flex flex-col items-start gap-0.5 overflow-hidden">
+                      <span className={cn(
+                        "text-white transition-colors",
+                        isSelected ? "font-semibold text-blue-400" : "font-normal"
+                      )}>
+                        {label}
+                      </span>
+                      <span className="text-[10px] font-normal text-white/30 uppercase tracking-tighter">
+                        {subcategory}
+                      </span>
+                    </div>
+                    {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
-      {/* ComboboxList groups tags by subcategory natively */}
-      {visibleTags.length > 0 && (
-        <ComboboxList>
-          {Object.entries(
-            visibleTags.reduce((acc, tag) => {
-              const sub = tag.subcategory || "General";
-              if (!acc[sub]) acc[sub] = [];
-              acc[sub].push(tag);
-              return acc;
-            }, {} as Record<string, InsightTag[]>)
-          ).map(([subcat, tags]) => (
-            <ComboboxGroup key={subcat} className="mb-0.5">
-              <ComboboxLabel className="font-semibold text-[11px] uppercase tracking-wider text-muted-foreground/70">{subcat}</ComboboxLabel>
-              {tags.map((item) => (
-                <ComboboxItem key={item.id} value={item}>
-                  {item.label}
-                </ComboboxItem>
-              ))}
-            </ComboboxGroup>
-          ))}
-        </ComboboxList>
-      )}
-
-      {canCreate && (
-        <div className="p-1 px-2 border-t border-border-weak mt-1">
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              onCreate(query.trim(), activeSubcategory || "General")
-              setQuery("")
-            }}
-            className="w-full relative flex items-center px-1.5 py-1.5 text-sm font-medium text-text-weak hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-text-strong rounded-sm outline-none transition-colors"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Crear &quot;{query.trim()}&quot; en {activeSubcategory || "General"}
-          </button>
-        </div>
-      )}
-
-      {isEmpty && (
-        <div className="px-2 py-3 text-sm text-text-weak !font-normal text-center">
-          Sin resultados
-        </div>
-      )}
+        {isEmpty && (
+          <div className="px-2 py-6 text-sm text-white/30 !font-normal text-center">
+            {query.trim() ? "No se encontraron resultados" : "Selecciona una categoría"}
           </div>
         )}
       </div>
@@ -254,83 +340,71 @@ function CategoryDropdownContent({
 
 export function InsightsSection({ site }: InsightsSectionProps) {
   const { canManageInsights } = useSitePermissions(site)
-  const [siteTags, setSiteTags] = useState<SiteTag[]>([])
-  const [allTags, setAllTags] = useState<InsightTag[]>([])
+  const [activeInsights, setActiveInsights] = useState<SiteInsight[]>([])
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const [loading, setLoading] = useState(canManageInsights) // only load if editor
+  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
+  const [loading, setLoading] = useState(canManageInsights)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const jsonbChips = useMemo(() => getJsonbChips(site), [site])
 
-  // Editors fetch junction-table tags; non-editors only see JSONB
+  // Editors fetch Junction data
   useEffect(() => {
     if (!canManageInsights) return
     const supabase = createClient()
-    Promise.all([
-      supabase.from('insight_tags').select('*').order('label'),
-      supabase.from('heritage_site_insight_tags')
-        .select('site_id, tag_id, insight_tags(*)')
-        .eq('site_id', site.id),
-    ]).then(([tagsRes, siteTagsRes]) => {
-      if (tagsRes.data) setAllTags(tagsRes.data)
-      if (siteTagsRes.data) {
-        setSiteTags(siteTagsRes.data.map((r: any) => ({
-          ...r.insight_tags,
-          site_id: r.site_id,
-          tag_id: r.tag_id,
-        })))
-      }
-      setLoading(false)
-    })
+    supabase.from('site_insights')
+      .select('*')
+      .eq('site_id', site.id)
+      .then(({ data }) => {
+        if (data) setActiveInsights(data)
+        setLoading(false)
+      })
   }, [site.id, canManageInsights])
 
 
 
-  const toggleTag = async (tag: InsightTag, isSelected: boolean) => {
+  const toggleInsight = async (label: string, subcategory: string, isSelected: boolean) => {
     if (isSelected) {
-      const removed = siteTags.find(t => t.id === tag.id)
-      setSiteTags(prev => prev.filter(t => t.id !== tag.id))
+      const removed = activeInsights.find(t => t.label === label && t.category === activeCategory)
+      setActiveInsights(prev => prev.filter(t => !(t.label === label && t.category === activeCategory)))
       const supabase = createClient()
       const { error } = await supabase
-        .from('heritage_site_insight_tags')
+        .from('site_insights')
         .delete()
         .eq('site_id', site.id)
-        .eq('tag_id', tag.id)
+        .eq('category', activeCategory!)
+        .eq('subcategory', subcategory)
+        .eq('label', label)
       if (error) {
         toast.error("Error al quitar insight")
-        if (removed) setSiteTags(prev => [...prev, removed])
+        if (removed) setActiveInsights(prev => [...prev, removed])
       }
     } else {
-      setSiteTags(prev => [...prev, { ...tag, site_id: site.id, tag_id: tag.id }])
+      const newInsight = {
+        id: crypto.randomUUID(),
+        site_id: site.id,
+        category: activeCategory!,
+        subcategory,
+        label
+      }
+      setActiveInsights(prev => [...prev, newInsight])
       const supabase = createClient()
       const { error } = await supabase
-        .from('heritage_site_insight_tags')
-        .insert({ site_id: site.id, tag_id: tag.id })
+        .from('site_insights')
+        .insert({
+          site_id: site.id,
+          category: activeCategory!,
+          subcategory,
+          label
+        })
       if (error) {
         toast.error("Error al agregar insight")
-        setSiteTags(prev => prev.filter(t => t.id !== tag.id))
+        setActiveInsights(prev => prev.filter(t => t.id !== newInsight.id))
       }
     }
   }
 
-  const createAndAdd = async (label: string, category: string) => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('insight_tags')
-      .insert({ category, label })
-      .select()
-      .single()
-    if (error || !data) { toast.error("Error al crear insight"); return }
-    setAllTags(prev => [...prev, data])
-    setSiteTags(prev => [...prev, { ...data, site_id: site.id, tag_id: data.id }])
-    const supabase2 = createClient()
-    await supabase2.from('heritage_site_insight_tags').insert({ site_id: site.id, tag_id: data.id })
-  }
-
-  // Don't render if there's truly nothing to show
-  const totalJsonb = jsonbChips.length
-  const totalTags = siteTags.length
-  if (totalJsonb === 0 && totalTags === 0 && !canManageInsights) return null
+  const totalTags = activeInsights.length
+  if (totalTags === 0 && !canManageInsights) return null
 
   if (loading) return <Skeleton className="h-8" />
 
@@ -339,34 +413,22 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       <div className="flex gap-1.5">
         {INSIGHT_CATEGORIES.map(cat => {
           const cfg = INSIGHT_CATEGORY_CONFIG[cat]
-          const jsonbCount = jsonbChips.filter(c => c.category === cat).length
-          const tagCount = siteTags.filter(t => t.category === cat).length
-          const count = jsonbCount + tagCount
+          const insightsForCat = activeInsights.filter(t => t.category === cat)
+          const count = insightsForCat.length
           const isActive = activeCategory === cat
-
-          const allTagsForCat = allTags.filter(t => t.category === cat)
-          const selectedTagIdsForCat = siteTags.filter(t => t.category === cat).map(t => t.id)
 
           return (
             <Combobox
               key={cat}
-              items={allTagsForCat}
-              value={allTagsForCat.filter(t => selectedTagIdsForCat.includes(t.id))}
-              onValueChange={(newSelection: any[]) => {
-                const newIds = newSelection.map(s => s.id)
-                const added = newIds.find(id => !selectedTagIdsForCat.includes(id))
-                const removed = selectedTagIdsForCat.find(id => !newIds.includes(id))
-                if (added) {
-                  const tag = allTagsForCat.find(t => t.id === added)
-                  if (tag) toggleTag(tag, false)
-                } else if (removed) {
-                  const tag = allTagsForCat.find(t => t.id === removed)
-                  if (tag) toggleTag(tag, true)
-                }
-              }}
+              items={insightsForCat}
+              value={insightsForCat}
+              onValueChange={() => {}} // Handled by inner checkboxes
               multiple
               open={isActive}
-              onOpenChange={(open) => setActiveCategory(open ? cat : null)}
+              onOpenChange={(open) => {
+                setActiveCategory(open ? cat : null)
+                if (!open) setActiveSubcategory(null)
+              }}
             >
               <ComboboxTrigger render={
                 <button
@@ -390,17 +452,14 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                   </span>
                 </button>
               } />
-              <ComboboxContent align="start" className="w-48 max-h-52 overflow-y-auto">
+              <ComboboxContent align="start" className="w-56 max-h-80 overflow-y-auto p-0 border-0 shadow-2xl">
                 <CategoryDropdownContent
                   category={cat}
-                  jsonbItems={jsonbChips
-                    .filter(c => c.category === cat)
-                    .map(c => c.label)}
-                  siteTags={siteTags}
-                  allTags={allTagsForCat}
+                  activeInsights={insightsForCat}
                   canEdit={canManageInsights}
-                  onToggle={toggleTag}
-                  onCreate={createAndAdd}
+                  activeSubcategory={activeSubcategory}
+                  onSubcategoryChange={setActiveSubcategory}
+                  onToggle={toggleInsight}
                   onClose={() => setActiveCategory(null)}
                 />
               </ComboboxContent>

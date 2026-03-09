@@ -90,9 +90,7 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
     }
   }
 
-  const [visitCount, setVisitCount] = useState<number>(
-    site?.insights?.spiritual?.digital_visit_count ?? 0
-  )
+  const [visitCount, setVisitCount] = useState<number>(site.digital_visit_count ?? 0)
 
   useEffect(() => {
     const sessionKey = `viewed_${site.id}`
@@ -101,31 +99,18 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
 
     async function trackView() {
       const supabase = createClient()
-      // Fetch current insights
-      const { data } = await supabase
-        .from('heritage_sites')
-        .select('insights')
-        .eq('id', site.id)
-        .single()
+      // Increment visit count in DB
+      const { data, error } = await supabase.rpc('increment_visit_count', { site_id_param: site.id })
 
-      if (!data?.insights) return
-      const currentCount = data.insights?.spiritual?.digital_visit_count ?? 0
-      const newCount = currentCount + 1
-
-      const updatedInsights = {
-        ...data.insights,
-        spiritual: {
-          ...data.insights.spiritual,
-          digital_visit_count: newCount,
-        },
+      if (error) {
+        // Fallback: manual increment if RPC fails
+        const { data: siteData } = await supabase.from('heritage_sites').select('digital_visit_count').eq('id', site.id).single()
+        const newCount = (siteData?.digital_visit_count ?? 0) + 1
+        await supabase.from('heritage_sites').update({ digital_visit_count: newCount }).eq('id', site.id)
+        setVisitCount(newCount)
+      } else if (data !== undefined) {
+        setVisitCount(data)
       }
-
-      await supabase
-        .from('heritage_sites')
-        .update({ insights: updatedInsights })
-        .eq('id', site.id)
-
-      setVisitCount(newCount)
     }
 
     trackView()

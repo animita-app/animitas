@@ -58,18 +58,22 @@ function ComboboxInput({
   disabled = false,
   showTrigger = true,
   showClear = false,
+  customLeftSection,
   ...props
 }: ComboboxPrimitive.Input.Props & {
   showTrigger?: boolean
   showClear?: boolean
+  customLeftSection?: React.ReactNode
 }) {
   return (
-    <InputGroup className={cn("relative w-auto !bg-transparent text-white !border-0 !rounded-none !shadow-none has-[[data-slot=input-group-control]:focus-visible]:!ring-0 has-[[data-slot=input-group-control]:focus-visible]:!shadow-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
+    <InputGroup className={cn("bg-neutral-900 relative w-auto !bg-transparent text-white !border-0 !rounded-none !shadow-none has-[[data-slot=input-group-control]:focus-visible]:!ring-0 has-[[data-slot=input-group-control]:focus-visible]:!shadow-none focus-visible:!ring-0 focus-visible:!outline-none", className)}>
       <ComboboxPrimitive.Input
-        render={<InputGroupInput disabled={disabled} className="text-white pl-9 !font-normal -mx-1.5 !border-b !border-b-neutral-900 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
+        render={<InputGroupInput disabled={disabled} className="text-white pl-10 !font-normal -mx-1.5 !border-b !border-b-neutral-900 has-[[data-slot=input-group-control]:focus-visible]:!border-0 !rounded-none focus:!ring-0 focus:!outline-0 focus-visible:!ring-0 focus-visible:!outline-0" />}
         {...props}
       />
-      <Search className="absolute left-1.5 top-1/2 -translate-y-1/2 size-4 -mt-[0.5px] !opacity-25" />
+      <div className="absolute left-1 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center pointer-events-auto">
+        {customLeftSection || <Search className="size-4 !opacity-20" />}
+      </div>
       {children}
     </InputGroup>
   )

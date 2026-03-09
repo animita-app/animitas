@@ -18,12 +18,12 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
-import { Plus, X, Pencil, Loader2 } from "lucide-react"
+import { Plus, X, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -96,6 +96,8 @@ interface ImageGalleryEditorProps {
   site: HeritageSite
   children: React.ReactNode
   onPreviewImagesChange: (images: string[]) => void
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 type ImageItem = {
@@ -104,12 +106,20 @@ type ImageItem = {
   file?: File
 }
 
-export function ImageGalleryEditorWrapper({ site, children, onPreviewImagesChange }: ImageGalleryEditorProps) {
+export function ImageGalleryEditorWrapper({
+  site,
+  children,
+  onPreviewImagesChange,
+  isOpen: externalOpen,
+  onOpenChange: setExternalOpen
+}: ImageGalleryEditorProps) {
   const { currentUser } = useUser()
   const { isEditing, setIsEditing, confirmToken, cancelToken } = useSiteEditing()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [isOpen, setIsOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen
+  const setIsOpen = setExternalOpen !== undefined ? setExternalOpen : setInternalOpen
 
   // The items being edited right now inside the dialog
   const [dialogItems, setDialogItems] = useState<ImageItem[]>([])
@@ -229,24 +239,13 @@ export function ImageGalleryEditorWrapper({ site, children, onPreviewImagesChang
 
   return (
     <>
-      {/* Container for the Gallery */}
       <div className="relative w-full h-full group">
         {children}
-
-        {/* Hover Pencil Button */}
-        <Button
-          size="icon"
-          variant="secondary"
-          onClick={handleOpenDialog}
-          className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity shadow-md rounded-full"
-        >
-          <Pencil className="size-4" />
-        </Button>
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-background">
-          <DialogHeader>
+        <DialogContent>
+          <DialogHeader className="sr-only">
             <DialogTitle>Editar Galería</DialogTitle>
           </DialogHeader>
 
@@ -275,10 +274,10 @@ export function ImageGalleryEditorWrapper({ site, children, onPreviewImagesChang
                 {/* Add new image button */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border border-dashed border-border-strong group"
+                  className="flex flex-col items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border group"
                 >
-                  <Plus className="size-8 text-text-weak group-hover:text-text-strong transition-colors" />
-                  <span className="text-xs text-text-weak font-medium mt-1">Añadir</span>
+                  <Plus className="size-8 text-text-weak" />
+                  <span className="sr-only text-xs text-text-weak font-medium mt-1">Añadir</span>
                 </button>
               </div>
             </DndContext>
@@ -291,15 +290,14 @@ export function ImageGalleryEditorWrapper({ site, children, onPreviewImagesChang
               onChange={handleAddFiles}
             />
           </div>
-
-          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border-weak">
+          <DialogFooter>
             <Button variant="ghost" onClick={() => setIsOpen(false)}>
               Cancelar
             </Button>
             <Button onClick={handleApplyChanges} disabled={isUploading}>
-              Aplicar cambios
+              Confirmar
             </Button>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

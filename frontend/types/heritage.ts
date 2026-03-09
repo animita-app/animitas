@@ -36,42 +36,20 @@ export interface HeritageSite {
   city_region?: string | null;
   images: string[] | null;
   story?: string;
-  insights?: HeritageSiteInsights;
   categories?: HeritageCategory[];
   created_at: string; // ISO 8601
   created_by: { id: string; name: string };
   allow_edits: boolean;
   creator_id: string;
+  digital_visit_count?: number;
 }
 
 // Standardized Death Causes
 export type DeathCause =
-  | 'Accidente'
-  | 'Violencia'
-  | 'Enfermedad'
-  | 'Natural'
-  | 'Desconocida'
-  | 'Suicidio'
-  | 'Asesinato'
-
-// 4. HeritageSite Insights (Auto-extraídos)
-export interface HeritageSiteInsights {
-  heritage_site_id: string;
-  memorial: {
-    death_cause?: DeathCause | string; // Allow string for legacy/unmapped, but prefer DeathCause
-    social_roles?: string[];
-    narrator_relation?: string | null;
-    narrator_name_mentioned?: string[];
-  };
-  spiritual: {
-    rituals_mentioned?: string[];
-    offerings_mentioned?: string[];
-    digital_visit_count?: number;
-  };
-  patrimonial: {
-    antiquity_year?: number | null;
-    size?: 'Pequeña' | 'Mediana' | 'Grande';
-    form?: string; // Migrated from legacy typology column
-  };
-  generated_at: string;
-}
+  | "Accidente"
+  | "Violencia"
+  | "Enfermedad"
+  | "Natural"
+  | "Desconocida"
+  | "Suicidio"
+  | "Asesinato";

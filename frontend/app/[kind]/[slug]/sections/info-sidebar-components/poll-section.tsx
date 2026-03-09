@@ -17,6 +17,8 @@ import {
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { toast } from "sonner"
+import { ROLES } from "@/types/roles"
+import { HeritageSite } from "@/types/heritage"
 
 type PollOption = {
   id: string
@@ -31,12 +33,14 @@ const OPTION_DEFINITIONS = [
 ]
 
 interface PollSectionProps {
-  siteId: string
+  site: HeritageSite
 }
 
-export function PollSection({ siteId }: PollSectionProps) {
+export function PollSection({ site }: PollSectionProps) {
   const router = useRouter()
-  const { currentUser, isAuthenticated } = useUser()
+  const { currentUser, isAuthenticated, role } = useUser()
+  const siteId = site.id
+  const isElevated = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
   const [hasVoted, setHasVoted] = React.useState(false)
   const [showResults, setShowResults] = React.useState(false)
   const [selectedOption, setSelectedOption] = React.useState<string | null>(null)
@@ -86,6 +90,10 @@ export function PollSection({ siteId }: PollSectionProps) {
   }, [siteId, currentUser])
 
   React.useEffect(() => {
+    if (isElevated) setShowResults(true)
+  }, [isElevated])
+
+  React.useEffect(() => {
     if (showResults) {
       const timer = setTimeout(() => setAnimateWidth(true), 50)
       return () => clearTimeout(timer)
@@ -105,6 +113,11 @@ export function PollSection({ siteId }: PollSectionProps) {
   const handleVote = async (optionId: string) => {
     if (!isAuthenticated || !currentUser) {
       router.push("/auth")
+      return
+    }
+
+    if (isElevated) {
+      toast.error("Los editores no pueden votar en encuestas de verificación")
       return
     }
 
@@ -162,7 +175,7 @@ export function PollSection({ siteId }: PollSectionProps) {
   }
 
   return (
-    <Card className="!py-0 gap-0 shadow-none">
+    <Card className="!py-0 -mx-2 gap-0 shadow-none">
       <CardHeader className="p-4">
         <CardTitle className="text-sm font-medium">¿Qué te parece esta información?</CardTitle>
       </CardHeader>
@@ -189,7 +202,7 @@ export function PollSection({ siteId }: PollSectionProps) {
                   <div className="relative z-10 flex items-center justify-between w-full text-sm">
                     <span className="flex items-center gap-2 text-text-strong font-medium truncate mr-2">
                       {option.label}
-                      {isSelected && <CheckCircle2 className="text-text-strong" />}
+                      {isSelected && <CheckCircle2 className="text-text-strong size-4" />}
                     </span>
 
                     <div className="text-xs flex items-center gap-2 text-text-weak shrink-0">
@@ -197,7 +210,7 @@ export function PollSection({ siteId }: PollSectionProps) {
                       <span className="font-normal text-right">{percentage}%</span>
 
                       {isSelected && hasVoted && currentUser && (
-                        <Avatar className="w-6 h-6 border border-background animate-in fade-in zoom-in-50 duration-150">
+                        <Avatar className="w-6 h-6 animate-in fade-in zoom-in-50 duration-150">
                           <AvatarImage src={currentUser.avatarUrl || "/pype.png"} alt={currentUser.name} />
                           <AvatarFallback>{currentUser.name?.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>

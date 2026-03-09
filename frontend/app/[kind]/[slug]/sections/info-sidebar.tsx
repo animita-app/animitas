@@ -20,13 +20,13 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
   const { researchMode } = useUser()
 
   return (
-    <aside className="border-l w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh h-full">
+    <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh h-full">
       <SidebarHeader site={site} />
       <Scroller className="flex-1">
         <div className="p-6 md:p-8 space-y-8 pb-24">
           <MainInfo site={site} />
           <CreatorSection site={site} />
-          {researchMode ? null : <PollSection siteId={site.id} />}
+          <PollSection site={site} />
           <InsightsSection site={site} />
           <ReactionsAndViews site={site} />
           <CommentsSection siteId={site.id} />
