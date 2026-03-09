@@ -102,22 +102,20 @@ function CategoryDropdownContent({
 
   return (
     <>
-      <div className="px-2 py-2 border-b border-border/10 mb-1">
-        <ComboboxInput
-          showTrigger={false}
-          placeholder="Buscar o crear..."
-          autoFocus
-          value={query}
-          onChange={(e: any) => setQuery(e.target.value)}
-          onKeyDown={(e: any) => {
-            if (e.key === 'Enter' && canCreate) {
-              e.preventDefault();
-              onCreate(query.trim(), category);
-              setQuery("")
-            }
-          }}
-        />
-      </div>
+      <ComboboxInput
+        showTrigger={false}
+        placeholder="Buscar..."
+        autoFocus
+        value={query}
+        onChange={(e: any) => setQuery(e.target.value)}
+        onKeyDown={(e: any) => {
+          if (e.key === 'Enter' && canCreate) {
+            e.preventDefault();
+            onCreate(query.trim(), category);
+            setQuery("")
+          }
+        }}
+      />
 
       <ComboboxEmpty>No items found.</ComboboxEmpty>
 

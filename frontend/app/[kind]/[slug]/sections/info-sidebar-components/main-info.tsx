@@ -73,14 +73,14 @@ export function MainInfo({ site }: MainInfoProps) {
           placeholder="Agrega una historia..."
           className={cn(
             "mt-4 text-sm leading-relaxed text-text-strong",
-            !isExpanded && "line-clamp-4"
+            !isExpanded && !isEditing && "line-clamp-4"
           )}
           {...editingProps}
         />
       ) : (
         <p className={cn(
           "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line",
-          !isExpanded && "line-clamp-4"
+          !isExpanded && !isEditing && "line-clamp-4"
         )}>
           {site.story}
         </p>

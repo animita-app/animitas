@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { ChevronLeft, Link2 } from 'lucide-react'
+import { ChevronLeft, Link2, Check, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { SlidingPanels } from '@/components/ui/sliding-panels'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -44,6 +43,7 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
 
   const [revisions, setRevisions] = useState<Revision[]>([])
   const [selectedRevision, setSelectedRevision] = useState<string>('current')
+  const [hasCopied, setHasCopied] = useState(false)
 
   useEffect(() => {
     if (!canSeeVersions) return
@@ -73,15 +73,16 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
-    toast.success('Link copiado')
+    setHasCopied(true)
+    setTimeout(() => setHasCopied(false), 2000)
   }
 
   return (
-    <div className="absolute h-14 inset-x-0 top-0 *:z-[99] flex items-center justify-between px-3 py-3 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none">
+    <div className="bg-background border-b absolute h-14 inset-x-0 top-0 z-[999] *:z-[99] flex items-center justify-between px-3 py-3 pointer-events-none">
       <Button
         size="sm"
         variant="ghost"
-        className="pointer-events-auto !gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 !pl-1.5"
+        className="pointer-events-auto gap-1 bg-muted hover:bg-neutral-200 h-8 text-text [&_svg]:!opacity-50 !pl-1.5"
         asChild
       >
         <Link href="/">
@@ -91,12 +92,14 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
       </Button>
 
       {canSeeVersions && (
-        <SlidingPanels
-          activeIndex={isEditing ? 1 : 0}
-          widths={[VERSION_WIDTH, EDITING_WIDTH]}
-          className="rounded-md"
-        >
-          <div className="flex items-center h-8 gap-2 justify-center pointer-events-auto">
+        <div className="relative flex items-center justify-center">
+          {/* Default / Version Select State */}
+          <div
+            className={cn(
+              "flex items-center h-8 gap-2 justify-center pointer-events-auto transition-all duration-300",
+              isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative"
+            )}
+          >
             <Select
               value={selectedRevision}
               onValueChange={setSelectedRevision}
@@ -128,29 +131,35 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
             )}
           </div>
 
-          <div className="flex items-center gap-4 justify-center pointer-events-auto">
-            <div className="flex items-center gap-1.5 bg-white pl-3 pr-1.5 py-1.5">
-              <span className="pr-4 pl-1 text-sm whitespace-nowrap">
+          {/* Editing State */}
+          <div
+            className={cn(
+              "flex items-center gap-4 justify-center pointer-events-auto transition-all duration-300",
+              !isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative animate-in fade-in-0 slide-in-from-bottom-2"
+            )}
+          >
+            <div className="flex items-center gap-1.5 bg-background border shadow-xs rounded-md pl-3 pr-1.5 py-1.5 h-10">
+              <span className="pr-4 pl-1 text-sm whitespace-nowrap text-text-strong">
                 Creando <span className="font-semibold">{nextVersionLabel}</span>
               </span>
               <Button size="sm" onClick={requestConfirm}>
                 Confirmar
               </Button>
-              <Button size="sm" className="bg-muted hover:bg-black/10 text-text-weak" variant="ghost" onClick={requestCancel}>
+              <Button size="sm" className="bg-muted hover:bg-neutral-200 text-text" variant="ghost" onClick={requestCancel}>
                 Cancelar
               </Button>
             </div>
           </div>
-        </SlidingPanels>
+        </div>
       )}
 
       <Button
         size="icon"
         variant="ghost"
-        className="pointer-events-auto !gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 w-8 h-8"
+        className="pointer-events-auto bg-muted hover:bg-neutral-200 h-8 text-text w-8"
         onClick={handleCopyLink}
       >
-        <Link2 />
+        {hasCopied ? <CheckCircle2 /> : <Link2 />}
       </Button>
     </div>
   )
