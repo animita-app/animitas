@@ -134,18 +134,12 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
                 Creando <span className="font-semibold">{nextVersionLabel}</span>
               </span>
               <div className="w-px h-3 bg-white/25 shrink-0" />
-              <button
-                onClick={requestConfirm}
-                className="text-white text-xs font-medium hover:text-white/80 transition-colors whitespace-nowrap"
-              >
+              <Button size="sm" onClick={requestConfirm}>
                 Confirmar
-              </button>
-              <button
-                onClick={requestCancel}
-                className="text-white/60 text-xs hover:text-white/80 transition-colors whitespace-nowrap"
-              >
+              </Button>
+              <Button size="sm" variant="ghost" onClick={requestCancel}>
                 Cancelar
-              </button>
+              </Button>
             </div>
           </div>
         </SlidingPanels>

@@ -23,7 +23,7 @@ export function CreatorSection({ site }: CreatorSectionProps) {
         </div>
       </InfoBlock>
 
-      <InfoBlock label="Publicado">
+      {/* <InfoBlock label="Publicado">
         <span className="text-sm font-normal text-text-strong">
           {new Date(site.created_at).toLocaleDateString("es-ES", {
             day: "numeric",
@@ -31,10 +31,10 @@ export function CreatorSection({ site }: CreatorSectionProps) {
             year: "numeric",
           })}
         </span>
-      </InfoBlock>
+      </InfoBlock> */}
 
       {antiquityYear && (
-        <InfoBlock label="Fundado circa">
+        <InfoBlock label="Construido">
           <span className="text-sm font-normal text-text-strong">{antiquityYear}</span>
         </InfoBlock>
       )}
