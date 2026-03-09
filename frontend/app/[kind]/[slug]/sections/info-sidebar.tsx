@@ -9,7 +9,7 @@ import { CommentsSection } from "./info-sidebar-components/comments-section"
 import { ReactionsAndViews } from "./info-sidebar-components/reactions-and-views"
 import { CreatorSection } from "./info-sidebar-components/creator-section"
 import { PollSection } from "./info-sidebar-components/poll-section"
-import { DetailedInfoSection } from "./info-sidebar-components/detailed-info-section"
+import { InsightsSection } from "./info-sidebar-components/insights-section"
 import { useUser } from "@/contexts/user-context"
 
 interface InfoSidebarProps {
@@ -26,8 +26,8 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
         <div className="p-6 md:p-8 space-y-8 pb-24">
           <MainInfo site={site} />
           <CreatorSection site={site} />
-          <DetailedInfoSection site={site} />
           {researchMode ? null : <PollSection siteId={site.id} />}
+          <InsightsSection site={site} />
           <ReactionsAndViews site={site} />
           <CommentsSection siteId={site.id} />
         </div>

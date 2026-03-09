@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -9,46 +10,47 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Copy, Ellipsis, Pencil, Plus, Repeat, Trash } from 'lucide-react'
-import { useUser } from '@/contexts/user-context'
-import { toast } from 'sonner'
+import { CheckCircle2, Copy, Ellipsis, Pencil, Plus, Repeat, Trash } from 'lucide-react'
+import { useSitePermissions } from '@/hooks/use-site-permissions'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { HeritageSite } from '@/types/heritage'
 
 interface SidebarHeaderProps {
-  site: any
+  site: HeritageSite
 }
 
 export function SidebarHeader({ site }: SidebarHeaderProps) {
-  const { currentUser, isEditor } = useUser()
-  const isCreator = currentUser?.id === site.creator_id
+  const { isCreator, isEditor } = useSitePermissions(site)
+  const [copied, setCopied] = useState(false)
 
   const creatorName = site.created_by?.name || 'Anónimo'
-  const createdAt = site.created_at
+  const postedAt = site.created_at
     ? formatDistanceToNow(new Date(site.created_at), { addSuffix: true, locale: es })
     : null
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)
-    toast.success('Link copiado')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
     <div className="h-14 flex items-center justify-between px-6 pr-3 border-b border-border-weak shrink-0">
       <div className="flex items-center gap-2">
-        <Avatar className="size-6">
+        <Avatar className="size-6 shrink-0">
           <AvatarFallback className="text-xs font-normal">
             {creatorName[0]?.toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <p className="flex gap-1.5 items-center text-sm text-text-weak">
           <span className="font-medium text-text-strong">{creatorName}</span>
-          {createdAt && <span>·</span>}
-          {createdAt && <span>{createdAt}</span>}
+          {postedAt && <span>·</span>}
+          {postedAt && <span>{postedAt}</span>}
         </p>
       </div>
 
-      <DropdownMenu>
+      <DropdownMenu openOnHover={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <Ellipsis />
@@ -68,8 +70,22 @@ export function SidebarHeader({ site }: SidebarHeaderProps) {
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={handleCopyLink}>
-            <Copy />
-            Copiar link
+            <span className="inline-flex items-center gap-2 transition-all duration-200">
+              {copied ? (
+                <span
+                  className="inline-flex items-center gap-2"
+                  style={{ animation: 'copy-in 0.2s cubic-bezier(0.34,1.56,0.64,1) forwards' }}
+                >
+                  <CheckCircle2 />
+                  <span>¡Copiado!</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <Copy />
+                  Copiar link
+                </span>
+              )}
+            </span>
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Plus />
@@ -78,7 +94,7 @@ export function SidebarHeader({ site }: SidebarHeaderProps) {
           {isCreator && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
+              <DropdownMenuItem>
                 <Trash />
                 Eliminar
               </DropdownMenuItem>

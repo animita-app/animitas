@@ -27,12 +27,13 @@ interface MainHeaderPanelProps {
 const TABS_WIDTH = 253
 const SEARCH_WIDTH = 320
 
-function TabsPanelContent({ onSearch, setSearchActive, onTabChange }: { onSearch?: (query: string) => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void }) {
+function TabsPanelContent({ onSearch, setSearchActive, onTabChange, pathname }: { onSearch?: (query: string) => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void; pathname: string }) {
+  const tabValue = pathname.includes('/list') ? 'list' : 'map'
   return (
     <div
       className="box-border flex items-center gap-1 flex-shrink-0 w-full"
     >
-      <Tabs value="map" onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
+      <Tabs value={tabValue} onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
           <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
           <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
@@ -279,7 +280,6 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const hasBanner = !!activeAreaLabel
   const hasFilters = activeCategories.length > 0 || activeKinds.length > 0 || activeCities.length > 0
 
-  if (pathname.includes('add')) return null
 
   return (
     <nav
@@ -307,7 +307,7 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
       )}
       {!hasBanner && !isListView && (
         <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[TABS_WIDTH, SEARCH_WIDTH]}>
-          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} />
+          <TabsPanelContent onSearch={onSearch} setSearchActive={setSearchActive} onTabChange={handleTabChange} pathname={pathname} />
           <SearchPanelContent
             panelWidth={SEARCH_WIDTH}
             inputRef={inputRef}

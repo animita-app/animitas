@@ -91,23 +91,24 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
           <AvatarImage src={currentUser?.avatarUrl || undefined} />
           <AvatarFallback className="text-[10px]">{currentUser?.name?.[0]}</AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-2">
+        <div className="relative flex-1">
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Deja un comentario..."
-            className="min-h-[60px] text-sm"
+            className="min-h-24 bg-background resize-none text-sm"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.ctrlKey) handleSubmit()
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit()
+              }
             }}
           />
-          {text.trim() && (
-            <div className="flex justify-end">
-              <Button size="sm" onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'Enviando...' : 'Comentar'}
-              </Button>
-            </div>
-          )}
+          <div className="absolute bottom-2 right-2 flex justify-end">
+            <Button size="sm" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? 'Enviando...' : 'Comentar'}
+            </Button>
+          </div>
         </div>
       </div>
 

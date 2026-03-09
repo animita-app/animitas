@@ -86,7 +86,7 @@ export default function RootLayout({
       <head>
         <Script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
       </head>
-      <body className="overflow-y-auto w-full min-h-svh">
+      <body className="overflow-x-hidden w-full min-h-svh">
         <Providers>
           <Header />
           {children}

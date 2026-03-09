@@ -10,7 +10,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="!font-sans gap-2"
+      className="!font-sans gap-2 select-none"
       icons={{
         success: <CheckCircle2 className="!size-4" />,
         error: <XCircle className="!size-4" />

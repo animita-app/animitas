@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera, Loader2, MapPin, Route } from 'lucide-react'
+import { Camera, Loader2, Route } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { InlineEdit } from '@/components/ui/inline-edit'
@@ -9,9 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import Link from 'next/link'
+import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
 
 interface ProfileData {
   id: string
@@ -180,15 +179,15 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
         </p>
       </div>
 
-      <Tabs defaultValue="sites" className="w-full max-w-2xl mt-8">
-        <TabsList>
-          <TabsTrigger value="sites">Sitios</TabsTrigger>
-          <TabsTrigger value="routes">Rutas</TabsTrigger>
+      <Tabs defaultValue="sites" className="w-full px-4 mt-8">
+        <TabsList className="border-b-0">
+          <TabsTrigger value="sites" className="!text-base">Sitios</TabsTrigger>
+          <TabsTrigger value="routes" className="!text-base">Rutas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sites">
           {tabLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="aspect-square rounded-lg bg-background-weaker animate-pulse" />
               ))}
@@ -197,24 +196,11 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {sites.map((s) => {
                 const kindSlug = (s as any).heritage_kinds?.slug || 'animita'
-                const thumb = s.images?.[0]
                 return (
-                  <Link
+                  <HeritageSiteCard
                     key={s.id}
-                    href={`/${kindSlug}/${s.slug}`}
-                    className="group relative aspect-square rounded-lg overflow-hidden bg-background-weaker border border-border-weak hover:border-border transition-colors"
-                  >
-                    {thumb ? (
-                      <img src={thumb} alt={s.title} className="size-full object-cover" />
-                    ) : (
-                      <div className="size-full flex items-center justify-center">
-                        <MapPin className="text-text-weak opacity-30" />
-                      </div>
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                      <p className="text-xs font-medium text-white truncate">{s.title}</p>
-                    </div>
-                  </Link>
+                    site={{ ...s, kind: kindSlug }}
+                  />
                 )
               })}
             </div>

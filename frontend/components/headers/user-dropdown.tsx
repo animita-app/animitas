@@ -51,7 +51,7 @@ export function UserDropdown() {
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={`/profile/@${currentUser.username}`}>
+            <Link href={`/@${currentUser.username}`}>
               Perfil
             </Link>
           </DropdownMenuItem>

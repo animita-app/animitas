@@ -1,19 +1,13 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import { Plus, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { X, Plus } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite } from "@/types/heritage"
 import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface InsightTag {
   id: string
@@ -26,10 +20,10 @@ interface SiteTag extends InsightTag {
   tag_id: string
 }
 
-const CATEGORY_CONFIG: Record<string, { label: string; color: string }> = {
-  memorial: { label: 'Memorial', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-  spiritual: { label: 'Espiritual', color: 'bg-violet-100 text-violet-700 border-violet-200' },
-  patrimonial: { label: 'Patrimonial', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+const CATEGORY_CONFIG: Record<string, { label: string; dot: string; chip: string }> = {
+  memorial:    { label: 'Memorial',    dot: 'bg-rose-400',    chip: 'bg-rose-50 text-rose-700 border-rose-200' },
+  spiritual:   { label: 'Espiritual',  dot: 'bg-violet-400',  chip: 'bg-violet-50 text-violet-700 border-violet-200' },
+  patrimonial: { label: 'Patrimonial', dot: 'bg-amber-400',   chip: 'bg-amber-50 text-amber-700 border-amber-200' },
 }
 
 interface DetailedInfoSectionProps {
@@ -43,9 +37,11 @@ export function DetailedInfoSection({ site }: DetailedInfoSectionProps) {
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    async function fetch() {
+    async function load() {
       const supabase = createClient()
       const [tagsRes, siteTagsRes] = await Promise.all([
         supabase.from('insight_tags').select('*').order('category').order('label'),
@@ -63,15 +59,27 @@ export function DetailedInfoSection({ site }: DetailedInfoSectionProps) {
       }
       setLoading(false)
     }
-    fetch()
+    load()
   }, [site.id])
 
+  // Close on outside click
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [])
+
+  const siteTagIds = useMemo(() => new Set(siteTags.map((t) => t.id)), [siteTags])
+
   const availableTags = useMemo(() => {
-    const siteTagIds = new Set(siteTags.map((t) => t.id))
     const filtered = allTags.filter((t) => !siteTagIds.has(t.id))
     if (!query) return filtered
     return filtered.filter((t) => t.label.toLowerCase().includes(query.toLowerCase()))
-  }, [allTags, siteTags, query])
+  }, [allTags, siteTagIds, query])
 
   const groupedAvailable = useMemo(() => {
     const groups: Record<string, InsightTag[]> = {}
@@ -88,6 +96,8 @@ export function DetailedInfoSection({ site }: DetailedInfoSectionProps) {
 
   const addTag = async (tag: InsightTag) => {
     setSiteTags((prev) => [...prev, { ...tag, site_id: site.id, tag_id: tag.id }])
+    setQuery("")
+    inputRef.current?.focus()
     const supabase = createClient()
     const { error } = await supabase
       .from('heritage_site_insight_tags')
@@ -124,85 +134,122 @@ export function DetailedInfoSection({ site }: DetailedInfoSectionProps) {
       .single()
     if (error || !data) { toast.error("Error al crear insight"); return }
     setAllTags((prev) => [...prev, data])
-    setQuery("")
     await addTag(data)
   }
 
   if (loading) return <div className="h-16 animate-pulse bg-background-weaker rounded-md" />
-
   if (siteTags.length === 0 && !canManageInsights) return null
 
+  // Read-only: just chips
+  if (!canManageInsights) {
+    return (
+      <div className="flex flex-wrap gap-1.5">
+        {siteTags.map((tag) => {
+          const cfg = CATEGORY_CONFIG[tag.category] ?? CATEGORY_CONFIG.memorial
+          return (
+            <span
+              key={tag.id}
+              className={`inline-flex items-center gap-1 px-2 h-6 rounded-full border text-xs font-normal ${cfg.chip}`}
+            >
+              {tag.label}
+            </span>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Editable: chips + combobox input
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {siteTags.map((tag) => {
-        const config = CATEGORY_CONFIG[tag.category] || CATEGORY_CONFIG.memorial
-        return (
-          <Badge
-            key={tag.id}
-            variant="outline"
-            className={cn('h-6 font-normal gap-1 transition-colors', config.color)}
-          >
-            {tag.label}
-            {canManageInsights && (
-              <button onClick={() => removeTag(tag.id)} className="ml-0.5 opacity-60 hover:opacity-100">
+    <div ref={containerRef} className="relative">
+      {/* Chips + input row */}
+      <div
+        className="flex flex-wrap gap-1.5 min-h-8 rounded-md px-2 py-1.5 cursor-text"
+        onClick={() => { setOpen(true); inputRef.current?.focus() }}
+      >
+        {siteTags.map((tag) => {
+          const cfg = CATEGORY_CONFIG[tag.category] ?? CATEGORY_CONFIG.memorial
+          return (
+            <span
+              key={tag.id}
+              className={`inline-flex items-center gap-1 px-2 h-6 rounded-full border text-xs font-normal ${cfg.chip}`}
+            >
+              {tag.label}
+              <button
+                onPointerDown={(e) => { e.stopPropagation() }}
+                onClick={(e) => { e.stopPropagation(); removeTag(tag.id) }}
+                className="opacity-50 hover:opacity-100 transition-opacity"
+              >
                 <X className="size-3" />
               </button>
-            )}
-          </Badge>
-        )
-      })}
+            </span>
+          )
+        })}
 
-      {canManageInsights && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="h-6 text-xs gap-1 px-2 font-normal">
-              <Plus className="size-3" />
-              Añadir insight
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 p-0" align="start">
-            <div className="p-2 border-b border-border-weak">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar o crear..."
-                className="w-full text-sm bg-transparent outline-none placeholder:text-text-weak"
-                autoFocus
-              />
-            </div>
-            <div className="max-h-48 overflow-y-auto p-1">
-              {Object.entries(groupedAvailable).map(([cat, tags]) => (
-                <div key={cat}>
-                  <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-weak">
-                    {CATEGORY_CONFIG[cat]?.label || cat}
-                  </p>
-                  {tags.map((tag) => (
+        {siteTags.length === 0 && !query && (
+          <Plus className="size-3.5 text-text-weak shrink-0 self-center" />
+        )}
+
+        <input
+          ref={inputRef}
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && canCreateNew) { e.preventDefault(); createAndAdd() }
+            if (e.key === 'Escape') setOpen(false)
+            if (e.key === 'Backspace' && !query && siteTags.length > 0) {
+              removeTag(siteTags[siteTags.length - 1].id)
+            }
+          }}
+          placeholder={siteTags.length === 0 ? "Añadir insights" : ""}
+          className="flex-1 min-w-24 bg-transparent text-sm outline-none placeholder:text-text-weak py-0.5"
+        />
+      </div>
+
+      {/* Dropdown list */}
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 z-50 rounded-md border border-border-weak bg-background shadow-md">
+          <div className="max-h-52 overflow-y-auto p-1">
+            {Object.entries(groupedAvailable).map(([cat, tags]) => (
+              <div key={cat}>
+                <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-weak">
+                  {CATEGORY_CONFIG[cat]?.label ?? cat}
+                </p>
+                {tags.map((tag) => {
+                  const cfg = CATEGORY_CONFIG[tag.category] ?? CATEGORY_CONFIG.memorial
+                  return (
                     <button
                       key={tag.id}
-                      onClick={() => { addTag(tag); setQuery(""); setOpen(false) }}
-                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-background-weak transition-colors"
+                      onPointerDown={(e) => e.preventDefault()}
+                      onClick={() => { addTag(tag); setOpen(false) }}
+                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-background-weak transition-colors text-left"
                     >
-                      <span className={cn('size-2 rounded-full', CATEGORY_CONFIG[tag.category]?.color.split(' ')[0])} />
+                      <span className={cn("size-2 rounded-full shrink-0", cfg.dot)} />
                       {tag.label}
                     </button>
-                  ))}
-                </div>
-              ))}
-              {canCreateNew && (
-                <button
-                  onClick={createAndAdd}
-                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-background-weak text-accent font-medium"
-                >
-                  <Plus className="size-3" />
-                  Crear &quot;{query.trim()}&quot;
-                </button>
-              )}
-              {availableTags.length === 0 && !canCreateNew && (
-                <p className="px-2 py-3 text-xs text-text-weak text-center">Sin resultados</p>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+                  )
+                })}
+              </div>
+            ))}
+
+            {canCreateNew && (
+              <Button
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={createAndAdd}
+                size="sm"
+                variant="ghost"
+              >
+                <Plus />
+                Crear &quot;{query.trim()}&quot;
+              </Button>
+            )}
+
+            {availableTags.length === 0 && !canCreateNew && (
+              <p className="px-2 py-3 text-sm text-text-weak font-normal text-center">Sin resultados</p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

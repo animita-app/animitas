@@ -77,11 +77,11 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
   }
 
   return (
-    <div className="absolute h-14 inset-x-0 top-0 z-[9999999] flex items-center justify-between px-3 py-3 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none">
+    <div className="absolute h-14 inset-x-0 top-0 *:z-[99] flex items-center justify-between px-3 py-3 bg-gradient-to-b from-black/50 via-black/20 to-transparent pointer-events-none">
       <Button
         size="sm"
         variant="ghost"
-        className="!gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 !pl-1.5"
+        className="pointer-events-auto !gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8 [&_svg]:opacity-50 !pl-1.5"
         asChild
       >
         <Link href="/">
@@ -94,32 +94,25 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
         <SlidingPanels
           activeIndex={isEditing ? 1 : 0}
           widths={[VERSION_WIDTH, EDITING_WIDTH]}
+          className="rounded-none"
         >
           <div className="flex items-center gap-2 justify-center pointer-events-auto">
             <Select
               value={selectedRevision}
               onValueChange={setSelectedRevision}
             >
-              <SelectTrigger
-                className={cn(
-                  "h-7 text-xs bg-black/40 border-white/20 text-white backdrop-blur-sm hover:bg-black/60",
-                  "gap-1.5 pl-2.5 pr-2 rounded-full w-auto focus:ring-0 focus:ring-offset-0"
-                )}
-              >
+              <SelectTrigger className="w-32 bg-background !h-8">
                 <SelectValue placeholder={currentVersionLabel} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="current">
-                  <div className="flex flex-col gap-0.5 py-0.5">
-                    <span className="font-medium">{currentVersionLabel}</span>
-                    <span className="text-xs text-text-weak">Versión actual</span>
-                  </div>
+                  {currentVersionLabel}
                 </SelectItem>
                 {[...revisions].reverse().map((rev) => (
                   <SelectItem key={rev.id} value={rev.id}>
-                    <div className="flex flex-col gap-0.5 py-0.5">
-                      <span className="font-medium">{rev.version_label}</span>
-                      <span className="text-xs text-text-weak">
+                    <div className="text-sm flex flex-col gap-0.5 py-0.5">
+                      <span className="font-medium !text-text-strong">{rev.version_label}</span>
+                      <span className="text-text-weak">
                         por {rev.author_name} · {formatDistanceToNow(new Date(rev.created_at), { addSuffix: true, locale: es })}
                       </span>
                     </div>
@@ -129,10 +122,7 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
             </Select>
 
             {isEditor && (
-              <Badge
-                variant="secondary"
-                className="h-6 text-[10px] font-semibold uppercase tracking-wide bg-background/60 backdrop-blur-sm border-0"
-              >
+              <Badge variant="secondary">
                 Publicado
               </Badge>
             )}
@@ -164,7 +154,7 @@ export function GalleryHeader({ site }: GalleryHeaderProps) {
       <Button
         size="icon"
         variant="ghost"
-        className="!gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 h-8"
+        className="pointer-events-auto !gap-1 text-text-weak md:bg-neutral-dark-6 md:hover:bg-neutral-dark-5 md:text-white md:hover:text-white border-0 w-8 h-8"
         onClick={handleCopyLink}
       >
         <Link2 />

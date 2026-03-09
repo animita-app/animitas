@@ -1,21 +1,23 @@
 'use client'
 
 import { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
 
 interface SlidingPanelsProps {
   activeIndex: number
   widths: number[]
   children: ReactNode[]
+  className?: string
 }
 
-export function SlidingPanels({ activeIndex, widths, children }: SlidingPanelsProps) {
+export function SlidingPanels({ activeIndex, widths, children, className }: SlidingPanelsProps) {
   const currentWidth = widths[activeIndex] || widths[0]
   // Sum widths before activeIndex for translation
   const translateX = -widths.slice(0, activeIndex).reduce((sum, w) => sum + w, 0)
 
   return (
     <div
-      className="overflow-clip rounded-full transition-[width] duration-200 ease-out-circ"
+      className={cn("overflow-clip rounded-full transition-[width] duration-200 ease-out-circ", className)}
       style={{ width: currentWidth }}
     >
       <div

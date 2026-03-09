@@ -89,8 +89,48 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
     }
   }
 
+  const [visitCount, setVisitCount] = useState<number>(
+    site?.insights?.spiritual?.digital_visit_count ?? 0
+  )
+
+  useEffect(() => {
+    const sessionKey = `viewed_${site.id}`
+    if (sessionStorage.getItem(sessionKey)) return
+    sessionStorage.setItem(sessionKey, '1')
+
+    async function trackView() {
+      const supabase = createClient()
+      // Fetch current insights
+      const { data } = await supabase
+        .from('heritage_sites')
+        .select('insights')
+        .eq('id', site.id)
+        .single()
+
+      if (!data?.insights) return
+      const currentCount = data.insights?.spiritual?.digital_visit_count ?? 0
+      const newCount = currentCount + 1
+
+      const updatedInsights = {
+        ...data.insights,
+        spiritual: {
+          ...data.insights.spiritual,
+          digital_visit_count: newCount,
+        },
+      }
+
+      await supabase
+        .from('heritage_sites')
+        .update({ insights: updatedInsights })
+        .eq('id', site.id)
+
+      setVisitCount(newCount)
+    }
+
+    trackView()
+  }, [site.id])
+
   const hasAnyReaction = reactions.some((r) => r.hasReacted)
-  const visitCount = site?.insights?.spiritual?.digital_visit_count || 0
 
   if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
 
@@ -99,16 +139,16 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
       {!hasAnyReaction && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="size-6 shrink-0">
+            <Button variant="outline" size="icon" className="size-8 [&_svg]:opacity-50 shrink-0">
               <SmilePlus />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <div className="grid grid-cols-6 gap-2 p-1">
+          <DropdownMenuContent align="start" className="!p-1">
+            <div className="grid grid-cols-6 gap-1 p-0">
               {AVAILABLE_EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
-                  className="hover:bg-background-weaker rounded p-1 text-lg aspect-square cursor-pointer"
+                  className="p-0 size-8 hover:bg-neutral-900 rounded-sm text-lg aspect-square cursor-pointer"
                   onClick={() => toggleReaction(emoji)}
                 >
                   {emoji}
@@ -127,15 +167,15 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
                 variant="outline"
                 onClick={() => toggleReaction(reaction.emoji)}
                 className={cn(
-                  "bg-background h-6 font-normal gap-1 transition-colors cursor-pointer",
-                  reaction.hasReacted && "border-accent text-accent bg-accent/5 hover:bg-accent/10"
+                  "bg-background h-8 font-normal gap-1 transition-colors cursor-pointer",
+                  reaction.hasReacted && "border-text-strong text-text-strong bg-text-strong/5 hover:bg-text-strong/10"
                 )}
               >
                 <span>{reaction.emoji}</span>
                 <span>{reaction.count}</span>
               </Badge>
             </TooltipTrigger>
-            <TooltipContent className="text-xs">
+            <TooltipContent sideOffset={8}>
               {reaction.hasReacted ? 'Quitar reacción' : 'Reaccionar'}
             </TooltipContent>
           </Tooltip>
@@ -143,8 +183,8 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
       </TooltipProvider>
 
       {visitCount > 0 && (
-        <div className="ml-auto flex items-center gap-1.5 text-xs text-text-weak mr-1">
-          <Eye className="size-3.5" />
+        <div className="ml-auto flex items-center gap-1.5 text-sm text-text-weak mr-1">
+          <Eye className="size-4" />
           <span>{visitCount}</span>
         </div>
       )}

@@ -50,18 +50,18 @@ export function MainInfo({ site }: MainInfoProps) {
     <div>
       <div className="flex items-baseline gap-0">
         {prefix && (
-          <span className="text-xl font-medium text-text-strong">{prefix}</span>
+          <span className="text-2xl font-medium text-text-strong">{prefix}</span>
         )}
         {canEdit ? (
           <InlineEdit
             value={site.title}
             onSave={(val) => saveField('title', val)}
             placeholder="Nombre"
-            className="text-xl font-medium text-text-strong leading-tight"
+            className="text-2xl font-medium text-text-strong leading-tight"
             {...editingProps}
           />
         ) : (
-          <h1 className="text-xl font-medium text-text-strong">{site.title}</h1>
+          <h1 className="text-2xl font-medium text-text-strong">{site.title}</h1>
         )}
       </div>
 
