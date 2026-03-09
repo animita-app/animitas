@@ -20,7 +20,7 @@ export function InfoSidebar({ site }: InfoSidebarProps) {
   const { researchMode } = useUser()
 
   return (
-    <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh h-full">
+    <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh md:flex-1 md:min-h-0">
       <SidebarHeader site={site} />
       <Scroller className="flex-1">
         <div className="p-6 md:p-8 space-y-8 pb-24">

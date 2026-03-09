@@ -18,8 +18,8 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
 
   return (
     <SiteEditingProvider>
-      <div className="flex flex-col md:flex-row h-svh w-full overflow-hidden">
-        <div className="bg-black flex-1 aspect-square md:aspect-auto w-full overflow-hidden relative flex items-center justify-center">
+      <div className="flex flex-col md:flex-row md:h-svh w-full md:overflow-hidden">
+        <div className="bg-black shrink-0 flex-none md:flex-1 md:min-w-0 aspect-square md:aspect-auto w-full overflow-hidden relative flex items-center justify-center">
           <GalleryHeader site={site} onEditGallery={() => setIsGalleryEditorOpen(true)} />
           <ImageGalleryEditorWrapper
             site={site}

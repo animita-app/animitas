@@ -27,46 +27,98 @@ import {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FALLBACK_TAGS: any[] = [
-  // Memorial: Causa de muerte
-  { id: 'f1', category: 'memorial', subcategory: 'Causa de muerte', label: 'Homicidios y Violencia' },
-  { id: 'f2', category: 'memorial', subcategory: 'Causa de muerte', label: 'Suicidio' },
-  { id: 'f3', category: 'memorial', subcategory: 'Causa de muerte', label: 'Natural' },
-  { id: 'f4', category: 'memorial', subcategory: 'Causa de muerte', label: 'Accidente vehicular' },
-  { id: 'f5', category: 'memorial', subcategory: 'Causa de muerte', label: 'Desconocida o Misteriosa' },
+  // Memorial
+  { category: 'memorial', subcategory: 'Causa de muerte', label: 'Homicidios y Violencia' },
+  { category: 'memorial', subcategory: 'Causa de muerte', label: 'Suicidio' },
+  { category: 'memorial', subcategory: 'Causa de muerte', label: 'Natural' },
+  { category: 'memorial', subcategory: 'Causa de muerte', label: 'Accidente vehicular' },
+  { category: 'memorial', subcategory: 'Causa de muerte', label: 'Desconocida o Misteriosa' },
 
-  // Memorial: Rol social
-  { id: 'f6', category: 'memorial', subcategory: 'Rol social', label: 'Obrero / Trabajador' },
-  { id: 'f7', category: 'memorial', subcategory: 'Rol social', label: 'Militar / Uniformado' },
-  { id: 'f8', category: 'memorial', subcategory: 'Rol social', label: 'Estudiante / Joven' },
-  { id: 'f9', category: 'memorial', subcategory: 'Rol social', label: 'Dirigente / Líder social' },
-  { id: 'f10', category: 'memorial', subcategory: 'Rol social', label: 'Deportista / Figura pública' },
+  { category: 'memorial', subcategory: 'Rol social', label: 'Obrero / Trabajador' },
+  { category: 'memorial', subcategory: 'Rol social', label: 'Militar / Uniformado' },
+  { category: 'memorial', subcategory: 'Rol social', label: 'Estudiante / Joven' },
+  { category: 'memorial', subcategory: 'Rol social', label: 'Dirigente / Líder social' },
+  { category: 'memorial', subcategory: 'Rol social', label: 'Deportista / Figura pública' },
 
-  // Spiritual: Rituales
-  { id: 'f11', category: 'spiritual', subcategory: 'Rituales', label: 'Prender Velas' },
-  { id: 'f12', category: 'spiritual', subcategory: 'Rituales', label: 'Rezos y Oraciones' },
-  { id: 'f13', category: 'spiritual', subcategory: 'Rituales', label: 'Peregrinación / Procesión' },
-  { id: 'f14', category: 'spiritual', subcategory: 'Rituales', label: 'Cumplimiento de Mandas' },
-  { id: 'f15', category: 'spiritual', subcategory: 'Rituales', label: 'Coronación de Cruz' },
+  { category: 'memorial', subcategory: 'Vinculación', label: 'Vecino del sector' },
+  { category: 'memorial', subcategory: 'Vinculación', label: 'Familiar directo' },
+  { category: 'memorial', subcategory: 'Vinculación', label: 'Investigador' },
+  { category: 'memorial', subcategory: 'Vinculación', label: 'Conocido' },
+  { category: 'memorial', subcategory: 'Vinculación', label: 'Admirador' },
 
-  // Spiritual: Ofrendas
-  { id: 'f16', category: 'spiritual', subcategory: 'Ofrendas', label: 'Juguetes y Peluches' },
-  { id: 'f17', category: 'spiritual', subcategory: 'Ofrendas', label: 'Placas de Agradecimiento' },
-  { id: 'f18', category: 'spiritual', subcategory: 'Ofrendas', label: 'Monedas / Dinero' },
-  { id: 'f19', category: 'spiritual', subcategory: 'Ofrendas', label: 'Cigarrillos / Alcohol' },
-  { id: 'f20', category: 'spiritual', subcategory: 'Ofrendas', label: 'Fotos y Recuerdos' },
+  { category: 'memorial', subcategory: 'Contexto histórico', label: 'Dictadura Militar' },
+  { category: 'memorial', subcategory: 'Contexto histórico', label: 'Estallido Social' },
+  { category: 'memorial', subcategory: 'Contexto histórico', label: 'Colonia' },
+  { category: 'memorial', subcategory: 'Contexto histórico', label: 'Independencia' },
+  { category: 'memorial', subcategory: 'Contexto histórico', label: 'Actualidad' },
 
-  // Patrimonial: Tipología
-  { id: 'f21', category: 'patrimonial', subcategory: 'Tipología', label: 'Muro Conmemorativo' },
-  { id: 'f22', category: 'patrimonial', subcategory: 'Tipología', label: 'Gruta o Cueva' },
-  { id: 'f23', category: 'patrimonial', subcategory: 'Tipología', label: 'Capilla o Templete' },
-  { id: 'f24', category: 'patrimonial', subcategory: 'Tipología', label: 'Tumba Devocional' },
-  { id: 'f25', category: 'patrimonial', subcategory: 'Tipología', label: 'Cenotafio' },
+  { category: 'memorial', subcategory: 'Rango de edad', label: 'Infancia (0-12)' },
+  { category: 'memorial', subcategory: 'Rango de edad', label: 'Adolescencia (13-17)' },
+  { category: 'memorial', subcategory: 'Rango de edad', label: 'Adulto Joven (18-29)' },
+  { category: 'memorial', subcategory: 'Rango de edad', label: 'Adulto (30-59)' },
+  { category: 'memorial', subcategory: 'Rango de edad', label: 'Adulto Mayor (60+)' },
 
-  // Patrimonial: Escala
-  { id: 'f26', category: 'patrimonial', subcategory: 'Escala', label: 'Monumental' },
-  { id: 'f27', category: 'patrimonial', subcategory: 'Escala', label: 'Pequeña / Íntima' },
-  { id: 'f28', category: 'patrimonial', subcategory: 'Escala', label: 'Mediana' },
-  { id: 'f29', category: 'patrimonial', subcategory: 'Escala', label: 'Grande' },
+  // Spiritual
+  { category: 'spiritual', subcategory: 'Rituales', label: 'Prender Velas' },
+  { category: 'spiritual', subcategory: 'Rituales', label: 'Rezos y Oraciones' },
+  { category: 'spiritual', subcategory: 'Rituales', label: 'Peregrinación / Procesión' },
+  { category: 'spiritual', subcategory: 'Rituales', label: 'Cumplimiento de Mandas' },
+  { category: 'spiritual', subcategory: 'Rituales', label: 'Coronación de Cruz' },
+
+  { category: 'spiritual', subcategory: 'Ofrendas', label: 'Juguetes y Peluches' },
+  { category: 'spiritual', subcategory: 'Ofrendas', label: 'Placas de Agradecimiento' },
+  { category: 'spiritual', subcategory: 'Ofrendas', label: 'Monedas / Dinero' },
+  { category: 'spiritual', subcategory: 'Ofrendas', label: 'Cigarrillos / Alcohol' },
+  { category: 'spiritual', subcategory: 'Ofrendas', label: 'Fotos y Recuerdos' },
+
+  { category: 'spiritual', subcategory: 'Creencias', label: 'Popular' },
+  { category: 'spiritual', subcategory: 'Creencias', label: 'Católica' },
+  { category: 'spiritual', subcategory: 'Creencias', label: 'Evangélica' },
+  { category: 'spiritual', subcategory: 'Creencias', label: 'Animismo' },
+  { category: 'spiritual', subcategory: 'Creencias', label: 'Sincretismo' },
+
+  { category: 'spiritual', subcategory: 'Manifestaciones', label: 'Milagros' },
+  { category: 'spiritual', subcategory: 'Manifestaciones', label: 'Apariciones' },
+  { category: 'spiritual', subcategory: 'Manifestaciones', label: 'Sueños' },
+  { category: 'spiritual', subcategory: 'Manifestaciones', label: 'Señales' },
+  { category: 'spiritual', subcategory: 'Manifestaciones', label: 'Sanaciones' },
+
+  { category: 'spiritual', subcategory: 'Espacios sagrados', label: 'Altar principal' },
+  { category: 'spiritual', subcategory: 'Espacios sagrados', label: 'Gruta lateral' },
+  { category: 'spiritual', subcategory: 'Espacios sagrados', label: 'Nicho' },
+  { category: 'spiritual', subcategory: 'Espacios sagrados', label: 'Exterior' },
+  { category: 'spiritual', subcategory: 'Espacios sagrados', label: 'Memorial' },
+
+  // Patrimonial
+  { category: 'patrimonial', subcategory: 'Tipología', label: 'Muro Conmemorativo' },
+  { category: 'patrimonial', subcategory: 'Tipología', label: 'Gruta o Cueva' },
+  { category: 'patrimonial', subcategory: 'Tipología', label: 'Capilla o Templete' },
+  { category: 'patrimonial', subcategory: 'Tipología', label: 'Tumba Devocional' },
+  { category: 'patrimonial', subcategory: 'Tipología', label: 'Cenotafio' },
+
+  { category: 'patrimonial', subcategory: 'Escala', label: 'Monumental' },
+  { category: 'patrimonial', subcategory: 'Escala', label: 'Pequeña / Íntima' },
+  { category: 'patrimonial', subcategory: 'Escala', label: 'Mediana' },
+  { category: 'patrimonial', subcategory: 'Escala', label: 'Grande' },
+  { category: 'patrimonial', subcategory: 'Escala', label: 'Efímera' },
+
+  { category: 'patrimonial', subcategory: 'Materialidad', label: 'Ladrillo' },
+  { category: 'patrimonial', subcategory: 'Materialidad', label: 'Cemento' },
+  { category: 'patrimonial', subcategory: 'Materialidad', label: 'Piedra' },
+  { category: 'patrimonial', subcategory: 'Materialidad', label: 'Madera' },
+  { category: 'patrimonial', subcategory: 'Materialidad', label: 'Metal' },
+
+  { category: 'patrimonial', subcategory: 'Estado de conservación', label: 'Excelente' },
+  { category: 'patrimonial', subcategory: 'Estado de conservación', label: 'Bueno' },
+  { category: 'patrimonial', subcategory: 'Estado de conservación', label: 'Regular' },
+  { category: 'patrimonial', subcategory: 'Estado de conservación', label: 'Deteriorado' },
+  { category: 'patrimonial', subcategory: 'Estado de conservación', label: 'En ruinas' },
+
+  { category: 'patrimonial', subcategory: 'Época', label: 'Siglo XIX' },
+  { category: 'patrimonial', subcategory: 'Época', label: '1900-1930' },
+  { category: 'patrimonial', subcategory: 'Época', label: '1940-1960' },
+  { category: 'patrimonial', subcategory: 'Época', label: '1970-1990' },
+  { category: 'patrimonial', subcategory: 'Época', label: 'Siglo XXI' },
 ]
 
 const IS_MULTI_SELECT: Record<string, boolean> = {
@@ -116,42 +168,24 @@ function CategoryDropdownContent({
   activeInsights,
   canEdit,
   activeSubcategory,
+  visibleSubcategories,
+  visibleTags,
+  query,
+  setQuery,
   onSubcategoryChange,
   onToggle,
   onClose,
-}: CategoryDropdownProps) {
-  const [query, setQuery] = useState("")
+}: CategoryDropdownProps & {
+  query: string;
+  setQuery: (q: string) => void;
+  visibleSubcategories: string[];
+  visibleTags: { label: string; subcategory: string }[];
+}) {
   const isFirstRender = useRef(true)
 
   useEffect(() => {
     isFirstRender.current = false
   }, [])
-
-  const selectedLabels = new Set(activeInsights.map(t => t.label))
-
-  const subcategories = useMemo(() => {
-    const list = FALLBACK_TAGS.filter(t => t.category === category).map(t => t.subcategory || "General")
-    return Array.from(new Set(list)).sort()
-  }, [category])
-
-  const visibleSubcategories = useMemo(() => {
-    if (activeSubcategory) return []
-    if (!query.trim()) return subcategories
-    return subcategories.filter(s => s.toLowerCase().includes(query.toLowerCase()))
-  }, [subcategories, query, activeSubcategory])
-
-  const visibleTags = useMemo(() => {
-    let pool = FALLBACK_TAGS.filter(t => t.category === category)
-    if (activeSubcategory && !query.trim()) {
-      pool = pool.filter(t => (t.subcategory || "General") === activeSubcategory)
-    }
-    if (!query.trim()) {
-      return activeSubcategory ? pool.map(p => ({ label: p.label, subcategory: p.subcategory || "General" })) : []
-    }
-    return pool
-      .map(p => ({ label: p.label, subcategory: p.subcategory || "General" }))
-      .filter(t => t.label.toLowerCase().includes(query.toLowerCase()))
-  }, [query, category, activeSubcategory])
 
   const canCreate = canEdit && !!query.trim() && !visibleTags.some(
     t => t.label.toLowerCase() === query.trim().toLowerCase()
@@ -160,6 +194,7 @@ function CategoryDropdownContent({
   const isEmpty = visibleSubcategories.length === 0 && visibleTags.length === 0 && !canCreate
 
   const showSubcategoriesList = !activeSubcategory
+  const selectedLabels = new Set(activeInsights.map(t => t.label))
 
   return (
     <div className="flex flex-col overflow-hidden w-full relative bg-neutral-900/50 backdrop-blur-md rounded-md">
@@ -176,10 +211,14 @@ function CategoryDropdownContent({
             onSubcategoryChange(null);
             return;
           }
-          if (e.key === 'Enter' && canCreate) {
-            e.preventDefault();
-            onToggle(query.trim(), activeSubcategory || "General", false);
-            setQuery("")
+
+          // Enter logic: If we have a query, only create if we aren't about to select a subcategory
+          if (e.key === 'Enter') {
+            if (canCreate && !visibleSubcategories.length) {
+              e.preventDefault();
+              onToggle(query.trim(), activeSubcategory || "General", false);
+              setQuery("")
+            }
           }
         }}
         customLeftSection={
@@ -214,8 +253,11 @@ function CategoryDropdownContent({
                 <ComboboxItem
                   key={sub}
                   value={sub}
-                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
-                  onSelect={() => {
+                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2 cursor-pointer select-none"
+                  onSelect={(e) => {
+                    console.log("👉 Triggering navigation to:", sub);
+                    // Prevent the primitive from toggling the value
+                    e.preventDefault();
                     onSubcategoryChange(sub)
                     setQuery("")
                   }}
@@ -239,7 +281,7 @@ function CategoryDropdownContent({
                         <Check className="size-3.5 text-blue-400" />
                       )
                     )}
-                    <ChevronRight className="size-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                    <ChevronRight className="size-4 text-white" />
                   </div>
                 </ComboboxItem>
               )
@@ -295,42 +337,6 @@ function CategoryDropdownContent({
           </div>
         )}
 
-        {/* Search Results (When query is present but no active subcategory) */}
-        {!activeSubcategory && query.trim() && visibleTags.length > 0 && (
-          <div className={cn(
-            "w-full flex flex-col p-1 animate-in fade-in zoom-in-95",
-          )}>
-            <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-white/30 border-b border-white/5 mb-1 pb-1">
-              Etiquetas coincidentes
-            </div>
-            <ComboboxList className="flex flex-col gap-0.5">
-              {visibleTags.map(({ label, subcategory }) => {
-                const isSelected = selectedLabels.has(label)
-                return (
-                  <ComboboxItem
-                    key={`${subcategory}-${label}`}
-                    value={label}
-                    className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
-                    onSelect={() => onToggle(label, subcategory, isSelected)}
-                  >
-                    <div className="flex flex-col items-start gap-0.5 overflow-hidden">
-                      <span className={cn(
-                        "text-white transition-colors",
-                        isSelected ? "font-semibold text-blue-400" : "font-normal"
-                      )}>
-                        {label}
-                      </span>
-                      <span className="text-[10px] font-normal text-white/30 uppercase tracking-tighter">
-                        {subcategory}
-                      </span>
-                    </div>
-                    {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
-                  </ComboboxItem>
-                )
-              })}
-            </ComboboxList>
-          </div>
-        )}
 
         {isEmpty && (
           <div className="px-2 py-6 text-sm text-white/30 !font-normal text-center">
@@ -349,6 +355,18 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   const [activeInsights, setActiveInsights] = useState<SiteInsight[]>([])
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
+  const [query, setQuery] = useState("")
+
+  useEffect(() => {
+    if (activeCategory || activeSubcategory || query) {
+      console.log("🔍 Insights State:", {
+        category: activeCategory,
+        subcategory: activeSubcategory,
+        query: query || "(empty)"
+      });
+    }
+  }, [activeCategory, activeSubcategory, query]);
+
   const [loading, setLoading] = useState(canManageInsights)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -423,22 +441,53 @@ export function InsightsSection({ site }: InsightsSectionProps) {
           const count = insightsForCat.length
           const isActive = activeCategory === cat
 
-          // Pool of items for keyboard navigation
-          const visibleTagsOrCategories = activeSubcategory
-             ? FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === activeSubcategory).map(t => t.label)
-             : Array.from(new Set(FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General")))
+          // Critical: Universal item pool for this category.
+          // The primitive must know about EVERYTHING simultaneously to handle transitions.
+          const items = Array.from(new Set([
+            ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General"),
+            ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.label)
+          ]))
+
+          // Step 1 Filtering: Smart match subcategory name OR tag label inside
+          const subcategories = Array.from(new Set(
+            FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General")
+          )).sort()
+
+          const q = query.toLowerCase()
+          const filteredSubcategories = query.trim()
+            ? subcategories.filter(s => {
+                if (s.toLowerCase().includes(q)) return true
+                const tagsInSub = FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === s)
+                return tagsInSub.some(t => t.label.toLowerCase().includes(q))
+              })
+            : subcategories
+
+          // Step 2 Filtering: Match labels within current subcategory (or global filter if sub is null)
+          const filteredTags = query.trim()
+            ? FALLBACK_TAGS.filter(t => t.category === cat)
+                .filter(t => t.label.toLowerCase().includes(q))
+                .map(t => ({ label: t.label, subcategory: t.subcategory || "General" }))
+            : (activeSubcategory
+                ? FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === activeSubcategory)
+                    .map(t => ({ label: t.label, subcategory: t.subcategory || "General" }))
+                : []
+              )
 
           return (
             <Combobox
               key={cat}
-              items={visibleTagsOrCategories}
-              value={insightsForCat}
-              onValueChange={() => {}} // Handled by inner checkboxes
+              items={items}
+              value={insightsForCat.map(i => i.label)}
+              onValueChange={() => {}}
               multiple
               open={isActive}
               onOpenChange={(open) => {
+                console.log("Popover Open Change:", open, "Category:", cat);
                 setActiveCategory(open ? cat : null)
-                if (!open) setActiveSubcategory(null)
+                if (!open) {
+                  setActiveSubcategory(null)
+                  setQuery("")
+                }
               }}
             >
               <ComboboxTrigger render={
@@ -447,7 +496,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                     "inline-flex items-center justify-center rounded-full pl-2.5 pr-1 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
                     count > 0
                       ? cfg.trigger
-                      : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                      : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
+                    isActive && "brightness-80 shadow-inner ring-1 ring-white/10"
                   )}
                 >
                   {cfg.label}
@@ -469,6 +519,10 @@ export function InsightsSection({ site }: InsightsSectionProps) {
                   activeInsights={insightsForCat}
                   canEdit={canManageInsights}
                   activeSubcategory={activeSubcategory}
+                  query={query}
+                  setQuery={setQuery}
+                  visibleSubcategories={filteredSubcategories}
+                  visibleTags={filteredTags}
                   onSubcategoryChange={setActiveSubcategory}
                   onToggle={toggleInsight}
                   onClose={() => setActiveCategory(null)}

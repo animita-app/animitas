@@ -51,15 +51,15 @@ export function Scroller({ children, className, gradientHeight = 'h-12', ...prop
   }, [children])
 
   return (
-    <div className="relative h-full overflow-hidden flex flex-col flex-1 w-full min-h-0">
+    <div className="relative md:h-full md:overflow-hidden flex flex-col flex-1 w-full md:min-h-0">
       {showTopGradient && (
-        <div className={cn("absolute top-0 left-0 right-0 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none transition-opacity duration-300", gradientHeight)} />
+        <div className={cn("hidden md:block absolute top-0 left-0 right-0 bg-gradient-to-b from-background to-transparent z-20 pointer-events-none transition-opacity duration-300", gradientHeight)} />
       )}
 
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className={cn("flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']", className)}
+        className={cn("flex-1 md:overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']", className)}
         {...props}
       >
         <div ref={contentRef}>
@@ -68,7 +68,7 @@ export function Scroller({ children, className, gradientHeight = 'h-12', ...prop
       </div>
 
       {showBottomGradient && (
-        <div className={cn("absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none transition-opacity duration-300", gradientHeight)} />
+        <div className={cn("hidden md:block absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background to-transparent z-20 pointer-events-none transition-opacity duration-300", gradientHeight)} />
       )}
     </div>
   )

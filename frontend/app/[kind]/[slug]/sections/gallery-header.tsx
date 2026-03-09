@@ -75,11 +75,11 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   }
 
   return (
-    <div className="bg-background-weak border-b absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
+    <div className="md:bg-background-weak md:border-b fixed md:absolute h-14 inset-x-0 top-0 z-40 *:z-10 flex items-center justify-between px-3 py-3 pointer-events-none">
       <Button
         size="sm"
         variant="ghost"
-        className="pointer-events-auto gap-1 bg-neutral-200 hover:bg-neutral-300 h-8 text-text [&_svg]:!opacity-50 !pl-1.5"
+        className="pointer-events-auto gap-1 bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text [&_svg]:!opacity-50 !pl-1.5"
         asChild
       >
         <Link href="/">
@@ -130,7 +130,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
             </Select>
 
             {isEditor && (
-              <Badge variant="secondary" className="h-6">
+              <Badge variant="secondary" className="hidden md:flex h-6">
                 Publicado
               </Badge>
             )}
@@ -162,7 +162,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
           <Button
             size="icon"
             variant="ghost"
-            className="bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
+            className="bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text w-8"
             onClick={onEditGallery}
           >
             <Pencil />
@@ -171,7 +171,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
         <Button
           size="icon"
           variant="ghost"
-          className="bg-neutral-200 hover:bg-neutral-300 h-8 text-text w-8"
+          className="bg-black/40 backdrop-blur-sm hover:bg-black/50 md:bg-neutral-200 md:hover:bg-neutral-300 md:backdrop-blur-none h-8 text-white md:text-text w-8"
           onClick={handleCopyLink}
         >
           {hasCopied ? <CheckCircle2 /> : <Link2 />}
