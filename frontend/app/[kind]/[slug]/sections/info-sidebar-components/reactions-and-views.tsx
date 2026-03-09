@@ -1,12 +1,12 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { SmilePlus, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SmilePlus } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -16,67 +16,87 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
-import { Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@/contexts/user-context"
+import { HeritageSite } from "@/types/heritage"
+
+const AVAILABLE_EMOJIS = ["🙏", "🕯️", "❤️", "🌺", "✨", "🕊️"]
 
 interface Reaction {
   emoji: string
   count: number
-  users: string[]
+  hasReacted: boolean
 }
 
-const INITIAL_REACTIONS: Reaction[] = [
-  { emoji: "🙏", count: 12, users: ["pype", "fmoure", "jkarich", "ana", "lvalenzuela"] },
-  { emoji: "🕯️", count: 8, users: ["juan", "maria", "pedro"] },
-  { emoji: "❤️", count: 5, users: ["sofia", "carlos"] },
-]
-
-const AVAILABLE_EMOJIS = ["🙏", "🕯️", "❤️", "🌺", "✨", "🕊️"]
-
-import { HeritageSite } from "@/types/heritage"
-
 interface ReactionsAndViewsProps {
-  site?: HeritageSite
+  site: HeritageSite
 }
 
 export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
-  const [reactions, setReactions] = useState<Reaction[]>(INITIAL_REACTIONS)
+  const router = useRouter()
+  const { currentUser, isAuthenticated } = useUser()
+  const [reactions, setReactions] = useState<Reaction[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const hasReacted = reactions.some((r) => r.users.includes("Tú"))
+  useEffect(() => {
+    async function fetchReactions() {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('heritage_site_reactions')
+        .select('emoji, user_id')
+        .eq('site_id', site.id)
 
-  const handleAddReaction = (emoji: string) => {
+      if (!data) { setLoading(false); return }
+
+      const grouped: Record<string, { count: number; hasReacted: boolean }> = {}
+      data.forEach((r: any) => {
+        if (!grouped[r.emoji]) grouped[r.emoji] = { count: 0, hasReacted: false }
+        grouped[r.emoji].count++
+        if (r.user_id === currentUser?.id) grouped[r.emoji].hasReacted = true
+      })
+
+      setReactions(Object.entries(grouped).map(([emoji, d]) => ({ emoji, ...d })))
+      setLoading(false)
+    }
+    fetchReactions()
+  }, [site.id, currentUser?.id])
+
+  const toggleReaction = async (emoji: string) => {
+    if (!isAuthenticated || !currentUser) { router.push('/auth'); return }
+
+    const existing = reactions.find((r) => r.emoji === emoji)
+    const isRemoving = existing?.hasReacted
+
     setReactions((prev) => {
-      const existing = prev.find((r) => r.emoji === emoji)
-      if (existing) {
-        return prev.map((r) =>
-          r.emoji === emoji
-            ? { ...r, count: r.count + 1, users: ["Tú", ...r.users] }
-            : r
-        )
+      if (isRemoving) {
+        return prev
+          .map((r) => r.emoji === emoji ? { ...r, count: r.count - 1, hasReacted: false } : r)
+          .filter((r) => r.count > 0)
       }
-      return [...prev, { emoji, count: 1, users: ["Tú"] }]
+      const found = prev.find((r) => r.emoji === emoji)
+      if (found) return prev.map((r) => r.emoji === emoji ? { ...r, count: r.count + 1, hasReacted: true } : r)
+      return [...prev, { emoji, count: 1, hasReacted: true }]
     })
+
+    const supabase = createClient()
+    if (isRemoving) {
+      await supabase.from('heritage_site_reactions').delete()
+        .eq('site_id', site.id).eq('user_id', currentUser.id).eq('emoji', emoji)
+    } else {
+      await supabase.from('heritage_site_reactions')
+        .insert({ site_id: site.id, user_id: currentUser.id, emoji })
+    }
   }
 
-  const handleRemoveReaction = (emoji: string) => {
-    setReactions((prev) => {
-      return prev
-        .map((r) => {
-          if (r.emoji === emoji) {
-            const newUsers = r.users.filter((u) => u !== "Tú")
-            return { ...r, count: newUsers.length, users: newUsers }
-          }
-          return r
-        })
-        .filter((r) => r.count > 0)
-    })
-  }
+  const hasAnyReaction = reactions.some((r) => r.hasReacted)
+  const visitCount = site?.insights?.spiritual?.digital_visit_count || 0
 
-  const visitCount = site?.insights?.spiritual?.digital_visit_count || "1.2k"
+  if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
 
   return (
-    <div className="flex items-center gap-1.5 w-full">
-      {!hasReacted && (
+    <div className="flex items-center gap-1.5 w-full flex-wrap">
+      {!hasAnyReaction && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="size-6 shrink-0">
@@ -84,12 +104,12 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-6 gap-2 p-1">
               {AVAILABLE_EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
-                  className="hover:bg-neutral-800 rounded p-1 text-lg aspect-square cursor-pointer"
-                  onClick={() => handleAddReaction(emoji)}
+                  className="hover:bg-background-weaker rounded p-1 text-lg aspect-square cursor-pointer"
+                  onClick={() => toggleReaction(emoji)}
                 >
                   {emoji}
                 </button>
@@ -100,40 +120,34 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
       )}
 
       <TooltipProvider>
-        {reactions.map((reaction) => {
-          const isUserReaction = reaction.users.includes("Tú")
-          return (
-            <Tooltip key={reaction.emoji}>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  onClick={() => {
-                    if (isUserReaction) {
-                      handleRemoveReaction(reaction.emoji)
-                    }
-                  }}
-                  className={cn(
-                    "bg-background h-6 font-normal text-black gap-1 transition-colors",
-                    isUserReaction &&
-                    "border-accent text-accent bg-accent/5 cursor-pointer hover:bg-accent/10"
-                  )}
-                >
-                  <span>{reaction.emoji}</span>
-                  <span>{reaction.count}</span>
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent className="mb-1.5 max-w-32 text-nowrap overflow-hidden text-ellipsis">
-                {reaction.users.join(", ")}
-              </TooltipContent>
-            </Tooltip>
-          )
-        })}
+        {reactions.map((reaction) => (
+          <Tooltip key={reaction.emoji}>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                onClick={() => toggleReaction(reaction.emoji)}
+                className={cn(
+                  "bg-background h-6 font-normal gap-1 transition-colors cursor-pointer",
+                  reaction.hasReacted && "border-accent text-accent bg-accent/5 hover:bg-accent/10"
+                )}
+              >
+                <span>{reaction.emoji}</span>
+                <span>{reaction.count}</span>
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent className="text-xs">
+              {reaction.hasReacted ? 'Quitar reacción' : 'Reaccionar'}
+            </TooltipContent>
+          </Tooltip>
+        ))}
       </TooltipProvider>
 
-      <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
-        <Eye className="w-3.5 h-3.5" />
-        <span>{visitCount}</span>
-      </div>
+      {visitCount > 0 && (
+        <div className="ml-auto flex items-center gap-1.5 text-xs text-text-weak mr-1">
+          <Eye className="size-3.5" />
+          <span>{visitCount}</span>
+        </div>
+      )}
     </div>
   )
 }
