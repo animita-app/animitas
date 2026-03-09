@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { Textarea } from '@/components/ui/textarea'
+
 import {
   Select,
   SelectContent,
@@ -221,18 +221,20 @@ export function InlineEdit(props: InlineEditProps) {
   if (props.type === 'textarea') {
     if (editing) {
       return (
-        <Textarea
+        <textarea
           value={draft as string}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => { setDraft(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px' }}
           onBlur={() => save()}
           onKeyDown={(e) => {
             if (e.key === 'Escape') cancel()
             if (e.key === 'Enter' && e.ctrlKey) save()
           }}
-          className={cn('min-h-[120px]', className)}
+          ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' } }}
+          className={cn('w-full resize-none overflow-hidden bg-transparent p-0 border-0 outline-none focus:ring-0 caret-accent whitespace-pre-line', className)}
           placeholder={placeholder}
           disabled={saving}
           autoFocus
+          rows={1}
         />
       )
     }

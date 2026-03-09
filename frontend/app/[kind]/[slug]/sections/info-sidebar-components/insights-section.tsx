@@ -255,7 +255,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   if (loading) return <div className="h-8 animate-pulse bg-background-weaker rounded-md" />
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative mb-2">
       {/* 3 category triggers — shown for all users */}
       <div className="flex gap-3">
         {INSIGHT_CATEGORIES.map(cat => {
@@ -280,7 +280,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
             >
               {cfg.label}
               {count > 0 && (
-                <span className="ml-1 tabular-nums text-xs opacity-60">{count}</span>
+                <span className="ml-1 tabular-nums text-sm opacity-60">{count}</span>
               )}
             </button>
           )
