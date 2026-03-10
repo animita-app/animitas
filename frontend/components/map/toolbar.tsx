@@ -24,9 +24,9 @@ export function Toolbar({ onResetView, onExport, onDefineArea, disabled, onGener
         onClick={onResetView}
         title="Restablecer Vista"
         disabled={!onResetView || disabled}
-        className={cn((!onResetView) && "sr-only")}
+        className={cn("!bg-black rounded-full", (!onResetView) && "sr-only")}
       >
-        <MousePointer2 className="size-4 rotate-90 stroke-[0.5px] fill-white" />
+        <MousePointer2 className="size-5 rotate-90 stroke-0 fill-white" />
       </Button>
 
       {/* {!isFree && (

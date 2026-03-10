@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 
 import * as React from "react"
 import { CheckCircle2 } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -155,11 +154,7 @@ export function PollSection({ site }: PollSectionProps) {
     }
   }
 
-  const toggleResults = () => {
-    setShowResults((prev) => !prev)
-  }
-
-  if (isLoading) {
+  if (!isLoading) {
     return (
       <Card className="!py-0 gap-0 shadow-none">
         <CardHeader className="p-4">
@@ -167,15 +162,20 @@ export function PollSection({ site }: PollSectionProps) {
         </CardHeader>
         <CardContent className="p-4 pt-0 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
+            <div key={i} className="-ml-1.5 -mr-1 min-h-9">
+              <div className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
+            </div>
           ))}
         </CardContent>
+        <CardFooter className="px-4 py-2 !pt-2 border-t border-border-weak font-medium">
+          <div className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
+        </CardFooter>
       </Card>
     )
   }
 
   return (
-    <Card className="!py-0 -mx-2 gap-0 shadow-none">
+    <Card className="!py-0 gap-0 shadow-none">
       <CardHeader className="p-4">
         <CardTitle className="text-sm font-medium">¿Qué te parece esta información?</CardTitle>
       </CardHeader>

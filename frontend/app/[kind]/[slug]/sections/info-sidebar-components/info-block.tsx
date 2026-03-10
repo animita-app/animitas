@@ -14,7 +14,7 @@ export function InfoBlock({
   ...props
 }: InfoBlockProps) {
   return (
-    <div className={cn("space-y-3", className)} {...props}>
+    <div className={cn("space-y-2 leading-tight last:text-balance", className)} {...props}>
       <Label>{label}</Label>
       {children}
     </div>

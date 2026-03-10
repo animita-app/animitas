@@ -18,6 +18,9 @@ import { createClient } from '@/lib/supabase/client'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import Link from 'next/link'
+import { getSitePriority, aggregateVoteCounts, PRIORITY_CONFIG, PRIORITY_ORDER, SitePriority } from '@/lib/site-priority'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface NotificationData {
   id: string
@@ -25,6 +28,7 @@ interface NotificationData {
   description?: string
   timeAgo: string
   href: string
+  priority: SitePriority
 }
 
 export function NotificationsBell() {
@@ -43,19 +47,34 @@ export function NotificationsBell() {
       if (isEditor) {
         const { data: sites } = await supabase
           .from('heritage_sites')
-          .select('id, title, slug, kind, created_at, status')
+          .select('id, title, slug, created_at, status, heritage_kinds!kind_id(slug)')
           .in('status', ['draft', 'flagged'])
           .order('created_at', { ascending: false })
-          .limit(10)
+          .limit(20)
 
-        if (sites) {
-          setRevisions(sites.map(s => ({
+        if (sites && sites.length > 0) {
+          const siteIds = sites.map(s => s.id)
+          const { data: votes } = await supabase
+            .from('heritage_site_votes')
+            .select('site_id, option')
+            .in('site_id', siteIds)
+
+          const votesPerSite = aggregateVoteCounts(votes ?? [])
+          const priorities = Object.fromEntries(
+            siteIds.map(id => [id, getSitePriority(votesPerSite[id] ?? {})])
+          )
+
+          const mapped: NotificationData[] = sites.map(s => ({
             id: s.id,
             title: `${s.title} necesita revisión.`,
             description: `Estado: ${s.status}`,
             timeAgo: formatDistanceToNow(new Date(s.created_at), { addSuffix: true, locale: es }),
-            href: `/${s.kind.toLowerCase()}/${s.slug}`
-          })))
+            href: `/${(s as any).heritage_kinds?.slug ?? 'animita'}/${s.slug}`,
+            priority: priorities[s.id],
+          }))
+
+          mapped.sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+          setRevisions(mapped)
         }
       }
 
@@ -81,7 +100,8 @@ export function NotificationsBell() {
             title: `${c.profiles?.full_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu sitio'}`,
             description: `«${c.content}»`,
             timeAgo: formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: es }),
-            href: `/${c.heritage_sites?.kind?.toLowerCase() || 'animita'}/${c.heritage_sites?.slug}`
+            href: `/${c.heritage_sites?.kind?.toLowerCase() || 'animita'}/${c.heritage_sites?.slug}`,
+            priority: 'ok' as SitePriority,
           })))
         }
       }
@@ -139,8 +159,15 @@ export function NotificationsBell() {
                 ) : (
                   revisions.map(item => (
                     <DropdownMenuItem asChild key={item.id} className="cursor-pointer mx-1 my-1 p-2 items-start flex-col gap-1 h-auto">
-                      <Link href={item.href} className="flex flex-col w-full">
-                        <span className="font-medium line-clamp-2 text-text-strong">{item.title}</span>
+                      <Link href={item.href} className="flex flex-col w-full gap-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-medium line-clamp-2 text-text-strong">{item.title}</span>
+                          {item.priority !== 'ok' && (
+                            <Badge variant="outline" className={cn("shrink-0 h-5 text-[10px]", PRIORITY_CONFIG[item.priority].className)}>
+                              {PRIORITY_CONFIG[item.priority].label}
+                            </Badge>
+                          )}
+                        </div>
                         {item.description && <span className="text-text-weak text-xs line-clamp-1">{item.description}</span>}
                         <span className="text-[10px] text-text-weaker">{item.timeAgo}</span>
                       </Link>
@@ -157,8 +184,15 @@ export function NotificationsBell() {
                 ) : (
                   mine.map(item => (
                     <DropdownMenuItem asChild key={item.id} className="cursor-pointer mx-1 my-1 p-2 items-start flex-col gap-1 h-auto">
-                      <Link href={item.href} className="flex flex-col w-full">
-                        <span className="font-medium line-clamp-2 text-text-strong">{item.title}</span>
+                      <Link href={item.href} className="flex flex-col w-full gap-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-medium line-clamp-2 text-text-strong">{item.title}</span>
+                          {item.priority !== 'ok' && (
+                            <Badge variant="outline" className={cn("shrink-0 h-5 text-[10px]", PRIORITY_CONFIG[item.priority].className)}>
+                              {PRIORITY_CONFIG[item.priority].label}
+                            </Badge>
+                          )}
+                        </div>
                         {item.description && <span className="text-text-weak text-xs line-clamp-1">{item.description}</span>}
                         <span className="text-[10px] text-text-weaker">{item.timeAgo}</span>
                       </Link>

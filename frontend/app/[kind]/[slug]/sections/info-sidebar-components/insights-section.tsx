@@ -1,21 +1,18 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Check, Plus, ChevronRight, ChevronLeft, Search } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
-import { HeritageSite } from "@/types/heritage"
+import { HeritageSite, SiteInsight } from "@/types/heritage"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Combobox,
   ComboboxContent,
-  ComboboxEmpty,
-  ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
-  ComboboxLabel,
   ComboboxList,
   ComboboxTrigger,
 } from "@/components/ui/combobox"
@@ -26,7 +23,7 @@ import {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const FALLBACK_TAGS: any[] = [
+const FALLBACK_TAGS: { category: string; subcategory: string; label: string }[] = [
   // Memorial
   { category: 'memorial', subcategory: 'Causa de muerte', label: 'Homicidios y Violencia' },
   { category: 'memorial', subcategory: 'Causa de muerte', label: 'Suicidio' },
@@ -121,29 +118,9 @@ const FALLBACK_TAGS: any[] = [
   { category: 'patrimonial', subcategory: 'Época', label: 'Siglo XXI' },
 ]
 
-const IS_MULTI_SELECT: Record<string, boolean> = {
-  "rol social": true,
-  "rituales": true,
-  "ofrendas": true,
-  "social_roles": true,
-  "rituals_mentioned": true,
-  "offerings_mentioned": true,
-  "General": true,
-}
-
-const isMultiSelect = (subcategory: string) => IS_MULTI_SELECT[subcategory] ?? false
-const isMultiSelectCaseInsensitive = (subcategory: string) => {
+const isMultiSelect = (subcategory: string) => {
   const s = subcategory.toLowerCase()
-  if (s.includes("rol") || s.includes("ritual") || s.includes("ofrenda") || s.includes("mencionado")) return true
-  return IS_MULTI_SELECT[subcategory] ?? false
-}
-
-interface SiteInsight {
-  id: string
-  site_id: string
-  category: string
-  subcategory: string
-  label: string
+  return s.includes("rol") || s.includes("ritual") || s.includes("ofrenda") || s.includes("mencionado") || s === "general"
 }
 
 interface InsightsSectionProps {
@@ -154,7 +131,6 @@ interface InsightsSectionProps {
 
 interface CategoryDropdownProps {
   category: string
-  /** Current rows from site_insights for this category */
   activeInsights: SiteInsight[]
   canEdit: boolean
   activeSubcategory: string | null
@@ -174,7 +150,6 @@ function CategoryDropdownContent({
   setQuery,
   onSubcategoryChange,
   onToggle,
-  onClose,
 }: CategoryDropdownProps & {
   query: string;
   setQuery: (q: string) => void;
@@ -206,7 +181,6 @@ function CategoryDropdownContent({
         onChange={(e: any) => setQuery(e.target.value)}
         className="border-b border-white/5"
         onKeyDown={(e: any) => {
-          // 1. Back navigation (Esc or Left Arrow)
           if (activeSubcategory && (e.key === 'Escape' || (e.key === 'ArrowLeft' && !query))) {
             e.preventDefault();
             e.stopPropagation();
@@ -214,11 +188,7 @@ function CategoryDropdownContent({
             return;
           }
 
-          // 2. Enter logic
           if (e.key === 'Enter') {
-            // Priority: If we are at root (subcategories), the highlight selection
-            // will be handled by the primitive's onSelect.
-            // If we are in query mode and can create a tag:
             if (activeSubcategory && canCreate && !visibleSubcategories.length) {
               e.preventDefault();
               onToggle(query.trim(), activeSubcategory || "General", false);
@@ -243,7 +213,6 @@ function CategoryDropdownContent({
       />
 
       <div className="relative overflow-hidden">
-        {/* Step 1: Subcategories */}
         {showSubcategoriesList && visibleSubcategories.length > 0 && (
           <ComboboxList className={cn(
             "p-1 flex flex-col gap-0.5",
@@ -251,7 +220,7 @@ function CategoryDropdownContent({
           )}>
             {visibleSubcategories.map(sub => {
               const selectedInSub = activeInsights.filter(t => (t.subcategory || "General") === sub)
-              const multi = isMultiSelectCaseInsensitive(sub)
+              const multi = isMultiSelect(sub)
 
               return (
                 <ComboboxItem
@@ -259,8 +228,6 @@ function CategoryDropdownContent({
                   value={sub}
                   className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2 cursor-pointer select-none"
                   onSelect={(e) => {
-                    console.log("👉 TAPPING / ENTER on:", sub);
-                    // CRITICAL: Prevent the primitive from toggling this 'sub' as a value
                     e.preventDefault();
                     onSubcategoryChange(sub)
                     setQuery("")
@@ -293,7 +260,6 @@ function CategoryDropdownContent({
           </ComboboxList>
         )}
 
-        {/* Step 2: Tags & JSONB */}
         {activeSubcategory && (
           <div className={cn(
             "w-full flex flex-col",
@@ -341,7 +307,6 @@ function CategoryDropdownContent({
           </div>
         )}
 
-
         {isEmpty && (
           <div className="px-2 py-6 text-sm text-white/30 !font-normal text-center">
             {query.trim() ? "No se encontraron resultados" : "Selecciona una categoría"}
@@ -360,24 +325,9 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
   const [query, setQuery] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (activeCategory || activeSubcategory || query) {
-      console.log("🔍 Insights State:", {
-        category: activeCategory,
-        subcategory: activeSubcategory,
-        query: query || "(empty)"
-      });
-    }
-  }, [activeCategory, activeSubcategory, query]);
-
-  const [loading, setLoading] = useState(canManageInsights)
-  const containerRef = useRef<HTMLDivElement>(null)
-
-
-  // Editors fetch Junction data
-  useEffect(() => {
-    if (!canManageInsights) return
     const supabase = createClient()
     supabase.from('site_insights')
       .select('*')
@@ -386,9 +336,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
         if (data) setActiveInsights(data)
         setLoading(false)
       })
-  }, [site.id, canManageInsights])
-
-
+  }, [site.id])
 
   const toggleInsight = async (label: string, subcategory: string, isSelected: boolean) => {
     if (isSelected) {
@@ -407,7 +355,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
         if (removed) setActiveInsights(prev => [...prev, removed])
       }
     } else {
-      const newInsight = {
+      const newInsight: SiteInsight = {
         id: crypto.randomUUID(),
         site_id: site.id,
         category: activeCategory!,
@@ -431,10 +379,26 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     }
   }
 
-  const totalTags = activeInsights.length
-  if (totalTags === 0 && !canManageInsights) return null
-
   if (loading) return <Skeleton className="h-8" />
+
+  if (activeInsights.length === 0 && !canManageInsights) return null
+
+  if (!canManageInsights) {
+    return (
+      <div className="flex flex-wrap gap-1.5 mb-6">
+        {INSIGHT_CATEGORIES.map(cat => {
+          const cfg = INSIGHT_CATEGORY_CONFIG[cat]
+          return activeInsights
+            .filter(i => i.category === cat)
+            .map(insight => (
+              <span key={insight.id} className={cfg.chip}>
+                {insight.label}
+              </span>
+            ))
+        })}
+      </div>
+    )
+  }
 
   return (
     <div className="relative mb-6">
@@ -445,14 +409,11 @@ export function InsightsSection({ site }: InsightsSectionProps) {
           const count = insightsForCat.length
           const isActive = activeCategory === cat
 
-          // Critical: Universal item pool for this category.
-          // The primitive must know about EVERYTHING simultaneously to handle transitions.
           const items = Array.from(new Set([
             ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General"),
             ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.label)
           ]))
 
-          // Step 1 Filtering: Smart match subcategory name OR tag label inside
           const subcategories = Array.from(new Set(
             FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General")
           )).sort()
@@ -466,7 +427,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               })
             : subcategories
 
-          // Step 2 Filtering: Match labels within current subcategory (or global filter if sub is null)
           const filteredTags = query.trim()
             ? FALLBACK_TAGS.filter(t => t.category === cat)
                 .filter(t => t.label.toLowerCase().includes(q))
@@ -486,7 +446,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
               multiple
               open={isActive}
               onOpenChange={(open) => {
-                console.log("Popover Open Change:", open, "Category:", cat);
                 setActiveCategory(open ? cat : null)
                 if (!open) {
                   setActiveSubcategory(null)

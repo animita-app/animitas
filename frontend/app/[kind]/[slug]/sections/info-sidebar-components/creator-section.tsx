@@ -12,7 +12,7 @@ export function CreatorSection({ site }: CreatorSectionProps) {
   const creatorInitial = creatorName[0]?.toUpperCase() || 'A'
 
   return (
-    <div className="grid grid-cols-2 gap-y-6 md:gap-y-4 gap-x-6 items-start">
+    <div className="select-none grid grid-cols-2 gap-6 items-start">
       <InfoBlock label="Creado por">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6 shrink-0">

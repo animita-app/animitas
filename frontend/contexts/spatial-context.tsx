@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, ReactNode, useMemo } from '
 import { Feature, Geometry, FeatureCollection, Point } from 'geojson'
 import { clipFeatures } from '@/lib/gis-engine'
 import * as turf from '@turf/turf'
-import { useUser } from './user-context'
-import { ROLES } from '@/types/roles'
 
 interface SpatialContextType {
   activeArea: Feature<Geometry> | FeatureCollection | null
@@ -34,8 +32,6 @@ interface SpatialContextType {
 const SpatialContext = createContext<SpatialContextType | undefined>(undefined)
 
 export function SpatialProvider({ children }: { children: ReactNode }) {
-  const { role } = useUser()
-  const isDefault = role === ROLES.DEFAULT
 
   const [activeArea, setActiveAreaState] = useState<Feature<Geometry> | FeatureCollection | null>(null)
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
@@ -65,10 +61,15 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
         if (data) {
           const normalized = data.map((site: any) => {
             let location = { lat: 0, lng: 0 }
+            let rawGeometry: any = null
 
             if (site.location) {
               if (site.location.type === 'Point' && site.location.coordinates) {
                 location = { lng: site.location.coordinates[0], lat: site.location.coordinates[1] }
+              } else if (site.location.type === 'Polygon' || site.location.type === 'MultiPolygon') {
+                const centroid = turf.centroid(site.location)
+                location = { lng: centroid.geometry.coordinates[0], lat: centroid.geometry.coordinates[1] }
+                rawGeometry = site.location
               } else if (site.location.lat !== undefined && site.location.lng !== undefined) {
                 location = { lat: site.location.lat, lng: site.location.lng }
               }
@@ -77,6 +78,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
             return {
               ...site,
               location,
+              rawGeometry,
               kind: (site.heritage_kinds as any)?.slug || 'animita'
             }
           })
@@ -136,20 +138,10 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const filteredData = useMemo(() => {
     const allSites = [...dbSites, ...syntheticSites]
 
-    let data = allSites.map(site => {
-      // Ensure location exists to avoid crashes
-      const loc = site.location || { lat: 0, lng: 0 }
-
-      return {
-        ...site,
-        location: loc,
-        // Flatten nested properties for easier access
-        death_cause: site.death_cause || site.insights?.memorial?.death_cause || 'unknown',
-        typology: site.typology || 'unknown',
-        antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
-        size: site.insights?.patrimonial?.size || 'unknown'
-      }
-    })
+    let data = allSites.map(site => ({
+      ...site,
+      location: site.location || { lat: 0, lng: 0 },
+    }))
 
 
     // 1. Spatial Filter (Active Area)

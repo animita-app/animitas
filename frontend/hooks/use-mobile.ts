@@ -32,7 +32,7 @@ export function useMobileScrollThreshold() {
 
     const checkScroll = () => {
       // Threshold is the viewport width (square gallery height)
-      setIsOverThreshold(window.scrollY >= window.innerWidth - 56); // 56 is header height
+      setIsOverThreshold(window.scrollY >= window.innerWidth - 56*2);
     };
 
     window.addEventListener("scroll", checkScroll, { passive: true });

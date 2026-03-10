@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -8,7 +9,7 @@ import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { useSearchLocation } from '@/hooks/use-search-location'
 import { FilterChip, type FilterOption } from '@/components/ui/filter-chip'
 import { Button } from '@/components/ui/button'
-import { X, Search as SearchIcon, ChevronLeft, Plus } from 'lucide-react'
+import { X, Search as SearchIcon, ChevronLeft, Plus, MapIcon, ListIcon } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LayerItem } from '@/components/map/layers/layer-item'
@@ -25,7 +26,6 @@ interface MainHeaderPanelProps {
 }
 
 const TABS_WIDTH = 253
-const SEARCH_WIDTH = 320
 
 function TabsPanelContent({ onSearch, setSearchActive, onTabChange, pathname }: { onSearch?: (query: string) => void; setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void; pathname: string }) {
   const tabValue = pathname.includes('/list') ? 'list' : 'map'
@@ -35,8 +35,20 @@ function TabsPanelContent({ onSearch, setSearchActive, onTabChange, pathname }: 
     >
       <Tabs value={tabValue} onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-          <TabsTrigger value="map" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Mapa</TabsTrigger>
-          <TabsTrigger value="list" className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full">Lista</TabsTrigger>
+          <TabsTrigger
+            value="map"
+            className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full"
+          >
+            <MapIcon className="md:hidden" />
+            <span className="hidden md:block">Mapa</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="list"
+            className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full"
+          >
+            <ListIcon className="md:hidden" />
+            <span className="hidden md:block">Lista</span>
+          </TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -219,6 +231,8 @@ function SearchPanelContent({
 export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const isMobile = useIsMobile()
+  const SEARCH_WIDTH = isMobile ? 256 : 320
   const [searchActive, setSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -268,10 +282,11 @@ export function MainHeaderPanel({ onSearch }: MainHeaderPanelProps) {
     categories.map(cat => ({ value: cat.slug, label: cat.name })),
     [categories]
   )
-  const kindOptions = useMemo<FilterOption[]>(() =>
-    kinds.map(kind => ({ value: kind.slug, label: kind.name })),
-    [kinds]
-  )
+  const kindOptions = useMemo<FilterOption[]>(() => {
+    if (activeCategories.length === 0) return kinds.map(k => ({ value: k.slug, label: k.name }))
+    const activeCategoryIds = new Set(categories.filter(c => activeCategories.includes(c.slug)).map(c => c.id))
+    return kinds.filter(k => activeCategoryIds.has(k.category_id)).map(k => ({ value: k.slug, label: k.name }))
+  }, [kinds, categories, activeCategories])
   const cityOptions = useMemo<FilterOption[]>(() => {
     const cities = new Set(filteredData.map((s: any) => s.city_region).filter(Boolean))
     return Array.from(cities).sort().map(city => ({ value: city, label: city }))

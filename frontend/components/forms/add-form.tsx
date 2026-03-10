@@ -64,11 +64,19 @@ export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
   const { categories, kinds } = useHeritageTaxonomy()
+  const categoryId = categories.find(c => c.slug === category)?.id
+  const kindsForCategory = categoryId ? kinds.filter(k => k.category_id === categoryId) : kinds
+
+  useEffect(() => {
+    if (kindsForCategory.length > 0 && !kindsForCategory.some(k => k.slug === kind)) {
+      setKind(kindsForCategory[0].slug)
+    }
+  }, [category, kindsForCategory])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
 
-  const [kind, setKind] = useState("animita")
   const [category, setCategory] = useState("patrimonio-funerario")
+  const [kind, setKind] = useState("animita")
   const [title, setTitle] = useState("")
   const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
@@ -279,7 +287,7 @@ export function AddForm({ onCancel }: AddFormProps) {
                 </Badge>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                {kinds.map(k => (
+                {kindsForCategory.map(k => (
                   <DropdownMenuItem
                     key={k.id}
                     onSelect={() => setKind(k.slug)}

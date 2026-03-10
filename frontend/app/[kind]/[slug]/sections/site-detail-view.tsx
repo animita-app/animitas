@@ -19,16 +19,18 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
   return (
     <SiteEditingProvider>
       <div className="flex flex-col md:flex-row md:h-svh w-full md:overflow-hidden">
-        <div className="bg-black shrink-0 flex-none md:flex-1 md:min-w-0 aspect-square md:aspect-auto w-full overflow-hidden relative flex items-center justify-center">
+        <div className="bg-black shrink-0 flex-none md:flex-1 md:min-w-0 aspect-square md:aspect-auto w-full relative">
           <GalleryHeader site={site} onEditGallery={() => setIsGalleryEditorOpen(true)} />
-          <ImageGalleryEditorWrapper
-            site={site}
-            onPreviewImagesChange={setPreviewImages}
-            isOpen={isGalleryEditorOpen}
-            onOpenChange={setIsGalleryEditorOpen}
-          >
-            <ImageGallery site={site} images={previewImages} title={site.title} />
-          </ImageGalleryEditorWrapper>
+          <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
+            <ImageGalleryEditorWrapper
+              site={site}
+              onPreviewImagesChange={setPreviewImages}
+              isOpen={isGalleryEditorOpen}
+              onOpenChange={setIsGalleryEditorOpen}
+            >
+              <ImageGallery site={site} images={previewImages} title={site.title} />
+            </ImageGalleryEditorWrapper>
+          </div>
         </div>
 
         <InfoSidebar site={site} />

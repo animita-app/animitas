@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, Link2, CheckCircle2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +19,8 @@ import { useSiteEditing } from './site-edit-context'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useMobileScrollThreshold } from '@/hooks/use-mobile'
+import { useSitePriority } from '@/hooks/use-site-priority'
+import { PRIORITY_CONFIG } from '@/lib/site-priority'
 
 interface Revision {
   id: string
@@ -40,11 +42,12 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const canSeeVersions = isEditor || isCreator
   const isOverThreshold = useMobileScrollThreshold()
 
+  const { priority } = useSitePriority(site.id)
   const [revisions, setRevisions] = useState<Revision[]>([])
   const [selectedRevision, setSelectedRevision] = useState<string>('current')
   const [hasCopied, setHasCopied] = useState(false)
 
-  useEffect(() => {
+  const fetchRevisions = () => {
     if (!canSeeVersions) return
     const supabase = createClient()
     supabase
@@ -63,7 +66,20 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
         }))
         setRevisions(mapped)
       })
+  }
+
+  useEffect(() => {
+    fetchRevisions()
   }, [site.id, canSeeVersions])
+
+  const prevIsEditing = useRef(false)
+  useEffect(() => {
+    if (prevIsEditing.current && !isEditing) {
+      fetchRevisions()
+      setSelectedRevision('current')
+    }
+    prevIsEditing.current = isEditing
+  }, [isEditing])
 
   const currentVersionLabel = revisions.length > 0
     ? `v1.${revisions.length}`
@@ -78,8 +94,8 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
 
   return (
     <div className={cn(
-      "md:bg-background-weak md:border-b fixed md:absolute h-14 inset-x-0 top-0 z-40 flex items-center justify-between px-3 py-3 pointer-events-none transition-all duration-300",
-      isOverThreshold ? "bg-white/90 backdrop-blur-md border-b border-black/5" : "bg-transparent"
+      "md:bg-background-weak border-b fixed md:absolute h-14 inset-x-0 top-0 z-40 flex items-center justify-between px-3 py-3 pointer-events-none transition-all duration-300",
+      isOverThreshold ? "bg-white/90 backdrop-blur-md border-border" : "border-transparent bg-transparent"
     )}>
       <Button
         size="sm"
@@ -112,7 +128,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
               onValueChange={setSelectedRevision}
             >
               <SelectTrigger className={cn(
-                "min-w-fit md:mix-blend-normal border-0 !shadow-none bg-transparent !h-10 text-sm px-3 gap-3 transition-colors duration-300",
+                "min-w-fit cursor-pointer md:hover:!bg-neutral-200 md:mix-blend-normal border-transparent !shadow-none md:!text-black bg-transparent !h-10 text-sm px-3 gap-3 transition-colors duration-300",
                 isOverThreshold
                   ? "!text-black mix-blend-normal"
                   : "text-white mix-blend-difference"
@@ -128,11 +144,11 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
                 {[...revisions].reverse().map((rev) => (
                   <SelectItem key={rev.id} value={rev.id}>
                     <div className="inline-flex items-center gap-2.5">
-                      <span>{currentVersionLabel}</span>
+                      <span>{rev.version_label}</span>
                       <span>
-                        {revisions[revisions.length - 1]?.author_name || site.created_by?.display_name || site.created_by?.name || "Anónimo"}
+                        {rev.author_name}
                         {" • "}
-                        {formatDistanceToNow(new Date(revisions[revisions.length - 1]?.created_at || site.created_at), { addSuffix: true, locale: es })}
+                        {formatDistanceToNow(new Date(rev.created_at), { addSuffix: true, locale: es })}
                       </span>
                     </div>
                   </SelectItem>
@@ -140,9 +156,12 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
               </SelectContent>
             </Select>
 
-            {isEditor && (
-              <Badge variant="secondary" className="hidden md:flex h-6">
-                Publicado
+            {isEditor && priority !== 'ok' && (
+              <Badge
+                variant="outline"
+                className={cn("hidden md:flex h-6", PRIORITY_CONFIG[priority].className)}
+              >
+                {PRIORITY_CONFIG[priority].label}
               </Badge>
             )}
           </div>

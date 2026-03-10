@@ -44,6 +44,15 @@ export interface HeritageSite {
   digital_visit_count?: number;
 }
 
+// 4. Site Insight (tag attached to a heritage site)
+export interface SiteInsight {
+  id: string
+  site_id: string
+  category: string
+  subcategory: string
+  label: string
+}
+
 // Standardized Death Causes
 export type DeathCause =
   | "Accidente"
