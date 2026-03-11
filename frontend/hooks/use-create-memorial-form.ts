@@ -6,7 +6,6 @@ import { z } from 'zod'
 import { getErrorMessage } from '@/lib/utils'
 
 const showError = (msg: string) => {
-  console.error(msg)
   alert(msg)
 }
 

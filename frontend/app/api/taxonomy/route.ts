@@ -12,18 +12,15 @@ export async function GET() {
     ])
 
     if (catError) {
-      console.error('[Taxonomy API] Categories error:', catError)
       return NextResponse.json({ error: 'Failed to fetch categories', details: catError }, { status: 400 })
     }
 
     if (kindError) {
-      console.error('[Taxonomy API] Kinds error:', kindError)
       return NextResponse.json({ error: 'Failed to fetch kinds', details: kindError }, { status: 400 })
     }
 
     return NextResponse.json({ categories, kinds })
   } catch (error) {
-    console.error('[Taxonomy API] Unexpected error:', error)
     return NextResponse.json({ error: 'Unexpected error', details: String(error) }, { status: 500 })
   }
 }

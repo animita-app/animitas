@@ -18,20 +18,15 @@ export function useHeritageTaxonomy() {
         ])
 
         if (catError) {
-          console.error('[Taxonomy] Categories error:', catError)
         } else {
-          // console.log('[Taxonomy] Fetched categories:', categoriesData?.length || 0)
           setCategories(categoriesData || [])
         }
 
         if (kindError) {
-          console.error('[Taxonomy] Kinds error:', kindError)
         } else {
-          // console.log('[Taxonomy] Fetched kinds:', kindsData?.length || 0)
           setKinds(kindsData || [])
         }
       } catch (error) {
-        console.error('[Taxonomy] Fetch error:', error)
       } finally {
         setIsLoading(false)
       }

@@ -35,7 +35,6 @@ export const MapMarker = ({ map, coordinates, children, className }: MapMarkerPr
     try {
       markerRef.current.addTo(map)
     } catch (e) {
-      console.warn("Failed to add component marker to map", e)
     }
 
     return () => {

@@ -12,7 +12,6 @@ export async function POST(req: Request) {
 
     let apiKey = process.env.ELEVENLABS_API_KEY
 
-    // Fallback: Manual .env read for hot-loading in dev
     if (!apiKey) {
       try {
         const fs = await import('fs')
@@ -23,7 +22,7 @@ export async function POST(req: Request) {
           const match = content.match(/ELEVENLABS_API_KEY=(.+)/)
           if (match) apiKey = match[1].trim()
         }
-      } catch (err) { console.warn('Manual env read failed', err) }
+      } catch (_err) {}
     }
 
     if (!apiKey) {
@@ -54,7 +53,6 @@ export async function POST(req: Request) {
       },
     })
   } catch (error) {
-    console.error('TTS Error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

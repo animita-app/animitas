@@ -1,4 +1,4 @@
-import { Eye, EyeOff, MapPin, Activity, Hexagon, VectorSquare, Spline } from 'lucide-react'
+import { Eye, EyeOff, MapPin, Activity, Hexagon, VectorSquare, Spline, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
@@ -12,15 +12,15 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
   switch (layer.geometry) {
     case 'point':
       icon = <div className="size-2 rounded-full" style={{ backgroundColor: layer.color }} />
-      typeLabel = 'Punto'
+      typeLabel = 'Ubicación (punto)'
       break
     case 'line':
       icon = <Spline size={14} style={{ color: layer.color }} />
-      typeLabel = 'Línea'
+      typeLabel = 'Ruta o límite (línea)'
       break
     case 'polygon':
       icon = <VectorSquare size={14} style={{ color: layer.color }} />
-      typeLabel = 'Polígono'
+      typeLabel = 'Área, región o provincia (polígono)'
       break
     default:
       icon = <div className="size-2 rounded-full" style={{ backgroundColor: layer.color }} />
@@ -35,7 +35,7 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
             {icon}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top">
+        <TooltipContent side="top" sideOffset={8}>
           <p>{typeLabel}</p>
         </TooltipContent>
       </Tooltip>
@@ -46,15 +46,17 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
 interface LayerItemProps {
   layer: Layer
   isSearchResult?: boolean
+  isSelected?: boolean
   onClick?: () => void
   onToggleVisibility: (e: React.MouseEvent) => void
 }
 
-export const LayerItem = ({ layer, isSearchResult = false, onClick, onToggleVisibility }: LayerItemProps) => (
+export const LayerItem = ({ layer, isSearchResult = false, isSelected = false, onClick, onToggleVisibility }: LayerItemProps) => (
   <div
     className={cn(
       "pl-1 group relative h-8 flex items-center rounded-md cursor-pointer hover:bg-muted",
-      !layer.visible && "opacity-60"
+      !layer.visible && "opacity-60",
+      isSelected && "bg-accent/10"
     )}
     onClick={onClick}
   >
@@ -74,6 +76,9 @@ export const LayerItem = ({ layer, isSearchResult = false, onClick, onToggleVisi
       >
         {layer.visible ? <Eye className="text-muted-foreground" size={16} /> : <EyeOff className="text-muted-foreground" size={16} />}
       </Button>
+    )}
+    {isSearchResult && isSelected && (
+      <Check className="absolute right-2 text-accent flex-shrink-0" size={16} />
     )}
   </div>
 )

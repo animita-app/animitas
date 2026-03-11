@@ -142,7 +142,6 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
             setSelectedRevision('current')
           }, 3000)
         } catch (err: any) {
-          console.error('[GalleryHeader] Save error:', err)
           toast.error("Error al guardar versión", { id: "saving-version" })
           setIsSaving(false)
         }

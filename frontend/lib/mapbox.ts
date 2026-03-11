@@ -15,7 +15,6 @@ export async function searchLocation(query: string, accessToken: string) {
 
     return data.features || []
   } catch (error) {
-    console.error('Error searching location:', error)
     return []
   }
 }
@@ -45,7 +44,6 @@ export async function reverseGeocode(lng: number, lat: number, accessToken: stri
 
     return { address, cityRegion }
   } catch (error) {
-    console.error('Error reverse geocoding:', error)
     return null
   }
 }

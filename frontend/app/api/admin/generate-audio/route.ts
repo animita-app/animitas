@@ -8,7 +8,6 @@ export async function GET(req: Request) {
   const VOICE_ID = 'cMKZRsVE5V7xf6qCp9fF';
   const OUTPUT_DIR = path.resolve(process.cwd(), 'public/audio/stories');
 
-  // Manual Env Read
   let apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
     try {
@@ -18,7 +17,7 @@ export async function GET(req: Request) {
         const match = content.match(/ELEVENLABS_API_KEY=(.+)/);
         if (match) apiKey = match[1].trim();
       }
-    } catch (err) { console.warn('Manual env read failed', err); }
+    } catch (_err) {}
   }
 
   if (!apiKey) {
@@ -80,8 +79,6 @@ export async function GET(req: Request) {
       results.push({ id: site.id, status: 'error', message: err.message });
     }
   }
-
-  console.log(`Processed ${sites.length} sites. Generated: ${results.filter(r => r.status === 'generated').length}`);
 
   return NextResponse.json({ success: true, results });
 }

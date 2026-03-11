@@ -209,7 +209,6 @@ export function useScribe(options: ScribeHookOptions = {}): UseScribeReturn {
         })
       }
     } catch (err) {
-      console.warn("[useScribe] Failed to close connection", err)
     } finally {
       setStatus("disconnected")
       onDisconnect?.()
@@ -226,7 +225,6 @@ export function useScribe(options: ScribeHookOptions = {}): UseScribeReturn {
   const connect = useCallback(
     async (runtimeOptions: Partial<ScribeHookOptions> = {}) => {
       if (connectionRef.current) {
-        console.warn("Already connected")
         return
       }
 

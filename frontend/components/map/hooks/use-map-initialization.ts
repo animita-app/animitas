@@ -62,7 +62,6 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
           'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
           (error, image) => {
             if (error) {
-              console.warn('Could not load marker-15 image', error)
               return
             }
             if (image && !mapInstance.hasImage('marker-15')) {

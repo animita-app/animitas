@@ -54,7 +54,6 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
           .eq('status', 'published')
 
         if (error) {
-          console.error("[SpatialContext] Query error:", error)
           return
         }
 
@@ -85,7 +84,6 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
           setDbSites(normalized)
         }
       } catch (err: any) {
-        console.error("[SpatialContext] Error fetching sites:", err?.message || err)
       }
     }
     fetchSites()

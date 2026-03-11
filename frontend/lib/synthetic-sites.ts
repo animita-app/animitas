@@ -173,7 +173,6 @@ export function generateSyntheticSites(
   const useRoadsForUrban = !hasUrban && hasRoads
 
   if (!hasRoads && !hasUrban && !hasCemeteries) {
-    console.warn('No spatial context available for synthetic generation. Using random jitter around seeds.')
     // Fallback to simple jitter around seeds if no context
     return generateSimpleJitterSites(seeds, totalCount)
   }

@@ -52,9 +52,7 @@ Be concise. Extract only what's explicitly mentioned in the story.`
 
     if (!response.ok) {
       const error = await response.json()
-      console.error('[extract-insights] OpenAI error:', error)
       if (error.error?.code === 'insufficient_quota') {
-        console.error('[extract-insights] Quota exceeded - add payment method to OpenAI')
       }
       return NextResponse.json({ insights: {} })
     }
@@ -66,12 +64,10 @@ Be concise. Extract only what's explicitly mentioned in the story.`
     try {
       insights = JSON.parse(content)
     } catch (e) {
-      console.error('[extract-insights] JSON parse error:', content)
     }
 
     return NextResponse.json({ insights })
   } catch (err: any) {
-    console.error('[extract-insights] Error:', err)
     return NextResponse.json({ insights: {} }, { status: 500 })
   }
 }

@@ -16,15 +16,10 @@ async function checkMultiple() {
   ];
 
   for (const t of tables) {
-    const { error } = await supabase.from(t).select("count", {
+    await supabase.from(t).select("count", {
       count: "exact",
       head: true,
     });
-    if (error) {
-      console.log(`${t}: FAIL - ${error.message} (${error.code})`);
-    } else {
-      console.log(`${t}: OK`);
-    }
   }
 }
 

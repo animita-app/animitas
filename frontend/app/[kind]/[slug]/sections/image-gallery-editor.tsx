@@ -171,7 +171,6 @@ export function ImageGalleryEditorWrapper({
           setStagedItems(null)
         } catch (err: any) {
           toast.error("Error al procesar imágenes", { id: "saving-images" })
-          console.error(err)
         } finally {
           setIsUploading(false)
         }

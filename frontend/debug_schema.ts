@@ -10,9 +10,7 @@ async function debugSchema() {
   const { data, error } = await supabase.from(table).select("*").limit(1);
 
   if (error) {
-    console.log(`Table ${table} error: ${JSON.stringify(error)}`);
   } else {
-    console.log(`Table ${table} success: ${JSON.stringify(data)}`);
   }
 }
 

@@ -77,7 +77,6 @@ export function MainInfo({ site }: MainInfoProps) {
       )}
 
       {(() => {
-        console.log('[MainInfo] Button render check - !isEditing:', !isEditing, 'isEditing:', isEditing)
         return !isEditing && (
           <Button
             onClick={() => setIsExpanded(!isExpanded)}

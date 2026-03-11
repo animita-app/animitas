@@ -201,7 +201,6 @@ export function useMapEvents(
 
   const resetView = useCallback(() => {
     if (!map) {
-      console.warn("[useMapEvents] Map instance missing during resetView");
       return;
     }
 
@@ -216,9 +215,6 @@ export function useMapEvents(
         essential: true,
       });
     } else {
-      console.warn(
-        "[useMapEvents] Could not calculate camera for bounds, falling back to fitBounds",
-      );
       map.fitBounds(CHILE_BOUNDS, {
         padding: 64,
         essential: true,

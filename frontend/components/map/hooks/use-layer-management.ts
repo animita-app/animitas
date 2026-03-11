@@ -32,7 +32,6 @@ export function useLayerManagement({ map, setActiveLayers }: UseLayerManagementP
         })
         setLayers(merged)
       } catch (e) {
-        console.error('Failed to parse saved layers', e)
         setLayers(INITIAL_LAYERS)
       }
     }

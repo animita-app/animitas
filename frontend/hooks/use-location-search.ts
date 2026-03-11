@@ -39,7 +39,6 @@ export function useLocationSearch() {
           })) || []
         )
       } catch (err) {
-        console.error('Location search error:', err)
         setSearchResults([])
       } finally {
         setIsLoading(false)

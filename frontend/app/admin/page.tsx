@@ -19,7 +19,6 @@ export default async function AdminDashboardPage() {
     .select("id, status")
 
   if (error) {
-    console.error("Error fetching sites for admin:", error)
   }
 
   const allSites = sites || []
