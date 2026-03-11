@@ -35,6 +35,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
   const isElevated = profile?.role === 'editor' || profile?.role === 'superadmin'
 
   const saveDisplayName = async (value: string) => {
+    if (!profile) throw new Error('Profile not found')
     const supabase = createClient()
     const { error } = await supabase
       .from('user_profiles')
@@ -45,6 +46,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!profile) return
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -82,9 +84,9 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
     setUploading(false)
   }
 
-  const roleLabel = profile.role === 'superadmin'
+  const roleLabel = profile?.role === 'superadmin'
     ? 'Superadmin'
-    : profile.role === 'editor'
+    : profile?.role === 'editor'
       ? 'Editor'
       : null
 
