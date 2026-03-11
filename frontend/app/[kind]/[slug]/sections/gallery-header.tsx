@@ -1,9 +1,10 @@
 "use client"
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, Link2, CheckCircle2, Pencil } from 'lucide-react'
+import { ChevronLeft, Link2, CheckCircle2, Pencil, Loader2, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
@@ -37,7 +38,8 @@ interface GalleryHeaderProps {
 
 export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const { currentUser, isEditor } = useUser()
-  const { isEditing, requestCancel, requestConfirm } = useSiteEditing()
+  const { isEditing, setIsEditing, requestCancel, requestConfirm, stagedChanges, clearStagedChanges, confirmToken, cancelToken } = useSiteEditing()
+
   const isCreator = currentUser?.id === site.creator_id
   const canSeeVersions = isEditor || isCreator
   const isOverThreshold = useMobileScrollThreshold()
@@ -46,6 +48,8 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const [revisions, setRevisions] = useState<Revision[]>([])
   const [selectedRevision, setSelectedRevision] = useState<string>('current')
   const [hasCopied, setHasCopied] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   const fetchRevisions = () => {
     if (!canSeeVersions) return
@@ -72,6 +76,89 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
     fetchRevisions()
   }, [site.id, canSeeVersions])
 
+  useEffect(() => {
+    if (confirmToken > 0 && Object.keys(stagedChanges).length > 0 && currentUser?.id) {
+      const saveVersion = async () => {
+        setIsSaving(true)
+        setSaveSuccess(false)
+        const supabase = createClient()
+
+        try {
+          const updateData = { ...stagedChanges }
+          const insightsData = updateData.insights as any
+          delete updateData.insights
+
+          if (Object.keys(updateData).length > 0) {
+            const { error: updateError } = await supabase
+              .from('heritage_sites')
+              .update({ ...updateData, updated_at: new Date().toISOString() })
+              .eq('id', site.id)
+
+            if (updateError) throw updateError
+          }
+
+          if (insightsData?.insightsList) {
+            await supabase
+              .from('site_insights')
+              .delete()
+              .eq('site_id', site.id)
+
+            const insightsToInsert = insightsData.insightsList.map((i: any) => ({
+              site_id: site.id,
+              category: i.category,
+              subcategory: i.subcategory,
+              label: i.label
+            }))
+
+            const { error: insightError } = await supabase
+              .from('site_insights')
+              .insert(insightsToInsert)
+
+            if (insightError) throw insightError
+          }
+
+          const changedFields = Object.keys(stagedChanges).filter(k => k !== 'insights')
+          const diffSummary = changedFields.length === 0 && insightsData?.insightsList
+            ? 'Insights actualizados'
+            : changedFields.length === 1
+            ? `${changedFields[0]} actualizado`
+            : `Actualizado: ${changedFields.join(', ')}`
+
+          await supabase.from('heritage_site_revisions').insert({
+            site_id: site.id,
+            author_id: currentUser?.id,
+            diff_summary: diffSummary,
+            snapshot: stagedChanges
+          })
+
+          setSaveSuccess(true)
+          setIsSaving(false)
+          setIsEditing(false)
+          clearStagedChanges()
+          fetchRevisions()
+
+          setTimeout(() => {
+            setSaveSuccess(false)
+            setSelectedRevision('current')
+          }, 3000)
+        } catch (err: any) {
+          console.error('[GalleryHeader] Save error:', err)
+          toast.error("Error al guardar versión", { id: "saving-version" })
+          setIsSaving(false)
+        }
+      }
+
+      saveVersion()
+    }
+  }, [confirmToken, site.id, currentUser?.id])
+
+  useEffect(() => {
+    if (cancelToken > 0) {
+      clearStagedChanges()
+      setSelectedRevision('current')
+    }
+  }, [cancelToken])
+
   const prevIsEditing = useRef(false)
   useEffect(() => {
     if (prevIsEditing.current && !isEditing) {
@@ -90,6 +177,12 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
     navigator.clipboard.writeText(window.location.href)
     setHasCopied(true)
     setTimeout(() => setHasCopied(false), 2000)
+  }
+
+  const handleCancel = () => {
+    clearStagedChanges()
+    setIsEditing(false)
+    requestCancel()
   }
 
   return (
@@ -120,41 +213,43 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
           <div
             className={cn(
               "flex items-center h-8 gap-2 justify-center pointer-events-auto transition-all duration-300",
-              isEditing ? "opacity-0 invisible absolute" : "visible relative"
+              isEditing || Object.keys(stagedChanges).length > 0 ? "opacity-0 invisible absolute" : "visible relative"
             )}
           >
-            <Select
-              value={selectedRevision}
-              onValueChange={setSelectedRevision}
-            >
-              <SelectTrigger className={cn(
-                "min-w-fit cursor-pointer md:hover:!bg-neutral-200 md:mix-blend-normal border-transparent !shadow-none md:!text-black bg-transparent !h-10 text-sm px-3 gap-3 transition-colors duration-300",
-                isOverThreshold
-                  ? "!text-black mix-blend-normal"
-                  : "text-white mix-blend-difference"
-              )}>
-                <SelectValue placeholder={currentVersionLabel} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current">
-                  <div className="inline-flex items-center gap-2.5">
-                    <span>{currentVersionLabel}</span>
-                  </div>
-                </SelectItem>
-                {[...revisions].reverse().map((rev) => (
-                  <SelectItem key={rev.id} value={rev.id}>
-                    <div className="inline-flex items-center gap-2.5">
-                      <span>{rev.version_label}</span>
-                      <span>
-                        {rev.author_name}
-                        {" • "}
-                        {formatDistanceToNow(new Date(rev.created_at), { addSuffix: true, locale: es })}
-                      </span>
+            {!saveSuccess && (
+              <Select
+                value={selectedRevision}
+                onValueChange={setSelectedRevision}
+              >
+                <SelectTrigger className={cn(
+                  "min-w-fit cursor-pointer md:hover:!bg-neutral-200 md:mix-blend-normal border-transparent !shadow-none md:!text-black bg-transparent !h-10 text-sm px-3 gap-3 transition-colors duration-300",
+                  isOverThreshold
+                    ? "!text-black [&_svg]:!text-black mix-blend-normal"
+                    : "text-white mix-blend-difference"
+                )}>
+                  <SelectValue placeholder={currentVersionLabel} />
+                </SelectTrigger>
+                <SelectContent className="[&_svg]:!text-white [&_svg]:!opacity-100">
+                  <SelectItem value="current">
+                    <div className="inline-flex items-center gap-1.5">
+                      <span>{currentVersionLabel}</span>
                     </div>
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {[...revisions].reverse().map((rev) => (
+                    <SelectItem key={rev.id} value={rev.id}>
+                      <div className="font-normal inline-flex items-center gap-2.5">
+                        <span>{rev.version_label}</span>
+                        <span className="text-text">
+                          por {rev.author_name}
+                          {" • "}
+                          {formatDistanceToNow(new Date(rev.created_at), { addSuffix: true, locale: es })}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {isEditor && priority !== 'ok' && (
               <Badge
@@ -168,27 +263,47 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
 
           <div
             className={cn(
-              "flex items-center gap-4 justify-center pointer-events-auto transition-all duration-300",
-              !isEditing ? "opacity-0 invisible absolute" : "opacity-100 visible relative animate-in fade-in-0 slide-in-from-bottom-2"
+              "flex items-center gap-4 justify-center pointer-events-auto transition-all duration-150",
+              isEditing || Object.keys(stagedChanges).length > 0 || saveSuccess ? "opacity-100 visible relative animate-in fade-in-0" : "opacity-0 invisible absolute"
             )}
           >
-            <div className="flex items-center gap-1 bg-background bg-black text-white rounded-md pl-3 pr-1 py-1 h-10">
-              <span className="pr-4 pl-1 text-sm font-normal whitespace-nowrap">
-                Creando <span className="font-semibold">{nextVersionLabel}</span>
-              </span>
-              <Button size="sm" onClick={requestConfirm} className="h-8 shadow-none">
-                Confirmar
-              </Button>
-              <Button size="sm" className="bg-neutral-800/70 hover:bg-neutral-800 text-white h-full shadow-none" variant="ghost" onClick={requestCancel}>
-                Cancelar
-              </Button>
-            </div>
+            {saveSuccess ? (
+              <div className="flex items-center gap-2 bg-success text-white rounded-md px-3 py-1 h-10">
+                <CheckCircle2 className="size-4 shrink-0" />
+                <span className="text-sm font-medium">Versión guardada</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 bg-background bg-black text-white rounded-md pl-3 pr-1 py-1 h-10">
+                {isSaving ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin mr-1" />
+                    <span className="pr-3 pl-1 text-sm font-normal whitespace-nowrap">
+                      Guardando <span className="font-semibold">{nextVersionLabel}</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="pr-3 pl-1 text-sm font-normal whitespace-nowrap">
+                      Creando <span className="font-semibold">{nextVersionLabel}</span>
+                    </span>
+                    <Button size="sm" onClick={requestConfirm} className="w-8 md:w-fit h-8 shadow-none" disabled={isSaving}>
+                      <Check className="md:hidden" />
+                      <span className="hidden md:block">Cancelar</span>
+                    </Button>
+                    <Button size="icon" className="w-8 bg-neutral-800/70 hover:bg-neutral-800 text-white h-full shadow-none" variant="ghost" onClick={handleCancel} disabled={isSaving}>
+                      <X />
+                      <span className="sr-only">Cancelar</span>
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
 
       <div className="flex items-center z-10 gap-1.5 pointer-events-auto">
-        {(isEditor || isCreator) && !isEditing && (
+        {(isEditor || isCreator) && (
           <Button
             size="icon"
             variant="ghost"

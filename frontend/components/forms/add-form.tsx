@@ -12,19 +12,17 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Spinner } from "@/components/ui/spinner"
 import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
-import { LocationPicker } from "@/app/add/location-picker"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { LocationSelector, type Location } from "@/components/search/location-selector"
+import { TwoLevelCombobox, type TwoLevelCategory } from "@/components/ui/two-level-combobox"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
-import { reverseGeocode } from "@/lib/mapbox"
+import { useLocationSearch } from "@/hooks/use-location-search"
 import { cn } from "@/lib/utils"
 
-type LocationValue = { lat: number; lng: number; address: string; cityRegion: string }
-
 const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
-  animita: "¿A quién recordamos?",
-  "santuario-vial": "¿Cómo se conoce este santuario?",
+  santuarios: "¿A quién recordamos?",
+  funerales: "¿Cómo se llama este lugar de memoria?",
 }
 
 function truncateAddress(address: string): string {
@@ -64,48 +62,44 @@ export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
   const { categories, kinds } = useHeritageTaxonomy()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [category, setCategory] = useState("usos-sociales-rituales-festivos")
+  const [kind, setKind] = useState("santuarios")
+  const [title, setTitle] = useState("")
+  const [story, setStory] = useState("")
+  const [photos, setPhotos] = useState<File[]>([])
+  const [location, setLocation] = useState<Location | null>(null)
+  const [isScanning, setIsScanning] = useState(false)
+  const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [categoryComboOpen, setCategoryComboOpen] = useState(false)
+
+  const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
+
   const categoryId = categories.find(c => c.slug === category)?.id
   const kindsForCategory = categoryId ? kinds.filter(k => k.category_id === categoryId) : kinds
+
+  const comboCategories = React.useMemo<TwoLevelCategory[]>(() =>
+    categories.map(cat => ({
+      key: cat.id,
+      label: cat.name,
+      items: kinds.filter(k => k.category_id === cat.id).map(k => ({
+        value: k.slug,
+        label: k.name
+      }))
+    })),
+    [categories, kinds]
+  )
 
   useEffect(() => {
     if (kindsForCategory.length > 0 && !kindsForCategory.some(k => k.slug === kind)) {
       setKind(kindsForCategory[0].slug)
     }
   }, [category, kindsForCategory])
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ""
-
-  const [category, setCategory] = useState("patrimonio-funerario")
-  const [kind, setKind] = useState("animita")
-  const [title, setTitle] = useState("")
-  const [story, setStory] = useState("")
-  const [photos, setPhotos] = useState<File[]>([])
-  const [location, setLocation] = useState<LocationValue | null>(null)
-  const [isScanning, setIsScanning] = useState(false)
-  const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const canSubmit = title.trim().length > 0 && photos.length >= 1 && !!location && !isScanning && !isSubmitting
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude
-          const lng = pos.coords.longitude
-          const result = await reverseGeocode(lng, lat, accessToken)
-
-          setLocation({
-            lat,
-            lng,
-            address: result?.address || "Ubicación detectada",
-            cityRegion: result?.cityRegion || "",
-          })
-        },
-        () => {}
-      )
-    }
-  }, [accessToken])
 
   const handleCancel = () => {
     if (onCancel) onCancel()
@@ -247,57 +241,39 @@ export function AddForm({ onCancel }: AddFormProps) {
             </button>
           </div>
 
-          {/* Category and Kind badges */}
-          <div className="*:!text-xs ml-2 mb-2 flex gap-1 items-center shrink-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Badge
-                  variant="secondary"
-                  className={cn("rounded-full gap-0.5",
-                    category ? "bg-accent/7 text-accent" : "bg-transparent"
-                  )}
-                >
-                  {categories.find(c => c.slug === category)?.name || "Categoría"}
-                  {/* {category && <X className="-mr-1 opacity-50" />} */}
-                </Badge>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {categories.map(c => (
-                  <DropdownMenuItem
-                    key={c.id}
-                    onSelect={() => setCategory(c.slug)}
-                    className={cn(category === c.slug && "font-medium")}
+          {/* Category and Kind selector */}
+          <div className="ml-2 mb-2 shrink-0">
+            <TwoLevelCombobox
+              trigger={
+                <div className="min-h-[26px] *:min-h-[26px] w-fit md:bg-accent/10 md:rounded-full cursor-pointer">
+                  <Badge
+                    variant="secondary"
+                    className="text-sm rounded-full gap-0.5 bg-accent text-white"
                   >
-                    {c.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Badge
-                  variant="secondary"
-                  className={cn("rounded-full gap-0.5",
-                    kind ? "bg-accent/7 text-accent" : "bg-transparent"
-                  )}
-                >
-                  {kinds.find(k => k.slug === kind)?.name || "Tipo"}
-                  {/* {kind && <X className="-mr-1 opacity-50" />} */}
-                </Badge>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                {kindsForCategory.map(k => (
-                  <DropdownMenuItem
-                    key={k.id}
-                    onSelect={() => setKind(k.slug)}
-                    className={cn(kind === k.slug && "font-medium")}
+                    {categories.find(c => c.slug === category)?.name}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="text-sm mt-1.5 md:mt-0 pl-1.5 rounded-full gap-0.5 md:bg-transparent text-accent"
                   >
-                    {k.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    {kinds.find(k => k.slug === kind)?.name}
+                  </Badge>
+                </div>
+              }
+              open={categoryComboOpen}
+              onOpenChange={setCategoryComboOpen}
+              categories={comboCategories}
+              selectedValues={[kind]}
+              onToggle={(value) => {
+                setKind(value)
+                const selectedCat = comboCategories.find(c => c.items.some(i => i.value === value))
+                if (selectedCat) {
+                  setCategory(categories.find(c => c.id === selectedCat.key)?.slug || category)
+                }
+                setCategoryComboOpen(false)
+              }}
+              contentWidth="w-[calc(100vw-2rem)] md:w-96"
+            />
           </div>
 
           <Input
@@ -326,13 +302,13 @@ export function AddForm({ onCancel }: AddFormProps) {
 
       {/* Bottom toolbar */}
       <div className="border-t border-border-weak p-3 flex items-center gap-2 shrink-0">
-        <div className="flex-1 *:!text-xs">
-          <LocationPicker
-            value={location}
-            onChange={setLocation}
-            mode="point"
-          />
-        </div>
+        <LocationSelector
+          value={location}
+          onChange={setLocation}
+          onSearch={handleLocationSearch}
+          searchResults={locationResults}
+          isLoading={isSearchingLocation}
+        />
 
         <div className="ml-auto">
           <Button

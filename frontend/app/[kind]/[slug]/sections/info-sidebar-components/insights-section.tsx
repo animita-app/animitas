@@ -1,27 +1,17 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Check, Plus, ChevronRight, ChevronLeft, Search } from "lucide-react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useSitePermissions } from "@/hooks/use-site-permissions"
 import { HeritageSite, SiteInsight } from "@/types/heritage"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-  ComboboxTrigger,
-} from "@/components/ui/combobox"
-import {
-  INSIGHT_CATEGORY_CONFIG,
-  INSIGHT_CATEGORIES,
-} from "@/lib/insight-config"
+import { TwoLevelCategory } from "@/components/ui/two-level-combobox"
+import { INSIGHT_CATEGORY_CONFIG, INSIGHT_CATEGORIES } from "@/lib/insight-config"
+import { InsightChip } from "./insight-chip"
+import { useSiteEditing } from "../site-edit-context"
+import { getAvailableInsightCategories } from "@/lib/insight-config"
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const FALLBACK_TAGS: { category: string; subcategory: string; label: string }[] = [
   // Memorial
@@ -118,275 +108,132 @@ const FALLBACK_TAGS: { category: string; subcategory: string; label: string }[] 
   { category: 'patrimonial', subcategory: 'Época', label: 'Siglo XXI' },
 ]
 
-const isMultiSelect = (subcategory: string) => {
-  const s = subcategory.toLowerCase()
-  return s.includes("rol") || s.includes("ritual") || s.includes("ofrenda") || s.includes("mencionado") || s === "general"
+type SubcategoryConfig = { insight_category: string; subcategory: string; multi_select: boolean; sort_order: number }
+
+function buildCategories(insightCat: string, config: SubcategoryConfig[]): TwoLevelCategory[] {
+  const subcats = Array.from(new Set(
+    FALLBACK_TAGS.filter(t => t.category === insightCat).map(t => t.subcategory || "General")
+  ))
+
+  return subcats
+    .sort((a, b) => {
+      const aOrder = config.find(c => c.subcategory === a)?.sort_order ?? 99
+      const bOrder = config.find(c => c.subcategory === b)?.sort_order ?? 99
+      return aOrder - bOrder
+    })
+    .map(sub => ({
+      key: sub,
+      label: sub,
+      items: FALLBACK_TAGS
+        .filter(t => t.category === insightCat && (t.subcategory || "General") === sub)
+        .map(t => ({ value: t.label, label: t.label })),
+      multiSelect: config.find(c => c.subcategory === sub)?.multi_select ?? false,
+    }))
 }
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 interface InsightsSectionProps {
   site: HeritageSite
 }
 
-// ─── Dropdown ─────────────────────────────────────────────────────────────────
-
-interface CategoryDropdownProps {
-  category: string
-  activeInsights: SiteInsight[]
-  canEdit: boolean
-  activeSubcategory: string | null
-  onSubcategoryChange: (sub: string | null) => void
-  onToggle: (label: string, subcategory: string, isSelected: boolean) => void
-  onClose: () => void
-}
-
-function CategoryDropdownContent({
-  category,
-  activeInsights,
-  canEdit,
-  activeSubcategory,
-  visibleSubcategories,
-  visibleTags,
-  query,
-  setQuery,
-  onSubcategoryChange,
-  onToggle,
-}: CategoryDropdownProps & {
-  query: string;
-  setQuery: (q: string) => void;
-  visibleSubcategories: string[];
-  visibleTags: { label: string; subcategory: string }[];
-}) {
-  const isFirstRender = useRef(true)
-
-  useEffect(() => {
-    isFirstRender.current = false
-  }, [])
-
-  const canCreate = canEdit && !!query.trim() && !visibleTags.some(
-    t => t.label.toLowerCase() === query.trim().toLowerCase()
-  )
-
-  const isEmpty = visibleSubcategories.length === 0 && visibleTags.length === 0 && !canCreate
-
-  const showSubcategoriesList = !activeSubcategory
-  const selectedLabels = new Set(activeInsights.map(t => t.label))
-
-  return (
-    <div className="flex flex-col overflow-hidden w-full relative bg-neutral-900/50 backdrop-blur-md rounded-md">
-      <ComboboxInput
-        showTrigger={false}
-        placeholder="Buscar..."
-        autoFocus
-        value={query}
-        onChange={(e: any) => setQuery(e.target.value)}
-        className="border-b border-white/5"
-        onKeyDown={(e: any) => {
-          if (activeSubcategory && (e.key === 'Escape' || (e.key === 'ArrowLeft' && !query))) {
-            e.preventDefault();
-            e.stopPropagation();
-            onSubcategoryChange(null);
-            return;
-          }
-
-          if (e.key === 'Enter') {
-            if (activeSubcategory && canCreate && !visibleSubcategories.length) {
-              e.preventDefault();
-              onToggle(query.trim(), activeSubcategory || "General", false);
-              setQuery("")
-            }
-          }
-        }}
-        customLeftSection={
-          activeSubcategory ? (
-            <button
-              onClick={() => onSubcategoryChange(null)}
-              className="group size-6 flex items-center justify-center transition-all hover:bg-white/10 rounded-full cursor-pointer"
-            >
-              <ChevronLeft className="size-4 text-white/25 group-hover:text-white transition-colors" />
-            </button>
-          ) : (
-            <div className="size-6 flex items-center justify-center">
-              <Search className="size-4 text-white/25" />
-            </div>
-          )
-        }
-      />
-
-      <div className="relative overflow-hidden">
-        {showSubcategoriesList && visibleSubcategories.length > 0 && (
-          <ComboboxList className={cn(
-            "p-1 flex flex-col gap-0.5",
-            !isFirstRender.current && "animate-in fade-in slide-in-from-left-4"
-          )}>
-            {visibleSubcategories.map(sub => {
-              const selectedInSub = activeInsights.filter(t => (t.subcategory || "General") === sub)
-              const multi = isMultiSelect(sub)
-
-              return (
-                <ComboboxItem
-                  key={sub}
-                  value={sub}
-                  className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2 cursor-pointer select-none"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    onSubcategoryChange(sub)
-                    setQuery("")
-                  }}
-                >
-                  <div className="flex flex-col items-start gap-0.5 overflow-hidden pr-2">
-                    <span className="text-white font-medium truncate w-full text-left">{sub}</span>
-                    {!multi && selectedInSub.length > 0 && (
-                      <span className="text-white/40 text-[10px] font-normal leading-tight truncate w-full text-left italic">
-                        {selectedInSub[0].label}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {selectedInSub.length > 0 && (
-                      multi ? (
-                        <span className="bg-white/20 text-white tabular-nums min-w-4 h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center">
-                          {selectedInSub.length}
-                        </span>
-                      ) : (
-                        <Check className="size-3.5 text-blue-400" />
-                      )
-                    )}
-                    <ChevronRight className="size-4 text-white" />
-                  </div>
-                </ComboboxItem>
-              )
-            })}
-          </ComboboxList>
-        )}
-
-        {activeSubcategory && (
-          <div className={cn(
-            "w-full flex flex-col",
-            !isFirstRender.current && "animate-in fade-in slide-in-from-right-4"
-          )}>
-            {visibleTags.length > 0 && (
-              <ComboboxList className="p-1 flex flex-col gap-0.5">
-                {visibleTags.map(({ label, subcategory }) => {
-                  const isSelected = selectedLabels.has(label)
-                  return (
-                    <ComboboxItem
-                      key={label}
-                      value={label}
-                      className="group flex w-full items-center justify-between rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-white/10 transition-colors pr-2"
-                      onSelect={() => onToggle(label, subcategory, isSelected)}
-                    >
-                      <span className={cn(
-                        "text-white transition-colors",
-                        isSelected ? "font-semibold text-blue-400" : "font-normal"
-                      )}>
-                        {label}
-                      </span>
-                      {isSelected && <Check className="size-3.5 text-blue-400 shrink-0" />}
-                    </ComboboxItem>
-                  )
-                })}
-              </ComboboxList>
-            )}
-
-            {canCreate && (
-              <div className="p-1 px-1 border-t border-white/5 mt-1">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault()
-                    onToggle(query.trim(), activeSubcategory || "General", false)
-                    setQuery("")
-                  }}
-                  className="w-full relative flex items-center px-2 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white rounded-sm outline-none transition-colors"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Crear &quot;{query.trim()}&quot;
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {isEmpty && (
-          <div className="px-2 py-6 text-sm text-white/30 !font-normal text-center">
-            {query.trim() ? "No se encontraron resultados" : "Selecciona una categoría"}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
 export function InsightsSection({ site }: InsightsSectionProps) {
   const { canManageInsights } = useSitePermissions(site)
+  const { isEditing, setIsEditing, updateStagedChange } = useSiteEditing()
   const [activeInsights, setActiveInsights] = useState<SiteInsight[]>([])
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null)
-  const [query, setQuery] = useState("")
+  const [subConfig, setSubConfig] = useState<SubcategoryConfig[]>([])
+  const [openCategory, setOpenCategory] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const siteKind = (site as any).kind || 'animita'
+  const availableCategories = getAvailableInsightCategories(siteKind)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('site_insights')
-      .select('*')
-      .eq('site_id', site.id)
-      .then(({ data }) => {
-        if (data) setActiveInsights(data)
-        setLoading(false)
-      })
+    Promise.all([
+      supabase.from('site_insights').select('*').eq('site_id', site.id),
+      supabase.from('insight_subcategory_config').select('insight_category, subcategory, multi_select, sort_order'),
+    ]).then(([insights, config]) => {
+      if (insights.data) setActiveInsights(insights.data)
+      if (config.data) setSubConfig(config.data)
+      setLoading(false)
+    })
   }, [site.id])
 
-  const toggleInsight = async (label: string, subcategory: string, isSelected: boolean) => {
+  const stageInsights = (insights: SiteInsight[]) => {
+    updateStagedChange('insights', {
+      insightsList: insights.map(i => ({ category: i.category, subcategory: i.subcategory, label: i.label }))
+    })
+  }
+
+  const toggleInsight = (insightCategory: string, label: string, subcategory: string, isSelected: boolean) => {
+    const isSingle = subConfig.find(
+      c => c.insight_category === insightCategory && c.subcategory === subcategory
+    )?.multi_select === false
+
+    let updatedInsights = activeInsights
+
     if (isSelected) {
-      const removed = activeInsights.find(t => t.label === label && t.category === activeCategory)
-      setActiveInsights(prev => prev.filter(t => !(t.label === label && t.category === activeCategory)))
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('site_insights')
-        .delete()
-        .eq('site_id', site.id)
-        .eq('category', activeCategory!)
-        .eq('subcategory', subcategory)
-        .eq('label', label)
-      if (error) {
-        toast.error("Error al quitar insight")
-        if (removed) setActiveInsights(prev => [...prev, removed])
-      }
+      updatedInsights = activeInsights.filter(t => !(t.label === label && t.category === insightCategory))
     } else {
+      const displaced = isSingle
+        ? activeInsights.filter(t => t.category === insightCategory && t.subcategory === subcategory)
+        : []
+
+      if (displaced.length > 0) {
+        updatedInsights = activeInsights.filter(t => !(t.category === insightCategory && t.subcategory === subcategory))
+      }
+
       const newInsight: SiteInsight = {
         id: crypto.randomUUID(),
         site_id: site.id,
-        category: activeCategory!,
+        category: insightCategory,
         subcategory,
-        label
+        label,
       }
-      setActiveInsights(prev => [...prev, newInsight])
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('site_insights')
-        .insert({
-          site_id: site.id,
-          category: activeCategory!,
-          subcategory,
-          label
-        })
-      if (error) {
-        toast.error("Error al agregar insight")
-        setActiveInsights(prev => prev.filter(t => t.id !== newInsight.id))
-      }
+      updatedInsights = [...updatedInsights, newInsight]
+    }
+
+    const hasChanged = JSON.stringify(updatedInsights.sort((a, b) => a.label.localeCompare(b.label))) !==
+      JSON.stringify(activeInsights.sort((a, b) => a.label.localeCompare(b.label)))
+
+    setActiveInsights(updatedInsights)
+
+    if (!isEditing) {
+      setIsEditing(true)
+    }
+
+    if (hasChanged) {
+      stageInsights(updatedInsights)
     }
   }
 
-  if (loading) return <Skeleton className="h-8" />
+  if (loading) return (
+    <div className="flex gap-1.5 mb-6">
+      {availableCategories.map(cat => {
+        const cfg = INSIGHT_CATEGORY_CONFIG[cat]
+        return (
+          <button
+            key={cat}
+            disabled
+            className="inline-flex items-center justify-center rounded-full pl-2.5 pr-1 py-0.5 text-sm font-medium opacity-40 cursor-default bg-secondary text-secondary-foreground"
+          >
+            {cfg.label}
+            <span className="ml-1.5 tabular-nums min-w-4 min-h-4 rounded-full text-xs flex items-center justify-center bg-neutral-300">
+              0
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
 
   if (activeInsights.length === 0 && !canManageInsights) return null
 
   if (!canManageInsights) {
     return (
       <div className="flex flex-wrap gap-1.5 mb-6">
-        {INSIGHT_CATEGORIES.map(cat => {
+        {availableCategories.map(cat => {
           const cfg = INSIGHT_CATEGORY_CONFIG[cat]
           return activeInsights
             .filter(i => i.category === cat)
@@ -403,95 +250,22 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   return (
     <div className="relative mb-6">
       <div className="flex gap-1.5">
-        {INSIGHT_CATEGORIES.map(cat => {
+        {availableCategories.map(cat => {
           const cfg = INSIGHT_CATEGORY_CONFIG[cat]
           const insightsForCat = activeInsights.filter(t => t.category === cat)
-          const count = insightsForCat.length
-          const isActive = activeCategory === cat
-
-          const items = Array.from(new Set([
-            ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General"),
-            ...FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.label)
-          ]))
-
-          const subcategories = Array.from(new Set(
-            FALLBACK_TAGS.filter(t => t.category === cat).map(t => t.subcategory || "General")
-          )).sort()
-
-          const q = query.toLowerCase()
-          const filteredSubcategories = query.trim()
-            ? subcategories.filter(s => {
-                if (s.toLowerCase().includes(q)) return true
-                const tagsInSub = FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === s)
-                return tagsInSub.some(t => t.label.toLowerCase().includes(q))
-              })
-            : subcategories
-
-          const filteredTags = query.trim()
-            ? FALLBACK_TAGS.filter(t => t.category === cat)
-                .filter(t => t.label.toLowerCase().includes(q))
-                .map(t => ({ label: t.label, subcategory: t.subcategory || "General" }))
-            : (activeSubcategory
-                ? FALLBACK_TAGS.filter(t => t.category === cat && (t.subcategory || "General") === activeSubcategory)
-                    .map(t => ({ label: t.label, subcategory: t.subcategory || "General" }))
-                : []
-              )
 
           return (
-            <Combobox
+            <InsightChip
               key={cat}
-              items={items}
-              value={insightsForCat.map(i => i.label)}
-              onValueChange={() => {}}
-              multiple
-              open={isActive}
-              onOpenChange={(open) => {
-                setActiveCategory(open ? cat : null)
-                if (!open) {
-                  setActiveSubcategory(null)
-                  setQuery("")
-                }
-              }}
-            >
-              <ComboboxTrigger render={
-                <button
-                  className={cn(
-                    "inline-flex items-center justify-center rounded-full pl-2.5 pr-1 py-0.5 text-sm font-medium transition-colors cursor-pointer outline-none",
-                    count > 0
-                      ? cfg.trigger
-                      : "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/90",
-                    isActive && "brightness-90 shadow-inner ring-1 ring-white/10"
-                  )}
-                >
-                  {cfg.label}
-                  <span
-                    className={cn(
-                      "ml-1.5 tabular-nums min-w-4 min-h-4 rounded-full text-xs flex items-center justify-center",
-                      count > 0
-                        ? cfg.dot
-                        : "bg-neutral-300"
-                    )}
-                  >
-                    {count || "0"}
-                  </span>
-                </button>
-              } />
-              <ComboboxContent align="start" className="w-56 max-h-80 overflow-y-auto p-0 border-0 shadow-2xl">
-                <CategoryDropdownContent
-                  category={cat}
-                  activeInsights={insightsForCat}
-                  canEdit={canManageInsights}
-                  activeSubcategory={activeSubcategory}
-                  query={query}
-                  setQuery={setQuery}
-                  visibleSubcategories={filteredSubcategories}
-                  visibleTags={filteredTags}
-                  onSubcategoryChange={setActiveSubcategory}
-                  onToggle={toggleInsight}
-                  onClose={() => setActiveCategory(null)}
-                />
-              </ComboboxContent>
-            </Combobox>
+              config={cfg}
+              categories={buildCategories(cat, subConfig.filter(c => c.insight_category === cat))}
+              selectedValues={insightsForCat.map(i => i.label)}
+              onToggle={(label, sub, isSelected) => toggleInsight(cat, label, sub, isSelected)}
+              canCreate={canManageInsights}
+              onCreateItem={(label, sub) => toggleInsight(cat, label, sub, false)}
+              open={openCategory === cat}
+              onOpenChange={(open) => setOpenCategory(open ? cat : null)}
+            />
           )
         })}
       </div>

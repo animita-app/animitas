@@ -51,3 +51,21 @@ export type InsightCategory = typeof INSIGHT_CATEGORIES[number];
 
 /** Base chip class — use with cfg.chip which already includes badgeVariants */
 export const INSIGHT_CHIP_BASE = "rounded-full";
+
+/** Map heritage kind/category to available insight categories */
+export const INSIGHT_CATEGORIES_BY_KIND: Record<string, InsightCategory[]> = {
+  animita: ["memorial"],
+  "burial-site": ["memorial", "spiritual"],
+  shrine: ["spiritual", "patrimonial"],
+  monument: ["patrimonial"],
+  "sacred-site": ["spiritual"],
+};
+
+/**
+ * Get available insight categories for a heritage site kind
+ * Falls back to all categories if kind not found
+ */
+export function getAvailableInsightCategories(kind?: string): InsightCategory[] {
+  if (!kind) return [...INSIGHT_CATEGORIES];
+  return INSIGHT_CATEGORIES_BY_KIND[kind] || [...INSIGHT_CATEGORIES];
+}

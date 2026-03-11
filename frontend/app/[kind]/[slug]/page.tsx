@@ -20,14 +20,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .eq('slug', slug)
     .single()
 
-  if (!data) return { title: 'Animita' }
-
-  const kindSlug = (data as any).heritage_kinds?.slug ?? 'animita'
-  const displayTitle = kindSlug === 'animita' ? `Animita de ${data.title}` : data.title
-
   return {
-    title: displayTitle,
-    description: `Conoce la historia de ${displayTitle} en Animitas.`,
+    title: data?.title,
+    description: `Conoce más sobre ${data?.title} en [ÁNIMA].`,
   }
 }
 

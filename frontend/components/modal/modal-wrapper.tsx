@@ -29,8 +29,8 @@ export function ModalWrapper({
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("gap-8 md:max-w-sm bg-background text-black border-none shadow-xl max-h-[90vh] overflow-y-auto", className)}>
-        <DialogHeader className="sr-only">
+      <DialogContent className={cn("max-h-[90vh] sm:!max-w-sm overflow-y-auto", className)}>
+        <DialogHeader className={showTitle ? "" : "sr-only"}>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>

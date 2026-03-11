@@ -1,21 +1,21 @@
 "use client"
 
 import React from "react"
+import { useRouter } from "next/navigation"
 import { HeritageSite } from "@/types/heritage"
 import { InlineEdit } from "@/components/ui/inline-edit"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
-import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { useSiteEditing } from "../site-edit-context"
-import { toast } from "sonner"
 
 interface MainInfoProps {
   site: HeritageSite
 }
 
 export function MainInfo({ site }: MainInfoProps) {
+  const router = useRouter()
   const [isExpanded, setIsExpanded] = React.useState(false)
   const { role, currentUser } = useUser()
   const { isEditing, setIsEditing, cancelToken, confirmToken } = useSiteEditing()
@@ -24,41 +24,11 @@ export function MainInfo({ site }: MainInfoProps) {
   const kindSlug = (site as any).kind || 'animita'
   const prefix = kindSlug === 'animita' ? 'Animita de ' : ''
 
-  const pendingChangesRef = React.useRef<Record<string, any>>({})
-  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  const { updateStagedChange } = useSiteEditing()
 
   const saveField = async (field: string, value: string) => {
-    pendingChangesRef.current[field] = value
-
-    if (timeoutRef.current) clearTimeout(timeoutRef.current)
-
-    timeoutRef.current = setTimeout(async () => {
-      const changes = { ...pendingChangesRef.current }
-      pendingChangesRef.current = {}
-
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('heritage_sites')
-        .update({ ...changes, updated_at: new Date().toISOString() })
-        .eq('id', site.id)
-
-      if (error) { toast.error("Error al actualizar datos"); return }
-
-      const keys = Object.keys(changes)
-      const summary = keys.length === 1
-        ? `Campo "${keys[0]}" actualizado`
-        : `Campos actualizados: ${keys.join(', ')}`
-
-      await supabase.from('heritage_site_revisions').insert({
-        site_id: site.id,
-        snapshot: changes,
-        diff_summary: summary,
-        author_id: currentUser?.id,
-      })
-
-      setIsEditing(false)
-      window.location.reload()
-    }, 150)
+    updateStagedChange(field as any, value)
+    return Promise.resolve()
   }
 
   const editingProps = canEdit ? {
@@ -79,7 +49,7 @@ export function MainInfo({ site }: MainInfoProps) {
             value={site.title}
             onSave={(val) => saveField('title', val)}
             placeholder="Nombre"
-            className="inline text-inherit"
+            className="inline text-inherit !mb-0"
             inline
             {...editingProps}
           />
@@ -94,31 +64,31 @@ export function MainInfo({ site }: MainInfoProps) {
           value={site.story ?? ''}
           onSave={(val) => saveField('story', val)}
           placeholder="Agrega una historia..."
-          className={cn(
-            "mt-4 text-sm leading-relaxed text-text-strong",
-            !isExpanded && !isEditing && "line-clamp-4"
-          )}
+          className={cn("mt-4 text-sm leading-relaxed text-text-strong", isEditing && "-mb-4")}
           {...editingProps}
         />
       ) : (
         <p className={cn(
           "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line",
-          !isExpanded && !isEditing && "line-clamp-4"
+          !isExpanded && "line-clamp-4"
         )}>
           {site.story}
         </p>
       )}
 
-      {!isEditing && (
-        <Button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-2 text-accent hover:text-accent/80"
-          size="sm"
-          variant="link"
-        >
-          {isExpanded ? "Leer menos" : "Leer más"}
-        </Button>
-      )}
+      {(() => {
+        console.log('[MainInfo] Button render check - !isEditing:', !isEditing, 'isEditing:', isEditing)
+        return !isEditing && (
+          <Button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-2 text-accent hover:text-accent/80"
+            size="sm"
+            variant="link"
+          >
+            {isExpanded ? "Leer menos" : "Leer más"}
+          </Button>
+        )
+      })()}
     </div>
   )
 }

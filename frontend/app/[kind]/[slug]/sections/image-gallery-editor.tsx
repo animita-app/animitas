@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect, useCallback } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import {
   DndContext,
   closestCenter,
@@ -18,7 +18,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus, X, Pencil } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -37,12 +37,10 @@ import { useSiteEditing } from "./site-edit-context"
 function SortableImageItem({
   id,
   url,
-  file,
   onRemove
 }: {
   id: string
   url: string
-  file?: File
   onRemove: (id: string) => void
 }) {
   const {
@@ -114,7 +112,7 @@ export function ImageGalleryEditorWrapper({
   onOpenChange: setExternalOpen
 }: ImageGalleryEditorProps) {
   const { currentUser } = useUser()
-  const { isEditing, setIsEditing, confirmToken, cancelToken } = useSiteEditing()
+  const { setIsEditing, confirmToken, cancelToken, updateStagedChange } = useSiteEditing()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [internalOpen, setInternalOpen] = useState(false)
@@ -129,6 +127,14 @@ export function ImageGalleryEditorWrapper({
 
   const [isUploading, setIsUploading] = useState(false)
 
+  // Load initial images when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      const startingItems = stagedItems || (site.images || []).map((url, i) => ({ id: `img-${i}-${Date.now()}`, url }))
+      setDialogItems(startingItems)
+    }
+  }, [isOpen, site.images, stagedItems])
+
   // Sync staging when tokens change
   useEffect(() => {
     if (cancelToken > 0) {
@@ -137,48 +143,34 @@ export function ImageGalleryEditorWrapper({
     }
   }, [cancelToken, site.images, onPreviewImagesChange])
 
+  const uploadNewImages = async (items: ImageItem[]) => {
+    const supabase = createClient()
+    return Promise.all(items.map(async (item) => {
+      if (item.file) {
+        const ext = item.file.name.split('.').pop()
+        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
+        const { error } = await supabase.storage.from('base').upload(path, item.file)
+        if (error) throw new Error(`Error subiendo foto`)
+        return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
+      }
+      return item.url
+    }))
+  }
+
   // EFFECT: Handle Global Confirm
   useEffect(() => {
     if (confirmToken > 0 && stagedItems !== null) {
       const commitChanges = async () => {
         setIsUploading(true)
-        const supabase = createClient()
-        toast.loading("Guardando imágenes...", { id: "saving-images" })
+        toast.loading("Procesando imágenes...", { id: "saving-images" })
 
         try {
-          // 1. Upload new files
-          const finalUrls = await Promise.all(stagedItems.map(async (item) => {
-            if (item.file) {
-              const ext = item.file.name.split('.').pop()
-              const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-              const { error } = await supabase.storage.from('base').upload(path, item.file)
-              if (error) throw new Error(`Error subiendo foto`)
-              return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
-            }
-            return item.url
-          }))
-
-          // 2. Update heritage site
-          const { error: updateError } = await supabase
-            .from('heritage_sites')
-            .update({ images: finalUrls })
-            .eq('id', site.id)
-
-          if (updateError) throw updateError
-
-          // 3. Create version (we just assume text fields handled their own, this creates an images version)
-          const diffSummary = `Actualizó la galería de imágenes (${finalUrls.length} fotos)`
-          await supabase.from('heritage_site_revisions').insert({
-            site_id: site.id,
-            author_id: currentUser?.id,
-            diff_summary: diffSummary,
-            content: { ...site, images: finalUrls }
-          })
-
-          toast.success("Galería actualizada", { id: "saving-images" })
+          const finalUrls = await uploadNewImages(stagedItems)
+          updateStagedChange('images', finalUrls)
+          toast.success("Imágenes listas para guardar", { id: "saving-images" })
           setStagedItems(null)
         } catch (err: any) {
-          toast.error("Error al guardar imágenes", { id: "saving-images" })
+          toast.error("Error al procesar imágenes", { id: "saving-images" })
           console.error(err)
         } finally {
           setIsUploading(false)
@@ -187,15 +179,7 @@ export function ImageGalleryEditorWrapper({
 
       commitChanges()
     }
-  }, [confirmToken, stagedItems, site, currentUser?.id])
-
-  // Open Dialog handler
-  const handleOpenDialog = () => {
-    // If we have staged items, use those. Defaults to original site images.
-    const startingItems = stagedItems || (site.images || []).map((url, i) => ({ id: `img-${i}-${Date.now()}`, url }))
-    setDialogItems(startingItems)
-    setIsOpen(true)
-  }
+  }, [confirmToken, stagedItems, currentUser?.id, updateStagedChange])
 
   // Handle DnD
   const sensors = useSensors(
@@ -265,7 +249,6 @@ export function ImageGalleryEditorWrapper({
                       key={item.id}
                       id={item.id}
                       url={item.url}
-                      file={item.file}
                       onRemove={handleRemove}
                     />
                   ))}

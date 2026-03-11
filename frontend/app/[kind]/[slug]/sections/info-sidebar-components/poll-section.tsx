@@ -13,6 +13,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { toast } from "sonner"
@@ -154,7 +155,7 @@ export function PollSection({ site }: PollSectionProps) {
     }
   }
 
-  if (!isLoading) {
+  if (isLoading) {
     return (
       <Card className="!py-0 gap-0 shadow-none">
         <CardHeader className="p-4">
@@ -162,14 +163,10 @@ export function PollSection({ site }: PollSectionProps) {
         </CardHeader>
         <CardContent className="p-4 pt-0 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="-ml-1.5 -mr-1 min-h-9">
-              <div className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
-            </div>
+            <Skeleton key={i} className="h-9 w-full" />
           ))}
         </CardContent>
-        <CardFooter className="px-4 py-2 !pt-2 border-t border-border-weak font-medium">
-          <div className="h-9 w-full rounded-md bg-background-weaker animate-pulse" />
-        </CardFooter>
+        <Skeleton className="h-[53px] px-4 py-2 !pt-2 border-t rounded-none border-border-weak" />
       </Card>
     )
   }

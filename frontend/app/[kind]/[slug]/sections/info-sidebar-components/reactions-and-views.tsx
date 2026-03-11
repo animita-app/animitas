@@ -4,11 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { SmilePlus, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { EmojiPicker } from "@/components/ui/emoji-picker"
 import {
   Tooltip,
   TooltipContent,
@@ -17,12 +13,9 @@ import {
 } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/ui/skeleton"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { HeritageSite } from "@/types/heritage"
-
-const AVAILABLE_EMOJIS = ["🙏", "🕯️", "❤️", "🌺", "✨", "🕊️"]
 
 interface Reaction {
   emoji: string
@@ -118,31 +111,25 @@ export function ReactionsAndViews({ site }: ReactionsAndViewsProps) {
 
   const hasAnyReaction = reactions.some((r) => r.hasReacted)
 
-  if (loading) return <Skeleton className="h-8" />
+  if (loading) return (
+    <div className="flex items-center gap-1.5 w-full">
+      <Button variant="outline" size="icon" className="size-8 [&_svg]:opacity-50 shrink-0" disabled>
+        <SmilePlus />
+      </Button>
+    </div>
+  )
 
   return (
     <div className="flex items-center gap-1.5 w-full flex-wrap">
       {!hasAnyReaction && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <EmojiPicker
+          onSelect={toggleReaction}
+          trigger={
             <Button variant="outline" size="icon" className="size-8 [&_svg]:opacity-50 shrink-0">
               <SmilePlus />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="!p-1">
-            <div className="grid grid-cols-6 gap-1 p-0">
-              {AVAILABLE_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  className="p-0 size-8 hover:bg-neutral-900 rounded-sm text-lg aspect-square cursor-pointer"
-                  onClick={() => toggleReaction(emoji)}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          }
+        />
       )}
 
       <TooltipProvider>

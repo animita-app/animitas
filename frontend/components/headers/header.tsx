@@ -22,7 +22,7 @@ export function Header() {
 
   if (pathname.includes("animita")) return null
 
-  const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list'
+  const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list' || pathname === '/add' || pathname === '/auth'
 
   return (
     <header className={cn(

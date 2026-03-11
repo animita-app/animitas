@@ -77,7 +77,6 @@ export function InlineEdit(props: InlineEditProps) {
     if (disabled) return
     setDraft(deferredValue !== undefined ? deferredValue : localValue)
     setEditing(true)
-    if (!props.deferredSave) onEditingChange?.(true)
   }
 
   const cancel = () => {
@@ -98,12 +97,22 @@ export function InlineEdit(props: InlineEditProps) {
     const val = typeof raw === 'string' ? raw.trim() : raw
 
     if (!forceCommit && props.deferredSave) {
-      if (JSON.stringify(val) !== JSON.stringify(localValue)) {
-        setDeferredValue(val)
-        setLocalValue(val)
+      if (JSON.stringify(raw) !== JSON.stringify(localValue)) {
+        setDeferredValue(raw)
+        setLocalValue(raw)
         onEditingChange?.(true)
+        try {
+          if (props.type === 'multiselect') {
+            await (props as InlineEditMultiSelectProps).onSave(raw as string[])
+          } else {
+            await (props as InlineEditTextProps | InlineEditSelectProps).onSave(raw as string)
+          }
+        } catch (err) {
+          toast.error('Error staging changes')
+        }
       }
       setEditing(false)
+      onEditingChange?.(false)
       return
     }
 
@@ -121,14 +130,18 @@ export function InlineEdit(props: InlineEditProps) {
       }
       setLocalValue(val)
       setDeferredValue(undefined)
-      toast.success(successMessage)
+      if (!props.deferredSave) {
+        toast.success(successMessage)
+      }
     } catch {
       toast.error('Error al guardar')
       setDraft(localValue)
     } finally {
       setSaving(false)
       setEditing(false)
-      onEditingChange?.(false)
+      if (!props.deferredSave) {
+        onEditingChange?.(false)
+      }
     }
   }, [draft, localValue, props, successMessage, onEditingChange])
 
@@ -185,7 +198,9 @@ export function InlineEdit(props: InlineEditProps) {
                 setSaving(true)
                 try {
                   await multiProps.onSave(next)
-                  toast.success(successMessage)
+                  if (!props.deferredSave) {
+                    toast.success(successMessage)
+                  }
                 } catch {
                   toast.error('Error al guardar')
                   setLocalValue(current)
@@ -235,13 +250,17 @@ export function InlineEdit(props: InlineEditProps) {
             try {
               await selectProps.onSave(val)
               setLocalValue(val)
-              toast.success(successMessage)
+              if (!props.deferredSave) {
+                toast.success(successMessage)
+              }
             } catch {
               toast.error('Error al guardar')
             } finally {
               setSaving(false)
               setEditing(false)
-              onEditingChange?.(false)
+              if (!props.deferredSave) {
+                onEditingChange?.(false)
+              }
             }
           }}
           onOpenChange={(open) => { if (!open) { setEditing(false); if (!props.deferredSave) onEditingChange?.(false) } }}
