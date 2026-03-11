@@ -124,24 +124,6 @@ function generateRandomAttributes(seed: HeritageSite, index: number): Partial<He
     created_by: { id: "system", name: "Sistema" },
     allow_edits: false,
     creator_id: "system",
-    insights: {
-      heritage_site_id: `synthetic-${index}-${Date.now()}`,
-      memorial: {
-        death_cause: deathCause,
-        social_roles: socialRoles,
-        narrator_relation: "Generado Automáticamente"
-      },
-      spiritual: {
-        rituals_mentioned: rituals,
-        offerings_mentioned: offerings,
-        digital_visit_count: Math.floor(Math.random() * 1000)
-      },
-      patrimonial: {
-        antiquity_year: antiquityYear,
-        size: size
-      },
-      generated_at: new Date().toISOString()
-    }
   };
 }
 

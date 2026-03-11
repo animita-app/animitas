@@ -72,16 +72,13 @@ export function LocationSelector({
   const [selectedRegions, setSelectedRegions] = useState<Set<string | number>>(new Set())
 
   const handleInputChange = (val: string) => {
-    console.log('handleInputChange:', val)
     setInputValue(val)
     onSearch?.(val)
   }
 
   useEffect(() => {
-    console.log('useEffect focus - isOpen:', isOpen, 'mode:', mode)
     if (isOpen && mode === 'search') {
       setTimeout(() => {
-        console.log('Focusing input')
         inputRef.current?.focus()
       }, 0)
     }
@@ -314,16 +311,13 @@ export function LocationSelector({
                   placeholder={placeholder}
                   value={inputValue}
                   onChange={(e) => {
-                    console.log('Input onChange:', e.target.value)
                     handleInputChange(e.target.value)
                   }}
                   disabled={isLoading}
                   onFocus={() => {
-                    console.log('Input onFocus')
                     if (inputValue.length >= 3) setIsOpen(true)
                   }}
                   onBlur={() => {
-                    console.log('Input onBlur')
                   }}
                   onKeyDown={(e) => {
                     e.stopPropagation()
@@ -334,7 +328,6 @@ export function LocationSelector({
                 />
                 <button
                   onClick={() => {
-                    console.log('Clear button clicked')
                     handleInputChange('')
                     inputRef.current?.focus()
                   }}

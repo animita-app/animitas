@@ -183,7 +183,6 @@ function DropdownMenuContent({
 function PointerBridge({
   triggerRect,
   contentRect,
-  mousePos,
   side
 }: {
   triggerRect: DOMRect,
