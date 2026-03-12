@@ -68,7 +68,7 @@ export function TwoLevelCombobox({
     } else if (categories.length === 1 && !activeCategoryKey) {
       setActiveCategoryKey(categories[0].key)
     }
-  }, [open])
+  }, [open, categories, activeCategoryKey])
 
   const navigateForward = (key: string) => {
     directionRef.current = "forward"

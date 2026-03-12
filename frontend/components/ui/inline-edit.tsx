@@ -79,7 +79,7 @@ export function InlineEdit(props: InlineEditProps) {
     setEditing(true)
   }
 
-  const cancel = () => {
+  const cancel = useCallback(() => {
     const wasDirty = deferredValue !== undefined
     if (wasDirty) {
       setLocalValue(props.value)
@@ -90,7 +90,7 @@ export function InlineEdit(props: InlineEditProps) {
     }
     setEditing(false)
     onEditingChange?.(false)
-  }
+  }, [deferredValue, localValue, props.value, onEditingChange])
 
   const save = useCallback(async (valueToSave?: string | string[], forceCommit = false) => {
     const raw = valueToSave ?? draft
@@ -149,7 +149,7 @@ export function InlineEdit(props: InlineEditProps) {
     if (externalCancelToken) {
       if (editing || deferredValue !== undefined) cancel()
     }
-  }, [externalCancelToken])
+  }, [externalCancelToken, editing, deferredValue, cancel])
 
   useEffect(() => {
     if (externalConfirmToken) {
@@ -161,7 +161,7 @@ export function InlineEdit(props: InlineEditProps) {
         onEditingChange?.(false)
       }
     }
-  }, [externalConfirmToken])
+  }, [externalConfirmToken, editing, draft, deferredValue, save, onEditingChange])
 
   if (props.type === 'multiselect') {
     const multiProps = props as InlineEditMultiSelectProps

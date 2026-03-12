@@ -42,9 +42,9 @@ function DropdownMenu({
   )
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : uncontrolledOpen
-  const setOpen = isControlled
+  const setOpen = React.useMemo(() => isControlled
     ? setControlledOpen ?? (() => { })
-    : setUncontrolledOpen
+    : (setUncontrolledOpen as (open: boolean) => void), [isControlled, setControlledOpen, setUncontrolledOpen])
 
   const [triggerRect, setTriggerRect] = React.useState<DOMRect | null>(null)
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)

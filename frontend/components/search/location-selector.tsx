@@ -118,7 +118,7 @@ export function LocationSelector({
         mapRef.current = null
       }
     }
-  }, [mode, mapPin, accessToken, value])
+  }, [mode, mapPin, accessToken, value, onChange])
 
   const handleSelectResult = async (result: SearchResult & { isCurrent?: boolean }) => {
     const isRegion = result.locationType === 'region'
