@@ -50,6 +50,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const [hasCopied, setHasCopied] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [lastProcessedToken, setLastProcessedToken] = useState(0)
 
   const fetchRevisions = () => {
     if (!canSeeVersions) return
@@ -77,7 +78,8 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   }, [site.id, canSeeVersions])
 
   useEffect(() => {
-    if (confirmToken > 0 && Object.keys(stagedChanges).length > 0 && currentUser?.id) {
+    if (confirmToken > lastProcessedToken && Object.keys(stagedChanges).length > 0 && currentUser?.id) {
+      setLastProcessedToken(confirmToken)
       const saveVersion = async () => {
         setIsSaving(true)
         setSaveSuccess(false)
@@ -149,7 +151,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
 
       saveVersion()
     }
-  }, [confirmToken, site.id, currentUser?.id])
+  }, [confirmToken, lastProcessedToken, site.id, currentUser?.id, stagedChanges])
 
   useEffect(() => {
     if (cancelToken > 0) {
@@ -287,7 +289,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
                     </span>
                     <Button size="sm" onClick={requestConfirm} className="w-8 md:w-fit h-8 shadow-none" disabled={isSaving}>
                       <Check className="md:hidden" />
-                      <span className="hidden md:block">Cancelar</span>
+                      <span className="hidden md:block">Confirmar</span>
                     </Button>
                     <Button size="icon" className="w-8 bg-neutral-800/70 hover:bg-neutral-800 text-white h-full shadow-none" variant="ghost" onClick={handleCancel} disabled={isSaving}>
                       <X />
