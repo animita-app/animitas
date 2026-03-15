@@ -6,7 +6,7 @@ import { COLORS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/heritage'
 import { MapMarker } from '../map-marker'
 import { Button } from '@/components/ui/button'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface MarkerLayerProps {
@@ -28,6 +28,7 @@ const CLUSTER_CONFIG = {
 }
 
 const POINT_FILTER = ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'geom_type'], 'polygon']] as any
+const ZOOM_THRESHOLD = 15;
 
 export function MarkerLayer({
   map,
@@ -146,7 +147,7 @@ export function MarkerLayer({
         type: 'circle',
         source: sourceId,
         filter: POINT_FILTER,
-        maxzoom: 24,
+        maxzoom: ZOOM_THRESHOLD,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 8, 6, 18, 12, 24, 18, 32],
           'circle-color': 'transparent',
@@ -163,7 +164,7 @@ export function MarkerLayer({
         type: 'circle',
         source: sourceId,
         filter: POINT_FILTER,
-        maxzoom: 24,
+        maxzoom: ZOOM_THRESHOLD,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2.5, 6, 6, 12, 8, 18, 12],
           'circle-color': COLORS.animitas,
@@ -218,12 +219,13 @@ export function MarkerLayer({
     const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       e.originalEvent.stopPropagation()
       if (!e.features?.length) return
-      const id = e.features[0].properties?.id
+      const feature = e.features[0]
+      const id = feature.properties?.id
       if (id) {
         cancelClose()
         setActiveId(id)
         setLockedId(id)
-        onSiteClick?.(id, e.features[0])
+        onSiteClick?.(id, feature)
       }
     }
 
@@ -244,12 +246,14 @@ export function MarkerLayer({
 
     const onClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       if (!e.features?.length) return
-      const clusterId = e.features[0].properties?.cluster_id
+      const feature = e.features[0]
+      const clusterId = feature.properties?.cluster_id
+      const coordinates = (feature.geometry as any).coordinates
       const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || zoom == null) return
         map.flyTo({
-          center: (e.features![0].geometry as any).coordinates,
+          center: coordinates,
           zoom,
           speed: 1.2,
           curve: 1,
@@ -297,6 +301,7 @@ export function MarkerLayer({
   }, [map, isMapReady, onSiteClick, sourceId, cancelClose, scheduleClose])
 
   const sitesToRender = currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : [])
+  const isZoomedIn = currentZoom >= ZOOM_THRESHOLD
 
   return (
     <>
@@ -311,38 +316,90 @@ export function MarkerLayer({
             key={site.id}
             map={map}
             coordinates={[site.location.lng, site.location.lat]}
-            className="z-20"
+            className={cn("z-20 transition-all duration-300", isActive ? "z-50" : "z-20")}
           >
-            <div className="flex flex-col items-center overflow-visible">
-              <div
-                onMouseEnter={cancelClose}
+            {isZoomedIn ? (
+              <div 
+                className="flex flex-col items-center pointer-events-auto"
+                onMouseEnter={() => { cancelClose(); setActiveId(site.id); }}
                 onMouseLeave={scheduleClose}
-                className={cn(
-                  'transition-all duration-200 ease-out origin-top',
-                  isActive
-                    ? 'opacity-100 scale-100 pointer-events-auto'
-                    : 'opacity-0 scale-95 pointer-events-none'
-                )}
+                onClick={() => {
+                  cancelClose()
+                  setActiveId(site.id)
+                  setLockedId(site.id)
+                  // For the HTML marker, 'onSiteClick' handles the panel opening directly 
+                  // if it's passed, otherwise the Link handles navigation.
+                  if (onSiteClick) {
+                    onSiteClick(site.id, { properties: { id: site.id }, geometry: { type: 'Point', coordinates: [site.location.lng, site.location.lat] } } as any)
+                  }
+                }}
               >
                 <Link
                   href={href}
                   prefetch={false}
-                  className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap z-50 flex flex-col items-center gap-1.5"
-                  style={{ top: `${topValue}px` }}
+                  className={cn(
+                    "relative flex pb-2 flex-col items-center justify-center transition-all ease-out",
+                    isActive ? "scale-110 drop-shadow-xl" : "scale-100 drop-shadow-md hover:scale-105"
+                  )}
                 >
-                  <span className="text-base font-medium text-text-strong [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_2px_4px_rgba(0,0,0,0.4)] shadow-xs">
-                    {site.title || 'Animita'}
-                  </span>
-                  <Button
-                    size="sm"
-                    className="sr-only h-6 text-xs px-2.5 rounded-full shadow-md gap-1 pointer-events-none"
-                  >
-                    Ver detalles
-                    <ArrowUpRight />
-                  </Button>
+                  <div className="relative rounded-full bg-background p-1 border shadow-xs border-border/50">
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-[6px] border-transparent border-t-background border-t-[8px]" />
+                    
+                    {site.images && site.images.length > 0 ? (
+                      <div className="w-9 h-9 overflow-hidden rounded-full bg-muted">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={site.images[0]}
+                          alt={site.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-9 h-9 flex items-center justify-center rounded-full bg-[#00e]/10 text-[#00e]">
+                        <MapPin className="size-4" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {isActive && (
+                    <div className="absolute bottom-full mb-1 whitespace-nowrap bg-background px-2 py-1 rounded-md shadow-lg border text-xs font-semibold border-border text-foreground">
+                      {site.title || 'Animita'}
+                    </div>
+                  )}
                 </Link>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center overflow-visible">
+                <div
+                  onMouseEnter={cancelClose}
+                  onMouseLeave={scheduleClose}
+                  className={cn(
+                    'transition-all duration-200 ease-out origin-top',
+                    isActive
+                      ? 'opacity-100 scale-100 pointer-events-auto'
+                      : 'opacity-0 scale-95 pointer-events-none'
+                  )}
+                >
+                  <Link
+                    href={href}
+                    prefetch={false}
+                    className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap z-50 flex flex-col items-center gap-1.5"
+                    style={{ top: `${topValue}px` }}
+                  >
+                    <span className="text-base font-medium text-text-strong [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_2px_4px_rgba(0,0,0,0.4)] shadow-xs">
+                      {site.title || 'Animita'}
+                    </span>
+                    <Button
+                      size="sm"
+                      className="sr-only h-6 text-xs px-2.5 rounded-full shadow-md gap-1 pointer-events-none"
+                    >
+                      Ver detalles
+                      <ArrowUpRight className="size-3" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </MapMarker>
         )
       })}
