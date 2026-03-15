@@ -56,5 +56,7 @@ export default async function SiteDetailPage({ params }: PageProps) {
     notFound()
   }
 
+  console.log('Heritage site object:', site)
+
   return <SiteDetailView site={site} />
 }
