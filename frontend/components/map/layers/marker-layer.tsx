@@ -245,11 +245,18 @@ export function MarkerLayer({
     }
 
     const onClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      if (!e.features?.length) return
-      const feature = e.features[0]
+      const feature = e.features?.[0]
+      if (!feature) return
+      
       const clusterId = feature.properties?.cluster_id
-      const coordinates = (feature.geometry as any).coordinates
+      const geometry = feature.geometry as any
+      const coordinates = geometry?.coordinates
+      
+      if (clusterId == null || !coordinates) return
+
       const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource
+      if (!source) return
+
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
         if (err || zoom == null) return
         map.flyTo({
