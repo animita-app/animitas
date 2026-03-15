@@ -14,10 +14,29 @@ import { getAvailableInsightCategories } from "@/lib/insight-config"
 type SubcategoryConfig = { insight_category: string; subcategory: string; multi_select: boolean; sort_order: number }
 type InsightItem = { category: string; subcategory: string; label: string }
 
-function buildCategories(insightCat: string, items: InsightItem[], config: SubcategoryConfig[]): TwoLevelCategory[] {
-  const subcats = Array.from(new Set(
-    items.filter(t => t.category === insightCat).map(t => t.subcategory || "General")
-  ))
+function buildCategories(insightCat: string, items: InsightItem[], config: SubcategoryConfig[], activeInsights: SiteInsight[]): TwoLevelCategory[] {
+  // Combine items from global taxonomy and active insights for this site
+  const combinedItems: InsightItem[] = [
+    ...items,
+    ...activeInsights.map(i => ({ category: i.category, subcategory: i.subcategory || "General", label: i.label }))
+  ]
+
+  // Unique items by label+category+subcategory
+  const uniqueItemsMap = new Map<string, InsightItem>()
+  combinedItems.forEach(item => {
+    const key = `${item.category}/${item.subcategory || 'General'}/${item.label}`
+    if (!uniqueItemsMap.has(key)) uniqueItemsMap.set(key, item)
+  })
+  const itemsToUse = Array.from(uniqueItemsMap.values())
+
+  const subcats = Array.from(new Set([
+    ...itemsToUse.filter(t => t.category === insightCat).map(t => t.subcategory || "General"),
+    ...config.filter(c => c.insight_category === insightCat).map(c => c.subcategory)
+  ]))
+
+  if (subcats.length === 0) {
+    subcats.push("General")
+  }
 
   return subcats
     .sort((a, b) => {
@@ -28,7 +47,7 @@ function buildCategories(insightCat: string, items: InsightItem[], config: Subca
     .map(sub => ({
       key: sub,
       label: sub,
-      items: items
+      items: itemsToUse
         .filter(t => t.category === insightCat && (t.subcategory || "General") === sub)
         .map(t => ({ value: t.label, label: t.label })),
       multiSelect: config.find(c => c.subcategory === sub)?.multi_select ?? false,
@@ -178,7 +197,7 @@ export function InsightsSection({ site }: InsightsSectionProps) {
             <InsightChip
               key={cat}
               config={cfg}
-              categories={buildCategories(cat, insightItems, subConfig.filter(c => c.insight_category === cat))}
+              categories={buildCategories(cat, insightItems, subConfig.filter(c => c.insight_category === cat), activeInsights)}
               selectedValues={insightsForCat.map(i => i.label)}
               onToggle={(label, sub, isSelected) => toggleInsight(cat, label, sub, isSelected)}
               canCreate={canManageInsights}
