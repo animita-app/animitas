@@ -82,36 +82,45 @@ export function AddForm({ onCancel }: AddFormProps) {
     setScannedHighlights([])
 
     try {
-
       const insightRes = await fetch('/api/extract-insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ story, title })
       })
-      const { insights } = await insightRes.json()
 
-      const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
+      if (!insightRes.ok) {
+        console.warn('Insights API error:', insightRes.status)
+        await new Promise(r => setTimeout(r, 400))
+      } else {
+        const { insights } = await insightRes.json()
+        console.log('Extracted insights:', insights)
 
-      if (insights?.memorial?.death_cause) {
-        highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
-      }
-      if (insights?.memorial?.social_roles?.length) {
-        highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
-      }
-      if (insights?.spiritual?.rituals_mentioned?.length) {
-        highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
-      }
-      if (insights?.patrimonial?.form) {
-        highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
-      }
+        const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
 
-      for (let i = 0; i < highlightsList.length; i++) {
-        await new Promise(r => setTimeout(r, 200))
-        setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
-      }
+        if (insights?.memorial?.death_cause) {
+          highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
+        }
+        if (insights?.memorial?.social_roles?.length) {
+          highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
+        }
+        if (insights?.spiritual?.rituals_mentioned?.length) {
+          highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
+        }
+        if (insights?.patrimonial?.form) {
+          highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
+        }
 
-      await new Promise(r => setTimeout(r, 800))
+        console.log('Highlights to display:', highlightsList)
+
+        for (let i = 0; i < highlightsList.length; i++) {
+          await new Promise(r => setTimeout(r, 200))
+          setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
+        }
+
+        await new Promise(r => setTimeout(r, 800))
+      }
     } catch (err) {
+      console.error('Insights extraction error:', err)
       await new Promise(r => setTimeout(r, 600))
     }
 
@@ -151,11 +160,18 @@ export function AddForm({ onCancel }: AddFormProps) {
         })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
+      console.log('Heritage site created:', data)
+
+      if (!res.ok) {
+        console.error('API error response:', data)
+        throw new Error(data?.error || 'Error al crear la animita')
+      }
 
       toast.success("¡Animita registrada!")
+      console.log('Navigating to:', `/animita/${data.slug}`)
       router.push(`/animita/${data.slug}`)
     } catch (err: any) {
+      console.error('Form submission error:', err)
       toast.error(err.message || "Error al crear la animita")
       setIsSubmitting(false)
     }

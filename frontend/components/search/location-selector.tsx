@@ -252,9 +252,9 @@ export function LocationSelector({
                 e.stopPropagation()
                 handleClearLocation(loc.id)
               }}
-              className="ml-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="cursor-pointer ml-1 flex-shrink-0"
             >
-              <X className="size-3" />
+              <X className="size-3 opacity-50" />
             </button>
           </button>
         ))}
@@ -275,9 +275,9 @@ export function LocationSelector({
                         <span className="truncate text-text">{loc.address}</span>
                         <button
                           onClick={() => handleClearLocation(loc.id)}
-                          className="text-muted-foreground hover:text-foreground flex-shrink-0"
+                          className="flex-shrink-0"
                         >
-                          <X className="size-4" />
+                          <X className="size-4 opacity-50" />
                         </button>
                       </div>
                     ))}
@@ -348,12 +348,9 @@ export function LocationSelector({
                     inputRef.current?.focus()
                   }}
                   disabled={isLoading || !inputValue}
-                  className={cn(
-                    'h-6 w-6 rounded-full text-muted-foreground hover:text-foreground flex-shrink-0 transition-opacity',
-                    !inputValue ? 'opacity-0 pointer-events-none' : 'opacity-100'
-                  )}
+                  className="h-6 w-6 rounded-full flex-shrink-0"
                 >
-                  <X className="size-3" />
+                  <X className="opacity-50 size-4" />
                 </button>
               </div>
 

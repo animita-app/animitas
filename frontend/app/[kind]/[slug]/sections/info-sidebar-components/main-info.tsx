@@ -64,8 +64,9 @@ export function MainInfo({ site }: MainInfoProps) {
           placeholder="Agrega una historia..."
           className={cn(
             "mt-4 text-sm leading-relaxed text-text-strong",
-            isEditing && "-mb-4"
-        )}
+            isEditing && "-mb-4",
+            !isExpanded && "line-clamp-3"
+          )}
           {...editingProps}
         />
       ) : (

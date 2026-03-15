@@ -63,8 +63,8 @@ export function StoryHighlights({ text, highlights, className }: StoryHighlights
   })
 
   return (
-    <div className={cn("prose prose-sm dark:prose-invert max-w-none space-y-4 pt-1", className)}>
-      <p className="whitespace-pre-wrap ml-2 mr-1">
+    <div className={cn("max-w-none space-y-4 pt-1 text-sm leading-relaxed", className)}>
+      <p className="whitespace-pre-wrap ml-2 mr-1 text-text">
         {elements}
       </p>
 
