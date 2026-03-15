@@ -62,7 +62,10 @@ export function MainInfo({ site }: MainInfoProps) {
           value={site.story ?? ''}
           onSave={(val) => saveField('story', val)}
           placeholder="Agrega una historia..."
-          className={cn("mt-4 text-sm leading-relaxed text-text-strong", isEditing && "-mb-4")}
+          className={cn(
+            "mt-4 text-sm leading-relaxed text-text-strong",
+            isEditing && "-mb-4"
+        )}
           {...editingProps}
         />
       ) : (

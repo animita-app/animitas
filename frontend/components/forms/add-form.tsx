@@ -279,8 +279,10 @@ export function AddForm({ onCancel }: AddFormProps) {
             onClick={handleSubmit}
             className="px-4 relative"
           >
-            <span className={isSubmitting ? 'invisible' : ''}>Publicar</span>
-            {isSubmitting && <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />}
+            <span className={isSubmitting ? 'invisible' : 'transition-opacity duration-300'}>Publicar</span>
+            {isSubmitting && (
+              <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-in fade-in duration-300" />
+            )}
           </Button>
         </div>
       </div>
