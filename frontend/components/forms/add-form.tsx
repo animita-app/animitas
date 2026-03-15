@@ -167,7 +167,7 @@ export function AddForm({ onCancel }: AddFormProps) {
         throw new Error(data?.error || 'Error al crear la animita')
       }
 
-      toast.success("¡Animita registrada!")
+      toast.success("¡Registrada!")
       console.log('Navigating to:', `/animita/${data.slug}`)
       router.push(`/animita/${data.slug}`)
     } catch (err: any) {

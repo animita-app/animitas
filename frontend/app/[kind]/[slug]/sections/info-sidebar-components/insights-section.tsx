@@ -76,18 +76,12 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     const supabase = createClient()
     Promise.all([
       supabase.from('site_insights').select('*').eq('site_id', site.id),
-      supabase.from('insight_items').select('category, subcategory, label'),
       supabase.from('insight_subcategory_config').select('insight_category, subcategory, multi_select, sort_order'),
-    ]).then(([insights, items, config]) => {
+    ]).then(([insights, config]) => {
       if (insights.error) console.error('site_insights error:', insights.error)
-      if (items.error) console.error('insight_items error:', items.error)
       if (config.error) console.error('insight_subcategory_config error:', config.error)
 
       if (insights.data) setActiveInsights(insights.data)
-      if (items.data) {
-        console.log('insight_items loaded:', items.data.length, 'items')
-        setInsightItems(items.data)
-      }
       if (config.data) {
         console.log('insight_subcategory_config loaded:', config.data.length, 'configs')
         setSubConfig(config.data)
