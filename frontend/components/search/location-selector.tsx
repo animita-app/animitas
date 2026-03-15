@@ -295,7 +295,7 @@ export function LocationSelector({
           ) : (
             <button
               className={cn(
-                'flex items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
+                'flex [&_svg]:size-4 items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
               )}
             >
               <Plus />

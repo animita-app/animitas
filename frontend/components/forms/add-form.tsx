@@ -104,13 +104,13 @@ export function AddForm({ onCancel }: AddFormProps) {
       }
 
       for (let i = 0; i < highlightsList.length; i++) {
-        await new Promise(r => setTimeout(r, 300))
+        await new Promise(r => setTimeout(r, 200))
         setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
       }
 
-      await new Promise(r => setTimeout(r, 600))
+      await new Promise(r => setTimeout(r, 800))
     } catch (err) {
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(r => setTimeout(r, 600))
     }
 
     setIsScanning(false)

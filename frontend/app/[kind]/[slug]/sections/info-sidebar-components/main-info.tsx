@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { useRouter } from "next/navigation"
 import { HeritageSite } from "@/types/heritage"
 import { InlineEdit } from "@/components/ui/inline-edit"
 import { cn } from "@/lib/utils"
@@ -15,7 +14,6 @@ interface MainInfoProps {
 }
 
 export function MainInfo({ site }: MainInfoProps) {
-  const router = useRouter()
   const [isExpanded, setIsExpanded] = React.useState(false)
   const { role, currentUser } = useUser()
   const { isEditing, setIsEditing, cancelToken, confirmToken } = useSiteEditing()
@@ -70,7 +68,7 @@ export function MainInfo({ site }: MainInfoProps) {
       ) : (
         <p className={cn(
           "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line",
-          !isExpanded && "line-clamp-4"
+          !isExpanded && "line-clamp-3"
         )}>
           {site.story}
         </p>

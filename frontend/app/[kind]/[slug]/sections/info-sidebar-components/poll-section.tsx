@@ -40,7 +40,7 @@ export function PollSection({ site }: PollSectionProps) {
   const router = useRouter()
   const { currentUser, isAuthenticated, role } = useUser()
   const siteId = site.id
-  const isElevated = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
+  const isElevated = role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
   const [hasVoted, setHasVoted] = React.useState(false)
   const [showResults, setShowResults] = React.useState(false)
   const [selectedOption, setSelectedOption] = React.useState<string | null>(null)
@@ -117,7 +117,7 @@ export function PollSection({ site }: PollSectionProps) {
     }
 
     if (isElevated) {
-      toast.error("Los editores no pueden votar en encuestas de verificación")
+      toast.error("Administradores y creadores no pueden votar en encuestas de verificación")
       return
     }
 
