@@ -216,10 +216,6 @@ export function LocationSelector({
     onChange(value.filter((loc) => loc.id !== id))
   }
 
-  const handleClearAll = () => {
-    onChange([])
-  }
-
   const resultToLayer = (result: SearchResult & { isCurrent?: boolean }): Layer => {
     const isRegion = result.locationType === 'region'
 
@@ -245,13 +241,21 @@ export function LocationSelector({
         {value.slice(0, visibleCount).map((loc) => (
           <button
             key={loc.id}
-            onClick={() => setIsOpenMore(true)}
             className={cn(
-              'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent'
+              'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent group'
             )}
           >
             <MapPin className="flex-shrink-0 size-4" />
             <span className="truncate max-w-[120px]">{loc.address}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleClearLocation(loc.id)
+              }}
+              className="ml-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X className="size-3" />
+            </button>
           </button>
         ))}
         {showMoreCount > 0 && (
@@ -423,16 +427,6 @@ export function LocationSelector({
         </PopoverContent>
       </Popover>
 
-      {value.length > 0 && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleClearAll}
-          className="h-[30px] w-[30px] rounded-full text-muted-foreground hover:text-foreground flex-shrink-0"
-        >
-          <X className="size-4" />
-        </Button>
-      )}
     </div>
   )
 }
