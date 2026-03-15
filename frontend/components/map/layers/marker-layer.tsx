@@ -28,7 +28,7 @@ const CLUSTER_CONFIG = {
 }
 
 const POINT_FILTER = ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'geom_type'], 'polygon']] as any
-const ZOOM_THRESHOLD = 15;
+const ZOOM_THRESHOLD = 13;
 
 export function MarkerLayer({
   map,
