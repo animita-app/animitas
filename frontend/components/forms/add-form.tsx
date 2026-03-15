@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Spinner } from "@/components/ui/spinner"
-import { StoryHighlights, Highlight } from "@/components/ui/story-highlights"
+import { LoadingOverlay } from "@/components/ui/loading-overlay"
 import dynamic from "next/dynamic"
 const LocationSelector = dynamic(() => import("@/components/search/location-selector").then(mod => mod.LocationSelector), { ssr: false })
 import type { Location } from "@/components/search/location-selector"
@@ -42,9 +42,9 @@ export function AddForm({ onCancel }: AddFormProps) {
   const [photos, setPhotos] = useState<File[]>([])
   const [location, setLocation] = useState<Location[]>([])
   const [isScanning, setIsScanning] = useState(false)
-  const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categoryComboOpen, setCategoryComboOpen] = useState(false)
+  const [extractedInsights, setExtractedInsights] = useState<any>(null)
 
   const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
 
@@ -79,7 +79,6 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   const handleSubmit = async () => {
     setIsScanning(true)
-    setScannedHighlights([])
 
     try {
       const insightRes = await fetch('/api/extract-insights', {
@@ -90,38 +89,16 @@ export function AddForm({ onCancel }: AddFormProps) {
 
       if (!insightRes.ok) {
         console.warn('Insights API error:', insightRes.status)
-        await new Promise(r => setTimeout(r, 400))
+        await new Promise(r => setTimeout(r, 1200))
       } else {
         const { insights } = await insightRes.json()
         console.log('Extracted insights:', insights)
-
-        const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
-
-        if (insights?.memorial?.death_cause) {
-          highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
-        }
-        if (insights?.memorial?.social_roles?.length) {
-          highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
-        }
-        if (insights?.spiritual?.rituals_mentioned?.length) {
-          highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
-        }
-        if (insights?.patrimonial?.form) {
-          highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
-        }
-
-        console.log('Highlights to display:', highlightsList)
-
-        for (let i = 0; i < highlightsList.length; i++) {
-          await new Promise(r => setTimeout(r, 200))
-          setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
-        }
-
-        await new Promise(r => setTimeout(r, 800))
+        setExtractedInsights(insights)
+        await new Promise(r => setTimeout(r, 1500))
       }
     } catch (err) {
       console.error('Insights extraction error:', err)
-      await new Promise(r => setTimeout(r, 600))
+      await new Promise(r => setTimeout(r, 1200))
     }
 
     setIsScanning(false)
@@ -165,6 +142,57 @@ export function AddForm({ onCancel }: AddFormProps) {
       if (!res.ok) {
         console.error('API error response:', data)
         throw new Error(data?.error || 'Error al crear la animita')
+      }
+
+      if (extractedInsights && data.success) {
+        try {
+          const supabase = createClient()
+          const insightsToInsert = []
+
+          if (extractedInsights.memorial?.death_cause) {
+            insightsToInsert.push({
+              site_id: data.id || data.slug,
+              category: 'memorial',
+              subcategory: 'death_cause',
+              label: extractedInsights.memorial.death_cause
+            })
+          }
+          if (extractedInsights.memorial?.social_roles?.length) {
+            extractedInsights.memorial.social_roles.forEach((role: string) => {
+              insightsToInsert.push({
+                site_id: data.id || data.slug,
+                category: 'memorial',
+                subcategory: 'social_roles',
+                label: role
+              })
+            })
+          }
+          if (extractedInsights.spiritual?.rituals_mentioned?.length) {
+            extractedInsights.spiritual.rituals_mentioned.forEach((ritual: string) => {
+              insightsToInsert.push({
+                site_id: data.id || data.slug,
+                category: 'spiritual',
+                subcategory: 'rituals',
+                label: ritual
+              })
+            })
+          }
+          if (extractedInsights.patrimonial?.form) {
+            insightsToInsert.push({
+              site_id: data.id || data.slug,
+              category: 'patrimonial',
+              subcategory: 'form',
+              label: extractedInsights.patrimonial.form
+            })
+          }
+
+          if (insightsToInsert.length > 0) {
+            await supabase.from('site_insights').insert(insightsToInsert)
+            console.log('Insights saved:', insightsToInsert.length)
+          }
+        } catch (err) {
+          console.error('Error saving insights:', err)
+        }
       }
 
       toast.success("¡Registrada!")
@@ -262,18 +290,16 @@ export function AddForm({ onCancel }: AddFormProps) {
               className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0 shrink-0"
             />
 
-            {isScanning ? (
-              <div className="text-sm text-text p-1">
-                <StoryHighlights text={story} highlights={scannedHighlights} />
-              </div>
-            ) : (
+            <div className="relative">
               <Textarea
                 placeholder="¿Cuál es su historia?"
                 value={story}
                 onChange={e => setStory(e.target.value)}
                 className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
+                disabled={isScanning}
               />
-            )}
+              {isScanning && <LoadingOverlay />}
+            </div>
           </div>
         </div>
       </div>

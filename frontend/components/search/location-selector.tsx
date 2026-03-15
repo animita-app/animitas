@@ -239,7 +239,7 @@ export function LocationSelector({
     <div className="flex items-center gap-2 flex-shrink-0">
       <div className="flex items-center gap-1 flex-wrap">
         {value.slice(0, visibleCount).map((loc) => (
-          <button
+          <div
             key={loc.id}
             className={cn(
               'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent group'
@@ -248,15 +248,12 @@ export function LocationSelector({
             <MapPin className="flex-shrink-0 size-4" />
             <span className="truncate max-w-[120px]">{loc.address}</span>
             <button
-              onClick={(e) => {
-                e.stopPropagation()
-                handleClearLocation(loc.id)
-              }}
-              className="cursor-pointer ml-1 flex-shrink-0"
+              onClick={() => handleClearLocation(loc.id)}
+              className="cursor-pointer ml-1 flex-shrink-0 hover:opacity-100"
             >
-              <X className="size-3 opacity-50" />
+              <X className="size-3 opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
-          </button>
+          </div>
         ))}
         {showMoreCount > 0 && (
           <Popover open={isOpenMore} onOpenChange={setIsOpenMore}>
