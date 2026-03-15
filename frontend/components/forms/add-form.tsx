@@ -79,8 +79,6 @@ export function AddForm({ onCancel }: AddFormProps) {
     setIsScanning(true)
     setScannedHighlights([])
 
-    let extractedInsights: any = {}
-
     try {
 
       const insightRes = await fetch('/api/extract-insights', {
@@ -89,7 +87,6 @@ export function AddForm({ onCancel }: AddFormProps) {
         body: JSON.stringify({ story, title })
       })
       const { insights } = await insightRes.json()
-      extractedInsights = insights
 
       const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
 
@@ -132,6 +129,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       }))
       imageUrls.push(...urls)
 
+      const [lng, lat] = location[0].coords
       const res = await fetch('/api/heritage-sites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -140,10 +138,14 @@ export function AddForm({ onCancel }: AddFormProps) {
           story,
           isPublic: true,
           kind,
-          location: location[0],
+          location: {
+            lat,
+            lng,
+            address: location[0].address,
+            cityRegion: location[0].region
+          },
           images: imageUrls,
-          categories: [category],
-          insights: extractedInsights
+          categories: [category]
         })
       })
       const data = await res.json()
