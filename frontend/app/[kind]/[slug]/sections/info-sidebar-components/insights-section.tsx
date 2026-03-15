@@ -81,7 +81,10 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       if (insights.error) console.error('site_insights error:', insights.error)
       if (config.error) console.error('insight_subcategory_config error:', config.error)
 
-      if (insights.data) setActiveInsights(insights.data)
+      if (insights.data) {
+        console.log('Site insights loaded:', insights.data)
+        setActiveInsights(insights.data)
+      }
       if (config.data) {
         console.log('insight_subcategory_config loaded:', config.data.length, 'configs')
         setSubConfig(config.data)

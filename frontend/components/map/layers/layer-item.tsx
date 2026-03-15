@@ -31,9 +31,13 @@ const LayerIcon = ({ layer }: { layer: Layer }) => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center justify-center min-w-5">
+          <button
+            type="button"
+            className="flex items-center justify-center min-w-5 hover:opacity-75 transition-opacity bg-transparent border-none cursor-pointer p-0"
+            aria-label={typeLabel}
+          >
             {icon}
-          </div>
+          </button>
         </TooltipTrigger>
         <TooltipContent side="top" sideOffset={8}>
           <p>{typeLabel}</p>
