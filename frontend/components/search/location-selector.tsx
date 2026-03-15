@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { MapPin, X, Check, Search as SearchIcon } from 'lucide-react'
+import { MapPin, X, Check, Search as SearchIcon, Plus } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Button } from '@/components/ui/button'
@@ -79,11 +79,9 @@ export function LocationSelector({
 
   useEffect(() => {
     if (isOpenSearch && mode === 'search') {
-      setTimeout(() => {
-        inputRef.current?.focus()
-      }, 0)
+      inputRef.current?.focus()
     }
-  }, [isOpenSearch, mode])
+  }, [isOpenSearch, mode, searchResults])
 
   useEffect(() => {
     if (mode === 'map' && mapContainerRef.current && !mapRef.current) {
@@ -297,11 +295,10 @@ export function LocationSelector({
           ) : (
             <button
               className={cn(
-                'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent'
+                'flex items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
               )}
             >
-              <MapPin className="flex-shrink-0 size-4" />
-              <span className="text-xs">+</span>
+              <Plus />
             </button>
           )}
         </PopoverTrigger>

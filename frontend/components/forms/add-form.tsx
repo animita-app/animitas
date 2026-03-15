@@ -4,54 +4,23 @@ import * as React from "react"
 import { useRef, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { MapPin, X, Plus } from "lucide-react"
+import { X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Spinner } from "@/components/ui/spinner"
-import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
+import { StoryHighlights, Highlight } from "@/components/ui/story-highlights"
 import { LocationSelector, type Location } from "@/components/search/location-selector"
 import { TwoLevelCombobox, type TwoLevelCategory } from "@/components/ui/two-level-combobox"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
 import { useLocationSearch } from "@/hooks/use-location-search"
-import { cn } from "@/lib/utils"
 
 const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
   santuarios: "¿A quién recordamos?",
   funerales: "¿Cómo se llama este lugar de memoria?",
-}
-
-function truncateAddress(address: string): string {
-  const parts = address.split(',')
-  if (parts.length > 2) {
-    return `${parts[0]}, ${parts[1]}`
-  }
-  return address
-}
-
-const KEYWORDS: Record<HighlightCategory, string[]> = {
-  patrimonial: ["accidente", "tránsito", "choque", "curva", "ruta", "camino", "feria", "trabajo", "gruta", "fallec", "muerte"],
-  spiritual: ["velas", "rosarios", "protección", "fortaleza", "acompaña", "presencia", "promesas", "ofrendas", "milagro", "fe"],
-  memory: ["familia", "vecinos", "recuerdan", "memoria", "amabilidad", "solidaridad", "comunidad", "ayudar"],
-}
-
-function detectHighlights(text: string): Highlight[] {
-  const found = new Set<string>()
-  const highlights: Highlight[] = []
-  const lower = text.toLowerCase()
-  Object.entries(KEYWORDS).forEach(([category, words]) => {
-    words.forEach(word => {
-      if (lower.includes(word) && !found.has(word)) {
-        found.add(word)
-        highlights.push({ text: word, category: category as HighlightCategory })
-      }
-    })
-  })
-  return highlights
 }
 
 interface AddFormProps {
@@ -107,16 +76,12 @@ export function AddForm({ onCancel }: AddFormProps) {
   }
 
   const handleSubmit = async () => {
-    if (location.length === 0) { toast.error("La ubicación es obligatoria"); return }
-    if (photos.length === 0) { toast.error("Agrega al menos una foto"); return }
-
     setIsScanning(true)
     setScannedHighlights([])
 
     let extractedInsights: any = {}
 
     try {
-      toast.loading("Extrayendo insights...", { id: "scanning" })
 
       const insightRes = await fetch('/api/extract-insights', {
         method: 'POST',
@@ -141,8 +106,6 @@ export function AddForm({ onCancel }: AddFormProps) {
         highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
       }
 
-      toast.dismiss("scanning")
-
       for (let i = 0; i < highlightsList.length; i++) {
         await new Promise(r => setTimeout(r, 300))
         setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
@@ -150,8 +113,6 @@ export function AddForm({ onCancel }: AddFormProps) {
 
       await new Promise(r => setTimeout(r, 600))
     } catch (err) {
-      toast.dismiss("scanning")
-      toast.error("No se pudo extraer insights, continuando sin ellos...", { duration: 2000 })
       await new Promise(r => setTimeout(r, 1000))
     }
 
@@ -162,7 +123,6 @@ export function AddForm({ onCancel }: AddFormProps) {
       const supabase = createClient()
       const imageUrls: string[] = []
 
-      toast.loading("Subiendo fotos...", { id: "uploading" })
       const urls = await Promise.all(photos.map(async (file) => {
         const ext = file.name.split('.').pop()
         const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
@@ -171,7 +131,6 @@ export function AddForm({ onCancel }: AddFormProps) {
         return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
       }))
       imageUrls.push(...urls)
-      toast.dismiss("uploading")
 
       const res = await fetch('/api/heritage-sites', {
         method: 'POST',
@@ -314,9 +273,10 @@ export function AddForm({ onCancel }: AddFormProps) {
             size="sm"
             disabled={!canSubmit || isSubmitting}
             onClick={handleSubmit}
-            className="px-4"
+            className="px-4 relative"
           >
-            {isSubmitting ? <Spinner /> : "Publicar"}
+            <span className={isSubmitting ? 'invisible' : ''}>Publicar</span>
+            {isSubmitting && <Spinner className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />}
           </Button>
         </div>
       </div>
