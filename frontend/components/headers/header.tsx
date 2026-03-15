@@ -22,6 +22,11 @@ export function Header() {
 
   if (pathname.includes("animita")) return null
 
+  const segments = pathname.split('/').filter(Boolean)
+  const isSiteDetailRoute = segments.length === 2 && !['map', 'list', 'add', 'auth', 'admin'].includes(segments[0])
+
+  if (isSiteDetailRoute) return null
+
   const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list' || pathname === '/add' || pathname === '/auth'
 
   return (

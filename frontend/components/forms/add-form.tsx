@@ -144,14 +144,14 @@ export function AddForm({ onCancel }: AddFormProps) {
         throw new Error(data?.error || 'Error al crear la animita')
       }
 
-      if (extractedInsights && data.success) {
+      if (extractedInsights && data.success && data.id) {
         try {
           const supabase = createClient()
           const insightsToInsert = []
 
           if (extractedInsights.memorial?.death_cause) {
             insightsToInsert.push({
-              site_id: data.id || data.slug,
+              site_id: data.id,
               category: 'memorial',
               subcategory: 'death_cause',
               label: extractedInsights.memorial.death_cause
@@ -160,7 +160,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           if (extractedInsights.memorial?.social_roles?.length) {
             extractedInsights.memorial.social_roles.forEach((role: string) => {
               insightsToInsert.push({
-                site_id: data.id || data.slug,
+                site_id: data.id,
                 category: 'memorial',
                 subcategory: 'social_roles',
                 label: role
@@ -170,7 +170,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           if (extractedInsights.spiritual?.rituals_mentioned?.length) {
             extractedInsights.spiritual.rituals_mentioned.forEach((ritual: string) => {
               insightsToInsert.push({
-                site_id: data.id || data.slug,
+                site_id: data.id,
                 category: 'spiritual',
                 subcategory: 'rituals',
                 label: ritual
@@ -179,7 +179,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           }
           if (extractedInsights.patrimonial?.form) {
             insightsToInsert.push({
-              site_id: data.id || data.slug,
+              site_id: data.id,
               category: 'patrimonial',
               subcategory: 'form',
               label: extractedInsights.patrimonial.form
@@ -187,8 +187,12 @@ export function AddForm({ onCancel }: AddFormProps) {
           }
 
           if (insightsToInsert.length > 0) {
-            await supabase.from('site_insights').insert(insightsToInsert)
-            console.log('Insights saved:', insightsToInsert.length)
+            const { error } = await supabase.from('site_insights').insert(insightsToInsert)
+            if (error) {
+              console.error('Supabase error saving insights:', error)
+            } else {
+              console.log('Insights saved to database:', insightsToInsert.length, 'items')
+            }
           }
         } catch (err) {
           console.error('Error saving insights:', err)
@@ -337,7 +341,6 @@ export function AddForm({ onCancel }: AddFormProps) {
         className="hidden"
         onChange={(e) => {
           const files = Array.from(e.target.files || [])
-          if (photos.length + files.length > 5) { toast.error("Máximo 5 fotos"); return }
           setPhotos(prev => [...prev, ...files])
         }}
       />
