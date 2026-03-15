@@ -70,7 +70,6 @@ export function LocationSelector({
   const [isOpenMore, setIsOpenMore] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [mapPin, setMapPin] = useState<[number, number] | null>(value[0]?.coords || null)
-  const [selectedRegions, setSelectedRegions] = useState<Set<string | number>>(new Set())
 
   const handleInputChange = (val: string) => {
     setInputValue(val)
@@ -146,13 +145,18 @@ export function LocationSelector({
     }
 
     if (isRegion) {
-      const newSelected = new Set(selectedRegions)
-      if (newSelected.has(result.id)) {
-        newSelected.delete(result.id)
-      } else {
-        newSelected.add(result.id)
+      const center: [number, number] = result.center || [-71.5430, -35.4272]
+      const newLocation: Location = {
+        id: `location-${Date.now()}-${result.id}`,
+        coords: center,
+        address: result.place_name,
+        region: result.place_name,
+        country: 'Chile',
+        source: 'search',
       }
-      setSelectedRegions(newSelected)
+      const newLocations = [...value, newLocation]
+      onChange(newLocations)
+      setInputValue('')
       return
     }
 
@@ -295,7 +299,7 @@ export function LocationSelector({
           ) : (
             <button
               className={cn(
-                'flex [&_svg]:size-4 items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
+                'flex [&_svg]:size-4 [&_svg]:opacity-50 items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
               )}
             >
               <Plus />
@@ -361,7 +365,6 @@ export function LocationSelector({
                         <LayerItem
                           layer={resultToLayer(result)}
                           isSearchResult={true}
-                          isSelected={selectedRegions.has(result.id)}
                           onClick={() => handleSelectResult(result)}
                           onToggleVisibility={(e) => e.stopPropagation()}
                         />
