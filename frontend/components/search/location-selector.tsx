@@ -66,7 +66,8 @@ export function LocationSelector({
   const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''
 
   const [mode, setMode] = useState<Mode>('search')
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpenSearch, setIsOpenSearch] = useState(false)
+  const [isOpenMore, setIsOpenMore] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [mapPin, setMapPin] = useState<[number, number] | null>(value[0]?.coords || null)
   const [selectedRegions, setSelectedRegions] = useState<Set<string | number>>(new Set())
@@ -77,12 +78,12 @@ export function LocationSelector({
   }
 
   useEffect(() => {
-    if (isOpen && mode === 'search') {
+    if (isOpenSearch && mode === 'search') {
       setTimeout(() => {
         inputRef.current?.focus()
       }, 0)
     }
-  }, [isOpen, mode])
+  }, [isOpenSearch, mode])
 
   useEffect(() => {
     if (mode === 'map' && mapContainerRef.current && !mapRef.current) {
@@ -205,7 +206,7 @@ export function LocationSelector({
   const handleConfirmMap = () => {
     if (mapPin) {
       setMode('search')
-      setIsOpen(false)
+      setIsOpenSearch(false)
     }
   }
 
@@ -242,7 +243,7 @@ export function LocationSelector({
         {value.slice(0, visibleCount).map((loc) => (
           <button
             key={loc.id}
-            onClick={() => setIsOpen(true)}
+            onClick={() => setIsOpenMore(true)}
             className={cn(
               'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent'
             )}
@@ -252,7 +253,7 @@ export function LocationSelector({
           </button>
         ))}
         {showMoreCount > 0 && (
-          <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <Popover open={isOpenMore} onOpenChange={setIsOpenMore}>
             <PopoverTrigger asChild>
               <button className="flex items-center justify-center h-[30px] w-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent">
                 +{showMoreCount}
@@ -282,9 +283,9 @@ export function LocationSelector({
         )}
       </div>
 
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={isOpenSearch} onOpenChange={setIsOpenSearch}>
         <PopoverTrigger asChild>
-          {value.length === 0 && (
+          {value.length === 0 ? (
             <button
               className={cn(
                 'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-muted-foreground'
@@ -293,10 +294,19 @@ export function LocationSelector({
               <MapPin className="flex-shrink-0 size-4" />
               <span>Ubicación</span>
             </button>
+          ) : (
+            <button
+              className={cn(
+                'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-accent'
+              )}
+            >
+              <MapPin className="flex-shrink-0 size-4" />
+              <span className="text-xs">+</span>
+            </button>
           )}
         </PopoverTrigger>
 
-        <PopoverContent align="start" className="p-0 border-border-weak" style={{ width: `${panelWidth}px` }}>
+        <PopoverContent align="start" side="top" className="p-0 border-border-weak" style={{ width: `${panelWidth}px` }}>
           {mode === 'search' ? (
             <div className="flex flex-col">
               <div className="flex items-center gap-1 border-b border-border-weak p-2">
@@ -315,7 +325,7 @@ export function LocationSelector({
                   }}
                   disabled={isLoading}
                   onFocus={() => {
-                    if (inputValue.length >= 3) setIsOpen(true)
+                    if (inputValue.length >= 3) setIsOpenSearch(true)
                   }}
                   onBlur={() => {
                   }}
@@ -327,7 +337,8 @@ export function LocationSelector({
                   }}
                 />
                 <button
-                  onClick={() => {
+                  onPointerDown={(e) => {
+                    e.preventDefault()
                     handleInputChange('')
                     inputRef.current?.focus()
                   }}
@@ -341,7 +352,7 @@ export function LocationSelector({
                 </button>
               </div>
 
-              <ScrollArea className="max-h-60">
+              <ScrollArea className="max-h-60" onPointerDown={(e) => e.preventDefault()}>
                 {displayResults.length === 0 ? (
                   <div className="p-4 text-sm text-center text-muted-foreground">
                     {isLoading ? 'Buscando...' : 'Sin resultados'}

@@ -43,9 +43,9 @@ export const INSIGHT_CATEGORY_CONFIG: Record<string, {
 
 /** Ordered list of categories for consistent rendering */
 export const INSIGHT_CATEGORIES = [
-  "memorial",
-  "spiritual",
   "patrimonial",
+  "spiritual",
+  "memorial",
 ] as const;
 export type InsightCategory = typeof INSIGHT_CATEGORIES[number];
 
