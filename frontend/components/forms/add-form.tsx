@@ -92,23 +92,43 @@ export function AddForm({ onCancel }: AddFormProps) {
     setIsScanning(true)
 
     let insights: any = null
+    let insightError: string | null = null
+
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+
       const insightRes = await fetch('/api/extract-insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ story, title }),
-        signal: AbortSignal.timeout(10000),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       if (insightRes.ok) {
-        const { insights: extractedInsights } = await insightRes.json()
-        insights = extractedInsights
-        setExtractedInsights(extractedInsights)
+        const result = await insightRes.json()
+        if (result.error) {
+          insightError = result.error
+        } else {
+          insights = result.insights
+          setExtractedInsights(result.insights)
+        }
+      } else {
+        const errorData = await insightRes.json().catch(() => ({}))
+        insightError = errorData.error || `Error del servidor: ${insightRes.status}`
       }
-    } catch (err) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        toast.warning('Análisis de contenido no disponible', { duration: 3000 })
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        insightError = 'El análisis de contenido tardó demasiado. Se continuará sin análisis.'
+      } else {
+        insightError = `No se pudo analizar el contenido: ${err.message || 'Error desconocido'}`
       }
+    }
+
+    if (insightError) {
+      toast.warning(insightError, { duration: 4000 })
     }
 
     setIsScanning(false)
