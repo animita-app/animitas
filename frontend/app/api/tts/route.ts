@@ -10,20 +10,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Text is required' }, { status: 400 })
     }
 
-    let apiKey = process.env.ELEVENLABS_API_KEY
-
-    if (!apiKey) {
-      try {
-        const fs = await import('fs')
-        const path = await import('path')
-        const envPath = path.resolve(process.cwd(), '.env')
-        if (fs.existsSync(envPath)) {
-          const content = fs.readFileSync(envPath, 'utf8')
-          const match = content.match(/ELEVENLABS_API_KEY=(.+)/)
-          if (match) apiKey = match[1].trim()
-        }
-      } catch (_err) {}
-    }
+    const apiKey = process.env.ELEVENLABS_API_KEY
 
     if (!apiKey) {
       return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 })

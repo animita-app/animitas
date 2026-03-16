@@ -8,20 +8,10 @@ export async function GET(req: Request) {
   const VOICE_ID = 'cMKZRsVE5V7xf6qCp9fF';
   const OUTPUT_DIR = path.resolve(process.cwd(), 'public/audio/stories');
 
-  let apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) {
-    try {
-      const envPath = path.resolve(process.cwd(), '.env');
-      if (fs.existsSync(envPath)) {
-        const content = fs.readFileSync(envPath, 'utf8');
-        const match = content.match(/ELEVENLABS_API_KEY=(.+)/);
-        if (match) apiKey = match[1].trim();
-      }
-    } catch (_err) {}
-  }
+  const apiKey = process.env.ELEVENLABS_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json({ error: 'No API Key' }, { status: 500 });
+    return NextResponse.json({ error: 'ElevenLabs API key not configured' }, { status: 500 });
   }
 
   if (!fs.existsSync(OUTPUT_DIR)) {

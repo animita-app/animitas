@@ -9,7 +9,18 @@ import { AnalysisResult } from '@/lib/analysis-engine'
 export default function MapaPage() {
   const pathname = usePathname()
   const params = useParams()
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiaWNhcnVzbWluZCIsImEiOiJjbWc4c2puMDIwYWxqMmxwczF0cWY2azZyIn0.YiZOCFkJJbVqu5lJwv9akQ'
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+
+  if (!mapboxToken) {
+    return (
+      <div className="flex items-center justify-center h-screen w-screen bg-background">
+        <div className="text-center">
+          <p className="text-text-strong font-semibold mb-2">Mapbox configuration error</p>
+          <p className="text-text-weak text-sm">NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN not configured</p>
+        </div>
+      </div>
+    )
+  }
 
   const focusedMemorialId = pathname?.startsWith('/animita/') ? (params?.id as string) : null
   const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)

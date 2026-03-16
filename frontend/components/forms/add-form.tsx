@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
 import { useLocationSearch } from "@/hooks/use-location-search"
+import { retryWithBackoff, validateImageFile } from "@/lib/retry-utils"
 
 const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
   santuarios: "¿A quién recordamos?",
@@ -45,6 +46,8 @@ export function AddForm({ onCancel }: AddFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categoryComboOpen, setCategoryComboOpen] = useState(false)
   const [extractedInsights, setExtractedInsights] = useState<any>(null)
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({})
+  const [failedUploads, setFailedUploads] = useState<Set<string>>(new Set())
 
   const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
 
