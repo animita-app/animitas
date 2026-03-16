@@ -31,7 +31,10 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      return NextResponse.json({ error: errorText }, { status: response.status })
+      return NextResponse.json(
+        { error: `ElevenLabs API error: ${errorText}` },
+        { status: response.status }
+      )
     }
 
     return new NextResponse(response.body, {
@@ -39,7 +42,11 @@ export async function POST(req: Request) {
         'Content-Type': 'audio/mpeg',
       },
     })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json(
+      { error: `Text-to-speech failed: ${message}` },
+      { status: 500 }
+    )
   }
 }

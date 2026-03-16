@@ -55,9 +55,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ error: "No session returned" }, { status: 400 })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: error.message },
+      { error: `Authentication failed: ${message}` },
       { status: 500 }
     )
   }

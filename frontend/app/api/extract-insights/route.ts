@@ -8,11 +8,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ insights: {} })
     }
 
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured' },
+        { status: 500 }
+      )
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
@@ -52,9 +60,10 @@ Be concise. Extract only what's explicitly mentioned in the story.`
 
     if (!response.ok) {
       const error = await response.json()
-      if (error.error?.code === 'insufficient_quota') {
-      }
-      return NextResponse.json({ insights: {} })
+      return NextResponse.json(
+        { error: `OpenAI API error: ${error.error?.message || 'Unknown error'}` },
+        { status: response.status }
+      )
     }
 
     const data = await response.json()
@@ -64,10 +73,18 @@ Be concise. Extract only what's explicitly mentioned in the story.`
     try {
       insights = JSON.parse(content)
     } catch (e) {
+      return NextResponse.json(
+        { error: 'Failed to parse insights response' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({ insights })
-  } catch (err: any) {
-    return NextResponse.json({ insights: {} }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json(
+      { error: `Failed to extract insights: ${message}` },
+      { status: 500 }
+    )
   }
 }

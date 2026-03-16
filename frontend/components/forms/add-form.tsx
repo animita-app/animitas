@@ -81,24 +81,34 @@ export function AddForm({ onCancel }: AddFormProps) {
   }
 
   const handleSubmit = async () => {
+    for (const file of photos) {
+      const validationError = validateImageFile(file)
+      if (validationError) {
+        toast.error(validationError)
+        return
+      }
+    }
+
     setIsScanning(true)
 
+    let insights: any = null
     try {
       const insightRes = await fetch('/api/extract-insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story, title })
+        body: JSON.stringify({ story, title }),
+        signal: AbortSignal.timeout(10000),
       })
 
-      if (!insightRes.ok) {
-        await new Promise(r => setTimeout(r, 1200))
-      } else {
-        const { insights } = await insightRes.json()
-        setExtractedInsights(insights)
-        await new Promise(r => setTimeout(r, 1500))
+      if (insightRes.ok) {
+        const { insights: extractedInsights } = await insightRes.json()
+        insights = extractedInsights
+        setExtractedInsights(extractedInsights)
       }
     } catch (err) {
-      await new Promise(r => setTimeout(r, 1200))
+      if (err instanceof Error && err.name !== 'AbortError') {
+        toast.warning('Análisis de contenido no disponible', { duration: 3000 })
+      }
     }
 
     setIsScanning(false)
@@ -107,15 +117,41 @@ export function AddForm({ onCancel }: AddFormProps) {
     try {
       const supabase = createClient()
       const imageUrls: string[] = []
+      const uploadedPaths: string[] = []
 
-      const urls = await Promise.all(photos.map(async (file) => {
-        const ext = file.name.split('.').pop()
-        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-        const { error } = await supabase.storage.from('base').upload(path, file)
-        if (error) throw new Error(`Error subiendo ${file.name}`)
-        return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
-      }))
-      imageUrls.push(...urls)
+      for (const file of photos) {
+        try {
+          const ext = file.name.split('.').pop()
+          const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
+
+          await retryWithBackoff(
+            async () => {
+              const { error } = await supabase.storage.from('base').upload(path, file)
+              if (error) throw new Error(error.message)
+            },
+            { maxAttempts: 3, initialDelayMs: 500 }
+          )
+
+          const { data: { publicUrl } } = supabase.storage.from('base').getPublicUrl(path)
+          imageUrls.push(publicUrl)
+          uploadedPaths.push(path)
+        } catch (err: any) {
+          toast.error(`Error subiendo ${file.name}: ${err.message}`)
+          setFailedUploads(prev => new Set([...prev, file.name]))
+        }
+      }
+
+      if (imageUrls.length === 0) {
+        toast.error('No se pudo subir ninguna imagen. Intenta de nuevo.')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (imageUrls.length < photos.length) {
+        toast.warning(`${photos.length - imageUrls.length} imágenes fallaron. Continuando con las ${imageUrls.length} exitosas.`)
+      }
+
+      setExtractedInsights(insights)
 
       const [lng, lat] = location[0].coords
       const res = await fetch('/api/heritage-sites', {
@@ -206,6 +242,7 @@ export function AddForm({ onCancel }: AddFormProps) {
     } catch (err: any) {
       toast.error(err.message || "Error al crear la animita")
       setIsSubmitting(false)
+      setFailedUploads(new Set())
     }
   }
 
@@ -341,7 +378,21 @@ export function AddForm({ onCancel }: AddFormProps) {
         className="hidden"
         onChange={(e) => {
           const files = Array.from(e.target.files || [])
-          setPhotos(prev => [...prev, ...files])
+          const validFiles: File[] = []
+
+          files.forEach(file => {
+            const error = validateImageFile(file)
+            if (error) {
+              toast.error(`${file.name}: ${error}`)
+            } else {
+              validFiles.push(file)
+            }
+          })
+
+          if (validFiles.length > 0) {
+            setPhotos(prev => [...prev, ...validFiles])
+            setFailedUploads(new Set())
+          }
         }}
       />
     </div>
