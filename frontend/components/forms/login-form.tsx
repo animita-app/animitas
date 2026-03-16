@@ -46,16 +46,25 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const onboardingIndex = ONBOARDING_STEPS.indexOf(step)
 
   useEffect(() => {
-    const savedStep = localStorage.getItem('onboarding_step') as Step | null
-    if (savedStep && ONBOARDING_STEPS.includes(savedStep)) setStep(savedStep)
-  }, [])
-
-  const saveOnboardingStep = (stepName: Step) => {
-    if (ONBOARDING_STEPS.includes(stepName)) localStorage.setItem('onboarding_step', stepName)
-  }
+    if (isOnboarding) {
+      const savedStep = getSavedOnboardingStep()
+      if (savedStep) {
+        const isStale = isOnboardingStale(30 * 60 * 1000)
+        if (isStale) {
+          clearOnboardingData()
+          setStep('name')
+        } else {
+          setStep(savedStep)
+          const recovery = getRecoveryState()
+          if (recovery?.userData.name) setFullName(recovery.userData.name)
+          if (recovery?.userData.username) setUsername(recovery.userData.username)
+        }
+      }
+    }
+  }, [isOnboarding])
 
   const finishAuth = () => {
-    localStorage.removeItem('onboarding_step')
+    clearOnboardingData()
     if (onSuccess) {
       onSuccess()
     } else {
@@ -70,12 +79,16 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("No user found")
-      await supabase.from('user_profiles').upsert({ id: user.id, display_name: fullName.trim() })
-      saveOnboardingStep('username')
+      if (!user) throw new Error("No authenticated user found")
+
+      const trimmedName = fullName.trim()
+      await supabase.from('user_profiles').upsert({ id: user.id, display_name: trimmedName })
+
+      saveOnboardingStep('username', { name: trimmedName })
       setStep('username')
     } catch (error: any) {
-      toast.error(error.message || "Error al guardar nombre")
+      toast.error(error.message || "Error al guardar nombre. Intenta de nuevo.")
+      saveOnboardingStep('name', { name: fullName.trim() })
     } finally {
       setLoadingAction(null)
     }
@@ -88,14 +101,24 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("No user found")
+      if (!user) throw new Error("No authenticated user found")
+
       const normalizedUsername = username.trim().toLowerCase()
-      await supabase.from('user_profiles').upsert({ id: user.id, username: normalizedUsername })
-      saveOnboardingStep('avatar')
+      const { error } = await supabase.from('user_profiles').upsert({ id: user.id, username: normalizedUsername })
+
+      if (error?.code === '23505') {
+        toast.error("Ese nombre de usuario ya está en uso")
+        saveOnboardingStep('username', { username: normalizedUsername })
+        return
+      }
+
+      if (error) throw error
+
+      saveOnboardingStep('avatar', { username: normalizedUsername })
       setStep('avatar')
     } catch (error: any) {
-      if (error.code === '23505') { toast.error("Ese nombre de usuario ya está en uso"); return }
-      toast.error(error.message || "Error al guardar usuario")
+      toast.error(error.message || "Error al guardar usuario. Intenta de nuevo.")
+      saveOnboardingStep('username', { username: username.trim() })
     } finally {
       setLoadingAction(null)
     }
@@ -104,22 +127,44 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const handleSaveAvatar = async () => {
     if (!avatarFile) return
     setLoadingAction('avatar')
-    const timeoutId = setTimeout(() => { toast.error("Upload taking too long"); setLoadingAction(null) }, 15000)
+    const timeoutId = setTimeout(() => {
+      toast.error("La carga está demorando demasiado. Intenta de nuevo.")
+      setLoadingAction(null)
+    }, 15000)
+
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("No user found")
+      if (!user) throw new Error("No authenticated user found")
+
       const ext = avatarFile.name.split('.').pop()
       const path = `${user.id}/avatar.${ext}`
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true })
-      if (uploadError) throw uploadError
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, avatarFile, { upsert: true })
+
+      if (uploadError) {
+        throw new Error(`Error al subir imagen: ${uploadError.message}`)
+      }
+
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await supabase.from('user_profiles').upsert({ id: user.id, image: publicUrl })
+
+      const { error: updateError } = await supabase.from('user_profiles').upsert({
+        id: user.id,
+        image: publicUrl,
+      })
+
+      if (updateError) {
+        throw new Error(`Error al guardar foto: ${updateError.message}`)
+      }
+
       clearTimeout(timeoutId)
       finishAuth()
     } catch (error: any) {
       clearTimeout(timeoutId)
-      toast.error(error.message || "Error al subir la foto")
+      toast.error(error.message || "Error al procesar la foto de perfil")
+      saveOnboardingStep('avatar')
       setLoadingAction(null)
     }
   }
