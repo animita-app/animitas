@@ -16,13 +16,11 @@ export function useInsightPresets(kindId?: string) {
 
   useEffect(() => {
     if (!kindId) {
-      console.log("[useInsightPresets] No kindId provided")
       setPresets([])
       setPresetsByCategory({})
       return
     }
 
-    console.log("[useInsightPresets] Fetching presets for kindId:", kindId)
     setIsLoading(true)
     setError(null)
     const supabase = createClient()
@@ -33,13 +31,11 @@ export function useInsightPresets(kindId?: string) {
       .eq("kind_id", kindId)
       .then(({ data, error }: any) => {
         if (error) {
-          console.error("[useInsightPresets] Fetch error:", error)
+          console.error("[useInsightPresets] Error:", error)
           setError(error.message)
           setPresets([])
           setPresetsByCategory({})
         } else if (data) {
-          console.log("[useInsightPresets] Presets loaded:", data)
-          console.log("[useInsightPresets] First preset sample:", data[0])
           setPresets(data)
           const byCategory: PresetsByCategory = {
             patrimonial: {},
@@ -47,7 +43,6 @@ export function useInsightPresets(kindId?: string) {
             memorial: {},
           }
           data.forEach((preset: any) => {
-            console.log("[useInsightPresets] Processing preset:", preset)
             const insightCategories = preset.insight_category
               ? [preset.insight_category]
               : ['patrimonial', 'spiritual', 'memorial']
@@ -62,10 +57,8 @@ export function useInsightPresets(kindId?: string) {
               byCategory[insightCat][preset.category].push(preset.label)
             })
           })
-          console.log("[useInsightPresets] Organized by insight category:", byCategory)
           setPresetsByCategory(byCategory)
         } else {
-          console.log("[useInsightPresets] No data returned")
           setPresets([])
           setPresetsByCategory({})
         }
@@ -74,12 +67,8 @@ export function useInsightPresets(kindId?: string) {
   }, [kindId])
 
   const addPreset = async (presetCategory: string, label: string, insightCategory: string = 'patrimonial') => {
-    if (!kindId) {
-      console.warn("[addPreset] No kindId available")
-      return false
-    }
+    if (!kindId) return false
 
-    console.log("[addPreset] Adding preset:", { presetCategory, label, insightCategory })
     const supabase = createClient()
     const { error } = await supabase.from("insight_presets").insert([
       {
@@ -92,11 +81,9 @@ export function useInsightPresets(kindId?: string) {
     ])
 
     if (error) {
-      console.error("[addPreset] Error adding insight preset:", error)
+      console.error("[addPreset] Error:", error)
       return false
     }
-
-    console.log("[addPreset] Successfully added preset")
     const newPreset: InsightPreset = {
       id: crypto.randomUUID(),
       kind_id: kindId,

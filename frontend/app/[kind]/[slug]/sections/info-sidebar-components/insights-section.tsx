@@ -35,9 +35,8 @@ export function InsightsSection({ site }: InsightsSectionProps) {
   const [openCategory, setOpenCategory] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const siteKind = site.kind?.slug || 'animita'
   const kindId = site.kind_id
-  const { presetsByCategory, isLoading: presetsLoading, addPreset, error: presetsError } = useInsightPresets(kindId)
+  const { presetsByCategory, isLoading: presetsLoading, addPreset } = useInsightPresets(kindId)
 
   const availableCategories = ['patrimonial', 'spiritual', 'memorial']
 
@@ -50,11 +49,6 @@ export function InsightsSection({ site }: InsightsSectionProps) {
     }
   }
 
-  if (presetsError) {
-    console.error("[InsightsSection] Presets error:", presetsError)
-  }
-  console.log("[InsightsSection] Rendering with:", { siteKind, kindId, availableCategories, presetsByCategory })
-
   useEffect(() => {
     const supabase = createClient()
     supabase
@@ -62,9 +56,9 @@ export function InsightsSection({ site }: InsightsSectionProps) {
       .select('*')
       .eq('site_id', site.id)
       .then(({ data, error }: any) => {
-        if (error) console.error('site_insights error:', error)
+        if (error) console.error('[InsightsSection] Failed to load insights:', error)
         if (data) {
-          console.log('Site insights loaded:', data)
+          console.log('[InsightsSection] Insights for site', site.id, ':', data)
           setActiveInsights(data)
         }
         setLoading(false)

@@ -88,16 +88,13 @@ export function AddForm({ onCancel }: AddFormProps) {
       })
 
       if (!insightRes.ok) {
-        console.warn('Insights API error:', insightRes.status)
         await new Promise(r => setTimeout(r, 1200))
       } else {
         const { insights } = await insightRes.json()
-        console.log('Extracted insights:', insights)
         setExtractedInsights(insights)
         await new Promise(r => setTimeout(r, 1500))
       }
     } catch (err) {
-      console.error('Insights extraction error:', err)
       await new Promise(r => setTimeout(r, 1200))
     }
 
@@ -137,10 +134,8 @@ export function AddForm({ onCancel }: AddFormProps) {
         })
       })
       const data = await res.json()
-      console.log('Heritage site created:', data)
 
       if (!res.ok) {
-        console.error('API error response:', data)
         throw new Error(data?.error || 'Error al crear la animita')
       }
 
@@ -151,6 +146,7 @@ export function AddForm({ onCancel }: AddFormProps) {
 
           if (extractedInsights.memorial?.death_cause) {
             insightsToInsert.push({
+              id: crypto.randomUUID(),
               site_id: data.id,
               category: 'memorial',
               label: extractedInsights.memorial.death_cause
@@ -159,6 +155,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           if (extractedInsights.memorial?.social_roles?.length) {
             extractedInsights.memorial.social_roles.forEach((role: string) => {
               insightsToInsert.push({
+                id: crypto.randomUUID(),
                 site_id: data.id,
                 category: 'memorial',
                 label: role
@@ -168,6 +165,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           if (extractedInsights.spiritual?.rituals_mentioned?.length) {
             extractedInsights.spiritual.rituals_mentioned.forEach((ritual: string) => {
               insightsToInsert.push({
+                id: crypto.randomUUID(),
                 site_id: data.id,
                 category: 'spiritual',
                 label: ritual
@@ -176,33 +174,33 @@ export function AddForm({ onCancel }: AddFormProps) {
           }
           if (extractedInsights.patrimonial?.form) {
             insightsToInsert.push({
+              id: crypto.randomUUID(),
               site_id: data.id,
               category: 'patrimonial',
               label: extractedInsights.patrimonial.form
             })
           }
 
-          console.log('Insights to insert:', insightsToInsert)
           if (insightsToInsert.length > 0) {
             const { error } = await supabase.from('site_insights').insert(insightsToInsert)
             if (error) {
-              console.error('Supabase error saving insights:', error)
+              console.error('[add-form] Failed to insert insights:', error.message)
             } else {
-              console.log('Insights saved to database:', insightsToInsert.length, 'items')
+              const { data: savedInsights } = await supabase
+                .from('site_insights')
+                .select('*')
+                .eq('site_id', data.id)
+              console.log('[add-form] Insights saved for site:', data.id, savedInsights)
             }
-          } else {
-            console.warn('No insights to insert from extracted data')
           }
         } catch (err) {
-          console.error('Error saving insights:', err)
+          console.error('[add-form] Error saving insights:', err)
         }
       }
 
       toast.success("¡Registrada!")
-      console.log('Navigating to:', `/${kind}/${data.slug}`)
       router.push(`/${kind}/${data.slug}`)
     } catch (err: any) {
-      console.error('Form submission error:', err)
       toast.error(err.message || "Error al crear la animita")
       setIsSubmitting(false)
     }
