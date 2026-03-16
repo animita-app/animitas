@@ -350,7 +350,7 @@ export function InlineEdit(props: InlineEditProps) {
           autoFocus
         />
       ) : (
-        <span onClick={startEdit} className={cn(!disabled && 'cursor-text', isInline ? 'inline' : 'block')}>
+        <span onClick={startEdit} className={cn(!disabled && 'cursor-text', isInline ? 'inline' : 'block', className)}>
           {(localValue as string) || <span className="opacity-50">{placeholder}</span>}
         </span>
       )}

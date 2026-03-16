@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from 'react'
-import { Camera, Loader2, Route } from 'lucide-react'
+import { Camera, Loader2, Plus } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { InlineEdit } from '@/components/ui/inline-edit'
@@ -11,6 +11,8 @@ import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
+import { RouteCard } from '@/components/cards/route-card'
+import { Button } from '@/components/ui/button'
 
 interface ProfileData {
   id: string
@@ -43,6 +45,33 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
       .eq('id', profile.id)
     if (error) throw error
     if (currentUser) setUser({ ...currentUser, name: value })
+  }
+
+  const createNewRoute = async () => {
+    if (!profile) return
+    setCreatingRoute(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('site_routes')
+        .insert({
+          title: 'Tú ruta',
+          description: null,
+          creator_id: profile.id,
+        })
+        .select('id, title, description, site_route_items(count, heritage_sites(images))')
+        .single()
+
+      if (error) throw error
+      if (data) {
+        setRoutes([data, ...routes])
+        toast.success('Ruta creada')
+      }
+    } catch {
+      toast.error('Error al crear la ruta')
+    } finally {
+      setCreatingRoute(false)
+    }
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,6 +122,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
   const [sites, setSites] = useState<any[]>([])
   const [routes, setRoutes] = useState<any[]>([])
   const [tabLoading, setTabLoading] = useState(true)
+  const [creatingRoute, setCreatingRoute] = useState(false)
 
   useEffect(() => {
     if (!profile) return
@@ -106,7 +136,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
           .order('created_at', { ascending: false }),
         supabase
           .from('site_routes')
-          .select('id, title, description, site_route_items(count)')
+          .select('id, title, description, site_route_items(count, heritage_sites(images))')
           .eq('creator_id', profile!.id)
           .order('created_at', { ascending: false }),
       ])
@@ -178,7 +208,6 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
         <p className="select-none -mt-3 text-base text-text-weak">
           @{profile.username}
-          {roleLabel && <><span className="mx-2">·</span>{roleLabel}</>}
         </p>
       </div>
 
@@ -216,31 +245,47 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
         <TabsContent value="routes">
           {tabLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-16 rounded-lg bg-background-weaker animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="aspect-square rounded-lg bg-background-weaker animate-pulse" />
               ))}
             </div>
           ) : routes.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {routes.map((r) => {
                 const itemCount = (r as any).site_route_items?.[0]?.count || 0
+                const routeItems = (r as any).site_route_items || []
+                const coverImages = routeItems
+                  .slice(0, 4)
+                  .map((item: any) => item.heritage_sites?.images?.[0])
+                  .filter(Boolean)
                 return (
-                  <div key={r.id} className="flex items-center gap-3 rounded-lg border border-border-weak p-3 hover:border-border transition-colors">
-                    <div className="size-10 rounded-md bg-background-weaker flex items-center justify-center shrink-0">
-                      <Route className="text-text-weak" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-text-strong truncate">{r.title}</p>
-                      <p className="text-xs text-text-weak">{itemCount} {itemCount === 1 ? 'sitio' : 'sitios'}</p>
-                    </div>
-                  </div>
+                  <RouteCard
+                    key={r.id}
+                    id={r.id}
+                    title={r.title}
+                    description={r.description}
+                    coverImages={coverImages}
+                    itemCount={itemCount}
+                  />
                 )
               })}
             </div>
+          ) : isOwnProfile ? (
+            <div className="flex items-center justify-center py-12">
+              <Button
+                onClick={createNewRoute}
+                disabled={creatingRoute}
+                variant="ghost"
+                className="flex items-center gap-2 text-text-weak hover:text-text-strong"
+              >
+                <Plus size={20} />
+                Nueva ruta
+              </Button>
+            </div>
           ) : (
             <div className="text-center py-12 text-sm text-text-weak">
-              {isOwnProfile ? 'Aún no has creado rutas.' : 'Sin rutas creadas.'}
+              Sin rutas creadas.
             </div>
           )}
         </TabsContent>

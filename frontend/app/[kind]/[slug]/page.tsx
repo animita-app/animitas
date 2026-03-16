@@ -16,18 +16,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { data } = await supabase
     .from('heritage_sites')
-    .select('title, heritage_kinds!kind_id(slug)')
+    .select('title, city_region, heritage_kinds!kind_id(name), heritage_site_categories(heritage_categories(name))')
     .eq('slug', slug)
     .single()
 
+  if (!data) {
+    return {
+      title: 'Sitio no encontrado',
+      description: 'El sitio que buscas no existe.',
+    }
+  }
+
+  const categoryNames = (data.heritage_site_categories as any[])?.map((c: any) => c.heritage_categories?.name).filter(Boolean) || []
+
+  const keywords = [
+    'animitas',
+    'Chile',
+    data.title,
+    data.city_region,
+    (data.heritage_kinds as any)?.[0]?.label || (data.heritage_kinds as any)?.label,
+    ...categoryNames
+  ].filter(Boolean)
+
   return {
-    title: data?.title,
-    description: `Conoce más sobre ${data?.title} en [ÁNIMA].`,
+    title: data.title,
+    description: `Conoce más sobre ${data.title}${data.city_region ? ` en ${data.city_region}` : ''} en [ÁNIMA].`,
+    keywords,
   }
 }
 
 export default async function SiteDetailPage({ params }: PageProps) {
-  const { slug, kind } = await params
+  const { slug } = await params
   const supabase = await createClient()
 
   // Fetch from Supabase

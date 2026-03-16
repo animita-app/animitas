@@ -153,7 +153,6 @@ export function AddForm({ onCancel }: AddFormProps) {
             insightsToInsert.push({
               site_id: data.id,
               category: 'memorial',
-              subcategory: 'death_cause',
               label: extractedInsights.memorial.death_cause
             })
           }
@@ -162,7 +161,6 @@ export function AddForm({ onCancel }: AddFormProps) {
               insightsToInsert.push({
                 site_id: data.id,
                 category: 'memorial',
-                subcategory: 'social_roles',
                 label: role
               })
             })
@@ -172,7 +170,6 @@ export function AddForm({ onCancel }: AddFormProps) {
               insightsToInsert.push({
                 site_id: data.id,
                 category: 'spiritual',
-                subcategory: 'rituals',
                 label: ritual
               })
             })
@@ -181,7 +178,6 @@ export function AddForm({ onCancel }: AddFormProps) {
             insightsToInsert.push({
               site_id: data.id,
               category: 'patrimonial',
-              subcategory: 'form',
               label: extractedInsights.patrimonial.form
             })
           }
@@ -302,10 +298,10 @@ export function AddForm({ onCancel }: AddFormProps) {
                 className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
                 disabled={isScanning}
               />
-              {isScanning && <LoadingOverlay />}
             </div>
           </div>
         </div>
+        {isScanning && <LoadingOverlay />}
       </div>
 
       {/* Bottom toolbar */}

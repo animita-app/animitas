@@ -108,7 +108,6 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
             const insightsToInsert = insightsData.insightsList.map((i: any) => ({
               site_id: site.id,
               category: i.category,
-              subcategory: i.subcategory,
               label: i.label
             }))
 

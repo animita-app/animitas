@@ -3,11 +3,10 @@
 import { useEffect, useRef, useState } from "react"
 import { Check, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react"
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxInput,
-  ComboboxTrigger,
-} from "@/components/ui/combobox"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
@@ -130,32 +129,18 @@ export function TwoLevelCombobox({
     !!activeCategoryKey &&
     !visibleItems.some(item => item.label.toLowerCase() === query.trim().toLowerCase())
 
-  const allValues = categories.flatMap(cat => cat.items.map(i => i.value))
-
   return (
-    <Combobox
-      items={allValues}
-      value={selectedValues}
-      onValueChange={() => {}}
-      multiple
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          setActiveCategoryKey(null)
-          setQuery("")
-          directionRef.current = null
-        }
-        onOpenChange(nextOpen)
-      }}
-    >
-      <ComboboxTrigger render={trigger} />
-      <ComboboxContent
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        {trigger}
+      </PopoverTrigger>
+      <PopoverContent
         align="start"
-        className={cn(contentWidth, "p-0 border-0 shadow-2xl overflow-hidden", contentClassName)}
+        className={cn(contentWidth, "dark p-0 border-0 shadow-2xl overflow-hidden", contentClassName)}
       >
         <div
           ref={containerRef}
-          className="flex flex-col w-full backdrop-blur-md rounded-md"
+          className="flex flex-col w-full bg-neutral-900 rounded-md"
           onKeyDown={handleListKeyDown}
           onKeyDownCapture={(e) => {
             if (!activeCategoryKey) return
@@ -175,27 +160,9 @@ export function TwoLevelCombobox({
             }
           }}
         >
-          <ComboboxInput
-            showTrigger={false}
-            placeholder="Buscar..."
-            autoFocus
-            value={query}
-            onChange={(e: any) => setQuery(e.target.value)}
-            className="!bg-neutral-900/50 !border-b-0 !border-b-transparent h-10 shrink-0"
-            onKeyDown={(e: any) => {
-              if (e.key === "ArrowDown") {
-                e.preventDefault()
-                focusFirstItem()
-                return
-              }
-              if (e.key === "Enter" && canCreateItem) {
-                e.preventDefault()
-                onCreateItem?.(query.trim(), activeCategoryKey ?? "")
-                setQuery("")
-              }
-            }}
-            customLeftSection={
-              activeCategoryKey ? (
+          <div className="relative h-10 shrink-0 flex items-center bg-neutral-800 border-b border-neutral-700 px-2">
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center pointer-events-auto">
+              {activeCategoryKey ? (
                 <button
                   onClick={navigateBack}
                   className="group size-6 flex items-center justify-center transition-all hover:bg-white/10 rounded-full cursor-pointer"
@@ -203,12 +170,30 @@ export function TwoLevelCombobox({
                   <ChevronLeft className="size-4 text-white/25 group-hover:text-white transition-colors" />
                 </button>
               ) : (
-                <div className="size-6 flex items-center justify-center">
-                  <Search className="size-4 text-white/25" />
-                </div>
-              )
-            }
-          />
+                <Search className="size-4 text-white/25" />
+              )}
+            </div>
+            <input
+              autoFocus
+              type="text"
+              placeholder="Buscar..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown") {
+                  e.preventDefault()
+                  focusFirstItem()
+                  return
+                }
+                if (e.key === "Enter" && canCreateItem) {
+                  e.preventDefault()
+                  onCreateItem?.(query.trim(), activeCategoryKey ?? "")
+                  setQuery("")
+                }
+              }}
+              className="flex-1 bg-transparent border-0 outline-none focus:ring-0 text-white pl-8 text-sm"
+            />
+          </div>
 
           <ScrollArea className="max-h-64">
             <div className="relative">
@@ -312,7 +297,7 @@ export function TwoLevelCombobox({
             </div>
           </ScrollArea>
         </div>
-      </ComboboxContent>
-    </Combobox>
+      </PopoverContent>
+    </Popover>
   )
 }

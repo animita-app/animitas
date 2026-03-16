@@ -61,7 +61,7 @@ export function UserDropdown() {
                 </Link>
               </DropdownMenuItem>
             )}
-            <DropdownMenuSub>
+            {/* <DropdownMenuSub>
               <DropdownMenuSubTrigger>Configuración</DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
@@ -95,7 +95,7 @@ export function UserDropdown() {
 
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
-            </DropdownMenuSub>
+            </DropdownMenuSub> */}
           </DropdownMenuGroup>
 
           <DropdownMenuGroup>

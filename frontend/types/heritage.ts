@@ -49,8 +49,17 @@ export interface SiteInsight {
   id: string
   site_id: string
   category: string
-  subcategory: string
   label: string
+  created_at?: string
+}
+
+// 5. Insight Preset (library of insights by kind)
+export interface InsightPreset {
+  id: string
+  kind_id: string
+  category: string
+  label: string
+  created_at: string
 }
 
 // Standardized Death Causes

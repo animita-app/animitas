@@ -65,7 +65,7 @@ export function MainInfo({ site }: MainInfoProps) {
           className={cn(
             "mt-4 text-sm leading-relaxed text-text-strong",
             isEditing && "-mb-4",
-            !isExpanded && "line-clamp-3"
+            !isExpanded && !isEditing && "line-clamp-3"
           )}
           {...editingProps}
         />
