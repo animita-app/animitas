@@ -182,6 +182,7 @@ export function AddForm({ onCancel }: AddFormProps) {
             })
           }
 
+          console.log('Insights to insert:', insightsToInsert)
           if (insightsToInsert.length > 0) {
             const { error } = await supabase.from('site_insights').insert(insightsToInsert)
             if (error) {
@@ -189,6 +190,8 @@ export function AddForm({ onCancel }: AddFormProps) {
             } else {
               console.log('Insights saved to database:', insightsToInsert.length, 'items')
             }
+          } else {
+            console.warn('No insights to insert from extracted data')
           }
         } catch (err) {
           console.error('Error saving insights:', err)
@@ -196,8 +199,8 @@ export function AddForm({ onCancel }: AddFormProps) {
       }
 
       toast.success("¡Registrada!")
-      console.log('Navigating to:', `/animita/${data.slug}`)
-      router.push(`/animita/${data.slug}`)
+      console.log('Navigating to:', `/${kind}/${data.slug}`)
+      router.push(`/${kind}/${data.slug}`)
     } catch (err: any) {
       console.error('Form submission error:', err)
       toast.error(err.message || "Error al crear la animita")
