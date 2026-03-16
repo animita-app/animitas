@@ -13,6 +13,14 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Camera } from "lucide-react"
 import { clearAuthCookies } from "@/lib/auth-utils"
 import { StepLayout } from "@/components/forms/atoms/step-layout"
+import {
+  saveOnboardingStep,
+  getSavedOnboardingStep,
+  getRecoveryState,
+  clearOnboardingData,
+  isOnboardingStale,
+  getNextStep,
+} from "@/lib/onboarding-recovery"
 
 interface LoginFormProps {
   onSuccess?: () => void
