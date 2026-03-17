@@ -3,6 +3,7 @@
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 import { cn } from "@/lib/utils"
 
@@ -30,6 +31,7 @@ function DropdownMenu({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root> & {
   openOnHover?: boolean
 }) {
+  const isMobile = useIsMobile()
   const {
     defaultOpen,
     open: controlledOpen,
@@ -46,21 +48,23 @@ function DropdownMenu({
     ? setControlledOpen ?? (() => { })
     : (setUncontrolledOpen as (open: boolean) => void), [isControlled, setControlledOpen, setUncontrolledOpen])
 
+  const effectiveOpenOnHover = openOnHover && !isMobile
+
   const [triggerRect, setTriggerRect] = React.useState<DOMRect | null>(null)
   const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onMouseEnter = React.useCallback(() => {
-    if (!openOnHover) return
+    if (!effectiveOpenOnHover) return
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
     setOpen(true)
-  }, [openOnHover, setOpen])
+  }, [effectiveOpenOnHover, setOpen])
 
   const onMouseLeave = React.useCallback(() => {
-    if (!openOnHover) return
+    if (!effectiveOpenOnHover) return
     timeoutRef.current = setTimeout(() => {
       setOpen(false)
     }, 50)
-  }, [openOnHover, setOpen])
+  }, [effectiveOpenOnHover, setOpen])
 
   React.useEffect(() => {
     return () => {
@@ -72,7 +76,7 @@ function DropdownMenu({
     <DropdownMenuContext.Provider
       value={{
         open,
-        openOnHover,
+        openOnHover: effectiveOpenOnHover,
         setOpen: setOpen as (open: boolean) => void,
         onMouseEnter,
         onMouseLeave,
@@ -84,7 +88,7 @@ function DropdownMenu({
         data-slot="dropdown-menu"
         open={open}
         onOpenChange={setOpen}
-        modal={openOnHover ? false : modal}
+        modal={effectiveOpenOnHover ? false : modal}
         {...rest}
       />
     </DropdownMenuContext.Provider>
@@ -139,7 +143,7 @@ function DropdownMenuContent({
       const timer = setTimeout(updateRect, 50)
       return () => clearTimeout(timer)
     }
-  }, [open]) // Re-run when it opens/closes
+  }, [open])
 
   return (
     <DropdownMenuPrimitive.Portal>

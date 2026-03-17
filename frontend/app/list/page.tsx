@@ -1,6 +1,6 @@
 'use client'
 import { useMemo, useState } from 'react'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
 import { cn } from '@/lib/utils'
 

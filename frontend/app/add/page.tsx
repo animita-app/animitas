@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function AddPage() {
   return (
     <div className="flex h-full w-full items-center justify-center bg-background-weak p-6">
-      <div className="w-full max-w-lg h-[60vh] bg-background rounded-xl shadow-sm overflow-hidden flex flex-col border border-border-weak">
+      <div className="w-full max-w-lg h-[80vh] md:h-[60vh] bg-background rounded-xl shadow-sm overflow-hidden flex flex-col border border-border-weak">
         <AddForm />
       </div>
     </div>

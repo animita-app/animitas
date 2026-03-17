@@ -4,17 +4,17 @@ import { LayerItem } from './layers/layer-item'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-
 import { LayerMetrics } from './layers/layer-metrics'
-
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Plus } from 'lucide-react'
 import { cn } from "@/lib/utils"
+import { useSpatialContext } from '@/contexts/spatial-context'
+import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
+import { Badge } from '@/components/ui/badge'
 
 interface LegendProps {
   layers: Layer[]
@@ -32,6 +32,8 @@ export function Legend({
   onToggleVisibility,
   className
 }: LegendProps) {
+  const { filters, toggleFilter } = useSpatialContext()
+  const { categories, kinds } = useHeritageTaxonomy()
   const allItems = [...layers, ...elements]
 
   // Categorize layers
@@ -77,6 +79,60 @@ export function Legend({
       <CardHeader className="sr-only">
         <CardTitle>Capas</CardTitle>
       </CardHeader>
+
+      <div className="p-2 border-b border-border-weak space-y-2">
+        {kinds.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-text-weak mb-2">Tipo</p>
+            <div className="flex flex-wrap gap-1.5">
+              {kinds.map((kind) => {
+                const isActive = filters.kind?.includes(kind.slug)
+                return (
+                  <Badge
+                    key={kind.id}
+                    variant={isActive ? 'default' : 'outline'}
+                    className={cn(
+                      "cursor-pointer text-xs transition-colors",
+                      isActive
+                        ? "bg-accent text-primary-foreground"
+                        : "text-text hover:bg-background-weak"
+                    )}
+                    onClick={() => toggleFilter('kind', kind.slug)}
+                  >
+                    {kind.name}
+                  </Badge>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {categories.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-text-weak mb-2">Categoría</p>
+            <div className="flex flex-wrap gap-1.5">
+              {categories.map((category) => {
+                const isActive = filters.category?.includes(category.slug)
+                return (
+                  <Badge
+                    key={category.id}
+                    variant={isActive ? 'default' : 'outline'}
+                    className={cn(
+                      "cursor-pointer text-xs transition-colors",
+                      isActive
+                        ? "bg-accent text-primary-foreground"
+                        : "text-text hover:bg-background-weak"
+                    )}
+                    onClick={() => toggleFilter('category', category.slug)}
+                  >
+                    {category.name}
+                  </Badge>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="p-2 space-y-1">

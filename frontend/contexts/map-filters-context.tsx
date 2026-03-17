@@ -37,7 +37,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [activeAreaLabel, setActiveAreaLabel] = useState<string | null>(null)
   const [showResearchPanel, setShowResearchPanel] = useState(false)
   const [mapResetToken, setMapResetToken] = useState(0)
-  const [filters, setFilters] = useState<Record<string, string[]>>({})
+  const [filters, setFilters] = useState<Record<string, string[]>>({ kind: ['santuarios'] })
   const [syntheticSites, setSyntheticSites] = useState<any[]>([])
   const [dbSites, setDbSites] = useState<any[]>([])
 
@@ -50,7 +50,13 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
         const { data, error } = await supabase
           .from('heritage_sites')
-          .select('*, heritage_kinds!kind_id(slug)')
+          .select(`
+            *,
+            heritage_kinds!kind_id(slug, name),
+            heritage_site_categories(
+              heritage_categories(slug, name)
+            )
+          `)
           .eq('status', 'published')
 
         if (error) {
@@ -74,11 +80,15 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
               }
             }
 
+            const categories = (site.heritage_site_categories || []).map((junc: any) => junc.heritage_categories?.slug).filter(Boolean)
+
             return {
               ...site,
               location,
               rawGeometry,
-              kind: (site.heritage_kinds as any)?.slug || 'animita'
+              kind: (site.heritage_kinds as any)?.slug || 'santuarios',
+              category: categories.length > 0 ? categories[0] : null,
+              categories
             }
           })
           setDbSites(normalized)
@@ -185,7 +195,14 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
     // 2. Attribute Filters
     Object.entries(filters).forEach(([attr, values]) => {
       if (values.length > 0) {
-        data = data.filter(item => values.includes(String((item as any)[attr])))
+        if (attr === 'category') {
+          data = data.filter(item => {
+            const itemCategories = (item as any).categories || []
+            return itemCategories.some((cat: string) => values.includes(cat))
+          })
+        } else {
+          data = data.filter(item => values.includes(String((item as any)[attr])))
+        }
       }
     })
 

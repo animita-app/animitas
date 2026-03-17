@@ -96,11 +96,11 @@ function DrawerContentFloating({
       >
         <div
           onClick={onHandleClick}
-          className="bg-accent absolute left-1/2 -top-6 -translate-x-1/2 z-50 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block transition-opacity duration-300 group-[.drawer-expanded]/drawer-content:opacity-0 cursor-pointer"
+          className="bg-accent absolute left-1/2 -top-12 -translate-x-1/2 z-50 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block transition-opacity duration-300 group-data-[expanded=true]/drawer-content:opacity-0 cursor-pointer before:absolute before:inset-x-0 before:-top-4 before:h-8"
         />
         <div
           onClick={onHandleClick}
-          className="bg-neutral-300 mx-auto mt-4 mb-2 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block cursor-pointer"
+          className="bg-neutral-300 mx-auto mt-4 mb-2 h-1.5 w-16 shrink-0 rounded-full group-data-[vaul-drawer-direction=bottom]/drawer-content:block cursor-pointer before:absolute before:inset-x-0 before:-top-2 before:h-8 before:left-0"
         />
         {children}
       </DrawerPrimitive.Content>

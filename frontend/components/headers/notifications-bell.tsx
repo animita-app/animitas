@@ -117,7 +117,7 @@ export function NotificationsBell() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative text-text-weak">
+        <Button variant="ghost" size="icon" className="hidden md:flex relative text-text-weak">
           <Bell />
           {hasUnread && (
             <span className="absolute top-1 right-1.5 size-2.5 bg-accent rounded-full border-[2px] border-background" />

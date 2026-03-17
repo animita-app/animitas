@@ -7,8 +7,6 @@ export function useHeaderPanelWidths(isMobile?: boolean, searchActive?: boolean)
   const [searchWidth, setSearchWidth] = useState(isMobile ? 250 : 340)
 
   useEffect(() => {
-    if (!tabsRef.current || !searchRef.current) return
-
     const measureWidths = () => {
       if (tabsRef.current) {
         const w = Math.ceil(tabsRef.current.scrollWidth) + 14
@@ -20,7 +18,7 @@ export function useHeaderPanelWidths(isMobile?: boolean, searchActive?: boolean)
       }
     }
 
-    const timer = setTimeout(measureWidths, 100)
+    const timer = setTimeout(measureWidths, 0)
 
     return () => clearTimeout(timer)
   }, [isMobile])

@@ -12,7 +12,6 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Plus } from 'lucide-react'
 import { useUser } from '@/contexts/user-context'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
@@ -60,11 +59,12 @@ export function Header() {
 
   if (isSiteDetailRoute) return null
 
-  const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list' || pathname === '/add' || pathname === '/auth'
+  const isFixedHeader = pathname === '/' || pathname === '/map' || pathname === '/list' || pathname === '/add' || pathname === '/auth'
+  const showMainPanel = pathname === '/' || pathname === '/map' || pathname === '/list'
 
   return (
     <header className={cn(
-      isMapRoute ? "fixed" : "sticky",
+      isFixedHeader ? "fixed" : "sticky",
       "top-0 left-0 right-0 z-50 pointer-events-none w-full",
     )}>
       <div className="bg-transparent flex items-center justify-between p-4 w-full h-14 pointer-events-auto">
@@ -94,7 +94,7 @@ export function Header() {
         </div>
 
         {/* Center: Tabs + Filters/Search */}
-        {isMapRoute && (
+        {showMainPanel && (
           <div className="absolute left-1/2 -translate-x-1/2 transition-all duration-150">
             <MainHeaderPanel onSearchActiveChange={setSearchActive} />
           </div>

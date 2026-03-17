@@ -68,23 +68,23 @@ export const HERITAGE_SITE_METRICS: Component[] = [
   {
     id: 'default-stat',
     type: 'statistic',
-    title: 'Total animitas',
+    title: 'Total sitios',
     visible: true,
     config: { stat: 'count' }
   },
   {
-    id: 'death-cause-chart',
+    id: 'kind-chart',
     type: 'bar_chart',
-    title: 'Causa de muerte',
+    title: 'Por Tipo',
     visible: true,
-    config: { horizontalAxis: 'death_cause', stat: 'count' }
+    config: { horizontalAxis: 'kind', stat: 'count' }
   },
   {
-    id: 'antiquity-hist',
-    type: 'histogram',
-    title: 'Antigüedad (Años)',
+    id: 'city-chart',
+    type: 'bar_chart',
+    title: 'Por Ciudad',
     visible: true,
-    config: { horizontalAxis: 'antiquity_year', bins: 50, verticalAxis: 'count' }
+    config: { horizontalAxis: 'city_region', stat: 'count' }
   }
 ]
 

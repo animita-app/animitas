@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { SpatialProvider } from '@/contexts/spatial-context'
+import { SpatialProvider } from '@/contexts/map-filters-context'
 import { UserProvider } from '@/contexts/user-context'
 
 export function Providers({

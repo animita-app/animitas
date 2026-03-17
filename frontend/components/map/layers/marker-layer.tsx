@@ -349,11 +349,9 @@ export function MarkerLayer({
                     isActive ? "scale-110 drop-shadow-xl" : "scale-100 drop-shadow-md hover:scale-105"
                   )}
                 >
-                  <div className="relative rounded-full bg-background p-1 border shadow-xs border-border/50">
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-[6px] border-transparent border-t-background border-t-[8px]" />
-                    
+                  <div className="relative border-2 border-white shadow-md">
                     {site.images && site.images.length > 0 ? (
-                      <div className="w-9 h-9 overflow-hidden rounded-full bg-muted">
+                      <div className="w-9 h-9 overflow-hidden bg-muted">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={site.images[0]}
@@ -362,7 +360,7 @@ export function MarkerLayer({
                         />
                       </div>
                     ) : (
-                      <div className="w-9 h-9 flex items-center justify-center rounded-full bg-[#00e]/10 text-[#00e]">
+                      <div className="w-9 h-9 flex items-center justify-center bg-background">
                         <MapPin className="size-4" />
                       </div>
                     )}
