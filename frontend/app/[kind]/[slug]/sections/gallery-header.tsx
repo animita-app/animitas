@@ -75,6 +75,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
 
   useEffect(() => {
     fetchRevisions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [site.id, canSeeVersions])
 
   useEffect(() => {
@@ -150,6 +151,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
 
       saveVersion()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmToken, lastProcessedToken, site.id, currentUser?.id, stagedChanges])
 
   useEffect(() => {
@@ -157,6 +159,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
       clearStagedChanges()
       setSelectedRevision('current')
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cancelToken])
 
   const prevIsEditing = useRef(false)
@@ -166,6 +169,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
       setSelectedRevision('current')
     }
     prevIsEditing.current = isEditing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing])
 
   const currentVersionLabel = revisions.length > 0

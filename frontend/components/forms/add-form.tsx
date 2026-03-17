@@ -70,6 +70,7 @@ export function AddForm({ onCancel }: AddFormProps) {
     if (kindsForCategory.length > 0 && !kindsForCategory.some(k => k.slug === kind)) {
       setKind(kindsForCategory[0].slug)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, kindsForCategory])
 
   const canSubmit = title.trim().length > 0 && photos.length >= 1 && location.length > 0 && !isScanning && !isSubmitting

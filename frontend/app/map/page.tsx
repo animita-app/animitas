@@ -10,6 +10,7 @@ export default function MapaPage() {
   const pathname = usePathname()
   const params = useParams()
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
 
   if (!mapboxToken) {
     return (
@@ -23,7 +24,6 @@ export default function MapaPage() {
   }
 
   const focusedMemorialId = pathname?.startsWith('/animita/') ? (params?.id as string) : null
-  const [analysisData, setAnalysisData] = useState<AnalysisResult | null>(null)
 
   return (
     <div className="h-screen w-screen relative overflow-hidden">

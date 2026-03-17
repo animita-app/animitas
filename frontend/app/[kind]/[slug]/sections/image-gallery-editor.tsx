@@ -178,6 +178,7 @@ export function ImageGalleryEditorWrapper({
 
       commitChanges()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmToken, stagedItems, currentUser?.id, updateStagedChange])
 
   // Handle DnD

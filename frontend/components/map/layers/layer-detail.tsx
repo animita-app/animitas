@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, MoreHorizontal, Settings2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,8 @@ import { AnalysisTab } from './tabs/analysis-tab'
 
 import { cn } from "@/lib/utils"
 import { useIsMobile } from '../../../hooks/use-mobile'
+import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
+import { useSpatialContext } from '@/contexts/spatial-context'
 
 interface LayerDetailProps {
   selectedLayer: Layer
@@ -61,6 +63,8 @@ export function LayerDetail({
 }: LayerDetailProps) {
   const router = useRouter()
   const isMobile = useIsMobile()
+  const { categories, kinds } = useHeritageTaxonomy()
+  const { filters, setFilter } = useSpatialContext()
   const [activeTab, setActiveTab] = useState<string>('style')
   const [gisOperation, setGisOperation] = useState<GISOperation | ''>('')
   const [gisRadius, setGisRadius] = useState(0.5)
@@ -81,6 +85,62 @@ export function LayerDetail({
   const [showLimitAlert, setShowLimitAlert] = useState(false)
 
   const { role } = useUser()
+
+  useEffect(() => {
+    if (selectedLayer.id === 'heritage_sites' && (!selectedLayer.components || selectedLayer.components.length === 0)) {
+      const defaultComponents: Component[] = [
+        {
+          id: 'default-stat',
+          type: 'insight',
+          title: 'Total de Sitios',
+          visible: true,
+          config: {
+            metric: 'count',
+            visualization: 'stat',
+            filters: [],
+            showAxisLabels: true,
+            showZeros: false,
+            sortBy: 'alphabetical'
+          }
+        },
+        {
+          id: 'kind-chart',
+          type: 'insight',
+          title: 'Por Tipo',
+          visible: true,
+          config: {
+            metric: 'count',
+            visualization: 'bar',
+            filters: [],
+            groupBy: 'kind',
+            showAxisLabels: true,
+            showZeros: false,
+            sortBy: 'alphabetical'
+          }
+        },
+        {
+          id: 'city-chart',
+          type: 'insight',
+          title: 'Por Ciudad',
+          visible: true,
+          config: {
+            metric: 'count',
+            visualization: 'bar',
+            filters: [],
+            groupBy: 'city_region',
+            showAxisLabels: true,
+            showZeros: false,
+            sortBy: 'alphabetical'
+          }
+        }
+      ]
+
+      onUpdateLayer({
+        ...selectedLayer,
+        components: defaultComponents
+      })
+    }
+  }, [selectedLayer.id, selectedLayer, onUpdateLayer])
 
   const openComponentForm = (component?: Component) => {
     if (component) {

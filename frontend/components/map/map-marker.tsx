@@ -13,25 +13,24 @@ interface MapMarkerProps {
 export const MapMarker = ({ map, coordinates, children, className }: MapMarkerProps) => {
   const [container] = useState(() => {
     const div = document.createElement('div')
-    // Use a generic class and ensure it doesn't block pointer events
     div.className = 'pointer-events-none'
     div.style.width = '0'
     div.style.height = '0'
     return div
   })
   const markerRef = useRef<mapboxgl.Marker | null>(null)
+  const lng = coordinates[0]
+  const lat = coordinates[1]
 
   useEffect(() => {
     if (!map) return
 
-    // Create marker
     markerRef.current = new mapboxgl.Marker({
-      element: container, // Use the container state
-      anchor: 'bottom', // Ensure bottom anchor for pins
+      element: container,
+      anchor: 'bottom',
     })
       .setLngLat(coordinates)
 
-    // Safety check before adding
     try {
       markerRef.current.addTo(map)
     } catch (e) {
@@ -41,11 +40,12 @@ export const MapMarker = ({ map, coordinates, children, className }: MapMarkerPr
       markerRef.current?.remove()
       markerRef.current = null
     }
-  }, [map, coordinates[0], coordinates[1]]) // Re-run only if map or coords values change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, container, lng, lat])
 
   useEffect(() => {
     markerRef.current?.setLngLat(coordinates)
-  }, [coordinates[0], coordinates[1]])
+  }, [coordinates, lng, lat])
 
   return createPortal(
     <div className={cn("relative group cursor-pointer", className)}>

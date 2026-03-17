@@ -68,6 +68,7 @@ export default function MapboxMap({
   const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['death_cause'])
   const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
   const [currentZoom, setCurrentZoom] = useState<number>(0)
+  const [drawerSnapPoint, setDrawerSnapPoint] = useState<number | string | null>(0.06)
 
   const [isSearching, setIsSearching] = useState(false)
   const [hasMoved, setHasMoved] = useState(false)
@@ -115,24 +116,24 @@ export default function MapboxMap({
   const initialViewState = useRef<{ zoom: number, center: { lng: number, lat: number } } | null>(null)
 
   useEffect(() => {
-    if (!map.current || !isMapReady) return
+    const currentMap = map.current
+    if (!currentMap || !isMapReady) return
 
-    // Capture initial state
     if (!initialViewState.current) {
-      const center = map.current.getCenter()
+      const center = currentMap.getCenter()
       initialViewState.current = {
-        zoom: map.current.getZoom(),
+        zoom: currentMap.getZoom(),
         center: { lng: center.lng, lat: center.lat }
       }
     }
 
-    const updateZoom = () => setCurrentZoom(map.current!.getZoom())
+    const updateZoom = () => setCurrentZoom(currentMap.getZoom())
 
     const checkMovement = () => {
       if (!initialViewState.current) return
 
-      const currentZoom = map.current!.getZoom()
-      const currentCenter = map.current!.getCenter()
+      const currentZoom = currentMap.getZoom()
+      const currentCenter = currentMap.getCenter()
 
       const isZoomSame = Math.abs(currentZoom - initialViewState.current.zoom) < 0.5
       const isCenterSame = Math.abs(currentCenter.lng - initialViewState.current.center.lng) < 0.1 &&
@@ -141,22 +142,24 @@ export default function MapboxMap({
       setHasMoved(!isZoomSame || !isCenterSame)
     }
 
-    map.current.on('zoom', updateZoom)
-    map.current.on('moveend', checkMovement)
-    // Also check on zoomend since moveend might not fire for pure pinch-zoom sometimes? Usually it does.
+    currentMap.on('zoom', updateZoom)
+    currentMap.on('moveend', checkMovement)
 
     updateZoom()
 
     return () => {
-      map.current?.off('zoom', updateZoom)
-      map.current?.off('moveend', checkMovement)
+      currentMap.off('zoom', updateZoom)
+      currentMap.off('moveend', checkMovement)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMapReady])
 
   useEffect(() => {
-    if (mapResetToken > 0 && map.current && isMapReady) {
+    const currentMap = map.current
+    if (mapResetToken > 0 && currentMap && isMapReady) {
       handleResetView()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapResetToken, isMapReady])
 
 
@@ -368,11 +371,11 @@ export default function MapboxMap({
         <Button
           size="icon"
           variant="secondary"
-          className="absolute bottom-8 md:bottom-4 right-4 z-10 shadow-xs"
+          className="!bg-accent hover:!bg-accent absolute bottom-8 md:bottom-4 right-4 z-10 shadow-xs"
           onClick={handleResetView}
           title="Restablecer Vista"
         >
-          <MousePointer2 className="size-4 rotate-90 stroke-[0.5px] fill-white" />
+          <MousePointer2 className="size-4 rotate-90 fill-white" />
         </Button>
       )}
 
@@ -406,8 +409,8 @@ export default function MapboxMap({
       {isMobile && (
         <Drawer
           snapPoints={[0.06, 1]}
-          activeSnapPoint={0.06}
-          setActiveSnapPoint={() => {}}
+          activeSnapPoint={drawerSnapPoint}
+          setActiveSnapPoint={setDrawerSnapPoint}
           open={true}
           modal={false}
           onOpenChange={() => {}}
@@ -418,8 +421,11 @@ export default function MapboxMap({
           </DrawerHeader>
           <DrawerContentFloating
             className="w-screen"
-            onHandleClick={() => {}}
+            onHandleClick={() => {
+              setDrawerSnapPoint(prev => prev === 0.06 ? 1 : 0.06)
+            }}
             showOverlay={false}
+            data-expanded={drawerSnapPoint === 1}
           >
             <div className="flex-1 justify-between overflow-y-auto w-full px-0 pb-0 space-y-4">
               <Legend

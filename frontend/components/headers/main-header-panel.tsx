@@ -219,9 +219,9 @@ export function MainHeaderPanel({ onSearchActiveChange }: MainHeaderPanelProps) 
   const { categories, kinds } = useHeritageTaxonomy()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
 
-  const activeCategories = filters.category || []
-  const activeKinds = filters.kind || []
-  const activeCities = filters.city_region || []
+  const activeCategories = useMemo(() => filters.category || [], [filters.category])
+  const activeKinds = useMemo(() => filters.kind || [], [filters.kind])
+  const activeCities = useMemo(() => filters.city_region || [], [filters.city_region])
 
   const categoryOptions = useMemo<FilterOption[]>(() =>
     categories.map(cat => ({ value: cat.slug, label: cat.name })),

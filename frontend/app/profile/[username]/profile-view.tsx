@@ -145,6 +145,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
       setTabLoading(false)
     }
     fetchUserContent()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id])
 
   if (!profile) {

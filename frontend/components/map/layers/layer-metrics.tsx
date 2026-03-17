@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { useSpatialContext } from '@/contexts/spatial-context'
+import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Layer, Component, HERITAGE_SITE_METRICS, InsightConfig, ComponentType } from "@/components/map/types"
@@ -14,35 +15,14 @@ interface LayerMetricsProps {
 }
 
 export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
-  // Get data source based on layer type
-  // @ts-ignore
-  const { filteredData, filters, toggleFilter, activeArea, syntheticSites } = useSpatialContext()
+  const { filteredData, filters, toggleFilter, activeArea } = useSpatialContext()
 
-  // Get data source based on layer type
   const data = useMemo(() => {
     if (selectedLayer.id === 'heritage_sites') {
-      // Use syntheticSites filtered ONLY by activeArea (spatial), ignoring attribute filters
-      // This ensures charts show all available options in the current area, even when an attribute filter is active.
-      let baseData = syntheticSites || []
-
-      if (activeArea) {
-        baseData = baseData.filter(site => {
-          const pt = point([site.location.lng, site.location.lat])
-          return booleanPointInPolygon(pt, activeArea as any)
-        })
-      }
-
-      // Map data to include flattened properties for charts
-      return baseData.map(site => ({
-        ...site,
-        death_cause: site.insights?.memorial?.death_cause || 'unknown',
-        antiquity_year: site.insights?.patrimonial?.antiquity_year || 0,
-        size: site.insights?.patrimonial?.size || 'unknown'
-      }))
+      return filteredData || []
     }
-    // For other layers, we might not have data readily available in this context yet
     return []
-  }, [selectedLayer, activeArea, syntheticSites]) // Added syntheticSites dependency
+  }, [selectedLayer, filteredData])
 
   // Define default components for animitas if none are provided
   const componentsToRender = useMemo(() => {
@@ -50,7 +30,7 @@ export function LayerMetrics({ selectedLayer }: LayerMetricsProps) {
       return HERITAGE_SITE_METRICS
     }
     return selectedLayer.components || []
-  }, [selectedLayer, filteredData])
+  }, [selectedLayer])
 
   const renderComponent = (component: Component) => {
     if (!component.visible) return null
@@ -122,9 +102,9 @@ function InsightCard({ component, data }: { component: Component, data: any[] })
 
 function StatisticCard({ component, data: rawData }: { component: Component, data: any[] }) {
   const { config } = component
-  const { filteredData } = useSpatialContext()
+  const { filteredData, filters } = useSpatialContext()
+  const { kinds } = useHeritageTaxonomy()
 
-  // Use filteredData from context to reflect all active filters
   const data = filteredData
 
   const value = useMemo(() => {
@@ -150,10 +130,19 @@ function StatisticCard({ component, data: rawData }: { component: Component, dat
     }
   }, [data, config])
 
+  const displayTitle = useMemo(() => {
+    const activeKinds = filters.kind
+    if (activeKinds && activeKinds.length === 1) {
+      const kindLabel = kinds.find(k => k.slug === activeKinds[0])?.name || 'Sitios'
+      return `Total ${kindLabel}`
+    }
+    return component.title || 'Estadística'
+  }, [filters.kind, kinds, component.title])
+
   return (
     <div className="space-y-2 pt-2">
       <Label>
-        {component.title || 'Estadística'}
+        {displayTitle}
       </Label>
       <div className="space-y-1 text-sm">
         <div
@@ -171,35 +160,33 @@ function StatisticCard({ component, data: rawData }: { component: Component, dat
 
 import { MultiProgress, ProgressSegment } from '@/components/ui/multi-progress'
 
+const NEUTRAL_COLORS = [
+  '#171717', // neutral-900
+  '#262626', // neutral-800
+  '#404040', // neutral-700
+  '#525252', // neutral-600
+  '#737373', // neutral-500
+  '#a3a3a3', // neutral-400
+  '#d4d4d4', // neutral-300
+  '#e5e5e5', // neutral-200
+  '#f5f5f5', // neutral-100
+]
+
+const BLUE_COLORS = [
+  '#1e3a8a', // blue-900
+  '#1e40af', // blue-800
+  '#1d4ed8', // blue-700
+  '#2563eb', // blue-600
+  '#3b82f6', // blue-500
+  '#60a5fa', // blue-400
+  '#93c5fd', // blue-300
+  '#bfdbfe', // blue-200
+  '#dbeafe', // blue-100
+]
+
 function BarChartCard({ component, data }: { component: Component, data: any[] }) {
   const { config } = component
   const { filters, toggleFilter } = useSpatialContext()
-
-  // Neutral color palette (expanded)
-  const NEUTRAL_COLORS = [
-    '#171717', // neutral-900
-    '#262626', // neutral-800
-    '#404040', // neutral-700
-    '#525252', // neutral-600
-    '#737373', // neutral-500
-    '#a3a3a3', // neutral-400
-    '#d4d4d4', // neutral-300
-    '#e5e5e5', // neutral-200
-    '#f5f5f5', // neutral-100
-  ]
-
-  // Blue color palette (expanded)
-  const BLUE_COLORS = [
-    '#1e3a8a', // blue-900
-    '#1e40af', // blue-800
-    '#1d4ed8', // blue-700
-    '#2563eb', // blue-600
-    '#3b82f6', // blue-500
-    '#60a5fa', // blue-400
-    '#93c5fd', // blue-300
-    '#bfdbfe', // blue-200
-    '#dbeafe', // blue-100
-  ]
 
   // @ts-ignore
   const horizontalAxis = config.horizontalAxis || config.verticalAxis
@@ -279,7 +266,7 @@ function BarChartCard({ component, data }: { component: Component, data: any[] }
 
     return { rows: processedRows, segmentColors: { neutral: neutralColors, blue: blueColors } }
 
-  }, [data, chartData, config, horizontalAxis, groupBy])
+  }, [data, chartData, horizontalAxis, groupBy])
 
   if (rows.length === 0) return null
 
