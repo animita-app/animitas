@@ -145,7 +145,7 @@ export function MarkerLayer({
     if (isZoomedIn || !map) return sitesToRender.map(s => ({ sites: [s], center: s.location }))
 
     const clusters: { sites: typeof visibleSites; center: { lat: number; lng: number } }[] = []
-    const clusterRadius = 5 / Math.pow(2, currentZoom) // Adaptive cluster radius based on zoom
+    const clusterRadius = 7 / Math.pow(2, currentZoom) // Adaptive cluster radius based on zoom
     const processed = new Set<string>()
 
     sitesToRender.forEach(site => {
@@ -257,12 +257,21 @@ export function MarkerLayer({
                   </div>
                 </Link>
               </div>
+            ) : isSingleSite ? (
+              <Link href={href} prefetch={false}>
+                <div
+                  className="rounded-full border-[1.5px] border-[#00e] cursor-pointer shadow-md flex items-center justify-center font-medium text-[#00e] transition-all"
+                  style={{ width: `${clusterSize_px}px`, height: `${clusterSize_px}px`, fontSize: `${fontSize}px` }}
+                >
+                  <div className="rounded-full bg-[#00e]" style={{ width: `${clusterSize_px * 0.25}px`, height: `${clusterSize_px * 0.25}px` }} />
+                </div>
+              </Link>
             ) : (
               <div
                 className="rounded-full border-[1.5px] border-[#00e] cursor-pointer shadow-md flex items-center justify-center font-medium text-[#00e] transition-all"
                 style={{ width: `${clusterSize_px}px`, height: `${clusterSize_px}px`, fontSize: `${fontSize}px` }}
               >
-                {clusterSize === 1 ? <div className="rounded-full bg-[#00e]" style={{ width: `${clusterSize_px * 0.25}px`, height: `${clusterSize_px * 0.25}px` }} /> : clusterSize}
+                {clusterSize}
               </div>
             )}
           </MapMarker>
