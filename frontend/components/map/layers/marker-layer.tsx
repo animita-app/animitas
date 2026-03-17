@@ -1,12 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { COLORS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/heritage'
 import { MapMarker } from '../map-marker'
-import { Button } from '@/components/ui/button'
-import { ArrowUpRight, MapPin } from 'lucide-react'
+import { MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface MarkerLayerProps {
@@ -20,15 +19,6 @@ export interface MarkerLayerProps {
   selectedSite: HeritageSite | null
   onSiteSelect?: (site: HeritageSite | null) => void
 }
-
-const CLUSTER_CONFIG = {
-  cluster: true,
-  clusterMaxZoom: 20,
-  clusterRadius: 25,
-}
-
-const POINT_FILTER = ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'geom_type'], 'polygon']] as any
-const ZOOM_THRESHOLD = 13;
 
 export function MarkerLayer({
   map,
@@ -81,7 +71,6 @@ export function MarkerLayer({
         type: 'geojson',
         data: { type: 'FeatureCollection', features: [] },
         promoteId: 'id',
-        ...CLUSTER_CONFIG,
       })
     }
 
@@ -107,69 +96,6 @@ export function MarkerLayer({
         type: 'line',
         source: `${sourceId}-polygons`,
         paint: { 'line-color': COLORS.animitas, 'line-width': 1.5, 'line-opacity': 0.85 },
-      })
-    }
-
-    if (!map.getLayer('clusters')) {
-      map.addLayer({
-        id: 'clusters',
-        type: 'circle',
-        source: sourceId,
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': ['step', ['get', 'point_count'], 'transparent', 10, 'transparent', 30, 'transparent'],
-          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
-          'circle-opacity': 0.85,
-          'circle-stroke-color': COLORS.animitas,
-          'circle-stroke-width': 1.5,
-        },
-      })
-    }
-
-    if (!map.getLayer('cluster-count')) {
-      map.addLayer({
-        id: 'cluster-count',
-        type: 'symbol',
-        source: sourceId,
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 14,
-        },
-        paint: { 'text-color': COLORS.animitas },
-      })
-    }
-
-    if (!map.getLayer(`${sourceId}-outer`)) {
-      map.addLayer({
-        id: `${sourceId}-outer`,
-        type: 'circle',
-        source: sourceId,
-        filter: POINT_FILTER,
-        maxzoom: ZOOM_THRESHOLD,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 8, 6, 18, 12, 24, 18, 32],
-          'circle-color': 'transparent',
-          'circle-opacity': 0.85,
-          'circle-stroke-color': COLORS.animitas,
-          'circle-stroke-width': 1.5,
-        },
-      })
-    }
-
-    if (!map.getLayer(`${sourceId}-inner`)) {
-      map.addLayer({
-        id: `${sourceId}-inner`,
-        type: 'circle',
-        source: sourceId,
-        filter: POINT_FILTER,
-        maxzoom: ZOOM_THRESHOLD,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2.5, 6, 6, 12, 8, 18, 12],
-          'circle-color': COLORS.animitas,
-          'circle-opacity': 0.92,
-        },
       })
     }
 
@@ -210,123 +136,78 @@ export function MarkerLayer({
     } as any)
   }, [map, isMapReady, data, sourceId])
 
-  // 4. Handle events
-  useEffect(() => {
-    if (!map || !isMapReady) return
 
-    const layersToClick = [`${sourceId}-inner`, `${sourceId}-outer`]
+  const sitesToRender = visibleSites
+  const isZoomedIn = currentZoom >= 8
 
-    const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      e.originalEvent.stopPropagation()
-      if (!e.features?.length) return
-      const feature = e.features[0]
-      const id = feature.properties?.id
-      if (id) {
-        cancelClose()
-        setActiveId(id)
-        setLockedId(id)
-        onSiteClick?.(id, feature)
-      }
-    }
+  // Simple clustering for zoomed-out view
+  const clusteredSites = useMemo(() => {
+    if (isZoomedIn || !map) return sitesToRender.map(s => ({ sites: [s], center: s.location }))
 
-    const onPointEnter = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      if (!e.features?.length) return
-      const id = e.features[0].properties?.id
-      if (id) {
-        cancelClose()
-        setActiveId(id)
-        map.getCanvas().style.cursor = 'pointer'
-      }
-    }
+    const clusters: { sites: typeof visibleSites; center: { lat: number; lng: number } }[] = []
+    const clusterRadius = 10 / Math.pow(2, currentZoom) // Adaptive cluster radius based on zoom
+    const processed = new Set<string>()
 
-    const onPointLeave = () => {
-      scheduleClose()
-      map.getCanvas().style.cursor = ''
-    }
+    sitesToRender.forEach(site => {
+      if (processed.has(site.id)) return
 
-    const onClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      const feature = e.features?.[0]
-      if (!feature) return
-      
-      const clusterId = feature.properties?.cluster_id
-      const geometry = feature.geometry as any
-      const coordinates = geometry?.coordinates
-      
-      if (clusterId == null || !coordinates) return
+      const cluster = [site]
+      processed.add(site.id)
 
-      const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource
-      if (!source) return
-
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err || zoom == null) return
-        map.flyTo({
-          center: coordinates,
-          zoom,
-          speed: 1.2,
-          curve: 1,
-          essential: true,
-          duration: 500,
-        })
+      sitesToRender.forEach(other => {
+        if (processed.has(other.id)) return
+        const distance = Math.sqrt(
+          Math.pow(site.location.lat - other.location.lat, 2) +
+          Math.pow(site.location.lng - other.location.lng, 2)
+        )
+        if (distance < clusterRadius) {
+          cluster.push(other)
+          processed.add(other.id)
+        }
       })
-    }
 
-    const onClusterEnter = () => { map.getCanvas().style.cursor = 'pointer' }
-    const onClusterLeave = () => { map.getCanvas().style.cursor = '' }
-
-    layersToClick.forEach(layerId => {
-      if (map.getLayer(layerId)) {
-        map.on('click', layerId, onPointClick)
-        map.on('mouseenter', layerId, onPointEnter)
-        map.on('mouseleave', layerId, onPointLeave)
-      }
+      const centerLat = cluster.reduce((sum, s) => sum + s.location.lat, 0) / cluster.length
+      const centerLng = cluster.reduce((sum, s) => sum + s.location.lng, 0) / cluster.length
+      clusters.push({ sites: cluster, center: { lat: centerLat, lng: centerLng } })
     })
 
-    if (map.getLayer('clusters')) {
-      map.on('click', 'clusters', onClusterClick)
-      map.on('mouseenter', 'clusters', onClusterEnter)
-      map.on('mouseleave', 'clusters', onClusterLeave)
-    }
+    return clusters
+  }, [sitesToRender, isZoomedIn, currentZoom, map])
 
-    return () => {
-      layersToClick.forEach(layerId => {
-        try {
-          if (map.getStyle() && map.getLayer(layerId)) {
-            map.off('click', layerId, onPointClick)
-            map.off('mouseenter', layerId, onPointEnter)
-            map.off('mouseleave', layerId, onPointLeave)
-          }
-        } catch (_) {}
-      })
-      try {
-        if (map.getStyle() && map.getLayer('clusters')) {
-          map.off('click', 'clusters', onClusterClick)
-          map.off('mouseenter', 'clusters', onClusterEnter)
-          map.off('mouseleave', 'clusters', onClusterLeave)
-        }
-      } catch (_) {}
-    }
-  }, [map, isMapReady, onSiteClick, sourceId, cancelClose, scheduleClose])
-
-  const sitesToRender = currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : [])
-  const isZoomedIn = currentZoom >= ZOOM_THRESHOLD
+  useEffect(() => {
+    console.log('[MarkerLayer] Zoom:', { currentZoom, isZoomedIn, sitesCount: sitesToRender.length, clusters: clusteredSites.length })
+  }, [currentZoom, isZoomedIn, sitesToRender.length, clusteredSites.length])
 
   return (
     <>
-      {map && sitesToRender.map(site => {
+      {map && clusteredSites.map((cluster, idx) => {
+        const clusterSize = cluster.sites.length
+        const isSingleSite = clusterSize === 1
+        const site = cluster.sites[0]
         const kind = (site as any).kind || 'animita'
         const href = `/${kind.toLowerCase()}/${site.slug || site.id}`
-        const isActive = activeId === site.id
-        const topValue = 38 + ((Math.min(currentZoom, 22) - 10) * 1.25)
+
+        // Calculate size based on cluster count and zoom level
+        const baseSize = Math.max(8, 20 + (currentZoom - 5) * 6.5) // Scales with zoom
+        const sizeMultiplier = Math.min(Math.sqrt(clusterSize), 4) // Max 4x size
+        const zoomMultiplier = isSingleSite ? Math.max(1, 1 + (currentZoom - 8) * 0.35) : 1
+        const clusterSize_px = baseSize * sizeMultiplier * zoomMultiplier
+        const imageSize = baseSize * 1.3 // Scales with zoom for smooth transitions
+        const fontSize = clusterSize_px * 0.5
+
+        if (isSingleSite) {
+          console.log(`[Marker] zoom=${currentZoom}, baseSize=${baseSize.toFixed(1)}, zoomMult=${zoomMultiplier.toFixed(2)}, clusterSize_px=${clusterSize_px.toFixed(1)}, imageSize=${imageSize.toFixed(1)}`)
+        }
 
         return (
           <MapMarker
-            key={site.id}
+            key={`cluster-${idx}`}
             map={map}
-            coordinates={[site.location.lng, site.location.lat]}
-            className={cn("z-20 transition-all duration-300", isActive ? "z-50" : "z-20")}
+            coordinates={[cluster.center.lng, cluster.center.lat]}
+            className="z-20 transition-all duration-300"
           >
-            {isZoomedIn ? (
-              <div 
+            {isZoomedIn && isSingleSite ? (
+              <div
                 className="flex flex-col items-center pointer-events-auto"
                 onMouseEnter={() => { cancelClose(); setActiveId(site.id); }}
                 onMouseLeave={scheduleClose}
@@ -334,8 +215,6 @@ export function MarkerLayer({
                   cancelClose()
                   setActiveId(site.id)
                   setLockedId(site.id)
-                  // For the HTML marker, 'onSiteClick' handles the panel opening directly 
-                  // if it's passed, otherwise the Link handles navigation.
                   if (onSiteClick) {
                     onSiteClick(site.id, { properties: { id: site.id }, geometry: { type: 'Point', coordinates: [site.location.lng, site.location.lat] } } as any)
                   }
@@ -344,14 +223,11 @@ export function MarkerLayer({
                 <Link
                   href={href}
                   prefetch={false}
-                  className={cn(
-                    "relative flex pb-2 flex-col items-center justify-center transition-all ease-out",
-                    isActive ? "scale-110 drop-shadow-xl" : "scale-100 drop-shadow-md hover:scale-105"
-                  )}
+                  className="relative flex pb-2 flex-col items-center justify-center transition-all ease-out scale-100 drop-shadow-md hover:scale-105"
                 >
-                  <div className="relative border-2 border-white shadow-md">
+                  <div className="relative border-4 border-white shadow-md rounded-md">
                     {site.images && site.images.length > 0 ? (
-                      <div className="w-9 h-9 overflow-hidden bg-muted">
+                      <div className="overflow-hidden bg-muted rounded-sm" style={{ width: `${imageSize}px`, height: `${imageSize}px` }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={site.images[0]}
@@ -360,49 +236,37 @@ export function MarkerLayer({
                         />
                       </div>
                     ) : (
-                      <div className="w-9 h-9 flex items-center justify-center bg-background">
+                      <div className="flex items-center justify-center bg-background rounded-sm" style={{ width: `${imageSize}px`, height: `${imageSize}px` }}>
                         <MapPin className="size-4" />
                       </div>
                     )}
                   </div>
-                  
-                  {isActive && (
-                    <div className="absolute bottom-full mb-1 whitespace-nowrap bg-background px-2 py-1 rounded-md shadow-lg border text-xs font-semibold border-border text-foreground">
-                      {site.title || 'Animita'}
-                    </div>
-                  )}
+
+                  <div
+                    className="absolute top-full whitespace-nowrap font-semibold text-foreground"
+                    style={{
+                      fontSize: `${imageSize * 0.35}px`,
+                      padding: `${imageSize * 0.15}px ${imageSize * 0.2}px`,
+                      marginTop: `${imageSize * 0.15}px`,
+                      textShadow: `
+                        -1px -1px 0 white, 1px -1px 0 white,
+                        -1px 1px 0 white, 1px 1px 0 white,
+                        0 -1px 0 white, 0 1px 0 white,
+                        -1px 0 0 white, 1px 0 0 white,
+                        2px 2px 4px rgba(0,0,0,0.2)
+                      `
+                    }}
+                  >
+                    {site.title || 'Animita'}
+                  </div>
                 </Link>
               </div>
             ) : (
-              <div className="flex flex-col items-center overflow-visible">
-                <div
-                  onMouseEnter={cancelClose}
-                  onMouseLeave={scheduleClose}
-                  className={cn(
-                    'transition-all duration-200 ease-out origin-top',
-                    isActive
-                      ? 'opacity-100 scale-100 pointer-events-auto'
-                      : 'opacity-0 scale-95 pointer-events-none'
-                  )}
-                >
-                  <Link
-                    href={href}
-                    prefetch={false}
-                    className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap z-50 flex flex-col items-center gap-1.5"
-                    style={{ top: `${topValue}px` }}
-                  >
-                    <span className="text-base font-medium text-text-strong [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_2px_4px_rgba(0,0,0,0.4)] shadow-xs">
-                      {site.title || 'Animita'}
-                    </span>
-                    <Button
-                      size="sm"
-                      className="sr-only h-6 text-xs px-2.5 rounded-full shadow-md gap-1 pointer-events-none"
-                    >
-                      Ver detalles
-                      <ArrowUpRight className="size-3" />
-                    </Button>
-                  </Link>
-                </div>
+              <div
+                className="rounded-full border-[1.5px] border-[#00e] cursor-pointer shadow-md flex items-center justify-center font-medium text-[#00e] transition-all"
+                style={{ width: `${clusterSize_px}px`, height: `${clusterSize_px}px`, fontSize: `${fontSize}px` }}
+              >
+                {clusterSize === 1 ? <div className="rounded-full bg-[#00e] w-1 h-1" /> : clusterSize}
               </div>
             )}
           </MapMarker>
