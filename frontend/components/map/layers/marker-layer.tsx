@@ -145,7 +145,7 @@ export function MarkerLayer({
     if (isZoomedIn || !map) return sitesToRender.map(s => ({ sites: [s], center: s.location }))
 
     const clusters: { sites: typeof visibleSites; center: { lat: number; lng: number } }[] = []
-    const clusterRadius = 10 / Math.pow(2, currentZoom) // Adaptive cluster radius based on zoom
+    const clusterRadius = 5 / Math.pow(2, currentZoom) // Adaptive cluster radius based on zoom
     const processed = new Set<string>()
 
     sitesToRender.forEach(site => {
@@ -188,16 +188,12 @@ export function MarkerLayer({
         const href = `/${kind.toLowerCase()}/${site.slug || site.id}`
 
         // Calculate size based on cluster count and zoom level
-        const baseSize = Math.max(8, 20 + (currentZoom - 5) * 6.5) // Scales with zoom
+        const baseSize = Math.max(18, 15 + (currentZoom - 5) * 6.5) // Scales with zoom
         const sizeMultiplier = Math.min(Math.sqrt(clusterSize), 4) // Max 4x size
         const zoomMultiplier = isSingleSite ? Math.max(1, 1 + (currentZoom - 8) * 0.35) : 1
         const clusterSize_px = baseSize * sizeMultiplier * zoomMultiplier
         const imageSize = baseSize * 1.3 // Scales with zoom for smooth transitions
         const fontSize = clusterSize_px * 0.5
-
-        if (isSingleSite) {
-          console.log(`[Marker] zoom=${currentZoom}, baseSize=${baseSize.toFixed(1)}, zoomMult=${zoomMultiplier.toFixed(2)}, clusterSize_px=${clusterSize_px.toFixed(1)}, imageSize=${imageSize.toFixed(1)}`)
-        }
 
         return (
           <MapMarker
@@ -266,7 +262,7 @@ export function MarkerLayer({
                 className="rounded-full border-[1.5px] border-[#00e] cursor-pointer shadow-md flex items-center justify-center font-medium text-[#00e] transition-all"
                 style={{ width: `${clusterSize_px}px`, height: `${clusterSize_px}px`, fontSize: `${fontSize}px` }}
               >
-                {clusterSize === 1 ? <div className="rounded-full bg-[#00e] w-1 h-1" /> : clusterSize}
+                {clusterSize === 1 ? <div className="rounded-full bg-[#00e]" style={{ width: `${clusterSize_px * 0.25}px`, height: `${clusterSize_px * 0.25}px` }} /> : clusterSize}
               </div>
             )}
           </MapMarker>
