@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, forwardRef, useRef } from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useHeaderPanelWidths } from '@/hooks/use-header-panel-widths'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
@@ -14,29 +15,53 @@ import { SearchInput } from '@/components/search/search-input'
 import Link from 'next/link'
 import { Separator } from '@/components/ui/separator'
 import { SlidingPanels } from '@/components/ui/sliding-panels'
+import { cn } from '@/lib/utils'
 
-interface MainHeaderPanelProps {}
+interface MainHeaderPanelProps {
+  onSearchActiveChange?: (active: boolean) => void
+}
 
-const TABS_WIDTH = 253
-
-function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearchActive: (active: boolean) => void; onTabChange: (route: string) => void; pathname: string }) {
+const TabsPanelContent = forwardRef<HTMLDivElement, {
+  setSearchActive: (active: boolean) => void
+  onTabChange: (route: string) => void
+  pathname: string
+}>(function TabsPanelContent({ setSearchActive, onTabChange, pathname }, ref) {
   const tabValue = pathname.includes('/list') ? 'list' : 'map'
+  const innerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (innerRef.current && ref && typeof ref === 'object' && 'current' in ref) {
+      ref.current = innerRef.current
+    }
+  }, [ref])
+
+  const isMapView = !pathname.includes('/list')
+
   return (
     <div
-      className="box-border flex items-center gap-1 flex-shrink-0 w-full"
+      ref={innerRef}
+      className="box-border flex items-center gap-1 flex-shrink-0"
     >
       <Tabs value={tabValue} onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
           <TabsTrigger
             value="map"
-            className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full"
+            className={cn(
+              'rounded-full h-[30px] px-2.5',
+              'hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black',
+              '!w-[30px] md:!w-16'
+            )}
           >
             <MapIcon className="md:hidden" />
             <span className="hidden md:block">Mapa</span>
           </TabsTrigger>
           <TabsTrigger
             value="list"
-            className="hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black px-2.5 rounded-full"
+            className={cn(
+              'rounded-full h-[30px] px-2.5',
+              'hover:bg-black/7 data-[state=active]:text-background data-[state=active]:bg-black',
+              '!w-[30px] md:!w-16'
+            )}
           >
             <ListIcon className="md:hidden" />
             <span className="hidden md:block">Lista</span>
@@ -46,10 +71,17 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
 
       <Separator orientation="vertical" className='!h-6 mx-1' />
 
-      <Button size="sm" className="h-[30px] !pl-2 gap-1 !rounded-full" asChild>
+      <Button
+        size="sm"
+        className={cn(
+          '!rounded-full h-[30px] gap-1 items-center justify-center',
+          '!w-[30px] md:!w-20'
+        )}
+        asChild
+      >
         <Link href="/add">
           <Plus />
-          Añadir
+          <span className="hidden md:block">Añadir</span>
         </Link>
       </Button>
 
@@ -57,20 +89,30 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
         size="icon"
         variant="ghost"
         onClick={() => setSearchActive(true)}
-        className="!h-[30px] !w-[30px] rounded-full text-muted-foreground"
+        className={cn(
+          'h-[30px] w-[30px] rounded-full text-muted-foreground'
+        )}
       >
         <SearchIcon size={20} />
       </Button>
     </div>
   )
-}
+})
 
 function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
   return (
     <div className="pl-3 pr-0 w-full flex gap-1 items-center justify-center">
       <span className="text-sm text-white/50 text-nowrap">Área activa:</span>
       <span className="text-sm font-medium text-white truncate">{activeAreaLabel}</span>
-      <Button variant="ghost" size="icon" className="ml-auto h-[30px] w-[30px] text-white/50 hover:bg-white/10 rounded-full hover:text-white/70" onClick={clearActiveArea}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'ml-auto h-[30px] w-[30px] rounded-full',
+          'text-white/50 hover:bg-white/10 hover:text-white/70'
+        )}
+        onClick={clearActiveArea}
+      >
         <X className="h-3 w-3" />
       </Button>
     </div>
@@ -104,26 +146,41 @@ function ListViewContent({
 }: ListViewContentProps) {
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={onBackClick} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onBackClick}
+        className={cn('w-8 h-8 rounded-full text-muted-foreground')}
+      >
         <ChevronLeft />
       </Button>
       <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
       <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
       <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
       <div className="flex-1" />
-      <Button variant="ghost" size="icon" onClick={clearFilters} className="-ml-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={clearFilters}
+        className={cn('w-8 h-8 rounded-full text-muted-foreground')}
+      >
+        <X size={20} />
+      </Button>
     </>
   )
 }
 
 
-export function MainHeaderPanel({}: MainHeaderPanelProps) {
+export function MainHeaderPanel({ onSearchActiveChange }: MainHeaderPanelProps) {
   const pathname = usePathname()
   const router = useRouter()
   const isMobile = useIsMobile()
-  const SEARCH_WIDTH = isMobile ? 256 : 320
   const [searchActive, setSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
+  const { tabsRef, searchRef, tabsWidth, searchWidth } = useHeaderPanelWidths(isMobile, searchActive)
+
+  const TABS_WIDTH = tabsWidth
+  const SEARCH_WIDTH = searchWidth
 
   const handleTabChange = (route: string) => {
     if ('startViewTransition' in document) {
@@ -153,6 +210,10 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
     }
   }, [searchActive])
 
+  useEffect(() => {
+    onSearchActiveChange?.(searchActive)
+  }, [searchActive, onSearchActiveChange])
+
   const isListView = pathname === '/list'
   const { filteredData, clearFilters, setFilter, filters, activeAreaLabel, clearActiveArea } = useSpatialContext()
   const { categories, kinds } = useHeritageTaxonomy()
@@ -178,12 +239,13 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
 
   const hasBanner = !!activeAreaLabel
 
-
   return (
     <nav
-      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-all duration-300 ease-out-expo ${
+      className={cn(
+        'box-border rounded-full backdrop-blur-sm border items-center gap-1 animate-in fade-in p-1.5 transition-all duration-300 ease-out-expo',
+        isMobile && searchActive ? 'flex w-full' : 'inline-flex',
         hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
-      }`}
+      )}
       style={{
         width: hasBanner ? TABS_WIDTH : (isListView ? 'auto' : (searchActive ? SEARCH_WIDTH : TABS_WIDTH))
       }}
@@ -205,20 +267,27 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
       )}
       {!hasBanner && !isListView && (
         <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[TABS_WIDTH, SEARCH_WIDTH]}>
-          <TabsPanelContent setSearchActive={setSearchActive} onTabChange={handleTabChange} pathname={pathname} />
-          <SearchInput
-            panelWidth={SEARCH_WIDTH}
-            inputValue={inputValue}
-            onInputChange={setInputValue}
-            isOpen={open}
-            onOpenChange={setOpen}
-            isLoading={isLoading}
-            searchResults={searchResults}
-            onSearch={handleSearch}
-            onSelectResult={handleSelect}
-            onClear={resetSearch}
-            onClose={() => setSearchActive(false)}
+          <TabsPanelContent
+            ref={tabsRef}
+            setSearchActive={setSearchActive}
+            onTabChange={handleTabChange}
+            pathname={pathname}
           />
+          <div ref={searchRef} className="w-full">
+            <SearchInput
+              panelWidth={SEARCH_WIDTH}
+              inputValue={inputValue}
+              onInputChange={setInputValue}
+              isOpen={open}
+              onOpenChange={setOpen}
+              isLoading={isLoading}
+              searchResults={searchResults}
+              onSearch={handleSearch}
+              onSelectResult={handleSelect}
+              onClear={resetSearch}
+              onClose={() => setSearchActive(false)}
+            />
+          </div>
         </SlidingPanels>
       )}
     </nav>
