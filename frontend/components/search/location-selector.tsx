@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect, useState } from 'react'
-import { MapPin, X, Check, Search as SearchIcon, Plus } from 'lucide-react'
+import { MapPin, X, Check, Search as SearchIcon, Plus, MousePointer2 } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Button } from '@/components/ui/button'
@@ -70,6 +70,8 @@ export function LocationSelector({
   const [isOpenMore, setIsOpenMore] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [mapPin, setMapPin] = useState<[number, number] | null>(value[0]?.coords || null)
+  const [mapAddress, setMapAddress] = useState<string>('')
+  const markerRef = useRef<mapboxgl.Marker | null>(null)
 
   const handleInputChange = (val: string) => {
     setInputValue(val)
@@ -84,39 +86,69 @@ export function LocationSelector({
 
   useEffect(() => {
     if (mode === 'map' && mapContainerRef.current && !mapRef.current) {
-      mapboxgl.accessToken = accessToken
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: mapPin || [-71.5430, -35.4272],
-        zoom: 11,
-        interactive: true,
-      })
-
-      map.on('click', async (e) => {
-        const { lng, lat } = e.lngLat
-        setMapPin([lng, lat])
-        const geocodeResult = await reverseGeocode(lng, lat, accessToken)
-
-        const newLocation: Location = {
-          id: `location-${Date.now()}`,
-          coords: [lng, lat],
-          address: geocodeResult?.address || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-          region: geocodeResult?.cityRegion,
-          country: 'Chile',
-          source: 'manual',
+      try {
+        if (!accessToken) {
+          console.error('Mapbox access token is missing')
+          return
         }
-        const newLocations = [...value, newLocation]
-        onChange(newLocations)
-      })
 
-      mapRef.current = map
-      return () => {
-        map.remove()
-        mapRef.current = null
+        mapboxgl.accessToken = accessToken
+        const map = new mapboxgl.Map({
+          container: mapContainerRef.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: mapPin || [-71.5430, -35.4272],
+          zoom: 11,
+          interactive: true,
+        })
+
+        map.on('error', (e) => {
+          console.error('Mapbox error event:', e.error)
+        })
+
+        map.on('load', () => {
+          const center = map.getCenter()
+          const centerCoords: [number, number] = [center.lng, center.lat]
+          setMapPin(centerCoords)
+
+          const marker = new mapboxgl.Marker({ color: '#0000ee' })
+            .setLngLat(centerCoords)
+            .addTo(map)
+          markerRef.current = marker
+
+          reverseGeocode(centerCoords[0], centerCoords[1], accessToken).then((result) => {
+            if (result?.address) {
+              setMapAddress(result.address)
+            }
+          })
+        })
+
+        map.on('moveend', async () => {
+          const center = map.getCenter()
+          const centerCoords: [number, number] = [center.lng, center.lat]
+          setMapPin(centerCoords)
+
+          if (markerRef.current) {
+            markerRef.current.setLngLat(centerCoords)
+          }
+
+          const geocodeResult = await reverseGeocode(centerCoords[0], centerCoords[1], accessToken)
+          if (geocodeResult?.address) {
+            setMapAddress(geocodeResult.address)
+          }
+        })
+
+        mapRef.current = map
+        return () => {
+          if (mapRef.current) {
+            mapRef.current.remove()
+            mapRef.current = null
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize Mapbox:', error)
       }
     }
-  }, [mode, mapPin, accessToken, value, onChange])
+  }, [mode, accessToken])
 
   const handleSelectResult = async (result: SearchResult & { isCurrent?: boolean }) => {
     const isRegion = result.locationType === 'region'
@@ -207,6 +239,16 @@ export function LocationSelector({
 
   const handleConfirmMap = () => {
     if (mapPin) {
+      const newLocation: Location = {
+        id: `location-${Date.now()}`,
+        coords: mapPin,
+        address: mapAddress || `${mapPin[1].toFixed(4)}, ${mapPin[0].toFixed(4)}`,
+        country: 'Chile',
+        source: 'manual',
+      }
+      const newLocations = [...value, newLocation]
+      onChange(newLocations)
+      setMapAddress('')
       setMode('search')
       setIsOpenSearch(false)
     }
@@ -295,7 +337,7 @@ export function LocationSelector({
               )}
             >
               <MapPin className="flex-shrink-0 size-4" />
-              <span>Ubicación</span>
+              <span className="truncate max-w-[150px]">{mode === 'map' && mapAddress ? mapAddress : 'Ubicación'}</span>
             </button>
           ) : (
             <button
@@ -375,7 +417,7 @@ export function LocationSelector({
               <div className="border-t border-border-weak p-1">
                 <button
                   type="button"
-                  onPointerDown={(e) => {
+                  onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
                     setMode('map')
@@ -388,13 +430,41 @@ export function LocationSelector({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full h-64 relative">
               <div
                 ref={mapContainerRef}
-                className="relative w-full h-64 bg-background-weak border-b border-border-weak"
+                className="absolute inset-0 overflow-hidden"
               />
 
-              <div className="flex gap-1 p-2">
+              {mapAddress && (
+                <div className="absolute top-2 left-2 right-12 z-20 bg-background/90 border border-border-weak rounded-md p-2 text-xs font-medium text-text-strong truncate">
+                  {mapAddress}
+                </div>
+              )}
+
+              <Button
+                size="icon"
+                variant="secondary"
+                className="!bg-accent hover:!bg-accent absolute bottom-16 right-2 z-20 shadow-xs"
+                onClick={() => {
+                  if (navigator.geolocation && mapRef.current) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                      const { latitude, longitude } = pos.coords
+                      setMapPin([longitude, latitude])
+                      mapRef.current?.flyTo({
+                        center: [longitude, latitude],
+                        zoom: 15,
+                        duration: 1000,
+                      })
+                    })
+                  }
+                }}
+                title="Mi ubicación"
+              >
+                <MousePointer2 className="size-4 rotate-90 stroke-0 fill-white" />
+              </Button>
+
+              <div className="flex gap-1 p-2 relative z-10 mt-auto">
                 <Button
                   variant="ghost"
                   className="flex-1"
