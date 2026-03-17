@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Loader2, MousePointer2 } from 'lucide-react'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { useRouter } from 'next/navigation'
 import { useMapInitialization, CHILE_BOUNDS } from './hooks/use-map-initialization'
 import { useActiveArea } from './hooks/use-active-area'
@@ -46,12 +46,13 @@ export default function MapboxMap({
   selectedHeritageSite: propSelectedHeritageSite
 }: MapboxMapProps) {
   // Constants
-  const HIGH_ZOOM_THRESHOLD = 10
+  const HIGH_ZOOM_THRESHOLD = 8
 
   // Spatial Context
   // @ts-ignore
-  // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel, mapResetToken } = useSpatialContext()
+  const spatialContext = useSpatialContext()
+  console.log('[MapboxMap] spatialContext:', spatialContext)
+  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel, mapResetToken } = spatialContext
 
   // Map Initialization
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
@@ -101,6 +102,15 @@ export default function MapboxMap({
     filteredData,
     maxVisibleSites: 20
   })
+
+  useEffect(() => {
+    console.log('[MapboxMap] Data flow:', {
+      filteredDataCount: filteredData.length,
+      visibleSitesCount: visibleSites.length,
+      currentZoom,
+      HIGH_ZOOM_THRESHOLD
+    })
+  }, [filteredData.length, visibleSites.length, currentZoom])
 
   // Sync focusedHeritageSiteId prop with selection
   useEffect(() => {
@@ -371,11 +381,11 @@ export default function MapboxMap({
         <Button
           size="icon"
           variant="secondary"
-          className="!bg-accent hover:!bg-accent absolute bottom-8 md:bottom-4 right-4 z-10 shadow-xs"
+          className="!bg-accent hover:!bg-accent absolute bottom-20 md:bottom-4 right-4 z-10 shadow-xs"
           onClick={handleResetView}
           title="Restablecer Vista"
         >
-          <MousePointer2 className="size-4 rotate-90 fill-white" />
+          <MousePointer2 className="size-4 rotate-90 fill-white stroke-0" />
         </Button>
       )}
 
@@ -406,7 +416,7 @@ export default function MapboxMap({
         </div>
       )}
 
-      {isMobile && (
+      {isMobile && showResearchPanel && (
         <Drawer
           snapPoints={[0.06, 1]}
           activeSnapPoint={drawerSnapPoint}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSpatialContext } from "@/contexts/spatial-context";
+import { useSpatialContext } from "@/contexts/map-filters-context";
 import { Feature, Geometry } from "geojson";
 import { formatPlaceName } from "@/lib/format-place";
 import { fetchPlaceBoundary } from "@/lib/boundary-service";

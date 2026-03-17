@@ -13,7 +13,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { useUser } from '@/contexts/user-context'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { TwoLevelCombobox, type TwoLevelCategory } from '@/components/ui/two-level-combobox'
 import { cn } from '@/lib/utils'

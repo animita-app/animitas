@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react";
-import { SpatialProvider, useSpatialContext } from "@/contexts/spatial-context";
+import { SpatialProvider, useSpatialContext } from "@/contexts/map-filters-context";
 import { UserProvider } from "@/contexts/user-context";
 import { ReactNode } from "react";
 

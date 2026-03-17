@@ -12,7 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { Badge } from '@/components/ui/badge'
 

@@ -78,11 +78,20 @@ export function LocationSelector({
     onSearch?.(val)
   }
 
+  const handleTriggerClick = () => {
+    setIsOpenSearch(true)
+  }
+
+  const handlePopoverOpenChange = (newOpen: boolean) => {
+    setIsOpenSearch(newOpen)
+  }
+
   useEffect(() => {
     if (isOpenSearch && mode === 'search') {
       inputRef.current?.focus()
     }
   }, [isOpenSearch, mode, searchResults])
+
 
   useEffect(() => {
     if (mode === 'map' && mapContainerRef.current && !mapRef.current) {
@@ -305,7 +314,7 @@ export function LocationSelector({
                 +{showMoreCount}
               </button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="p-0 border-border-weak" style={{ width: `${panelWidth}px` }}>
+            <PopoverContent align="start" className="p-0 border-border-weak z-50" disablePortal={true} style={{ width: `${panelWidth}px` }}>
               <div className="flex flex-col">
                 <div className="border-b border-border-weak p-3">
                   <div className="text-sm font-medium text-text-strong mb-2">Ubicaciones seleccionadas</div>
@@ -329,10 +338,12 @@ export function LocationSelector({
         )}
       </div>
 
-      <Popover open={isOpenSearch} onOpenChange={setIsOpenSearch}>
+      <Popover open={isOpenSearch} onOpenChange={handlePopoverOpenChange}>
         <PopoverTrigger asChild>
           {value.length === 0 ? (
             <button
+              type="button"
+              onClick={handleTriggerClick}
               className={cn(
                 'flex items-center gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium text-muted-foreground'
               )}
@@ -342,6 +353,8 @@ export function LocationSelector({
             </button>
           ) : (
             <button
+              type="button"
+              onClick={handleTriggerClick}
               className={cn(
                 'flex [&_svg]:size-4 [&_svg]:opacity-50 items-center aspect-square gap-1 px-2 h-[30px] rounded-full bg-secondary hover:bg-secondary/80 transition-colors text-sm font-medium'
               )}
@@ -351,7 +364,7 @@ export function LocationSelector({
           )}
         </PopoverTrigger>
 
-        <PopoverContent align="start" side="top" className="p-0 border-border-weak" style={{ width: `${panelWidth}px` }}>
+        <PopoverContent align="start" className="p-0 border-border-weak z-50" disablePortal={true} style={{ width: `${panelWidth}px` }}>
           {mode === 'search' ? (
             <div className="flex flex-col">
               <div className="flex items-center gap-1 border-b border-border-weak p-2">
@@ -369,11 +382,6 @@ export function LocationSelector({
                     handleInputChange(e.target.value)
                   }}
                   disabled={isLoading}
-                  onFocus={() => {
-                    if (inputValue.length >= 3) setIsOpenSearch(true)
-                  }}
-                  onBlur={() => {
-                  }}
                   onKeyDown={(e) => {
                     e.stopPropagation()
                   }}

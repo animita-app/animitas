@@ -38,7 +38,7 @@ import { AnalysisTab } from './tabs/analysis-tab'
 import { cn } from "@/lib/utils"
 import { useIsMobile } from '../../../hooks/use-mobile'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 
 interface LayerDetailProps {
   selectedLayer: Layer

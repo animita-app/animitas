@@ -1,26 +1,20 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useLayoutEffect, useState } from 'react'
 
 export function useHeaderPanelWidths(isMobile?: boolean, searchActive?: boolean) {
   const tabsRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
-  const [tabsWidth, setTabsWidth] = useState(isMobile ? 164 : 308)
+  const [tabsWidth, setTabsWidth] = useState(isMobile ? 164 : 308-31)
   const [searchWidth, setSearchWidth] = useState(isMobile ? 250 : 340)
 
-  useEffect(() => {
-    const measureWidths = () => {
-      if (tabsRef.current) {
-        const w = Math.ceil(tabsRef.current.scrollWidth) + 14
-        setTabsWidth(w)
-      }
-      if (searchRef.current) {
-        const w = Math.ceil(searchRef.current.scrollWidth) + 14
-        setSearchWidth(w)
-      }
+  useLayoutEffect(() => {
+    if (tabsRef.current) {
+      const w = Math.ceil(tabsRef.current.scrollWidth) + 14
+      setTabsWidth(w)
     }
-
-    const timer = setTimeout(measureWidths, 0)
-
-    return () => clearTimeout(timer)
+    if (searchRef.current) {
+      const w = Math.ceil(searchRef.current.scrollWidth) + 14
+      setSearchWidth(w)
+    }
   }, [isMobile])
 
   const finalSearchWidth = isMobile && searchActive ? Math.max(window.innerWidth - 32, searchWidth) : searchWidth

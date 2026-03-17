@@ -16,7 +16,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/contexts/user-context'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { ROLES } from '@/types/roles'
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"

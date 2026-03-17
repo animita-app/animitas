@@ -91,6 +91,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
               categories
             }
           })
+          console.log('[SpatialContext] Fetched sites from Supabase:', normalized.length, normalized)
           setDbSites(normalized)
         }
       } catch (err: any) {
@@ -145,6 +146,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   // Compute filtered data
   const filteredData = useMemo(() => {
     const allSites = [...dbSites, ...syntheticSites]
+    console.log('[SpatialContext] Computing filteredData:', { dbSites: dbSites.length, syntheticSites: syntheticSites.length, allSites: allSites.length, filters })
 
     let data = allSites.map(site => ({
       ...site,
@@ -206,6 +208,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       }
     })
 
+    console.log('[SpatialContext] Final filteredData:', data.length, data)
     return data
   }, [activeArea, filters, syntheticSites, dbSites])
 

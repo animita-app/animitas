@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useSpatialContext } from '@/contexts/map-filters-context'
 import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { BarChart, Bar, Cell } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
