@@ -85,6 +85,7 @@ export function LocationSelector({
   }, [isOpenSearch, mode, searchResults])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     if (mode === 'map' && mapContainerRef.current && !mapRef.current) {
       try {
         if (!accessToken) {
