@@ -7,7 +7,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { SearchResultItem } from '@/components/search/search-result-item'
 import { cn } from '@/lib/utils'
-import clsx from 'clsx'
 
 interface SearchResult {
   id: string | number
@@ -35,6 +34,7 @@ interface SearchInputProps {
   onClose?: () => void
   placeholder?: string
   searchType?: 'regular' | 'ai'
+  autoFocus?: boolean
 }
 
 export function SearchInput({
@@ -49,10 +49,15 @@ export function SearchInput({
   onSelectResult,
   onClear,
   onClose,
-  placeholder = 'Buscar...',
+  placeholder = 'Busca una animita o un lugar',
   searchType = 'regular',
+  autoFocus = false,
 }: SearchInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus({ preventScroll: true })
+  }, [autoFocus])
 
   useEffect(() => {
     if (isOpen) {
@@ -77,15 +82,16 @@ export function SearchInput({
   }
 
   return (
-    <div className='box-border pl-2 pr-2.5 flex items-center gap-1 flex-shrink-0 w-full'>
-      <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
+    <div className='pl-3 flex items-center gap-2 shrink-0 w-full'>
+      <SearchIcon size={16} aria-hidden className="text-muted-foreground pointer-events-none shrink-0" />
       <Popover open={isOpen} onOpenChange={onOpenChange}>
         <PopoverTrigger asChild>
           <input
+            aria-label="Buscar"
             ref={inputRef}
             type="text"
             className={cn(
-              'flex-1 h-[30px] px-1 focus:outline-none bg-transparent text-sm',
+              'flex-1 h-8 px-1 outline-none bg-transparent text-sm',
               'text-foreground placeholder-muted-foreground'
             )}
             placeholder={placeholder}
@@ -94,7 +100,6 @@ export function SearchInput({
               onInputChange(e.target.value)
               onSearch(e.target.value)
             }}
-            disabled={isLoading}
             onFocus={() => {
               if (inputValue.length >= 3) onOpenChange(true)
             }}
@@ -104,11 +109,11 @@ export function SearchInput({
           className="border border-border-weak max-h-60 p-0 z-50"
           style={{ width: `${panelWidth}px` }}
           align="center"
-          sideOffset={8}
+          sideOffset={4}
         >
           {searchResults.length === 0 ? (
             <div className="p-4 text-sm text-center text-muted-foreground">
-              {isLoading ? 'Buscando...' : 'Sin resultados'}
+              {isLoading ? 'Buscando…' : 'No encontramos animitas ni lugares con ese nombre'}
             </div>
           ) : (
             <ScrollArea className="max-h-60 p-1">
@@ -116,7 +121,7 @@ export function SearchInput({
                 {searchResults.map((result) => (
                   <SearchResultItem
                     key={result.id}
-                    label={result.title || result.text || result.place_name}
+                    label={result.type === 'local' ? result.title : (result.text || result.place_name)}
                     isAnimita={result.type === 'local'}
                     onClick={() => handleSelectResult(result)}
                   />
@@ -128,17 +133,12 @@ export function SearchInput({
       </Popover>
       <Button
         variant="ghost"
-        size="icon"
+        size="icon-sm"
+        aria-label={inputValue ? "Borrar búsqueda" : "Cerrar búsqueda"}
         onClick={handleClear}
-        disabled={isLoading}
-        className={cn(
-          '!h-[30px] !w-[30px] rounded-full text-muted-foreground flex-shrink-0',
-          clsx({
-            'animate-spin': isLoading,
-          })
-        )}
+        className="rounded-full text-muted-foreground shrink-0"
       >
-        <X size={20} />
+        <X />
       </Button>
     </div>
   )

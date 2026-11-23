@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { normalizeLocation } from '@/lib/location'
+import { getAnimita } from '@/lib/animitas'
 import { SiteDetailView } from './sections/site-detail-view'
 
 interface PageProps {
@@ -28,22 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SiteDetailPage({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data: dbSiteRaw } = await supabase
-    .from('heritage_sites')
-    .select('*, user_profiles!creator_id(id, display_name)')
-    .eq('slug', slug)
-    .single()
-
-  const site = dbSiteRaw ? {
-    ...dbSiteRaw,
-    location: normalizeLocation(dbSiteRaw.location),
-    created_by: {
-      id: dbSiteRaw.user_profiles?.id || dbSiteRaw.creator_id || '',
-      name: dbSiteRaw.user_profiles?.display_name || 'Anónimo'
-    }
-  } : null
+  const site = await getAnimita(slug)
 
   if (!site) {
     notFound()

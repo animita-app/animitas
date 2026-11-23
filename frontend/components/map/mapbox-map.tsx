@@ -124,7 +124,7 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
               size="icon"
               variant="secondary"
               aria-label="Ver todo Chile"
-              className="absolute bottom-4 right-4 z-10"
+              className="absolute bottom-safe right-4 z-10"
               onClick={handleResetView}
             >
               <MapIcon />

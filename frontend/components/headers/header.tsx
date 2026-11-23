@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
@@ -11,10 +11,12 @@ import { MainHeaderPanel } from './main-header-panel'
 export function Header() {
   const { currentUser, isLoading } = useUser()
   const pathname = usePathname()
+  const modalSegment = useSelectedLayoutSegment('modal')
+  const isAnimitaSheet = modalSegment?.startsWith('(.)animita') ?? false
 
-  if (pathname.includes("animita")) return null
+  if (pathname.startsWith('/animita') && !isAnimitaSheet) return null
 
-  const isMapRoute = pathname === '/' || pathname === '/map' || pathname === '/list' || pathname === '/add' || pathname === '/auth'
+  const isMapRoute = isAnimitaSheet || ['/', '/map', '/list', '/add', '/auth'].includes(pathname)
 
   return (
     <header className={cn(
@@ -29,7 +31,7 @@ export function Header() {
         </div>
 
         {isMapRoute && (
-          <div className="absolute left-1/2 -translate-x-1/2">
+          <div className="fixed inset-x-0 bottom-safe flex justify-center md:absolute md:inset-x-auto md:bottom-auto md:left-1/2 md:-translate-x-1/2">
             <MainHeaderPanel />
           </div>
         )}

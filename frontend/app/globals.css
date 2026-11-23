@@ -236,6 +236,14 @@
   }
 }
 
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility bottom-safe {
+  bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
 @utility popup-motion {
   transform-origin: var(--radix-popover-content-transform-origin, var(--radix-dropdown-menu-content-transform-origin, var(--radix-select-content-transform-origin, center)));
 
