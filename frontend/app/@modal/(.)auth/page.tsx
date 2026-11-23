@@ -12,7 +12,7 @@ export default function LoginModal() {
   }
 
   return (
-    <ModalWrapper title="Inicia sesión" description="Accede a tu cuenta en ÁNIMA" showTitle={false}>
+    <ModalWrapper title="Inicia sesión" description="Entra para agregar animitas, prender velas y comentar" showTitle={false}>
       <LoginForm onSuccess={handleSuccess} />
     </ModalWrapper>
   )

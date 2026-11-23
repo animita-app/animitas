@@ -1,8 +1,10 @@
 import { z } from "zod";
 
+export const ANIMITA_NAME_MIN = 3;
+
 export const heritageSitePayloadSchema = z.object({
-  name: z.string().min(3).max(120),
-  story: z.string().min(10).max(10000),
+  name: z.string().trim().min(ANIMITA_NAME_MIN, "Escribe al menos 3 letras").max(120, "Usa 120 letras o menos"),
+  story: z.string().trim().max(10000).optional().default(""),
   isPublic: z.boolean().default(true),
   location: z.object({
     lat: z.number().min(-90).max(90),
