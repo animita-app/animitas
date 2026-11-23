@@ -13,7 +13,7 @@ export async function getAnimita(slug: string) {
 
   return {
     ...data,
-    location: normalizeLocation(data.location),
+    location: normalizeLocation(data.location) ?? normalizeLocation(data),
     created_by: {
       id: data.user_profiles?.id || data.creator_id || '',
       name: data.user_profiles?.display_name || 'Anónimo',

@@ -53,7 +53,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
     setUploading(true)
     const supabase = createClient()
-    const path = `users/${profile.id}`
+    const path = `users/${profile.id}/avatar`
 
     const { error: uploadError } = await supabase.storage
       .from('base')

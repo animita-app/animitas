@@ -47,7 +47,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
         if (data) {
           const normalized = data
-            .map((site: any) => ({ ...site, location: normalizeLocation(site.location) }))
+            .map((site: any) => ({ ...site, location: normalizeLocation(site.location) ?? normalizeLocation(site) }))
             .filter((site: any) => site.location)
           setDbSites(normalized)
         }

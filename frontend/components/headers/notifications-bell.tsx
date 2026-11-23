@@ -50,7 +50,7 @@ export function NotificationsBell() {
 
       const { data: comments } = await supabase
         .from('heritage_site_comments')
-        .select('id, content, created_at, user_id, heritage_sites(title, slug), profiles!user_id(full_name)')
+        .select('id, content, created_at, user_id, heritage_sites(title, slug), user_profiles!user_id(display_name)')
         .in('site_id', mySites.map(s => s.id))
         .neq('user_id', userId)
         .order('created_at', { ascending: false })
@@ -59,7 +59,7 @@ export function NotificationsBell() {
       if (cancelled || !comments) return
       setNotifications(comments.map((c: any) => ({
         id: c.id,
-        title: `${c.profiles?.full_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu animita'}`,
+        title: `${c.user_profiles?.display_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu animita'}`,
         description: `«${c.content}»`,
         timeAgo: formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: es }),
         href: animitaHref(c.heritage_sites?.slug),

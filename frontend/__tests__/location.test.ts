@@ -20,3 +20,10 @@ describe("directionsUrl", () => {
     expect(directionsUrl({ lat: -33.45, lng: -70.65 })).toBe("https://www.google.com/maps/dir/?api=1&destination=-33.45,-70.65");
   });
 });
+
+describe("normalizeLocation with the new schema", () => {
+  it("falls back to the generated lat/lng columns when PostgREST returns WKB", () => {
+    const row = { location: "0101000020E6100000", lat: -33.45, lng: -70.65 };
+    expect(normalizeLocation(row.location) ?? normalizeLocation(row)).toEqual({ lat: -33.45, lng: -70.65 });
+  });
+});
