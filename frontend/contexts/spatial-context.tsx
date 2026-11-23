@@ -19,7 +19,11 @@ interface SpatialContextType {
   clearFilters: () => void
 
   filteredData: any[]
+  sitesStatus: SitesStatus
+  reloadSites: () => void
 }
+
+export type SitesStatus = 'loading' | 'ready' | 'error'
 
 const SpatialContext = createContext<SpatialContextType | undefined>(undefined)
 
@@ -29,34 +33,42 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<Record<string, string[]>>({})
   const [dbSites, setDbSites] = useState<any[]>([])
 
-  // Fetch initial data from Supabase
+  const [sitesStatus, setSitesStatus] = useState<SitesStatus>('loading')
+  const [reloadToken, setReloadToken] = useState(0)
+
   React.useEffect(() => {
+    let cancelled = false
+    setSitesStatus('loading')
+
     const fetchSites = async () => {
       try {
         const { createClient } = await import('@/lib/supabase/client')
-        const supabase = createClient()
-
-        const { data, error } = await supabase
+        const { data, error } = await createClient()
           .from('heritage_sites')
           .select('*')
           .eq('status', 'published')
 
-        if (error) {
+        if (cancelled) return
+        if (error || !data) {
+          setSitesStatus('error')
           return
         }
 
-        if (data) {
-          const normalized = data
+        setDbSites(
+          data
             .map((site: any) => ({ ...site, location: normalizeLocation(site.location) ?? normalizeLocation(site) }))
             .filter((site: any) => site.location)
-          setDbSites(normalized)
-        }
-      } catch (err: any) {
+        )
+        setSitesStatus('ready')
+      } catch {
+        if (!cancelled) setSitesStatus('error')
       }
     }
     fetchSites()
-  }, [])
+    return () => { cancelled = true }
+  }, [reloadToken])
 
+  const reloadSites = () => setReloadToken(t => t + 1)
 
   const flyTo = (target: MapTarget) => setMapTarget({ ...target })
 
@@ -111,7 +123,9 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
       setFilter,
       toggleFilter,
       clearFilters,
-      filteredData
+      filteredData,
+      sitesStatus,
+      reloadSites
     }}>
       {children}
     </SpatialContext.Provider>

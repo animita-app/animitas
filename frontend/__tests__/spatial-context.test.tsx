@@ -55,6 +55,14 @@ describe("SpatialContext", () => {
     expect(result.current.mapTarget).not.toBe(first);
   });
 
+  it("reports an error when the animitas can't be loaded", async () => {
+    const { createClient } = jest.requireMock("@/lib/supabase/client");
+    createClient().from().select().eq.mockResolvedValueOnce({ data: null, error: { message: "fetch failed" } });
+    const { result } = renderHook(() => useSpatialContext(), { wrapper });
+    await act(async () => {});
+    expect(result.current.sitesStatus).toBe("error");
+  });
+
   it("should update filters", async () => {
     const { result } = renderHook(() => useSpatialContext(), { wrapper });
 

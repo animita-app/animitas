@@ -201,8 +201,9 @@
   }
 }
 
+/* Not on html: styling the root scrollbar makes Chromium drop macOS overlay scrollbars. */
 @layer base {
-  html {
+  body * {
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) transparent;
   }

@@ -18,7 +18,7 @@ export function Providers({
         {isAuthPage ? (
           children
         ) : (
-          <div className="min-h-screen w-screen relative bg-background">
+          <div className="min-h-svh w-full relative bg-background">
             {children}
           </div>
         )}

@@ -10,6 +10,7 @@ import { useMapEvents } from './hooks/use-map-events'
 import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
 import { MarkerLayer } from './layers/marker-layer'
+import { MapStatus } from './map-status'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { HeritageSite } from '@/types/heritage'
@@ -24,7 +25,7 @@ interface MapboxMapProps {
 export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { filteredData, mapResetToken, mapTarget } = useSpatialContext()
+  const { filteredData, mapResetToken, mapTarget, sitesStatus, reloadSites } = useSpatialContext()
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
   const { selectedHeritageSite, handleHeritageSiteSelect } = useHeritageSiteSelection()
   const { focusHeritageSite, resetView } = useMapEvents({ map: map.current })
@@ -109,6 +110,8 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   return (
     <div className="relative size-full">
       <div ref={mapContainer} className="absolute inset-0" />
+
+      <MapStatus status={sitesStatus} count={filteredData.length} onRetry={reloadSites} />
 
       <MarkerLayer
         map={map.current}

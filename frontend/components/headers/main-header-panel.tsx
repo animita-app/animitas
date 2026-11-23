@@ -22,10 +22,10 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
     <div className="flex items-center gap-1 w-max">
       <Tabs value={tabValue} onValueChange={(v) => { onTabChange(v === 'list' ? '/list' : '/map'); setSearchActive(false) }}>
         <TabsList className="!shadow-none !border-0 bg-transparent !gap-1 !p-0">
-          <TabsTrigger value="map" className="hover:bg-background-weaker data-[state=active]:text-background data-[state=active]:bg-text-strong rounded-full">
+          <TabsTrigger value="map" className="h-8 px-3 hover:bg-background-weaker data-[state=active]:text-background data-[state=active]:bg-text-strong data-[state=active]:border-transparent rounded-full">
             Mapa
           </TabsTrigger>
-          <TabsTrigger value="list" className="hover:bg-background-weaker data-[state=active]:text-background data-[state=active]:bg-text-strong rounded-full">
+          <TabsTrigger value="list" className="h-8 px-3 hover:bg-background-weaker data-[state=active]:text-background data-[state=active]:bg-text-strong data-[state=active]:border-transparent rounded-full">
             Lista
           </TabsTrigger>
         </TabsList>
