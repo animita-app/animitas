@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import './globals.css'
@@ -48,7 +48,20 @@ const ibmPlexMono = localFont({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#fcfcfc',
+}
+
 export const metadata: Metadata = {
+  applicationName: 'Animitas',
+  appleWebApp: {
+    capable: true,
+    title: 'Animitas',
+    statusBarStyle: 'default',
+  },
   title: {
     template: '%s – [ÁNIMA]',
     default: '[ÁNIMA]',
