@@ -7,9 +7,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { LayerItem } from '@/components/map/layers/layer-item'
-import { Layer } from '@/components/map/types'
-import { COLORS } from '@/lib/map-style'
+import { SearchResultItem } from '@/components/search/search-result-item'
 import { cn } from '@/lib/utils'
 import { reverseGeocode } from '@/lib/mapbox'
 
@@ -218,20 +216,6 @@ export function LocationSelector({
     onChange([])
   }
 
-  const resultToLayer = (result: SearchResult & { isCurrent?: boolean }): Layer => {
-    const isRegion = result.locationType === 'region'
-
-    return {
-      id: String(result.id),
-      label: result.place_name,
-      type: 'data',
-      geometry: isRegion ? 'polygon' : 'point',
-      color: COLORS.searchElements,
-      visible: true,
-      opacity: 100,
-      source: 'search',
-    }
-  }
 
   const displayResults = inputValue.trim() ? searchResults : DEFAULT_SUGGESTIONS
   const visibleCount = 3
@@ -361,12 +345,10 @@ export function LocationSelector({
                   <div className="space-y-1 p-1">
                     {displayResults.map((result) => (
                       <div key={result.id} className="relative">
-                        <LayerItem
-                          layer={resultToLayer(result)}
-                          isSearchResult={true}
+                        <SearchResultItem
+                          label={result.place_name}
                           isSelected={selectedRegions.has(result.id)}
                           onClick={() => handleSelectResult(result)}
-                          onToggleVisibility={(e) => e.stopPropagation()}
                         />
                       </div>
                     ))}

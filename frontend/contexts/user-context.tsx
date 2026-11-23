@@ -11,8 +11,6 @@ interface UserContextType {
   setUser: (user: User | null) => void
   setRole: (role: UserRole) => void
   isLoading: boolean
-  researchMode: boolean
-  setResearchMode: (enabled: boolean) => void
   isAuthenticated: boolean
   isEditor: boolean
   isSuperadmin: boolean
@@ -38,7 +36,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [role, setRoleState] = useState<UserRole>(ROLES.DEFAULT)
   const [isLoading, setIsLoading] = useState(true)
-  const [researchMode, setResearchMode] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -97,11 +94,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    if (typeof window !== 'undefined') {
-      const savedResearchMode = localStorage.getItem('research_mode') === 'true'
-      setResearchMode(savedResearchMode)
-    }
-
     return () => subscription.unsubscribe()
   }, [])
 
@@ -119,13 +111,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const handleSetResearchMode = (enabled: boolean) => {
-    setResearchMode(enabled)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('research_mode', String(enabled))
-    }
-  }
-
   return (
     <UserContext.Provider value={{
       currentUser,
@@ -133,8 +118,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser: setCurrentUser,
       setRole,
       isLoading,
-      researchMode,
-      setResearchMode: handleSetResearchMode,
       isAuthenticated: !!currentUser,
       isEditor: role === 'editor' || role === 'superadmin',
       isSuperadmin: role === 'superadmin',

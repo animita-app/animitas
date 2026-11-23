@@ -26,19 +26,6 @@ jest.mock("@/lib/supabase/client", () => {
   };
 });
 
-// Mock Turf
-jest.mock("@turf/turf", () => ({
-  featureCollection: (f: any) => ({ type: "FeatureCollection", features: f }),
-  point: (c: any, p: any) => ({ type: "Feature", geometry: { type: "Point", coordinates: c }, properties: p }),
-  booleanPointInPolygon: () => true,
-}));
-
-// Mock GIS Engine
-jest.mock("@/lib/gis-engine", () => ({
-  clipFeatures: (p: any) => p,
-}));
-
-
 const wrapper = ({ children }: { children: ReactNode }) => (
   <UserProvider>
     <SpatialProvider>{children}</SpatialProvider>
@@ -46,10 +33,26 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 );
 
 describe("SpatialContext", () => {
-  it("should initialize with empty active area and filters", () => {
+  it("should initialize with no map target and no filters", () => {
     const { result } = renderHook(() => useSpatialContext(), { wrapper });
-    expect(result.current.activeArea).toBeNull();
+    expect(result.current.mapTarget).toBeNull();
     expect(result.current.filters).toEqual({});
+  });
+
+  it("should set a new map target each time flyTo is called with the same place", async () => {
+    const { result } = renderHook(() => useSpatialContext(), { wrapper });
+
+    await act(async () => {
+      result.current.flyTo({ center: [-70.6, -33.4] });
+    });
+    const first = result.current.mapTarget;
+
+    await act(async () => {
+      result.current.flyTo({ center: [-70.6, -33.4] });
+    });
+
+    expect(result.current.mapTarget).toEqual({ center: [-70.6, -33.4] });
+    expect(result.current.mapTarget).not.toBe(first);
   });
 
   it("should update filters", async () => {

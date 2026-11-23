@@ -65,18 +65,6 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
   )
 }
 
-function BannerContent({ activeAreaLabel, clearActiveArea }: { activeAreaLabel: string; clearActiveArea: () => void }) {
-  return (
-    <div className="pl-3 pr-0 w-full flex gap-1 items-center justify-center">
-      <span className="text-sm text-white/50 text-nowrap">Área activa:</span>
-      <span className="text-sm font-medium text-white truncate">{activeAreaLabel}</span>
-      <Button variant="ghost" size="icon" className="ml-auto h-[30px] w-[30px] text-white/50 hover:bg-white/10 rounded-full hover:text-white/70" onClick={clearActiveArea}>
-        <X className="h-3 w-3" />
-      </Button>
-    </div>
-  )
-}
-
 interface ListViewContentProps {
   categoryOptions: FilterOption[]
   kindOptions: FilterOption[]
@@ -154,7 +142,7 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
   }, [searchActive])
 
   const isListView = pathname === '/list'
-  const { filteredData, clearFilters, setFilter, filters, activeAreaLabel, clearActiveArea } = useSpatialContext()
+  const { filteredData, clearFilters, setFilter, filters } = useSpatialContext()
   const { categories, kinds } = useHeritageTaxonomy()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
 
@@ -176,19 +164,14 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
     return Array.from(cities).sort().map(city => ({ value: city, label: city }))
   }, [filteredData])
 
-  const hasBanner = !!activeAreaLabel
-
 
   return (
     <nav
-      className={`rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-all duration-300 ease-out-expo ${
-        hasBanner ? 'bg-black border-black' : 'bg-background/50 border-border-weak'
-      }`}
+      className="rounded-full py-1 backdrop-blur-sm border inline-flex items-center gap-1 animate-in fade-in p-1 transition-all duration-300 ease-out-expo bg-background/50 border-border-weak"
       style={{
-        width: hasBanner ? TABS_WIDTH : (isListView ? 'auto' : (searchActive ? SEARCH_WIDTH : TABS_WIDTH))
+        width: isListView ? 'auto' : (searchActive ? SEARCH_WIDTH : TABS_WIDTH)
       }}
     >
-      {hasBanner && <BannerContent activeAreaLabel={activeAreaLabel} clearActiveArea={clearActiveArea} />}
       {isListView && (
         <ListViewContent
           categoryOptions={categoryOptions}
@@ -203,7 +186,7 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
           onBackClick={handleBackClick}
         />
       )}
-      {!hasBanner && !isListView && (
+      {!isListView && (
         <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[TABS_WIDTH, SEARCH_WIDTH]}>
           <TabsPanelContent setSearchActive={setSearchActive} onTabChange={handleTabChange} pathname={pathname} />
           <SearchInput

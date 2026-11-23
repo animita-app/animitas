@@ -16,18 +16,15 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/contexts/user-context'
-import { useSpatialContext } from '@/contexts/spatial-context'
 import { ROLES } from '@/types/roles'
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 import { NotificationsBell } from './notifications-bell'
 
 export function UserDropdown() {
-  const { role, setRole, currentUser, setUser, researchMode, setResearchMode, isEditor, isSuperadmin } = useUser()
-  const { showResearchPanel, setShowResearchPanel } = useSpatialContext()
+  const { role, setRole, currentUser, setUser, isEditor, isSuperadmin } = useUser()
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -96,22 +93,6 @@ export function UserDropdown() {
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
             </DropdownMenuSub>
-          </DropdownMenuGroup>
-
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              className="flex items-center justify-between outline-none cursor-pointer"
-              onSelect={(e) => {
-                e.preventDefault()
-                setShowResearchPanel(!showResearchPanel)
-              }}
-            >
-              Investigación
-              <Switch
-                checked={showResearchPanel}
-                onCheckedChange={setShowResearchPanel}
-              />
-            </DropdownMenuItem>
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />

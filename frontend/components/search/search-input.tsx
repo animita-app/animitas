@@ -5,9 +5,7 @@ import { Search as SearchIcon, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { LayerItem } from '@/components/map/layers/layer-item'
-import { Layer } from '@/components/map/types'
-import { COLORS } from '@/lib/map-style'
+import { SearchResultItem } from '@/components/search/search-result-item'
 import { cn } from '@/lib/utils'
 import clsx from 'clsx'
 
@@ -78,28 +76,6 @@ export function SearchInput({
     onOpenChange(false)
   }
 
-  const createLayer = (result: SearchResult): Layer => {
-    let geometryType: 'point' | 'line' | 'polygon' = 'point'
-    if (result.geometry?.type === 'Polygon' || result.geometry?.type === 'MultiPolygon') {
-      geometryType = 'polygon'
-    } else if (result.geometry?.type === 'LineString' || result.geometry?.type === 'MultiLineString') {
-      geometryType = 'line'
-    } else if (result.bbox) {
-      geometryType = 'polygon'
-    }
-
-    return {
-      id: String(result.id),
-      label: result.title || result.text || result.place_name,
-      type: 'data',
-      geometry: geometryType,
-      color: result.type === 'local' ? COLORS.animitas : COLORS.searchElements,
-      visible: true,
-      opacity: 100,
-      source: 'search',
-    }
-  }
-
   return (
     <div className='box-border pl-2 pr-2.5 flex items-center gap-1 flex-shrink-0 w-full'>
       <SearchIcon className="w-4 h-4 text-muted-foreground pointer-events-none flex-shrink-0" />
@@ -136,14 +112,13 @@ export function SearchInput({
             </div>
           ) : (
             <ScrollArea className="max-h-60 p-1">
-              <div className="space-y-1 [&_*]:text-ellipsis [&_*]:whitespace-nowrap">
+              <div className="space-y-1">
                 {searchResults.map((result) => (
-                  <LayerItem
+                  <SearchResultItem
                     key={result.id}
-                    layer={createLayer(result)}
-                    isSearchResult={true}
+                    label={result.title || result.text || result.place_name}
+                    isAnimita={result.type === 'local'}
                     onClick={() => handleSelectResult(result)}
-                    onToggleVisibility={(e) => e.stopPropagation()}
                   />
                 ))}
               </div>

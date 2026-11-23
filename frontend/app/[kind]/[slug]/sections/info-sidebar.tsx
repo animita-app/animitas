@@ -17,8 +17,6 @@ interface InfoSidebarProps {
 }
 
 export function InfoSidebar({ site }: InfoSidebarProps) {
-  const { researchMode } = useUser()
-
   return (
     <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh md:flex-1 md:min-h-0">
       <SidebarHeader site={site} />

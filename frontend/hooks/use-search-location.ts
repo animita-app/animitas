@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSpatialContext } from "@/contexts/spatial-context";
-import { Feature, Geometry } from "geojson";
-import { formatPlaceName } from "@/lib/format-place";
-import { fetchPlaceBoundary } from "@/lib/boundary-service";
 import { searchLocation } from "@/lib/mapbox";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -13,7 +10,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const { setActiveArea, filteredData, clearActiveArea } = useSpatialContext();
+  const { flyTo, filteredData } = useSpatialContext();
   const router = useRouter();
   const debounceTimer = useRef<NodeJS.Timeout>();
 
@@ -21,8 +18,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     setSearchQuery("");
     onSearch?.("");
     setOpen(false);
-    clearActiveArea();
-  }, [onSearch, clearActiveArea]);
+  }, [onSearch]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -92,79 +88,17 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     }
   }, [filteredData, onSearch]);
 
-  const handleSelect = useCallback(async (result: any) => {
+  const handleSelect = useCallback((result: any) => {
     if (result.type === "local" && result.properties) {
       const { kind, slug } = result.properties;
       router.push(`/${kind.toLowerCase()}/${slug}`);
-      resetSearch();
-      return;
-    }
-
-    setIsLoading(true);
-    let geometry: Geometry | null = null;
-
-    if (result.bbox) {
-      const [minLng, minLat, maxLng, maxLat] = result.bbox;
-      const bboxGeometry: Geometry = {
-        type: "Polygon",
-        coordinates: [[
-          [minLng, minLat],
-          [maxLng, minLat],
-          [maxLng, maxLat],
-          [minLng, maxLat],
-          [minLng, minLat],
-        ]],
-      };
-      const label = formatPlaceName(
-        result.title || result.place_name || "Área seleccionada",
-      );
-
-      const bboxFeature: Feature<Geometry> = {
-        type: "Feature",
-        geometry: bboxGeometry,
-        properties: { ...result, isBbox: true },
-      };
-
-      setActiveArea(bboxFeature, label);
-      setIsLoading(false);
-
-      fetchPlaceBoundary(result.place_name || result.title).then((boundary) => {
-        if (boundary) {
-          const feature: Feature<Geometry> = {
-            type: "Feature",
-            geometry: boundary.geometry,
-            properties: { ...result, isBbox: false },
-          };
-          setActiveArea(feature, label);
-        }
-      }).catch(() => {});
-
-      resetSearch();
-      return;
-    } else if (result.geometry) {
-      geometry = result.geometry;
+    } else if (result.bbox) {
+      flyTo({ bbox: result.bbox });
     } else if (result.center) {
-      geometry = {
-        type: "Point",
-        coordinates: result.center,
-      };
+      flyTo({ center: result.center });
     }
-
-    if (geometry) {
-      const feature: Feature<Geometry> = {
-        type: "Feature",
-        geometry,
-        properties: result,
-      };
-      const label = formatPlaceName(
-        result.title || result.place_name || "Área seleccionada",
-      );
-      setActiveArea(feature, label);
-    }
-
-    setIsLoading(false);
     resetSearch();
-  }, [setActiveArea, router, resetSearch]);
+  }, [flyTo, router, resetSearch]);
 
   return {
     searchQuery,

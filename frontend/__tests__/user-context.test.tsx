@@ -71,7 +71,6 @@ describe("UserContext", () => {
     });
 
     expect(result.current.role).toBe(ROLES.DEFAULT);
-    expect(result.current.researchMode).toBe(false);
   });
 
   it("should allow changing role", async () => {
@@ -96,17 +95,5 @@ describe("UserContext", () => {
     });
 
     expect(result.current.role).toBe(ROLES.EDITOR);
-  });
-
-  it("should allow toggling researchMode", async () => {
-    const { result } = renderHook(() => useUser(), { wrapper });
-
-    await act(async () => {
-      result.current.setResearchMode(true);
-      await flushAsync();
-    });
-
-    expect(result.current.researchMode).toBe(true);
-    expect(localStorageMock.getItem("research_mode")).toBe("true");
   });
 });
