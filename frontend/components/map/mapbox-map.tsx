@@ -1,5 +1,6 @@
 'use client'
 
+import { animitaHref } from '@/lib/routes'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Map as MapIcon } from 'lucide-react'
@@ -93,7 +94,7 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
 
     handleHeritageSiteSelect(site)
     focusHeritageSite([site.location.lng, site.location.lat])
-    router.push(`/${(site.kind || 'animita').toLowerCase()}/${site.slug || site.id}`)
+    router.push(animitaHref(site.slug || site.id))
   }
 
   const handleResetView = () => {

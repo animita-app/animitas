@@ -1,5 +1,6 @@
 "use client"
 
+import { animitaHref } from '@/lib/routes'
 import { useEffect, useState } from 'react'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,7 +48,7 @@ export function NotificationsBell() {
       if (isEditor) {
         const { data: sites } = await supabase
           .from('heritage_sites')
-          .select('id, title, slug, created_at, status, heritage_kinds!kind_id(slug)')
+          .select('id, title, slug, created_at, status')
           .in('status', ['draft', 'flagged'])
           .order('created_at', { ascending: false })
           .limit(20)
@@ -69,7 +70,7 @@ export function NotificationsBell() {
             title: `${s.title} necesita revisión.`,
             description: `Estado: ${s.status}`,
             timeAgo: formatDistanceToNow(new Date(s.created_at), { addSuffix: true, locale: es }),
-            href: `/${(s as any).heritage_kinds?.slug ?? 'animita'}/${s.slug}`,
+            href: animitaHref(s.slug),
             priority: priorities[s.id],
           }))
 
@@ -88,7 +89,7 @@ export function NotificationsBell() {
         const mySiteIds = mySites.map(s => s.id)
         const { data: comments } = await supabase
           .from('heritage_site_comments')
-          .select('id, content, created_at, user_id, heritage_sites(title, slug, kind), profiles!user_id(full_name)')
+          .select('id, content, created_at, user_id, heritage_sites(title, slug), profiles!user_id(full_name)')
           .in('site_id', mySiteIds)
           .neq('user_id', currentUser.id)
           .order('created_at', { ascending: false })
@@ -97,10 +98,10 @@ export function NotificationsBell() {
         if (comments) {
           setMine(comments.map((c: any) => ({
             id: c.id,
-            title: `${c.profiles?.full_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu sitio'}`,
+            title: `${c.profiles?.full_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu animita'}`,
             description: `«${c.content}»`,
             timeAgo: formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: es }),
-            href: `/${c.heritage_sites?.kind?.toLowerCase() || 'animita'}/${c.heritage_sites?.slug}`,
+            href: animitaHref(c.heritage_sites?.slug),
             priority: 'ok' as SitePriority,
           })))
         }

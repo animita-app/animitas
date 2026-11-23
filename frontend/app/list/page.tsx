@@ -25,13 +25,11 @@ export default function ListPage() {
 
   const gridKey = useMemo(() => {
     const parts = [
-      (filters.category || []).join(','),
-      (filters.kind || []).join(','),
       (filters.city_region || []).join(','),
       sortOrder
     ].filter(Boolean)
     return parts.join('-') || 'all'
-  }, [filters.category, filters.kind, filters.city_region, sortOrder])
+  }, [filters.city_region, sortOrder])
 
   return (
     <div className="min-h-svh w-full bg-background py-20">
@@ -40,7 +38,7 @@ export default function ListPage() {
           <>
             <div className="sr-only mb-6">
               <p className="text-sm text-text-weak">
-                {sortedSites.length} {sortedSites.length === 1 ? 'sitio' : 'sitios'} encontrado{sortedSites.length === 1 ? '' : 's'}
+                {sortedSites.length} {sortedSites.length === 1 ? 'animita' : 'animitas'}
               </p>
             </div>
 
@@ -67,7 +65,7 @@ export default function ListPage() {
           </>
         ) : (
           <div className="py-16 text-center">
-            <p className="text-text-weak">No hay sitios que coincidan con los filtros seleccionados.</p>
+            <p className="text-text-weak">No hay animitas con esos filtros.</p>
           </div>
         )}
       </div>

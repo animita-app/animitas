@@ -54,15 +54,15 @@ export const metadata: Metadata = {
     template: '%s – [ÁNIMA]',
     default: '[ÁNIMA]',
   },
-  description: 'Infraestructura para el patrimonio y la memoria del territorio.',
-  keywords: ['animitas', 'Chile', 'patrimonio cultural intangible', 'GIS', 'cartografía crítica'],
+  description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
+  keywords: ['animitas', 'Chile', 'memoria', 'mapa'],
   authors: [{
     name: 'Felipe Mandiola',
     url: 'https://felipemandiola.com'
   }],
   openGraph: {
     title: 'Animitas',
-    description: 'Memoriales digitales interactivos de animitas chilenas',
+    description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
     type: 'website',
     locale: 'es_CL',
     siteName: 'Animitas',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Animitas',
-    description: 'Memoriales digitales interactivos',
+    description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
   },
 }
 

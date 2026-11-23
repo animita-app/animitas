@@ -101,7 +101,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
       const [sitesRes, routesRes] = await Promise.all([
         supabase
           .from('heritage_sites')
-          .select('id, slug, title, images, heritage_kinds!kind_id(slug)')
+          .select('id, slug, title, images')
           .eq('creator_id', profile!.id)
           .order('created_at', { ascending: false }),
         supabase
@@ -184,7 +184,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
       <Tabs defaultValue="sites" className="w-full px-4 mt-8">
         <TabsList className="border-b-0">
-          <TabsTrigger value="sites" className="!text-base">Sitios</TabsTrigger>
+          <TabsTrigger value="sites" className="!text-base">Animitas</TabsTrigger>
           <TabsTrigger value="routes" className="!text-base">Rutas</TabsTrigger>
         </TabsList>
 
@@ -197,19 +197,13 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
             </div>
           ) : sites.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {sites.map((s) => {
-                const kindSlug = (s as any).heritage_kinds?.slug || 'animita'
-                return (
-                  <HeritageSiteCard
-                    key={s.id}
-                    site={{ ...s, kind: kindSlug }}
-                  />
-                )
-              })}
+              {sites.map((s) => (
+                <HeritageSiteCard key={s.id} site={s} />
+              ))}
             </div>
           ) : (
             <div className="text-center py-12 text-sm text-text-weak">
-              {isOwnProfile ? 'Aún no has creado sitios.' : 'Sin sitios publicados.'}
+              {isOwnProfile ? 'Aún no has agregado animitas.' : 'Sin animitas publicadas.'}
             </div>
           )}
         </TabsContent>
@@ -232,7 +226,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-text-strong truncate">{r.title}</p>
-                      <p className="text-xs text-text-weak">{itemCount} {itemCount === 1 ? 'sitio' : 'sitios'}</p>
+                      <p className="text-xs text-text-weak">{itemCount} {itemCount === 1 ? 'animita' : 'animitas'}</p>
                     </div>
                   </div>
                 )

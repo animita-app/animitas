@@ -1,3 +1,4 @@
+import { animitaHref } from '@/lib/routes'
 import * as React from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,11 +15,11 @@ export function HeritageSiteCard({ site }: HeritageSiteCardProps) {
   const imageUrl = site.images && site.images[0]
 
   return (
-    <Link href={`/${site.kind?.toLowerCase() || 'animita'}/${site.slug}`}>
+    <Link href={animitaHref(site.slug)}>
       <Card className="hover:ring-2 hover:ring-offset-4 hover:ring-accent aspect-square relative group !py-0 overflow-hidden shadow-none transition-all hover:shadow-md bg-background">
         <CardContent className="translate-y-8 group-hover:translate-y-0 duration-150 ease-out items-start z-20 p-4 flex flex-col gap-2 flex-grow justify-start">
           <div className="space-y-0 mt-auto">
-            <h3 className="text-lg font-medium text-white line-clamp-1">{site.title}</h3>
+            <h3 className="text-lg font-medium text-white text-balance">{site.title}</h3>
             {(site.city_region || site.address) && (
               <p className="inline-flex items-center gap-1 text-sm text-white/80">
                 {site.city_region && <span className="shrink-0">{site.city_region}</span>}

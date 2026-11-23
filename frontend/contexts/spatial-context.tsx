@@ -37,7 +37,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
         const { data, error } = await supabase
           .from('heritage_sites')
-          .select('*, heritage_kinds!kind_id(slug)')
+          .select('*')
           .eq('status', 'published')
 
         if (error) {
@@ -55,8 +55,7 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
 
             return {
               ...site,
-              location,
-              kind: (site.heritage_kinds as any)?.slug || 'animita'
+              location
             }
           })
           setDbSites(normalized)

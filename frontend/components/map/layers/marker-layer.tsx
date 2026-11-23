@@ -1,5 +1,6 @@
 'use client'
 
+import { animitaHref } from '@/lib/routes'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { COLORS } from '@/lib/map-style'
@@ -301,8 +302,7 @@ export function MarkerLayer({
   return (
     <>
       {map && sitesToRender.map(site => {
-        const kind = (site as any).kind || 'animita'
-        const href = `/${kind.toLowerCase()}/${site.slug || site.id}`
+        const href = animitaHref(site.slug || site.id)
         const isActive = activeId === site.id
         const topValue = 38 + ((Math.min(currentZoom, 22) - 10) * 1.25)
 

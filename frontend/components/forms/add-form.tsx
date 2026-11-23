@@ -1,29 +1,22 @@
 "use client"
 
 import * as React from "react"
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { MapPin, X, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Spinner } from "@/components/ui/spinner"
 import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
 import { LocationSelector, type Location } from "@/components/search/location-selector"
-import { TwoLevelCombobox, type TwoLevelCategory } from "@/components/ui/two-level-combobox"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
-import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
 import { useLocationSearch } from "@/hooks/use-location-search"
 import { cn } from "@/lib/utils"
-
-const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
-  santuarios: "¿A quién recordamos?",
-  funerales: "¿Cómo se llama este lugar de memoria?",
-}
+import { animitaHref } from "@/lib/routes"
 
 function truncateAddress(address: string): string {
   const parts = address.split(',')
@@ -61,11 +54,8 @@ interface AddFormProps {
 export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
-  const { categories, kinds } = useHeritageTaxonomy()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [category, setCategory] = useState("usos-sociales-rituales-festivos")
-  const [kind, setKind] = useState("santuarios")
   const [title, setTitle] = useState("")
   const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
@@ -73,30 +63,8 @@ export function AddForm({ onCancel }: AddFormProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [categoryComboOpen, setCategoryComboOpen] = useState(false)
 
   const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
-
-  const categoryId = categories.find(c => c.slug === category)?.id
-  const kindsForCategory = categoryId ? kinds.filter(k => k.category_id === categoryId) : kinds
-
-  const comboCategories = React.useMemo<TwoLevelCategory[]>(() =>
-    categories.map(cat => ({
-      key: cat.id,
-      label: cat.name,
-      items: kinds.filter(k => k.category_id === cat.id).map(k => ({
-        value: k.slug,
-        label: k.name
-      }))
-    })),
-    [categories, kinds]
-  )
-
-  useEffect(() => {
-    if (kindsForCategory.length > 0 && !kindsForCategory.some(k => k.slug === kind)) {
-      setKind(kindsForCategory[0].slug)
-    }
-  }, [category, kindsForCategory])
 
   const canSubmit = title.trim().length > 0 && photos.length >= 1 && location.length > 0 && !isScanning && !isSubmitting
 
@@ -180,10 +148,8 @@ export function AddForm({ onCancel }: AddFormProps) {
           name: title,
           story,
           isPublic: true,
-          kind,
           location: location[0],
           images: imageUrls,
-          categories: [category],
           insights: extractedInsights
         })
       })
@@ -191,7 +157,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
 
       toast.success("¡Animita registrada!")
-      router.push(`/animita/${data.slug}`)
+      router.push(animitaHref(data.slug))
     } catch (err: any) {
       toast.error(err.message || "Error al crear la animita")
       setIsSubmitting(false)
@@ -240,44 +206,9 @@ export function AddForm({ onCancel }: AddFormProps) {
               </button>
             </div>
 
-            {/* Category and Kind selector */}
-            <div className="ml-2 mb-2 shrink-0">
-              <TwoLevelCombobox
-                trigger={
-                  <div className="md:h-[26px] min-w-40 *:h-[26px] w-fit md:bg-accent/10 md:rounded-full cursor-pointer">
-                    <Badge
-                      variant="secondary"
-                      className="text-sm min-w-24 rounded-full gap-0.5 bg-accent text-white"
-                    >
-                      {categories.find(c => c.slug === category)?.name}
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="text-sm mt-1.5 md:mt-0 pl-1.5 rounded-full gap-0.5 md:bg-transparent text-accent"
-                    >
-                      {kinds.find(k => k.slug === kind)?.name}
-                    </Badge>
-                  </div>
-                }
-                open={categoryComboOpen}
-                onOpenChange={setCategoryComboOpen}
-                categories={comboCategories}
-                selectedValues={[kind]}
-                onToggle={(value) => {
-                  setKind(value)
-                  const selectedCat = comboCategories.find(c => c.items.some(i => i.value === value))
-                  if (selectedCat) {
-                    setCategory(categories.find(c => c.id === selectedCat.key)?.slug || category)
-                  }
-                  setCategoryComboOpen(false)
-                }}
-                contentWidth="w-[calc(100vw-2rem)] md:w-80"
-              />
-            </div>
-
             <Input
               autoFocus
-              placeholder={KIND_TITLE_PLACEHOLDERS[kind] || "¿Cómo se llama este lugar?"}
+              placeholder="¿A quién recordamos?"
               value={title}
               onChange={e => setTitle(e.target.value)}
               className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0 shrink-0"

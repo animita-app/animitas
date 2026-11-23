@@ -21,8 +21,7 @@ export function MainInfo({ site }: MainInfoProps) {
   const { isEditing, setIsEditing, cancelToken, confirmToken } = useSiteEditing()
   const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
 
-  const kindSlug = (site as any).kind || 'animita'
-  const prefix = kindSlug === 'animita' ? 'Animita de ' : ''
+  const prefix = 'Animita de '
 
   const { updateStagedChange } = useSiteEditing()
 

@@ -5,7 +5,6 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSpatialContext } from '@/contexts/spatial-context'
-import { useHeritageTaxonomy } from '@/hooks/use-heritage-taxonomy'
 import { useSearchLocation } from '@/hooks/use-search-location'
 import { FilterChip, type FilterOption } from '@/components/ui/filter-chip'
 import { Button } from '@/components/ui/button'
@@ -66,11 +65,7 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
 }
 
 interface ListViewContentProps {
-  categoryOptions: FilterOption[]
-  kindOptions: FilterOption[]
   cityOptions: FilterOption[]
-  activeCategories: string[]
-  activeKinds: string[]
   activeCities: string[]
   setFilter: (key: string, value: string[]) => void
   clearFilters: () => void
@@ -79,11 +74,7 @@ interface ListViewContentProps {
 }
 
 function ListViewContent({
-  categoryOptions,
-  kindOptions,
   cityOptions,
-  activeCategories,
-  activeKinds,
   activeCities,
   setFilter,
   clearFilters,
@@ -95,8 +86,6 @@ function ListViewContent({
       <Button variant="ghost" size="icon" onClick={onBackClick} className="!h-[30px] !w-[30px] rounded-full text-muted-foreground">
         <ChevronLeft />
       </Button>
-      <FilterChip defaultLabel="Categoría" options={categoryOptions} value={activeCategories} onSelect={v => setFilter('category', v)} />
-      <FilterChip defaultLabel="Tipo" options={kindOptions} value={activeKinds} onSelect={v => setFilter('kind', v)} />
       <FilterChip defaultLabel="Ciudad" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
       <div className="flex-1" />
       <Button variant="ghost" size="icon" onClick={clearFilters} className="-ml-0.5 !h-[30px] !w-[30px] rounded-full text-muted-foreground"><X size={20} /></Button>
@@ -143,22 +132,10 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
 
   const isListView = pathname === '/list'
   const { filteredData, clearFilters, setFilter, filters } = useSpatialContext()
-  const { categories, kinds } = useHeritageTaxonomy()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
 
-  const activeCategories = filters.category || []
-  const activeKinds = filters.kind || []
   const activeCities = filters.city_region || []
 
-  const categoryOptions = useMemo<FilterOption[]>(() =>
-    categories.map(cat => ({ value: cat.slug, label: cat.name })),
-    [categories]
-  )
-  const kindOptions = useMemo<FilterOption[]>(() => {
-    if (activeCategories.length === 0) return kinds.map(k => ({ value: k.slug, label: k.name }))
-    const activeCategoryIds = new Set(categories.filter(c => activeCategories.includes(c.slug)).map(c => c.id))
-    return kinds.filter(k => activeCategoryIds.has(k.category_id)).map(k => ({ value: k.slug, label: k.name }))
-  }, [kinds, categories, activeCategories])
   const cityOptions = useMemo<FilterOption[]>(() => {
     const cities = new Set(filteredData.map((s: any) => s.city_region).filter(Boolean))
     return Array.from(cities).sort().map(city => ({ value: city, label: city }))
@@ -174,11 +151,7 @@ export function MainHeaderPanel({}: MainHeaderPanelProps) {
     >
       {isListView && (
         <ListViewContent
-          categoryOptions={categoryOptions}
-          kindOptions={kindOptions}
           cityOptions={cityOptions}
-          activeCategories={activeCategories}
-          activeKinds={activeKinds}
           activeCities={activeCities}
           setFilter={setFilter}
           clearFilters={clearFilters}

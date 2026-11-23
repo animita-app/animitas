@@ -18,13 +18,13 @@ export function CreatorSection({ site }: CreatorSectionProps) {
           <Avatar className="h-6 w-6 shrink-0">
             <AvatarFallback className="text-[10px]">{creatorInitial}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-normal text-text-strong truncate">{creatorName}</span>
+          <span className="text-sm font-normal text-text-strong">{creatorName}</span>
         </div>
       </InfoBlock>
 
       <InfoBlock label="Publicado">
         <span className="text-sm font-normal text-text-strong">
-          {new Date(site.created_at).toLocaleDateString("es-ES", {
+          {new Date(site.created_at).toLocaleDateString("es-CL", {
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -32,19 +32,6 @@ export function CreatorSection({ site }: CreatorSectionProps) {
         </span>
       </InfoBlock>
 
-      <InfoBlock label="Categoría">
-        <span className="text-sm font-normal text-text-strong tracking-tight">
-          {site.categories?.length
-            ? site.categories.map(c => c.name).join(', ')
-            : (site.kind?.category?.name || 'Patrimonio')}
-        </span>
-      </InfoBlock>
-
-      <InfoBlock label="Tipo">
-        <span className="text-sm font-normal text-text-strong capitalize">
-          {site.kind?.name || 'Memorial'}
-        </span>
-      </InfoBlock>
     </div>
   )
 }

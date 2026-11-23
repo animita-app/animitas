@@ -1,3 +1,4 @@
+import { animitaHref } from '@/lib/routes'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSpatialContext } from "@/contexts/spatial-context";
@@ -90,8 +91,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
 
   const handleSelect = useCallback((result: any) => {
     if (result.type === "local" && result.properties) {
-      const { kind, slug } = result.properties;
-      router.push(`/${kind.toLowerCase()}/${slug}`);
+      router.push(animitaHref(result.properties.slug));
     } else if (result.bbox) {
       flyTo({ bbox: result.bbox });
     } else if (result.center) {

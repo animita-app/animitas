@@ -70,23 +70,7 @@ export async function POST(request: Request) {
     location,
     isPublic,
     images,
-    kind: kindSlug,
-    categories: categoryNames,
   } = parsed.data;
-
-  const kindSlugLower = (kindSlug || "animita").toLowerCase();
-  const { data: kindData, error: kindError } = await supabase
-    .from("heritage_kinds")
-    .select("id")
-    .eq("slug", kindSlugLower)
-    .single();
-
-  if (kindError || !kindData) {
-    return NextResponse.json(
-      { error: "Tipo de patrimonio inválido" },
-      { status: 422 },
-    );
-  }
 
   const baseSlug = slugify(name);
   const slug = await ensureUniqueSlug(supabase, baseSlug);
@@ -97,7 +81,6 @@ export async function POST(request: Request) {
     story,
     slug,
     location: geom,
-    kind_id: kindData.id,
     address: location.address || null,
     city_region: location.cityRegion || null,
     images: images || [],
@@ -113,24 +96,6 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  if (categoryNames && categoryNames.length > 0) {
-    const { data: categoriesData } = await supabase
-      .from("heritage_categories")
-      .select("id")
-      .in("slug", categoryNames);
-
-    if (categoriesData && categoriesData.length > 0) {
-      const linkRows = categoriesData.map((cat) => ({
-        site_id: data.id,
-        category_id: cat.id,
-      }));
-
-      await supabase
-        .from("heritage_site_categories")
-        .insert(linkRows);
-    }
   }
 
   return NextResponse.json(
