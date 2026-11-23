@@ -4,8 +4,6 @@ import * as React from "react"
 import { ImageGallery } from './image-gallery'
 import { InfoSidebar } from './info-sidebar'
 import { GalleryHeader } from './gallery-header'
-import { SiteEditingProvider } from './site-edit-context'
-
 import { ImageGalleryEditorWrapper } from './image-gallery-editor'
 
 interface SiteDetailViewProps {
@@ -13,28 +11,27 @@ interface SiteDetailViewProps {
 }
 
 export function SiteDetailView({ site }: SiteDetailViewProps) {
-  const [previewImages, setPreviewImages] = React.useState<string[]>(site.images || [])
+  const [images, setImages] = React.useState<string[]>(site.images || [])
   const [isGalleryEditorOpen, setIsGalleryEditorOpen] = React.useState(false)
 
   return (
-    <SiteEditingProvider>
-      <div className="flex flex-col md:flex-row md:h-svh w-full md:overflow-hidden">
-        <div className="bg-black shrink-0 flex-none md:flex-1 md:min-w-0 aspect-square md:aspect-auto w-full relative">
-          <GalleryHeader site={site} onEditGallery={() => setIsGalleryEditorOpen(true)} />
-          <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
-            <ImageGalleryEditorWrapper
-              site={site}
-              onPreviewImagesChange={setPreviewImages}
-              isOpen={isGalleryEditorOpen}
-              onOpenChange={setIsGalleryEditorOpen}
-            >
-              <ImageGallery site={site} images={previewImages} title={site.title} />
-            </ImageGalleryEditorWrapper>
-          </div>
+    <div className="flex flex-col md:flex-row md:h-svh w-full md:overflow-hidden">
+      <div className="bg-black shrink-0 flex-none md:flex-1 md:min-w-0 aspect-square md:aspect-auto w-full relative">
+        <GalleryHeader site={site} onEditGallery={() => setIsGalleryEditorOpen(true)} />
+        <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
+          <ImageGalleryEditorWrapper
+            site={site}
+            images={images}
+            onImagesSaved={setImages}
+            isOpen={isGalleryEditorOpen}
+            onOpenChange={setIsGalleryEditorOpen}
+          >
+            <ImageGallery images={images} title={site.title} />
+          </ImageGalleryEditorWrapper>
         </div>
-
-        <InfoSidebar site={site} />
       </div>
-    </SiteEditingProvider>
+
+      <InfoSidebar site={site} />
+    </div>
   )
 }

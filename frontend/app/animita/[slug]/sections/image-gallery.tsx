@@ -2,18 +2,14 @@
 
 import React from "react"
 import Image from "next/image"
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
-import { ImageIcon } from "lucide-react"
-
-import { HeritageSite } from "@/types/heritage"
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
 
 interface ImageGalleryProps {
-  site?: HeritageSite
   images: string[] | null
   title: string
 }
 
-export function ImageGallery({ site, images, title }: ImageGalleryProps) {
+export function ImageGallery({ images, title }: ImageGalleryProps) {
   if (!images || images.length === 0) return null
 
   return (
@@ -24,7 +20,7 @@ export function ImageGallery({ site, images, title }: ImageGalleryProps) {
             <div className="relative w-full h-full">
               <Image
                 src={image}
-                alt={`${title} - image ${index + 1}`}
+                alt={`${title}, foto ${index + 1}`}
                 width={1280}
                 height={1280}
                 className="object-contain w-full h-full"

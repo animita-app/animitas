@@ -1,3 +1,4 @@
+import { normalizeLocation } from '@/lib/location'
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react'
 
 export interface MapTarget {
@@ -45,19 +46,9 @@ export function SpatialProvider({ children }: { children: ReactNode }) {
         }
 
         if (data) {
-          const normalized = data.map((site: any) => {
-            let location = { lat: 0, lng: 0 }
-            if (site.location?.type === 'Point' && site.location.coordinates) {
-              location = { lng: site.location.coordinates[0], lat: site.location.coordinates[1] }
-            } else if (site.location?.lat !== undefined && site.location?.lng !== undefined) {
-              location = { lat: site.location.lat, lng: site.location.lng }
-            }
-
-            return {
-              ...site,
-              location
-            }
-          })
+          const normalized = data
+            .map((site: any) => ({ ...site, location: normalizeLocation(site.location) }))
+            .filter((site: any) => site.location)
           setDbSites(normalized)
         }
       } catch (err: any) {

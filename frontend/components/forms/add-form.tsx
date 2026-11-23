@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Spinner } from "@/components/ui/spinner"
-import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
 import { LocationSelector, type Location } from "@/components/search/location-selector"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
@@ -26,27 +25,6 @@ function truncateAddress(address: string): string {
   return address
 }
 
-const KEYWORDS: Record<HighlightCategory, string[]> = {
-  patrimonial: ["accidente", "tránsito", "choque", "curva", "ruta", "camino", "feria", "trabajo", "gruta", "fallec", "muerte"],
-  spiritual: ["velas", "rosarios", "protección", "fortaleza", "acompaña", "presencia", "promesas", "ofrendas", "milagro", "fe"],
-  memory: ["familia", "vecinos", "recuerdan", "memoria", "amabilidad", "solidaridad", "comunidad", "ayudar"],
-}
-
-function detectHighlights(text: string): Highlight[] {
-  const found = new Set<string>()
-  const highlights: Highlight[] = []
-  const lower = text.toLowerCase()
-  Object.entries(KEYWORDS).forEach(([category, words]) => {
-    words.forEach(word => {
-      if (lower.includes(word) && !found.has(word)) {
-        found.add(word)
-        highlights.push({ text: word, category: category as HighlightCategory })
-      }
-    })
-  })
-  return highlights
-}
-
 interface AddFormProps {
   onCancel?: () => void
 }
@@ -60,13 +38,11 @@ export function AddForm({ onCancel }: AddFormProps) {
   const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
   const [location, setLocation] = useState<Location[]>([])
-  const [isScanning, setIsScanning] = useState(false)
-  const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
 
-  const canSubmit = title.trim().length > 0 && photos.length >= 1 && location.length > 0 && !isScanning && !isSubmitting
+  const canSubmit = title.trim().length > 0 && photos.length >= 1 && location.length > 0 && !isSubmitting
 
 
   const handleCancel = () => {
@@ -78,59 +54,13 @@ export function AddForm({ onCancel }: AddFormProps) {
     if (location.length === 0) { toast.error("La ubicación es obligatoria"); return }
     if (photos.length === 0) { toast.error("Agrega al menos una foto"); return }
 
-    setIsScanning(true)
-    setScannedHighlights([])
-
-    let extractedInsights: any = {}
-
-    try {
-      toast.loading("Extrayendo insights...", { id: "scanning" })
-
-      const insightRes = await fetch('/api/extract-insights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story, title })
-      })
-      const { insights } = await insightRes.json()
-      extractedInsights = insights
-
-      const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
-
-      if (insights?.memorial?.death_cause) {
-        highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
-      }
-      if (insights?.memorial?.social_roles?.length) {
-        highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
-      }
-      if (insights?.spiritual?.rituals_mentioned?.length) {
-        highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
-      }
-      if (insights?.patrimonial?.form) {
-        highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
-      }
-
-      toast.dismiss("scanning")
-
-      for (let i = 0; i < highlightsList.length; i++) {
-        await new Promise(r => setTimeout(r, 300))
-        setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
-      }
-
-      await new Promise(r => setTimeout(r, 600))
-    } catch (err) {
-      toast.dismiss("scanning")
-      toast.error("No se pudo extraer insights, continuando sin ellos...", { duration: 2000 })
-      await new Promise(r => setTimeout(r, 1000))
-    }
-
-    setIsScanning(false)
     setIsSubmitting(true)
 
     try {
       const supabase = createClient()
       const imageUrls: string[] = []
 
-      toast.loading("Subiendo fotos...", { id: "uploading" })
+      toast.loading("Subiendo fotos…", { id: "uploading" })
       const urls = await Promise.all(photos.map(async (file) => {
         const ext = file.name.split('.').pop()
         const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
@@ -150,7 +80,6 @@ export function AddForm({ onCancel }: AddFormProps) {
           isPublic: true,
           location: location[0],
           images: imageUrls,
-          insights: extractedInsights
         })
       })
       const data = await res.json()
@@ -214,18 +143,12 @@ export function AddForm({ onCancel }: AddFormProps) {
               className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0 shrink-0"
             />
 
-            {isScanning ? (
-              <div className="text-sm text-text p-1">
-                <StoryHighlights text={story} highlights={scannedHighlights} />
-              </div>
-            ) : (
-              <Textarea
-                placeholder="¿Cuál es su historia?"
-                value={story}
-                onChange={e => setStory(e.target.value)}
-                className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
-              />
-            )}
+            <Textarea
+              placeholder="¿Cuál es su historia?"
+              value={story}
+              onChange={e => setStory(e.target.value)}
+              className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
+            />
           </div>
         </div>
       </div>

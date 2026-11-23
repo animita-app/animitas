@@ -302,6 +302,7 @@ export function MarkerLayer({
   return (
     <>
       {map && sitesToRender.map(site => {
+        if (!site.location) return null
         const href = animitaHref(site.slug || site.id)
         const isActive = activeId === site.id
         const topValue = 38 + ((Math.min(currentZoom, 22) - 10) * 1.25)

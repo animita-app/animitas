@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { normalizeLocation } from '@/lib/location'
 import { SiteDetailView } from './sections/site-detail-view'
 
 interface PageProps {
@@ -37,6 +38,7 @@ export default async function SiteDetailPage({ params }: PageProps) {
 
   const site = dbSiteRaw ? {
     ...dbSiteRaw,
+    location: normalizeLocation(dbSiteRaw.location),
     created_by: {
       id: dbSiteRaw.user_profiles?.id || dbSiteRaw.creator_id || '',
       name: dbSiteRaw.user_profiles?.display_name || 'Anónimo'
@@ -47,5 +49,5 @@ export default async function SiteDetailPage({ params }: PageProps) {
     notFound()
   }
 
-  return <SiteDetailView site={site} />
+  return <SiteDetailView key={site.id} site={site} />
 }

@@ -1,48 +1,36 @@
 "use client"
 
 import React from "react"
-import { useRouter } from "next/navigation"
 import { HeritageSite } from "@/types/heritage"
 import { InlineEdit } from "@/components/ui/inline-edit"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
-import { Button } from "@/components/ui/button"
-import { useSiteEditing } from "../site-edit-context"
 
 interface MainInfoProps {
   site: HeritageSite
 }
 
 export function MainInfo({ site }: MainInfoProps) {
-  const router = useRouter()
   const [isExpanded, setIsExpanded] = React.useState(false)
   const { role, currentUser } = useUser()
-  const { isEditing, setIsEditing, cancelToken, confirmToken } = useSiteEditing()
   const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
 
-  const prefix = 'Animita de '
-
-  const { updateStagedChange } = useSiteEditing()
-
-  const saveField = async (field: string, value: string) => {
-    updateStagedChange(field as any, value)
-    return Promise.resolve()
+  const saveField = async (field: 'title' | 'story', value: string) => {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('heritage_sites')
+      .update({ [field]: value, updated_at: new Date().toISOString() })
+      .eq('id', site.id)
+    if (error) throw error
   }
-
-  const editingProps = canEdit ? {
-    onEditingChange: setIsEditing,
-    externalCancelToken: cancelToken,
-    externalConfirmToken: confirmToken,
-    deferredSave: true,
-  } : {}
 
   return (
     <div>
-      <h1 className="text-2xl font-medium text-text-strong leading-tight">
-        {prefix && (
-          <span className="mr-0">{prefix}</span>
-        )}
+      <h1 className="text-2xl font-medium text-text-strong leading-tight text-balance">
+        <span>Animita de </span>
         {canEdit ? (
           <InlineEdit
             value={site.title}
@@ -50,7 +38,6 @@ export function MainInfo({ site }: MainInfoProps) {
             placeholder="Nombre"
             className="inline text-inherit !mb-0"
             inline
-            {...editingProps}
           />
         ) : (
           <span>{site.title}</span>
@@ -62,31 +49,28 @@ export function MainInfo({ site }: MainInfoProps) {
           type="textarea"
           value={site.story ?? ''}
           onSave={(val) => saveField('story', val)}
-          placeholder="Agrega una historia..."
-          className={cn("mt-4 text-sm leading-relaxed text-text-strong", isEditing && "-mb-4")}
-          {...editingProps}
+          placeholder="Cuenta su historia"
+          className="mt-4 text-sm leading-relaxed text-text-strong"
         />
-      ) : (
-        <p className={cn(
-          "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line",
-          !isExpanded && "line-clamp-4"
-        )}>
-          {site.story}
-        </p>
-      )}
-
-      {(() => {
-        return !isEditing && (
+      ) : site.story ? (
+        <>
+          <p className={cn(
+            "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line text-pretty",
+            !isExpanded && "line-clamp-4"
+          )}>
+            {site.story}
+          </p>
           <Button
             onClick={() => setIsExpanded(!isExpanded)}
             className="mt-2 text-accent hover:text-accent/80"
             size="sm"
             variant="link"
+            aria-expanded={isExpanded}
           >
             {isExpanded ? "Leer menos" : "Leer más"}
           </Button>
-        )
-      })()}
+        </>
+      ) : null}
     </div>
   )
 }
