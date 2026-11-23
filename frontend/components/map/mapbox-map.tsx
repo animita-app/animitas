@@ -2,7 +2,7 @@
 
 import { animitaHref } from '@/lib/routes'
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Map as MapIcon } from 'lucide-react'
 import { useSpatialContext } from '@/contexts/spatial-context'
 import { useMapInitialization } from './hooks/use-map-initialization'
@@ -23,6 +23,7 @@ interface MapboxMapProps {
 
 export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const { filteredData, mapResetToken, mapTarget } = useSpatialContext()
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
   const { selectedHeritageSite, handleHeritageSiteSelect } = useHeritageSiteSelection()
@@ -94,7 +95,10 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
 
     handleHeritageSiteSelect(site)
     focusHeritageSite([site.location.lng, site.location.lat])
-    router.push(animitaHref(site.slug || site.id))
+    const href = animitaHref(site.slug || site.id)
+    // With a sheet already open, swap it so closing returns to the map instead of the previous animita.
+    if (pathname.startsWith('/animita/')) router.replace(href)
+    else router.push(href)
   }
 
   const handleResetView = () => {

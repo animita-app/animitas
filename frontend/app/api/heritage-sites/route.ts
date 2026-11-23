@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   } = parsed.data;
 
   const baseSlug = slugify(name);
-  const slug = await ensureUniqueSlug(supabase, baseSlug);
+  let slug = await ensureUniqueSlug(supabase, baseSlug);
   const geom = `SRID=4326;POINT(${location.lng} ${location.lat})`;
 
   const payload = {
@@ -88,14 +88,24 @@ export async function POST(request: Request) {
     creator_id: user.id,
   };
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("heritage_sites")
     .insert(payload)
     .select("id, slug")
     .single();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  // Drafts by other people are hidden by RLS, so ensureUniqueSlug can miss them.
+  for (let retry = 0; error?.code === "23505" && retry < 3; retry++) {
+    slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
+    ({ data, error } = await supabase
+      .from("heritage_sites")
+      .insert({ ...payload, slug })
+      .select("id, slug")
+      .single());
+  }
+
+  if (error || !data) {
+    return NextResponse.json({ error: error?.message ?? "No se pudo guardar" }, { status: 400 });
   }
 
   return NextResponse.json(

@@ -181,4 +181,30 @@ describe('POST /api/heritage-sites', () => {
     expect(response.status).toBe(400)
     expect(json.error).toMatch(/duplicate/i)
   })
+
+  it('retries with a new slug when a hidden draft already uses it', async () => {
+    const inserts: Record<string, any>[] = []
+    const insertBuilder = (result: { data: any; error: any }) => {
+      const builder: any = {}
+      builder.insert = jest.fn((payload) => { inserts.push(payload); return builder })
+      builder.select = jest.fn(() => builder)
+      builder.single = jest.fn(async () => result)
+      return builder
+    }
+    const queue = [
+      createSlugQueryBuilder(null),
+      insertBuilder({ data: null, error: { code: '23505', message: 'duplicate key value' } }),
+      insertBuilder({ data: { id: 'site-2', slug: 'juan-perez-x1y2' }, error: null }),
+    ]
+    mockedCreateClient.mockResolvedValueOnce({
+      auth: { getUser: jest.fn(async () => ({ data: { user: { id: 'user-123' } }, error: null })) },
+      from: jest.fn(() => queue.shift()),
+    })
+
+    const response = await POST(createRequest({ name: 'Juan Pérez', location: { lat: -33.4, lng: -70.6 } }))
+
+    expect(response.status).toBe(201)
+    expect(inserts[0].slug).toBe('juan-perez')
+    expect(inserts[1].slug).toMatch(/^juan-perez-[a-z0-9]{1,4}$/)
+  })
 })

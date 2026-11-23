@@ -151,7 +151,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
 
   const handleSubmit = async () => {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed || submitting) return
     if (!isAuthenticated || !currentUser) { router.push('/auth'); return }
 
     setSubmitting(true)
@@ -166,14 +166,18 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
     setText("")
 
     const supabase = createClient()
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('heritage_site_comments')
       .insert({ site_id: siteId, user_id: currentUser.id, content: trimmed })
+      .select('id, created_at')
+      .single()
 
-    if (error) {
+    if (error || !data) {
       setComments((prev) => prev.filter((c) => c.id !== optimistic.id))
       setText(trimmed)
-      toast.error("No se pudo publicar el comentario", { description: error.message })
+      toast.error("No se pudo publicar el comentario", { description: error?.message })
+    } else {
+      setComments((prev) => prev.map((c) => c.id === optimistic.id ? { ...c, id: data.id, created_at: data.created_at } : c))
     }
     setSubmitting(false)
   }
@@ -205,7 +209,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
             aria-label="Comentario"
             className="min-h-24 bg-background resize-none text-sm"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
                 handleSubmit()
               }

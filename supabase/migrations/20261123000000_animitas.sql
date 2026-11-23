@@ -120,9 +120,10 @@ create policy "People edit their own profile" on public.user_profiles
   for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
 
 -- Nobody can set their own role from the app: only these columns are writable.
+-- id is included because the app upserts by id; the policy above keeps it pinned to auth.uid().
 revoke insert, update on public.user_profiles from anon, authenticated;
 grant insert (id, username, display_name, image) on public.user_profiles to authenticated;
-grant update (username, display_name, image) on public.user_profiles to authenticated;
+grant update (id, username, display_name, image) on public.user_profiles to authenticated;
 
 create policy "Published animitas are public" on public.heritage_sites
   for select using (status = 'published' or creator_id = auth.uid() or public.is_editor());

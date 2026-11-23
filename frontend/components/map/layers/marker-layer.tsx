@@ -30,7 +30,7 @@ const CLUSTER_CONFIG = {
   clusterRadius: 25,
 }
 
-const POINT_FILTER = ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'geom_type'], 'polygon']] as any
+const POINT_FILTER = ['!', ['has', 'point_count']] as any
 
 export function MarkerLayer({
   map,
@@ -84,31 +84,6 @@ export function MarkerLayer({
         data: { type: 'FeatureCollection', features: [] },
         promoteId: 'id',
         ...CLUSTER_CONFIG,
-      })
-    }
-
-    if (!map.getSource(`${sourceId}-polygons`)) {
-      map.addSource(`${sourceId}-polygons`, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      })
-    }
-
-    if (!map.getLayer(`${sourceId}-polygon-fill`)) {
-      map.addLayer({
-        id: `${sourceId}-polygon-fill`,
-        type: 'fill',
-        source: `${sourceId}-polygons`,
-        paint: { 'fill-color': ANIMITA_COLOR, 'fill-opacity': 0.12 },
-      })
-    }
-
-    if (!map.getLayer(`${sourceId}-polygon-outline`)) {
-      map.addLayer({
-        id: `${sourceId}-polygon-outline`,
-        type: 'line',
-        source: `${sourceId}-polygons`,
-        paint: { 'line-color': ANIMITA_COLOR, 'line-width': 1.5, 'line-opacity': 0.85 },
       })
     }
 
@@ -189,26 +164,8 @@ export function MarkerLayer({
         type: 'Feature',
         id: site.id,
         geometry: { type: 'Point', coordinates: [site.location.lng, site.location.lat] },
-        properties: { ...site, geom_type: site.rawGeometry ? 'polygon' : 'point' },
+        properties: site,
       })),
-    } as any)
-  }, [map, isMapReady, data, sourceId])
-
-  // 3. Update polygon data
-  useEffect(() => {
-    if (!map || !isMapReady) return
-    const source = map.getSource(`${sourceId}-polygons`) as mapboxgl.GeoJSONSource
-    if (!source) return
-    source.setData({
-      type: 'FeatureCollection',
-      features: data
-        .filter(site => site.rawGeometry)
-        .map(site => ({
-          type: 'Feature',
-          id: site.id,
-          geometry: site.rawGeometry,
-          properties: { id: site.id, title: site.title },
-        })),
     } as any)
   }, [map, isMapReady, data, sourceId])
 

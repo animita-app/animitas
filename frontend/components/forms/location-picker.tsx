@@ -95,8 +95,9 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
   return (
     <div className="space-y-2">
       <div
+        data-vaul-no-drag
         className={cn(
-          "relative h-56 overflow-hidden rounded-lg border border-border-weak",
+          "relative h-56 overflow-hidden rounded-lg border border-border-weak touch-none",
           invalid && "border-destructive"
         )}
       >

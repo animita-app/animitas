@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useIsMobile } from '@/hooks/use-mobile'
+import { useIsMobileOverlay } from '@/hooks/use-mobile'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer'
 import { cn } from '@/lib/utils'
@@ -16,11 +16,13 @@ interface ModalWrapperProps {
 
 export function ModalWrapper({ children, title, description, className, showTitle = true }: ModalWrapperProps) {
   const router = useRouter()
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobileOverlay()
 
   const onOpenChange = (open: boolean) => {
     if (!open) router.back()
   }
+
+  if (isMobile === undefined) return null
 
   if (isMobile) {
     return (

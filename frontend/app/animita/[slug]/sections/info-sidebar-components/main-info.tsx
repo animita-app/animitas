@@ -3,8 +3,6 @@
 import React from "react"
 import { HeritageSite } from "@/types/heritage"
 import { InlineEdit } from "@/components/ui/inline-edit"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
@@ -14,7 +12,6 @@ interface MainInfoProps {
 }
 
 export function MainInfo({ site }: MainInfoProps) {
-  const [isExpanded, setIsExpanded] = React.useState(false)
   const { role, currentUser } = useUser()
   const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
 
@@ -53,23 +50,9 @@ export function MainInfo({ site }: MainInfoProps) {
           className="mt-4 text-sm leading-relaxed text-text-strong"
         />
       ) : site.story ? (
-        <>
-          <p className={cn(
-            "mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line text-pretty",
-            !isExpanded && "line-clamp-4"
-          )}>
-            {site.story}
-          </p>
-          <Button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-accent hover:text-accent/80"
-            size="sm"
-            variant="link"
-            aria-expanded={isExpanded}
-          >
-            {isExpanded ? "Leer menos" : "Leer más"}
-          </Button>
-        </>
+        <p className="mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line text-pretty">
+          {site.story}
+        </p>
       ) : null}
     </div>
   )

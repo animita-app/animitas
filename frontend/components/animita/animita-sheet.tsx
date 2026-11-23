@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { HeritageSite } from "@/types/heritage"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobileOverlay } from "@/hooks/use-mobile"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
@@ -29,12 +29,14 @@ function Photos({ site }: { site: HeritageSite }) {
 
 export function AnimitaSheet({ site }: { site: HeritageSite }) {
   const router = useRouter()
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobileOverlay()
   const [snap, setSnap] = useState<number | string | null>(SNAP_POINTS[0])
 
   const close = (open: boolean) => {
     if (!open) router.back()
   }
+
+  if (isMobile === undefined) return null
 
   if (isMobile) {
     return (

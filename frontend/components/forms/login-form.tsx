@@ -63,7 +63,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
-      await supabase.from('user_profiles').upsert({ id: user.id, display_name: fullName.trim() })
+      const { error: saveError } = await supabase.from('user_profiles').upsert({ id: user.id, display_name: fullName.trim() })
+      if (saveError) throw saveError
       saveOnboardingStep('username')
       setStep('username')
     } catch (error: any) {
@@ -82,7 +83,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
       const normalizedUsername = username.trim().toLowerCase()
-      await supabase.from('user_profiles').upsert({ id: user.id, username: normalizedUsername })
+      const { error: saveError } = await supabase.from('user_profiles').upsert({ id: user.id, username: normalizedUsername })
+      if (saveError) throw saveError
       saveOnboardingStep('avatar')
       setStep('avatar')
     } catch (error: any) {
@@ -96,7 +98,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
   const handleSaveAvatar = async () => {
     if (!avatarFile) return
     setLoadingAction('avatar')
-    const timeoutId = setTimeout(() => { toast.error("Upload taking too long"); setLoadingAction(null) }, 15000)
+    const timeoutId = setTimeout(() => { toast.error("La foto está tardando demasiado en subir"); setLoadingAction(null) }, 15000)
     try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
@@ -106,7 +108,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true })
       if (uploadError) throw uploadError
       const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
-      await supabase.from('user_profiles').upsert({ id: user.id, image: publicUrl })
+      const { error: saveError } = await supabase.from('user_profiles').upsert({ id: user.id, image: publicUrl })
+      if (saveError) throw saveError
       clearTimeout(timeoutId)
       finishAuth()
     } catch (error: any) {
