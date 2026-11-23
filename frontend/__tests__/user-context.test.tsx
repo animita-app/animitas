@@ -73,8 +73,13 @@ describe("UserContext", () => {
     expect(result.current.role).toBe(ROLES.DEFAULT);
   });
 
-  it("should allow changing role", async () => {
+  it("should update the current user locally", async () => {
     const { result } = renderHook(() => useUser(), { wrapper });
+
+    // Let the initial session check settle first, otherwise it overwrites the user set below.
+    await act(async () => {
+      await flushAsync();
+    });
 
     await act(async () => {
       result.current.setUser({
@@ -88,12 +93,10 @@ describe("UserContext", () => {
     });
 
     expect(result.current.currentUser?.id).toBe("user-1");
+  });
 
-    await act(async () => {
-      result.current.setRole(ROLES.EDITOR);
-      await flushAsync();
-    });
-
-    expect(result.current.role).toBe(ROLES.EDITOR);
+  it("does not expose a way to change the role from the client", async () => {
+    const { result } = renderHook(() => useUser(), { wrapper });
+    expect("setRole" in result.current).toBe(false);
   });
 });

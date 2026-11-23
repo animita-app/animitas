@@ -1,7 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode, useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { User, UserRole, ROLES } from '@/types/roles'
 import { createClient } from '@/lib/supabase/client'
 
@@ -9,7 +8,6 @@ interface UserContextType {
   currentUser: User | null
   role: UserRole
   setUser: (user: User | null) => void
-  setRole: (role: UserRole) => void
   isLoading: boolean
   isAuthenticated: boolean
   isEditor: boolean
@@ -17,20 +15,6 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
-
-function UrlRoleSynchronizer() {
-  const searchParams = useSearchParams()
-  const { role, setRole } = useUser()
-
-  useEffect(() => {
-    const roleParam = searchParams.get('role')
-    if (roleParam && Object.values(ROLES).includes(roleParam as UserRole) && role !== roleParam) {
-      setRole(roleParam as UserRole)
-    }
-  }, [searchParams, setRole, role])
-
-  return null
-}
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
@@ -97,35 +81,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const setRole = async (newRole: UserRole) => {
-    if (!currentUser) return
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ role: newRole })
-      .eq('id', currentUser.id)
-
-    if (!error) {
-      setRoleState(newRole)
-      setCurrentUser(prev => prev ? { ...prev, role: newRole } : null)
-    }
-  }
-
   return (
     <UserContext.Provider value={{
       currentUser,
       role,
       setUser: setCurrentUser,
-      setRole,
       isLoading,
       isAuthenticated: !!currentUser,
       isEditor: role === 'editor' || role === 'superadmin',
       isSuperadmin: role === 'superadmin',
     }}>
-
-      <Suspense fallback={null}>
-        <UrlRoleSynchronizer />
-      </Suspense>
       {children}
     </UserContext.Provider>
   )

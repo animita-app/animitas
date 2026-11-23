@@ -5,6 +5,7 @@ import { Camera, Loader2, Route } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { InlineEdit } from '@/components/ui/inline-edit'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useUser } from '@/contexts/user-context'
@@ -170,7 +171,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
             <h1 className="text-2xl font-semibold text-text-strong tracking-tight">{profile.display_name}</h1>
           )}
           {isElevated && (
-            <Badge variant="secondary" className="text-xs font-semibold uppercase tracking-wide shrink-0">
+            <Badge variant="secondary" className="shrink-0">
               {profile.role === 'superadmin' ? 'Admin' : 'Editor'}
             </Badge>
           )}
@@ -190,9 +191,9 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
         <TabsContent value="sites">
           {tabLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="aspect-square rounded-lg bg-background-weaker animate-pulse" />
+                <Skeleton key={i} className="aspect-square rounded-lg" />
               ))}
             </div>
           ) : sites.length > 0 ? (
@@ -212,7 +213,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
           {tabLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
-                <div key={i} className="h-16 rounded-lg bg-background-weaker animate-pulse" />
+                <Skeleton key={i} className="h-16 rounded-lg" />
               ))}
             </div>
           ) : routes.length > 0 ? (

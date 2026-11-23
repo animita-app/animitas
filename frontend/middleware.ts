@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes that require specific roles
 const PROTECTED_ROUTES: { prefix: string; minRole: string }[] = [
-  { prefix: '/admin', minRole: 'superadmin' },
   { prefix: '/editor', minRole: 'editor' },
 ]
 

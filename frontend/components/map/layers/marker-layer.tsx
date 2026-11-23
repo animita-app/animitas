@@ -3,12 +3,14 @@
 import { animitaHref } from '@/lib/routes'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { COLORS } from '@/lib/map-style'
 import { HeritageSite } from '@/types/heritage'
 import { MapMarker } from '../map-marker'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+// Mapbox paint properties can't read CSS variables, so this mirrors --color-accent.
+const ANIMITA_COLOR = '#0000ee'
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
@@ -97,7 +99,7 @@ export function MarkerLayer({
         id: `${sourceId}-polygon-fill`,
         type: 'fill',
         source: `${sourceId}-polygons`,
-        paint: { 'fill-color': COLORS.animitas, 'fill-opacity': 0.12 },
+        paint: { 'fill-color': ANIMITA_COLOR, 'fill-opacity': 0.12 },
       })
     }
 
@@ -106,7 +108,7 @@ export function MarkerLayer({
         id: `${sourceId}-polygon-outline`,
         type: 'line',
         source: `${sourceId}-polygons`,
-        paint: { 'line-color': COLORS.animitas, 'line-width': 1.5, 'line-opacity': 0.85 },
+        paint: { 'line-color': ANIMITA_COLOR, 'line-width': 1.5, 'line-opacity': 0.85 },
       })
     }
 
@@ -120,7 +122,7 @@ export function MarkerLayer({
           'circle-color': ['step', ['get', 'point_count'], 'transparent', 10, 'transparent', 30, 'transparent'],
           'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
           'circle-opacity': 0.85,
-          'circle-stroke-color': COLORS.animitas,
+          'circle-stroke-color': ANIMITA_COLOR,
           'circle-stroke-width': 1.5,
         },
       })
@@ -137,7 +139,7 @@ export function MarkerLayer({
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 14,
         },
-        paint: { 'text-color': COLORS.animitas },
+        paint: { 'text-color': ANIMITA_COLOR },
       })
     }
 
@@ -152,7 +154,7 @@ export function MarkerLayer({
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 8, 6, 18, 12, 24, 18, 32],
           'circle-color': 'transparent',
           'circle-opacity': 0.85,
-          'circle-stroke-color': COLORS.animitas,
+          'circle-stroke-color': ANIMITA_COLOR,
           'circle-stroke-width': 1.5,
         },
       })
@@ -167,7 +169,7 @@ export function MarkerLayer({
         maxzoom: 24,
         paint: {
           'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2.5, 6, 6, 12, 8, 18, 12],
-          'circle-color': COLORS.animitas,
+          'circle-color': ANIMITA_COLOR,
           'circle-opacity': 0.92,
         },
       })
