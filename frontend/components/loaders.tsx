@@ -1,6 +1,9 @@
+'use client'
+
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { CutoutText } from '@/components/cutout-text'
+import { useEffect } from 'react'
+import { CutoutText, preloadCutouts } from '@/components/cutout-text'
 
 // The real candle from the shelf, lit or out. Loading and error states use it instead of spinners.
 export function Candle({ lit = true, className }: { lit?: boolean; className?: string }) {
@@ -26,5 +29,7 @@ export function DevelopingPhoto({ className }: { className?: string }) {
 
 // "cargando" glued on letter by letter while whatever it waits for arrives.
 export function GluingWord({ text = 'cargando', className }: { text?: string; className?: string }) {
+  // Every cut of these letters is fetched up front, so each new round shows whole.
+  useEffect(() => preloadCutouts(text), [text])
   return <CutoutText text={text} height={30} glue className={className} />
 }

@@ -24,41 +24,126 @@ function rng(seed: number) {
 
 type Pt = [number, number]
 
-// One ballpoint stroke: a slightly shaky line, a soft bleed under it, and ink pooled where the pen
-// landed and lifted.
-function penStroke(ctx: CanvasRenderingContext2D, pts: Pt[], width: number, rand: () => number) {
-  const shaky = pts.map(([x, y]): Pt => [x + (rand() - 0.5) * width * 0.6, y + (rand() - 0.5) * width * 0.6])
-  const trace = () => {
-    ctx.beginPath()
-    ctx.moveTo(...shaky[0])
-    for (let i = 1; i < shaky.length - 1; i++) {
-      const [x, y] = shaky[i]
-      const [nx, ny] = shaky[i + 1]
-      ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2)
-    }
-    ctx.lineTo(...shaky[shaky.length - 1])
+// One ballpoint stroke, shaken once so every layer drawn from it lines up: the crisp line with ink pooled
+// where the pen landed and lifted, and the bleed that soaks around it.
+interface Stroke { pts: Pt[]; width: number; blobs: [number, number] }
+
+function shake(pts: Pt[], width: number, rand: () => number): Stroke {
+  return {
+    pts: pts.map(([x, y]): Pt => [x + (rand() - 0.5) * width * 0.6, y + (rand() - 0.5) * width * 0.6]),
+    width,
+    blobs: [width * (0.7 + rand() * 0.4), width * (0.7 + rand() * 0.4)],
   }
+}
+
+function trace(ctx: CanvasRenderingContext2D, pts: Pt[]) {
+  ctx.beginPath()
+  ctx.moveTo(...pts[0])
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [x, y] = pts[i]
+    const [nx, ny] = pts[i + 1]
+    ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2)
+  }
+  ctx.lineTo(...pts[pts.length - 1])
+}
+
+function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke) {
   ctx.lineCap = ctx.lineJoin = 'round'
   ctx.strokeStyle = ctx.fillStyle = PEN_INK
-  ctx.save()
-  ctx.filter = `blur(${width * 0.7}px)`
-  ctx.globalAlpha = 0.35
-  ctx.lineWidth = width * 1.8
-  trace()
-  ctx.stroke()
-  ctx.restore()
   ctx.globalAlpha = 0.9
   ctx.lineWidth = width
-  trace()
+  trace(ctx, pts)
   ctx.stroke()
   ctx.globalAlpha = 0.85
-  for (const [x, y] of [shaky[0], shaky[shaky.length - 1]]) {
+  ;[pts[0], pts[pts.length - 1]].forEach(([x, y], i) => {
     ctx.beginPath()
-    ctx.arc(x, y, width * (0.7 + rand() * 0.4), 0, Math.PI * 2)
+    ctx.arc(x, y, blobs[i], 0, Math.PI * 2)
     ctx.fill()
-  }
+  })
   ctx.globalAlpha = 1
 }
+
+// The bleed is drawn a few times, each soaked a little differently: the map eases between them so the
+// ink seems to keep spreading into the paper.
+function drawBleed(ctx: CanvasRenderingContext2D, { pts, width }: Stroke, rand: () => number) {
+  const soak = 0.5 + rand() * 0.7
+  const drift = (): Pt => [(rand() - 0.5) * width * 0.9, (rand() - 0.5) * width * 0.9]
+  ctx.save()
+  ctx.lineCap = ctx.lineJoin = 'round'
+  ctx.strokeStyle = PEN_INK
+  ctx.filter = `blur(${width * soak}px)`
+  ctx.globalAlpha = 0.26 + rand() * 0.14
+  ctx.lineWidth = width * (1.5 + soak * 0.6)
+  const [dx, dy] = drift()
+  trace(ctx, pts.map(([x, y]): Pt => [x + dx + (rand() - 0.5) * width * 0.5, y + dy + (rand() - 0.5) * width * 0.5]))
+  ctx.stroke()
+  ctx.restore()
+}
+
+const BLEED_FRAMES = 4
+
+// A pen drawing the map can animate: the crisp ink stays put and the bleed under it slowly morphs.
+// Every channel is the same blue, so composing is only adding alpha.
+class InkImage {
+  width: number
+  height: number
+  data: Uint8Array
+  private crisp: Uint8ClampedArray
+  private bleeds: Uint8ClampedArray[]
+  private phase: number
+  private frame = -1
+
+  constructor(size: number, draw: (ctx: CanvasRenderingContext2D) => Stroke[], dots: (ctx: CanvasRenderingContext2D) => void, seed: number) {
+    this.width = this.height = size
+    const layer = (paint: (ctx: CanvasRenderingContext2D) => void) => {
+      const { ctx } = canvasFor(size)
+      paint(ctx)
+      return ctx.getImageData(0, 0, size, size).data
+    }
+    let strokes: Stroke[] = []
+    this.crisp = layer(ctx => { strokes = draw(ctx); strokes.forEach(st => drawCrisp(ctx, st)); dots(ctx) })
+    const rand = rng(seed * 31 + 5)
+    this.bleeds = Array.from({ length: BLEED_FRAMES }, () => layer(ctx => strokes.forEach(st => drawBleed(ctx, st, rand))))
+    this.phase = rand() * BLEED_FRAMES
+    this.data = new Uint8Array(size * size * 4)
+    this.compose(this.phase)
+  }
+
+  private compose(t: number) {
+    const k = Math.floor(t) % BLEED_FRAMES
+    const a = this.bleeds[k]
+    const b = this.bleeds[(k + 1) % BLEED_FRAMES]
+    const f = t - Math.floor(t)
+    const w = f * f * (3 - 2 * f)
+    const [r, g, bl] = [1, 3, 5].map(i => parseInt(PEN_INK.slice(i, i + 2), 16))
+    const out = this.data
+    for (let i = 0; i < out.length; i += 4) {
+      const ca = this.crisp[i + 3] / 255
+      const ba = (a[i + 3] * (1 - w) + b[i + 3] * w) / 255
+      out[i] = r
+      out[i + 1] = g
+      out[i + 2] = bl
+      out[i + 3] = Math.round((ca + ba * (1 - ca)) * 255)
+    }
+  }
+
+  // Called by the map before it paints; only recomposes when the bleed has moved on a step.
+  render() {
+    if (stillInk()) return false
+    const t = performance.now() / INK_CYCLE_MS * BLEED_FRAMES + this.phase
+    const frame = Math.floor(t * 20)
+    if (frame === this.frame) return false
+    this.frame = frame
+    this.compose(t)
+    return true
+  }
+}
+
+const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+// One full round of the bleed's slow breathing, and how often the map repaints to show it.
+const INK_CYCLE_MS = 9000
+const INK_TICK_MS = 120
 
 // A loop drawn freehand: it starts somewhere, goes round a bit more than once and doesn't meet itself.
 function loop(cx: number, cy: number, r: number, rand: () => number): Pt[] {
@@ -98,40 +183,41 @@ function canvasFor(size: number) {
 
 // A cluster: the count written by hand and circled, like marking a spot on a printed map.
 function circledCount(count: string) {
-  const rand = rng(Number(count) * 97 + 13)
+  const seed = Number(count) * 97 + 13
+  const rand = rng(seed)
   const digitH = 26
   const digitW = digitH * 0.62
   const textW = count.length * digitW + (count.length - 1) * 3
   const r = Math.max(textW, digitH) / 2 + 12 + Math.min(Number(count), 40) * 0.25
   const size = Math.ceil((r + 10) * 2)
-  const { canvas, ctx } = canvasFor(size)
   const c = size / 2
-  penStroke(ctx, loop(c, c, r, rand), 2.4, rand)
   const tilt = (rand() - 0.5) * 0.18
-  ctx.save()
-  ctx.translate(c, c)
-  ctx.rotate(tilt)
-  count.split('').forEach((d, i) => {
+  const ring = shake(loop(c, c, r, rand), 2.4, rand)
+  const digits = count.split('').map((d, i) => {
     const x0 = -textW / 2 + i * (digitW + 3)
-    const pts = DIGIT_STROKES[d].map(([x, y]): Pt => [x0 + (x / 10) * digitW, -digitH / 2 + (y / 16) * digitH + (rand() - 0.5) * 2])
-    penStroke(ctx, pts, 2.6, rand)
+    const pts = DIGIT_STROKES[d].map(([x, y]): Pt => {
+      const px = x0 + (x / 10) * digitW
+      const py = -digitH / 2 + (y / 16) * digitH + (rand() - 0.5) * 2
+      return [c + px * Math.cos(tilt) - py * Math.sin(tilt), c + px * Math.sin(tilt) + py * Math.cos(tilt)]
+    })
+    return shake(pts, 2.6, rand)
   })
-  ctx.restore()
-  return ctx.getImageData(0, 0, size, size)
+  return new InkImage(size, () => [ring, ...digits], () => {}, seed)
 }
 
 // A single animita: a small loop with a dot pressed in its middle.
 function penMark() {
   const rand = rng(7)
   const size = 40
-  const { canvas, ctx } = canvasFor(size)
-  penStroke(ctx, loop(size / 2, size / 2, 12, rand), 2.2, rand)
-  ctx.fillStyle = PEN_INK
-  ctx.globalAlpha = 0.9
-  ctx.beginPath()
-  ctx.arc(size / 2 + 0.5, size / 2 - 0.5, 4, 0, Math.PI * 2)
-  ctx.fill()
-  return ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const ring = shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)
+  return new InkImage(size, () => [ring], ctx => {
+    ctx.fillStyle = PEN_INK
+    ctx.globalAlpha = 0.9
+    ctx.beginPath()
+    ctx.arc(size / 2 + 0.5, size / 2 - 0.5, 4, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 1
+  }, 7)
 }
 
 function addMarks(map: mapboxgl.Map) {
@@ -259,7 +345,13 @@ export function MarkerLayer({
       map.addImage(e.id, circledCount(e.id.slice(6)), { pixelRatio: 2 })
     }
     map.on('styleimagemissing', drawCount)
-    return () => { map.off('styleimagemissing', drawCount) }
+    // The bleed only moves when the map repaints; a slow tick keeps it breathing without running the
+    // map at full frame rate. With reduced motion the ink stays still.
+    const tick = stillInk() ? undefined : setInterval(() => map.triggerRepaint(), INK_TICK_MS)
+    return () => {
+      map.off('styleimagemissing', drawCount)
+      if (tick) clearInterval(tick)
+    }
   }, [map, isMapReady])
 
   // 2. Update point data

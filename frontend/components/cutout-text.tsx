@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 import pack from '@/lib/cutout-letters.json'
@@ -72,6 +72,41 @@ function Tile({ char, seed, i, size }: { char: string; seed: number; i: number; 
   )
 }
 
+// The loader's rhythm: slap the letters on one by one until the word is whole, let it be read, peel it
+// all off together and cut a new set. With reduced motion the word just stays.
+const GLUE_STEP = 150
+const GLUE_HOLD = 1400
+const GLUE_PEEL = 350
+
+function useGluing(active: boolean, n: number, recut: () => void) {
+  const [glued, setGlued] = useState(active ? 0 : n)
+  const recutRef = useRef(recut)
+  recutRef.current = recut
+  useEffect(() => {
+    if (!active) return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setGlued(n)
+      return
+    }
+    let timer: ReturnType<typeof setTimeout>
+    let count = 0
+    const tick = () => {
+      if (count < n) {
+        count += 1
+        setGlued(count)
+        timer = setTimeout(tick, count === n ? GLUE_HOLD : GLUE_STEP)
+      } else {
+        count = 0
+        setGlued(0)
+        timer = setTimeout(() => { recutRef.current(); tick() }, GLUE_PEEL)
+      }
+    }
+    timer = setTimeout(tick, GLUE_STEP)
+    return () => clearTimeout(timer)
+  }, [active, n])
+  return glued
+}
+
 interface CutoutTextProps {
   text: string
   height?: number
@@ -98,6 +133,7 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
 
   const letters = Array.from(text.toLowerCase())
   const n = letters.length
+  const glued = useGluing(glue, n, () => setSeed(Math.floor(Math.random() * 1e6)))
   const sizeOf = (i: number) => height * (0.78 + noise(seed, i + 3) * 0.32)
 
   if (orbit) {
@@ -146,10 +182,10 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
           <span
             key={i}
             className={cn('relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]', glue && 'cutout-glue')}
+            data-glued={glue ? i < glued : undefined}
             style={{
               rotate: `${tilt.toFixed(1)}deg`,
               translate: `0 ${drop.toFixed(1)}px`,
-              animationDelay: glue ? `${i * 140}ms` : undefined,
               marginInline: -height * 0.05,
               zIndex: Math.floor(noise(seed, i + 61) * 3),
             }}

@@ -30,3 +30,22 @@ describe("CutoutText", () => {
     expect(glyphs(container)).toHaveLength(6);
   });
 });
+
+describe("CutoutText as a loader", () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it("glues the whole word before any letter peels off, then starts over", () => {
+    const { act } = require("react");
+    const { container } = render(<CutoutText text="cargando" glue />);
+    const glued = () => container.querySelectorAll('[data-glued="true"]').length;
+    const seen: number[] = [];
+    for (let t = 0; t < 4000; t += 50) {
+      act(() => { jest.advanceTimersByTime(50); });
+      seen.push(glued());
+    }
+    const firstPeel = seen.findIndex((n, i) => i > 0 && n < seen[i - 1]);
+    expect(Math.max(...seen.slice(0, firstPeel))).toBe(8);
+    expect(seen.slice(firstPeel).some(n => n === 8)).toBe(true);
+  });
+});
