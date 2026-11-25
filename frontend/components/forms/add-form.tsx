@@ -1,9 +1,11 @@
 "use client"
 
-import { useEffect, useId, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Camera, ImagePlus, X } from "lucide-react"
+import { ImagePlus } from "lucide-react"
+import Image from "next/image"
+import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CutoutText } from "@/components/cutout-text"
@@ -20,6 +22,7 @@ import { animitaHref } from "@/lib/routes"
 import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
 import { uploadAnimitaPhoto } from "@/lib/photos"
+import { useDragToTrash } from "./use-drag-to-trash"
 
 
 const MAX_PHOTOS = 5
@@ -43,7 +46,6 @@ export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
   const ids = useId()
-  const cameraRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
   const nameRef = useRef<HTMLInputElement>(null)
   const sectionRefs = useRef<Partial<Record<Field, HTMLElement | null>>>({})
@@ -71,6 +73,17 @@ export function AddForm({ onCancel }: AddFormProps) {
     setPhotos(prev => [...prev, ...list])
     setErrors(prev => ({ ...prev, photos: undefined }))
   }
+
+  // Throwing a photo away can be undone, so it happens at once.
+  const removePhoto = useCallback((index: number) => {
+    const removed = photos[index]
+    if (!removed) return
+    setPhotos(prev => prev.filter((_, i) => i !== index))
+    toast("Foto botada", {
+      action: { label: "Deshacer", onClick: () => setPhotos(prev => [...prev.slice(0, index), removed, ...prev.slice(index)]) },
+    })
+  }, [photos])
+  const { trashRef, drag, overTrash, handlers } = useDragToTrash(removePhoto)
 
   const handleCancel = () => {
     if (onCancel) onCancel()
@@ -135,41 +148,35 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-4 py-4 pl-5 pr-16">
+      <div className="shrink-0 px-5 py-4">
         <h1 className="sr-only">Añadir animita</h1>
         <CutoutText text="añadir" height={30} arc={20} />
-        <div className="flex items-center gap-4">
-          <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
-            Cancelar
-          </Button>
-          <Button type="button" variant="sign" size="lg" className="rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting && <Spinner />}
-            {isSubmitting ? "Publicando…" : "Publicar"}
-          </Button>
-        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="space-y-8 px-5 pt-2 pb-safe">
+        <div className="space-y-8 px-5 pt-2 pb-10">
           <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2">
             <h2 id={`${ids}-photos`} className="text-sm text-text">Fotos</h2>
             <ul className="grid grid-cols-3 gap-3">
-                {previews.map((src, i) => (
-                  <li key={src} className={cn("print-frame relative p-1 pb-3", i % 2 ? "rotate-1" : "-rotate-1")}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={`Foto ${i + 1}`} className="aspect-square w-full object-cover" />
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="secondary"
-                      aria-label={`Quitar foto ${i + 1}`}
-                      className="absolute top-1 right-1"
-                      onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                    >
-                      <X />
-                    </Button>
+              {previews.map((src, i) => {
+                const lifted = drag?.index === i
+                return (
+                  <li
+                    key={src}
+                    tabIndex={0}
+                    aria-label={`Foto ${i + 1}. Arrástrala al basurero o presiona Suprimir para botarla`}
+                    onKeyDown={e => { if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removePhoto(i) } }}
+                    {...handlers(i)}
+                    className={cn(
+                      "print-frame relative cursor-grab touch-none select-none p-1 pb-3 outline-none transition-opacity focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                      i % 2 ? "rotate-1" : "-rotate-1",
+                      lifted && "opacity-25"
+                    )}
+                  >
+                    <Image src={src} alt="" width={240} height={240} unoptimized draggable={false} className="pointer-events-none aspect-square w-full object-cover" />
                   </li>
-                ))}
+                )
+              })}
               {photos.length < MAX_PHOTOS && (
                 // An empty instant print waiting for its photo: pressing it picks one.
                 <li className={cn(previews.length % 2 ? "-rotate-1" : "rotate-1")}>
@@ -183,22 +190,16 @@ export function AddForm({ onCancel }: AddFormProps) {
                     )}
                   >
                     {/* An unexposed print is near black, with the faint sheen of its chemistry. */}
-                    <span className="flex aspect-square w-full items-center justify-center bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] text-text-inverted/60 shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)] transition-colors group-hover:text-text-inverted">
-                      <ImagePlus aria-hidden />
+                    <span className="flex aspect-square w-full items-center justify-center bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] text-text-inverted shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)]">
+                      {/* Fade the whole icon, never its color: an alpha color darkens where its strokes cross. */}
+                      <ImagePlus aria-hidden className="opacity-60 transition-opacity group-hover:opacity-100" />
                     </span>
                     <span className="pt-1.5 text-xs text-text-weak">{previews.length ? "Otra foto" : "Elegir fotos"}</span>
                   </button>
                 </li>
               )}
             </ul>
-            {photos.length < MAX_PHOTOS && (
-              <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => cameraRef.current?.click()}>
-                <Camera />
-                Tomar foto
-              </Button>
-            )}
             {errors.photos && <p id={errorId("photos")} className="text-sm text-destructive">{errors.photos}</p>}
-            <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = "" }} />
             <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = "" }} />
           </section>
 
@@ -248,6 +249,50 @@ export function AddForm({ onCancel }: AddFormProps) {
               className="min-h-32 -rotate-[0.4deg]"
             />
           </div>
+        </div>
+      </div>
+
+      {drag && previews[drag.index] && createPortal(
+        <div
+          aria-hidden
+          style={{ left: drag.left, top: drag.top, width: drag.width }}
+          className={cn(
+            "print-frame pointer-events-none fixed z-100 rotate-3 scale-105 p-1 pb-3 shadow-2xl transition-[scale,opacity] duration-150",
+            overTrash && "scale-75 opacity-70"
+          )}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={previews[drag.index]} alt="" className="aspect-square w-full object-cover" />
+        </div>,
+        document.body
+      )}
+
+      {/* Floats at the bottom over a paper fade. While a photo is lifted, the trash takes its place. */}
+      <div className="relative shrink-0 px-5 pt-3 pb-safe before:pointer-events-none before:absolute before:inset-x-0 before:-top-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent">
+        <div className="flex min-h-20 items-center justify-end gap-4 pb-4">
+          {drag ? (
+            <div ref={trashRef} className="flex flex-1 items-end justify-center gap-3">
+              <CutoutText text="bótala aquí" height={20} />
+              <Image
+                src="/cutouts/trash.png"
+                alt=""
+                width={198}
+                height={200}
+                draggable={false}
+                className={cn("h-16 w-auto drop-shadow-[0_4px_4px_rgb(28_24_20_/_0.35)] transition-[scale,rotate] duration-200", overTrash && "scale-115 -rotate-3")}
+              />
+            </div>
+          ) : (
+            <>
+              <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
+                Cancelar
+              </Button>
+              <Button type="button" variant="sign" size="lg" className="rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
+                {isSubmitting ? "Publicando…" : "Publicar"}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

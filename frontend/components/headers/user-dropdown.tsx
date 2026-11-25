@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -51,7 +52,9 @@ export function UserDropdown() {
           <DropdownMenuSeparator />
           {demo ? (
             <>
-              {/* Plain links: they go through the server to change the demo cookie. */}
+              {/* The only sign of demo mode, so nothing floats over the pages. Plain links: they go through
+                  the server to change the demo cookie. */}
+              <DropdownMenuLabel className="text-xs font-normal text-text-weak">Estás en modo demo</DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <a href="/demo?reiniciar">Reiniciar demo</a>
               </DropdownMenuItem>

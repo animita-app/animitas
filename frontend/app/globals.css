@@ -418,12 +418,6 @@
   box-shadow: 0 1px 0 rgb(28 24 20 / 0.1), 0 1px 2px rgb(28 24 20 / 0.12), 0 14px 24px -14px rgb(28 24 20 / 0.6);
 }
 
-/* An ink stamp in the corner of the page. */
-.ink-stamp {
-  color: color-mix(in oklab, var(--color-pen) 85%, transparent);
-  border: 2px solid color-mix(in oklab, var(--color-pen) 70%, transparent);
-}
-
 /* Arriving at a section: the page shows through a sheet of paper that lifts away quickly. */
 @keyframes page-arrive {
   from { opacity: 0.85; }

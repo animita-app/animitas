@@ -214,10 +214,10 @@ const COUNT_IMAGE = (version: string) => ['concat', 'count-', ['to-string', ['ge
 const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
 // Only paint opacity changes, which the map redraws without laying anything out again.
-// Line boil, as in hand-drawn animation: a few takes of the same mark swapped on a steady beat, so the
-// pen line never sits still. Swaps are cuts, not fades.
+// Line boil, as in hand-drawn animation: a few takes of the same mark swapped on a slow beat, so the
+// pen line quietly shifts now and then. Swaps are cuts, not fades.
 const INK_VERSIONS = ['a', 'b', 'c']
-const INK_TICK_MS = 160
+const INK_TICK_MS = 700
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
