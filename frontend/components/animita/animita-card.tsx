@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { animitaHref } from '@/lib/routes'
@@ -9,6 +10,10 @@ import { cn } from '@/lib/utils'
 
 interface AnimitaCardProps {
   site: { slug: string; title: string; images: string[] | null; city_region?: string | null }
+  // Something pinned to the print's corner (new recuerdos), part of the same object: it tilts and grows with it.
+  badge?: React.ReactNode
+  // Read after the name, for what the badge says.
+  badgeLabel?: string
 }
 
 // Loose prints never land square on the table.
@@ -21,7 +26,7 @@ function tiltFor(slug: string) {
 }
 
 // A print with no caption: the name is glued on in cut-out letters when you reach for it.
-export function AnimitaCard({ site }: AnimitaCardProps) {
+export function AnimitaCard({ site, badge, badgeLabel }: AnimitaCardProps) {
   const imageUrl = site.images?.[0]
   // Letters are only cut while someone reaches for the print, so a long list doesn't carry hundreds of
   // hidden tiles. Touch has no hover, so there the name stays on.
@@ -30,7 +35,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
   const [cuts, setCuts] = useState(0)
   const [touch, setTouch] = useState(false)
   useEffect(() => setTouch(window.matchMedia?.('(hover: none)').matches ?? false), [])
-  const label = site.city_region ? `${site.title}, ${site.city_region}` : site.title
+  const label = [site.title, site.city_region, badgeLabel].filter(Boolean).join(', ')
 
   return (
     <Link
@@ -65,6 +70,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
           ))}
         </span>
       )}
+      {badge && <span aria-hidden className="pointer-events-none absolute -top-3 -right-3 z-10 rotate-6">{badge}</span>}
     </Link>
   )
 }

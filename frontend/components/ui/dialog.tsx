@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { PenCross } from "@/components/road-signs"
+import { CurveSign } from "@/components/road-signs"
 
 import { cn } from "@/lib/utils"
 
@@ -73,8 +73,8 @@ function DialogContent({
             data-slot="dialog-close"
             className="absolute top-3 right-3 rounded-full outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-rotate-6 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none disabled:pointer-events-none"
           >
-            <PenCross className="size-8" />
-            <span className="sr-only">Cerrar</span>
+            <CurveSign className="size-11" />
+            <span className="sr-only">Volver</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>

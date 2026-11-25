@@ -195,13 +195,11 @@ function circledCount(count: string): Drawing {
   return { size, strokes: [ring, ...digits], seed }
 }
 
-// A single animita: one dot pressed in with the pen, scribbled round a couple of times so it fills. Just
-// the dot, so a street with many animitas stays readable; clusters carry the circles.
+// A single animita: a small loop drawn round a dot pressed in its middle.
 function penMark(): Drawing {
   const rand = rng(7)
-  const size = 28
-  const c = size / 2
-  return { size, strokes: [shake(loop(c, c, 3.2, rand), 3.2, rand), shake(loop(c, c, 1.6, rand), 2.6, rand)], dot: [c, c, 3.4], seed: 7 }
+  const size = 40
+  return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
 // Image ids: `count-12-a` and `pen-mark-a`, one per take (a, b, c).

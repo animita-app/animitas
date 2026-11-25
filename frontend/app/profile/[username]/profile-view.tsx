@@ -146,20 +146,12 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
             {animitas.map(a => {
               const left = isOwnProfile ? recuerdos.filter(r => r.slug === a.slug) : []
               return (
-                <div key={a.id} className="relative">
-                  <AnimitaCard site={a} />
-                  {/* New recuerdos here: their count circled in red pen on the print's corner, out of the way
-                      of the name. */}
-                  {left.length > 0 && (
-                    <Link
-                      href={left[0].href}
-                      aria-label={left.length === 1 ? `Un recuerdo nuevo en ${a.title}` : `${left.length} recuerdos nuevos en ${a.title}`}
-                      className="absolute -top-3 -right-3 z-10 rotate-6 rounded-full outline-none transition-[scale] duration-200 hover:scale-110 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
-                    >
-                      <RedPenCount count={left.length} className="size-10 text-xl" />
-                    </Link>
-                  )}
-                </div>
+                <AnimitaCard
+                  key={a.id}
+                  site={a}
+                  badge={left.length > 0 ? <RedPenCount count={left.length} className="size-10 text-xl" /> : undefined}
+                  badgeLabel={left.length === 1 ? 'un recuerdo nuevo' : left.length > 1 ? `${left.length} recuerdos nuevos` : undefined}
+                />
               )
             })}
           </div>

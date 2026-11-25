@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils'
 import { useEffect, useRef, useState } from 'react'
 import { CutoutText, preloadCutouts } from '@/components/cutout-text'
 
-// A real white candle with a real flame, lit or out. Both are photos; the flame is its own cut-out so it
-// can flicker. Inside a `.candle-toggle`, an unlit candle catches the flame while you reach for it.
+// A real lit candle, photographed. Lit, its light flickers and warms the paper; out, the same photo dims
+// and its flame is hidden under a soft cap of shadow, so it never looks drawn. Lighting it blooms a halo.
 export function Candle({ lit = true, className }: { lit?: boolean; className?: string }) {
   // Only a change to lit plays the halo, not a candle that's already burning when the page loads.
   const [justLit, setJustLit] = useState(false)
@@ -21,22 +21,12 @@ export function Candle({ lit = true, className }: { lit?: boolean; className?: s
     wasLit.current = lit
   }, [lit])
   return (
-    <span data-lit={lit} data-just-lit={justLit} className={cn('candle relative inline-flex aspect-[118/300] flex-col items-center justify-end', className)}>
-      <span aria-hidden className="flame-glow pointer-events-none absolute -inset-x-full top-0 aspect-square rounded-full bg-[radial-gradient(circle,rgb(255_190_90_/_0.7),transparent_62%)]" />
-      {/* A halo that blooms out when the candle is lit, then settles into the steady glow. */}
-      <span aria-hidden className="flame-halo pointer-events-none absolute left-1/2 top-2 aspect-square w-12 -translate-x-1/2 -translate-y-1/2 rounded-full" />
-      {/* The flame is cut from a photo of a real one; it flickers as a whole. */}
-      <Image src="/cutouts/flame.png" alt="" width={165} height={420} draggable={false} className="flame relative h-1/3 w-auto drop-shadow-[0_0_3px_rgb(255_170_60_/_0.8)]" />
-      {/* The wick, which stays when the flame is out. */}
-      <span aria-hidden className="relative -mt-0.5 h-1 w-px bg-text-strong/80" />
-      <Image
-        src="/cutouts/vela.png"
-        alt=""
-        width={118}
-        height={240}
-        draggable={false}
-        className="candle-body relative -mt-px h-auto w-full drop-shadow-[0_4px_4px_rgb(28_24_20_/_0.3)]"
-      />
+    <span data-lit={lit} data-just-lit={justLit} className={cn('candle relative inline-flex aspect-271/390', className)}>
+      <span aria-hidden className="flame-glow pointer-events-none absolute -inset-x-full -top-1/4 aspect-square rounded-full bg-[radial-gradient(circle,rgb(255_190_90_/_0.6),transparent_62%)]" />
+      <span aria-hidden className="flame-halo pointer-events-none absolute left-1/2 top-1/8 aspect-square w-28 -translate-x-1/2 -translate-y-1/2 rounded-full" />
+      <Image src="/cutouts/vela-prendida.png" alt="" width={271} height={390} draggable={false} className="candle-body relative size-full drop-shadow-[0_4px_4px_rgb(28_24_20_/_0.3)]" />
+      {/* Out: the flame area fades into the paper. */}
+      <span aria-hidden className="candle-snuff pointer-events-none absolute inset-x-1/4 top-0 h-[30%] bg-[radial-gradient(ellipse_at_50%_40%,var(--color-background)_45%,transparent_75%)]" />
     </span>
   )
 }
