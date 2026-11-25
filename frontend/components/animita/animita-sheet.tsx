@@ -25,13 +25,13 @@ export function AnimitaSheet({ site }: { site: Animita }) {
   if (isMobile) {
     return (
       <Drawer open onOpenChange={close} snapPoints={SNAP_POINTS} activeSnapPoint={snap} setActiveSnapPoint={setSnap}>
-        <DrawerContent className="pb-safe border-0 bg-transparent bg-[linear-gradient(to_bottom,transparent,var(--color-background)_12%)]">
+        <DrawerContent className="pb-safe border-0 data-[vaul-drawer-direction=bottom]:rounded-none data-[vaul-drawer-direction=bottom]:border-0 bg-transparent bg-[linear-gradient(to_bottom,transparent,var(--color-background)_12%)]">
           <DrawerTitle className="sr-only">Animita de {site.title}</DrawerTitle>
           <DrawerDescription className="sr-only">Su historia, velas y comentarios</DrawerDescription>
           <div className="overflow-y-auto">
             <LoosePrints site={site} />
             <div className="p-6">
-              <AnimitaDetails site={site} />
+              <AnimitaDetails site={site} compact />
             </div>
           </div>
         </DrawerContent>
@@ -50,7 +50,7 @@ export function AnimitaSheet({ site }: { site: Animita }) {
         <SheetDescription className="sr-only">Su historia, velas y comentarios</SheetDescription>
         <LoosePrints site={site} />
         <div className="py-6 pr-10 pl-16">
-          <AnimitaDetails site={site} />
+          <AnimitaDetails site={site} compact />
         </div>
       </SheetContent>
     </Sheet>
