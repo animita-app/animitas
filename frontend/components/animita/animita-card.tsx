@@ -26,6 +26,8 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
   // Letters are only cut while someone reaches for the print, so a long list doesn't carry hundreds of
   // hidden tiles. Touch has no hover, so there the name stays on.
   const [reaching, setReaching] = useState(false)
+  // Counts each time the name is reached for, so it's glued on with a fresh cut every time.
+  const [cuts, setCuts] = useState(0)
   const [touch, setTouch] = useState(false)
   useEffect(() => setTouch(window.matchMedia?.('(hover: none)').matches ?? false), [])
   const label = site.city_region ? `${site.title}, ${site.city_region}` : site.title
@@ -34,9 +36,9 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
     <Link
       href={animitaHref(site.slug)}
       aria-label={label}
-      onPointerEnter={() => setReaching(true)}
+      onPointerEnter={() => { setReaching(true); setCuts(n => n + 1) }}
       onPointerLeave={() => setReaching(false)}
-      onFocus={() => setReaching(true)}
+      onFocus={() => { setReaching(true); setCuts(n => n + 1) }}
       onBlur={() => setReaching(false)}
       className={cn(
         'print-frame group relative block p-1.5 pb-5 outline-none transition-[rotate,scale] duration-200 ease-out hover:rotate-0 hover:scale-[1.02] focus-visible:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none',
@@ -59,7 +61,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
         // instead of covering the photo.
         <span className={cn('pointer-events-none absolute inset-x-2 flex flex-wrap items-end justify-center gap-x-1.5 gap-y-0.5', touch ? 'bottom-1' : 'bottom-2')}>
           {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
-            <CutoutText key={`${word}-${i}`} text={word} height={touch ? 15 : 24} />
+            <CutoutText key={`${word}-${i}`} text={word} height={touch ? 15 : 24} reroll={cuts} />
           ))}
         </span>
       )}

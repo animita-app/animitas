@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 import pack from '@/lib/cutout-letters.json'
@@ -124,12 +124,16 @@ interface CutoutTextProps {
 
 // Decorative: the control it labels always carries the same text as its accessible name.
 export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue = false, className }: CutoutTextProps) {
-  // The server and the first render cut a stable set, so hydration always matches; the browser recuts
-  // at random before it paints, so a word that shows up late (a loader, a label on hover) never jumps.
+  // The first cut is stable (the server's and the browser's match), so nothing moves when the page
+  // loads. Each time the label shows again (`reroll`), the letters are cut anew before paint.
   const [seed, setSeed] = useState(() => hash(text))
+  const lastReroll = useRef(0)
   useIsomorphicLayoutEffect(() => {
+    if (reroll === lastReroll.current) return
+    lastReroll.current = reroll
     setSeed(randomSeed())
-  }, [text, reroll])
+  }, [reroll])
+  useIsomorphicLayoutEffect(() => setSeed(hash(text)), [text])
 
   const letters = Array.from(text.toLowerCase())
   const n = letters.length

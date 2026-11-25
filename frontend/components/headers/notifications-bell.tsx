@@ -28,7 +28,7 @@ interface NotificationData {
   href: string
 }
 
-export function NotificationsBell() {
+export function NotificationsBell({ open, onOpenChange }: { open?: boolean; onOpenChange?: (open: boolean) => void }) {
   const { currentUser } = useUser()
   const [notifications, setNotifications] = useState<NotificationData[]>([])
 
@@ -60,7 +60,7 @@ export function NotificationsBell() {
       if (cancelled || !comments) return
       setNotifications(comments.map((c: any) => ({
         id: c.id,
-        title: `${c.user_profiles?.display_name || 'Alguien'} comentó en ${c.heritage_sites?.title || 'tu animita'}`,
+        title: `${c.user_profiles?.display_name || 'Alguien'} dejó un recuerdo en ${c.heritage_sites?.title || 'tu animita'}`,
         description: `«${c.content}»`,
         timeAgo: formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: es }),
         href: animitaHref(c.heritage_sites?.slug),
@@ -74,7 +74,7 @@ export function NotificationsBell() {
   if (!currentUser) return null
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={onOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>

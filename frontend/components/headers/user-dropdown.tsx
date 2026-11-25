@@ -20,6 +20,12 @@ import { NotificationsBell } from './notifications-bell'
 export function UserDropdown() {
   const { currentUser } = useUser()
   const [demo, setDemo] = useState(false)
+  // Only one of the two menus open at a time: opening one closes the other.
+  const [openMenu, setOpenMenu] = useState<'letters' | 'account' | null>(null)
+  const menu = (name: 'letters' | 'account') => ({
+    open: openMenu === name,
+    onOpenChange: (open: boolean) => setOpenMenu(current => (open ? name : current === name ? null : current)),
+  })
   useEffect(() => setDemo(isDemo()), [])
 
   const handleLogout = async () => {
@@ -32,8 +38,8 @@ export function UserDropdown() {
 
   return (
     <div className="flex items-center gap-2">
-      <NotificationsBell />
-      <DropdownMenu>
+      <NotificationsBell {...menu('letters')} />
+      <DropdownMenu {...menu('account')}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" aria-label="Tu cuenta" className="rounded-full">
             <Avatar>

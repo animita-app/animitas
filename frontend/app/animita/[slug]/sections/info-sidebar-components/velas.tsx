@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Candle } from "@/components/loaders"
-import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { TABLES } from "@/lib/animitas"
@@ -67,7 +66,6 @@ export function Velas({ siteId }: VelasProps) {
     }
   }
 
-  const others = count - (isLit ? 1 : 0)
   const status = count === 0 ? "Nadie ha prendido una vela" : count === 1 ? "1 vela prendida" : `${count.toLocaleString("es-CL")} velas prendidas`
   const invite = isLit ? "La tuya está prendida" : count === 0 ? "Sé la primera persona" : "Prende la tuya"
 
@@ -83,16 +81,10 @@ export function Velas({ siteId }: VelasProps) {
         aria-label={isLit ? "Apagar tu vela" : "Prender una vela"}
         className="candle-toggle -ml-1 flex shrink-0 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
-        <Candle lit={isLit} className="h-14" />
+        {/* One candle for the shrine: it burns while anyone has lit one there. The text says how many and
+            whether yours is among them. */}
+        <Candle lit={count > 0} className="h-14" />
       </button>
-      {/* Other people's candles, lit beside yours: a few stand in for many. */}
-      {others > 0 && (
-        <span aria-hidden className="-ml-6 flex items-end">
-          {Array.from({ length: Math.min(others, 4) }).map((_, i) => (
-            <Candle key={i} className={cn('-ml-3', ['h-10', 'h-8', 'h-9', 'h-7'][i])} />
-          ))}
-        </span>
-      )}
       <div className="flex flex-col gap-0.5" aria-live="polite">
         {loading ? (
           <span className="text-sm text-text-weak">Contando velas…</span>
