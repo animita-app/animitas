@@ -57,7 +57,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
       {(reaching || touch) && (
         <span className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end justify-center gap-x-2 gap-y-1">
           {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
-            <CutoutText key={`${word}-${i}`} text={word} height={18} />
+            <CutoutText key={`${word}-${i}`} text={word} height={24} />
           ))}
         </span>
       )}

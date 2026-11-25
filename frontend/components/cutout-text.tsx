@@ -3,43 +3,12 @@
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
-// Letters clipped from different magazines: each on its own paper, in its own typeface, glued a bit off.
-// Typefaces are whatever the device has; the stacks fall back to the generic families.
-const FACES: [family: string, weight: number][] = [
-  ['"Cooper Black","Cooper Std","Rockwell Extra Bold",Georgia,serif', 900],
-  ['"Bodoni 72","Didot","Bodoni MT",serif', 700],
-  ['"Arial Black","Helvetica Neue",Arial,sans-serif', 900],
-  ['Impact,Haettenschweiler,"Arial Narrow",sans-serif', 400],
-  ['"American Typewriter","Courier New",monospace', 700],
-  ['Rockwell,"Roboto Slab","Courier New",serif', 700],
-  ['Futura,"Century Gothic","Avenir Next",sans-serif', 800],
-  ['"Snell Roundhand","Brush Script MT","Segoe Script",cursive', 700],
-  ['Baskerville,"Libre Baskerville",Georgia,serif', 700],
-  ['"Marker Felt","Chalkboard SE","Comic Sans MS",cursive', 700],
-  ['Copperplate,"Copperplate Gothic Light",serif', 700],
-  ['Georgia,"Times New Roman",serif', 900],
-]
+import pack from '@/lib/cutout-letters.json'
 
-// Faded print colors, like old magazine pages and posters. Object colors, not interface tokens.
-const PAPERS = ['#231f20', '#6e2430', '#f1e7d0', '#f2c744', '#e75a8c', '#9fc3e0', '#f4b49a', '#cdb6dc', '#4a3b35', '#e8dcc0', '#2f3b5c', '#b8442f']
-
-function luminance(hex: string) {
-  const [r, g, b] = [1, 3, 5].map(i => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  })
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
-
-export function contrast(a: string, b: string) {
-  const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m)
-  return (x + 0.05) / (y + 0.05)
-}
-
-// For each paper, the inks that stay readable on it (WCAG AA for text, 4.5:1).
-// Newspaper black and white join the paper colors as inks, so the mid tones always have something readable.
-const INK_POOL = [...PAPERS, '#141112', '#fbf7ec']
-export const INKS: Record<string, string[]> = Object.fromEntries(PAPERS.map(p => [p, INK_POOL.filter(q => contrast(p, q) >= 4.5)]))
+// Letters cut from real print, one image each, from a cut-out letter pack. Several variants per
+// character so the same word never repeats its look.
+type Glyph = [index: number, width: number, height: number]
+const PACK = pack as unknown as Record<string, { dir: string; glyphs: Glyph[] }>
 
 function hash(text: string) {
   let h = 7
@@ -56,32 +25,49 @@ function pick<T>(list: T[], seed: number, i: number) {
   return list[Math.floor(noise(seed, i) * list.length)]
 }
 
-// Scissors never cut square: each corner lands a little off.
-function scissorCut(seed: number, i: number) {
-  const c = (k: number) => (noise(seed, i * 8 + k) * 10).toFixed(1)
-  return `polygon(${c(1)}% ${c(2)}%, ${100 - +c(3)}% ${c(4)}%, ${100 - +c(5)}% ${100 - +c(6)}%, ${c(7)}% ${100 - +c(8)}%)`
+// Warms the browser cache with every cut of these letters, so a label that shows on hover appears whole.
+export function preloadCutouts(text: string) {
+  const keys = new Set(Array.from(text.toLowerCase().normalize('NFD')).map(c => (c === '\u0301' ? 'dash' : c === '\u0303' ? 'tilde' : c)))
+  for (const key of keys) {
+    const set = PACK[key]
+    set?.glyphs.forEach(([index]) => { new Image().src = `/cutouts/letters/${set.dir}/${index}.webp` })
+  }
 }
 
+function cut(key: string, seed: number, i: number) {
+  const set = PACK[key]
+  if (!set?.glyphs.length) return null
+  const [index, w, h] = pick(set.glyphs, seed, i)
+  return { src: `/cutouts/letters/${set.dir}/${index}.webp`, ratio: w / h }
+}
+
+// Accented letters don't exist in the pack: the base letter gets a scrap glued on top, a dash for an
+// acute accent and the pack's tilde for the ñ.
 function Tile({ char, seed, i, size }: { char: string; seed: number; i: number; size: number }) {
-  const paper = pick(PAPERS, seed, i + 11)
-  const ink = pick(INKS[paper], seed, i + 23)
-  const [family, weight] = pick(FACES, seed, i + 37)
-  const upper = noise(seed, i + 53) > 0.55
+  const [base, mark] = Array.from(char.normalize('NFD'))
+  const glyph = cut(base, seed, i + 11)
+  if (!glyph) return null
+  const scrap = mark === '\u0301' ? cut('dash', seed, i + 29) : mark === '\u0303' ? cut('tilde', seed, i + 31) : null
   return (
-    <span
-      className="inline-flex items-center justify-center leading-none [filter:url(#worn)]"
-      style={{
-        background: paper,
-        color: ink,
-        fontFamily: family,
-        fontWeight: weight,
-        fontSize: size,
-        minWidth: size * 0.62,
-        padding: `${(size * 0.1).toFixed(1)}px ${(size * 0.16).toFixed(1)}px ${(size * 0.14).toFixed(1)}px`,
-        clipPath: scissorCut(seed, i),
-      }}
-    >
-      {upper ? char.toUpperCase() : char}
+    <span className="relative inline-block">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={glyph.src} alt="" draggable={false} width={Math.round(size * glyph.ratio)} height={Math.round(size)} className="block" />
+      {scrap && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={scrap.src}
+          alt=""
+          draggable={false}
+          className="absolute left-1/2 block"
+          style={{
+            width: size * (mark === '\u0303' ? 0.7 : 0.42),
+            height: 'auto',
+            top: -size * 0.22,
+            translate: mark === '\u0303' ? '-50% 0' : '-10% 0',
+            rotate: mark === '\u0303' ? '-4deg' : '-58deg',
+          }}
+        />
+      )}
     </span>
   )
 }

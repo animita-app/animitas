@@ -5,4 +5,4 @@ The list with authors, licenses and links lives in `frontend/lib/credits.ts` and
 which CC BY-SA requires. Add a new cutout there, never only here.
 
 - `icons/` and `app/icon.png`: the votive candle, on paper.
-- Cut-out letters are drawn live by `components/cutout-text.tsx` from the device's own typefaces.
+- `letters/`: a curated set from the cut-out letter pack pype shared (25-11), resized to webp. Its license and author still need to be written down here and on /creditos.

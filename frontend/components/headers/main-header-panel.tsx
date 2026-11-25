@@ -1,8 +1,10 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ShelfObject } from '@/components/shelf-object'
+import { preloadCutouts } from '@/components/cutout-text'
 import { useAnimitas } from '@/contexts/animitas-context'
 
 // Real objects stand on the page like offerings at an animita. No labels until you reach for one.
@@ -43,6 +45,15 @@ function Shelf({ pathname }: { pathname: string }) {
 
 export function MainHeaderPanel() {
   const pathname = usePathname()
+  useEffect(() => {
+    const warm = () => preloadCutouts([...SHELF.map(item => item.label), 'entrar'].join(''))
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(warm)
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = setTimeout(warm, 1500)
+    return () => clearTimeout(id)
+  }, [])
   return (
     <nav aria-label="Navegación principal">
       <Shelf pathname={pathname} />

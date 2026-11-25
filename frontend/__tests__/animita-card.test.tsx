@@ -19,7 +19,7 @@ describe("AnimitaCard", () => {
     const link = screen.getByRole("link", { name: "Romualdo" });
     expect(container.querySelector("[aria-hidden]")).toBeNull();
     fireEvent.pointerEnter(link);
-    expect(container.querySelector("[aria-hidden]")?.textContent?.toLowerCase()).toBe("romualdo");
+    expect(container.querySelectorAll("[aria-hidden] img")).toHaveLength(8);
     fireEvent.pointerLeave(link);
     expect(container.querySelector("[aria-hidden]")).toBeNull();
   });

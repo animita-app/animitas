@@ -40,16 +40,6 @@ export function StippleFilter() {
         <feComposite in="glowing" in2="grain" operator="arithmetic" k2="1" k3="0.22" k4="-0.11" />
       </filter>
 
-      {/* Worn paper for cut-out letters: pale specks and scratches where the ink and the paper rubbed off. */}
-      <filter id="worn" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-        <feTurbulence type="fractalNoise" baseFrequency="0.05 0.9" numOctaves="2" seed="7" result="streaks" />
-        <feColorMatrix in="streaks" type="matrix" values="0 0 0 0 0.95  0 0 0 0 0.92  0 0 0 0 0.86  -9 0 0 0 2.9" result="specks" />
-        <feComposite in="specks" in2="SourceGraphic" operator="in" result="wear" />
-        <feMerge>
-          <feMergeNode in="SourceGraphic" />
-          <feMergeNode in="wear" />
-        </feMerge>
-      </filter>
     </svg>
   )
 }

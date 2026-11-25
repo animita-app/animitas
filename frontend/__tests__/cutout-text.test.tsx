@@ -1,23 +1,32 @@
 import { render } from "@testing-library/react";
-import { CutoutText, INKS, contrast } from "@/components/cutout-text";
+import { CutoutText } from "@/components/cutout-text";
+
+const glyphs = (el: Element) => Array.from(el.querySelectorAll("img")).map(img => img.getAttribute("src")!);
 
 describe("CutoutText", () => {
-  it("gives every paper at least one ink that reads on it", () => {
-    for (const [paper, inks] of Object.entries(INKS)) {
-      expect(inks.length).toBeGreaterThan(0);
-      for (const ink of inks) expect(contrast(paper, ink)).toBeGreaterThanOrEqual(4.5);
-    }
+  it("has a cut for every letter and digit of a Spanish name", () => {
+    const text = "abcdefghijklmnopqrstuvwxyz0123456789";
+    const { container } = render(<CutoutText text={text} />);
+    expect(glyphs(container)).toHaveLength(text.length);
   });
 
-  it("cuts one tile per letter, skipping spaces, hidden from screen readers", () => {
+  it("glues an accent or a tilde on top of the base letter", () => {
+    const { container } = render(<CutoutText text="ñá" />);
+    const srcs = glyphs(container);
+    expect(srcs[0]).toMatch(/\/letters\/n\//);
+    expect(srcs[1]).toMatch(/\/letters\/tilde\//);
+    expect(srcs[2]).toMatch(/\/letters\/a\//);
+    expect(srcs[3]).toMatch(/\/letters\/dash\//);
+  });
+
+  it("skips spaces, and is hidden from screen readers", () => {
     const { container } = render(<CutoutText text="dónde está" />);
-    const root = container.firstElementChild!;
-    expect(root).toHaveAttribute("aria-hidden", "true");
-    expect(root.textContent?.toLowerCase()).toBe("dóndeestá");
+    expect(container.firstElementChild).toHaveAttribute("aria-hidden", "true");
+    expect(glyphs(container).filter(s => !/dash/.test(s))).toHaveLength(9);
   });
 
   it("orbits the same letters around an object", () => {
     const { container } = render(<CutoutText text="entrar" orbit={{ radius: 80, angle: 130, clockwise: false }} />);
-    expect(container.textContent?.toLowerCase()).toBe("entrar");
+    expect(glyphs(container)).toHaveLength(6);
   });
 });
