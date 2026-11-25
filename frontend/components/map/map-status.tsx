@@ -8,9 +8,11 @@ interface MapStatusProps {
   status: AnimitasStatus
   count: number
   onRetry: () => void
+  // The place the map is narrowed to, if any: an empty map then means none there, not none at all.
+  area?: string
 }
 
-export function MapStatus({ status, count, onRetry }: MapStatusProps) {
+export function MapStatus({ status, count, onRetry, area }: MapStatusProps) {
   if (status === 'ready' && count > 0) return null
 
   return (
@@ -36,10 +38,12 @@ export function MapStatus({ status, count, onRetry }: MapStatusProps) {
         </div>
       )}
       {status === 'ready' && count === 0 && (
-        <div role="status" className="flex flex-col items-center gap-3">
-          <Candle lit={false} className="h-14 opacity-70" />
-          <CutoutText text="todavía no hay" height={14} />
-          <span className="sr-only">Todavía no hay animitas. Añade la primera.</span>
+        <div role="status" className="paper-bloom flex max-w-64 flex-col items-center gap-3 text-center">
+          <Candle lit={false} className="h-14" />
+          <CutoutText text="todavía no hay" height={22} />
+          <p className="text-pretty text-sm text-text-weak">
+            {area ? `Nadie ha añadido una animita en ${area}.` : 'Nadie ha añadido una animita todavía.'}
+          </p>
         </div>
       )}
     </div>

@@ -13,11 +13,16 @@ describe("MapStatus", () => {
 
   it("explains an empty map instead of showing nothing", () => {
     render(<MapStatus status="ready" count={0} onRetry={jest.fn()} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Todavía no hay animitas. Añade la primera.");
+    expect(screen.getByRole("status")).toHaveTextContent("Nadie ha añadido una animita todavía.");
   });
 
   it("gets out of the way when there are animitas", () => {
     const { container } = render(<MapStatus status="ready" count={3} onRetry={jest.fn()} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("names the chosen place when it has no animitas", () => {
+    render(<MapStatus status="ready" count={0} onRetry={() => {}} area="Región de Atacama" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Nadie ha añadido una animita en Región de Atacama.");
   });
 });

@@ -4,8 +4,11 @@ import type { MultiPolygon, Polygon } from 'geojson'
 export interface Area {
   label: string
   geometry: Polygon | MultiPolygon
+  // True while only the place's box is known; the outline isn't drawn until the real one arrives.
+  rough?: boolean
 }
 
+// The place's box: used to narrow right away while its outline loads, never drawn.
 export function bboxPolygon([w, s, e, n]: number[]): Polygon {
   return { type: 'Polygon', coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] }
 }
@@ -42,20 +45,15 @@ export function areaBounds(geometry: Area['geometry']): [number, number, number,
 
 const boundaries = new Map<string, Area['geometry'] | null>()
 
-// The real outline of a comuna, city or region, from OpenStreetMap. Mapbox only gives a box; the box is
-// used until (or if) the outline arrives.
+// The real outline of a comuna, city or region (see /api/boundary).
 export async function fetchBoundary(place: string): Promise<Area['geometry'] | null> {
   const key = place.toLowerCase().trim()
   if (boundaries.has(key)) return boundaries.get(key)!
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(place)}&countrycodes=cl&format=json&polygon_geojson=1&polygon_threshold=0.002&limit=3`
-    const res = await fetch(url, { headers: { 'Accept-Language': 'es' } })
-    if (!res.ok) throw new Error(String(res.status))
-    const results: { geojson?: { type: string } }[] = await res.json()
-    const found = results.find(r => r.geojson?.type === 'Polygon' || r.geojson?.type === 'MultiPolygon')
-    const geometry = (found?.geojson as Area['geometry']) ?? null
-    boundaries.set(key, geometry)
-    return geometry
+    const res = await fetch(`/api/boundary?q=${encodeURIComponent(place)}`)
+    const { geometry } = await res.json()
+    boundaries.set(key, geometry ?? null)
+    return geometry ?? null
   } catch {
     return null
   }

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAnimitas } from "@/contexts/animitas-context";
 import { searchLocation } from "@/lib/mapbox";
-import { bboxPolygon, fetchBoundary } from "@/lib/area";
+import { bboxPolygon, fetchBoundary, type Area } from "@/lib/area";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
@@ -118,9 +118,12 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
         // A comuna, city or region: it becomes the area the map and the list are narrowed to. The box
         // shows at once; the real outline replaces it when it arrives, if it's still the chosen place.
         const label = result.text || result.title || result.place_name
-        setArea({ label, geometry: bboxPolygon(result.bbox) });
+        setArea({ label, geometry: bboxPolygon(result.bbox), rough: true });
         fetchBoundary(result.place_name || label).then(geometry => {
-          if (geometry) setArea(current => (current?.label === label ? { label, geometry } : current));
+          setArea((current: Area | null): Area | null => {
+            if (!current || current.label !== label) return current;
+            return geometry ? { label, geometry } : { ...current, rough: false };
+          });
         });
       } else if (result.center) flyTo({ center: result.center });
       // A place only means something on the map; from any other page, go there and it flies on arrival.

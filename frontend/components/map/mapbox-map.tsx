@@ -115,7 +115,8 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   useEffect(() => {
     const instance = map.current
     if (!instance || !isMapReady) return
-    const data = area ? { type: 'Feature' as const, properties: {}, geometry: area.geometry } : { type: 'FeatureCollection' as const, features: [] }
+    // Only a real outline is drawn; a place's box would read as a strange rectangle on the map.
+    const data = area && !area.rough ? { type: 'Feature' as const, properties: {}, geometry: area.geometry } : { type: 'FeatureCollection' as const, features: [] }
     const source = instance.getSource('area') as mapboxgl.GeoJSONSource | undefined
     if (source) source.setData(data as any)
     else {
@@ -162,7 +163,7 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
     <div className="relative size-full">
       <div ref={mapContainer} className="absolute inset-0" />
 
-      <MapStatus status={status} count={animitas.length} onRetry={reload} />
+      <MapStatus status={status} count={animitas.length} onRetry={reload} area={area?.label} />
 
       {/* Above the shelf's paper fade, which sits over the map, so it can live in the corner. */}
       {away && !pathname.startsWith('/animita/') && createPortal(
