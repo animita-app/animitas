@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { SpatialProvider } from '@/contexts/spatial-context'
+import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
 
 export function Providers({
@@ -14,7 +14,7 @@ export function Providers({
 
   return (
     <UserProvider>
-      <SpatialProvider>
+      <AnimitasProvider>
         {isAuthPage ? (
           children
         ) : (
@@ -22,7 +22,7 @@ export function Providers({
             {children}
           </div>
         )}
-      </SpatialProvider>
+      </AnimitasProvider>
     </UserProvider>
   )
 }

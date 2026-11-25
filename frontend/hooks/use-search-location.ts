@@ -1,7 +1,7 @@
 import { animitaHref } from '@/lib/routes'
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSpatialContext } from "@/contexts/spatial-context";
+import { useAnimitas } from "@/contexts/animitas-context";
 import { searchLocation } from "@/lib/mapbox";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
@@ -11,7 +11,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const { flyTo, filteredData } = useSpatialContext();
+  const { flyTo, animitas } = useAnimitas();
   const router = useRouter();
   const debounceTimer = useRef<NodeJS.Timeout>();
 
@@ -29,7 +29,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
 
     if (query.length >= 3) {
       debounceTimer.current = setTimeout(async () => {
-        const localResults = filteredData.filter((site) =>
+        const localResults = animitas.filter((site) =>
           site.title?.toLowerCase().includes(query.toLowerCase()) ||
           site.address?.toLowerCase().includes(query.toLowerCase()) ||
           site.city_region?.toLowerCase().includes(query.toLowerCase())
@@ -87,7 +87,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
       setSearchResults([]);
       setIsLoading(false);
     }
-  }, [filteredData, onSearch]);
+  }, [animitas, onSearch]);
 
   const handleSelect = useCallback((result: any) => {
     if (result.type === "local" && result.properties) {

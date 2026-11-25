@@ -3,10 +3,10 @@
 import { RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import type { SitesStatus } from '@/contexts/spatial-context'
+import type { AnimitasStatus } from '@/contexts/animitas-context'
 
 interface MapStatusProps {
-  status: SitesStatus
+  status: AnimitasStatus
   count: number
   onRetry: () => void
 }

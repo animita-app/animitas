@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useMemo, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { usePathname, useRouter } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSpatialContext } from '@/contexts/spatial-context'
+import { useAnimitas } from '@/contexts/animitas-context'
 import { useSearchLocation } from '@/hooks/use-search-location'
-import { FilterChip, type FilterOption } from '@/components/ui/filter-chip'
+import { FilterChip } from '@/components/ui/filter-chip'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Plus, Search as SearchIcon } from 'lucide-react'
 import { SearchInput } from '@/components/search/search-input'
@@ -51,22 +51,13 @@ function TabsPanelContent({ setSearchActive, onTabChange, pathname }: { setSearc
 }
 
 interface ListViewContentProps {
-  cityOptions: FilterOption[]
-  activeCities: string[]
-  setFilter: (key: string, value: string[]) => void
-  clearFilters: () => void
-  setSearchActive: (active: boolean) => void
+  comunas: string[]
+  selected: string[]
+  onSelect: (comunas: string[]) => void
   onBackClick: () => void
 }
 
-function ListViewContent({
-  cityOptions,
-  activeCities,
-  setFilter,
-  clearFilters,
-  setSearchActive,
-  onBackClick
-}: ListViewContentProps) {
+function ListViewContent({ comunas, selected, onSelect, onBackClick }: ListViewContentProps) {
   return (
     <>
       <Tooltip>
@@ -77,9 +68,9 @@ function ListViewContent({
         </TooltipTrigger>
         <TooltipContent>Volver al mapa</TooltipContent>
       </Tooltip>
-      <FilterChip defaultLabel="Comuna" options={cityOptions} value={activeCities} onSelect={v => setFilter('city_region', v)} />
-      {activeCities.length > 0 && (
-        <Button variant="ghost" size="sm" onClick={clearFilters} className="rounded-full text-muted-foreground">
+      <FilterChip defaultLabel="Comuna" options={comunas.map(c => ({ value: c, label: c }))} value={selected} onSelect={onSelect} />
+      {selected.length > 0 && (
+        <Button variant="ghost" size="sm" onClick={() => onSelect([])} className="rounded-full text-muted-foreground">
           Limpiar
         </Button>
       )}
@@ -137,16 +128,8 @@ export function MainHeaderPanel() {
   }, [])
 
   const isListView = pathname === '/list'
-  const { filteredData, clearFilters, setFilter, filters } = useSpatialContext()
+  const { comunas, selectedComunas, setSelectedComunas } = useAnimitas()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
-
-  const activeCities = filters.city_region || []
-
-  const cityOptions = useMemo<FilterOption[]>(() => {
-    const cities = new Set(filteredData.map((s: any) => s.city_region).filter(Boolean))
-    return Array.from(cities).sort().map(city => ({ value: city, label: city }))
-  }, [filteredData])
-
 
   return (
     <nav
@@ -158,11 +141,9 @@ export function MainHeaderPanel() {
       </div>
       {isListView && (
         <ListViewContent
-          cityOptions={cityOptions}
-          activeCities={activeCities}
-          setFilter={setFilter}
-          clearFilters={clearFilters}
-          setSearchActive={setSearchActive}
+          comunas={comunas}
+          selected={selectedComunas}
+          onSelect={setSelectedComunas}
           onBackClick={handleBackClick}
         />
       )}

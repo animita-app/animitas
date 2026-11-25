@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getAnimita } from '@/lib/animitas'
+import { getAnimita } from '@/lib/animitas-server'
 import { SiteDetailView } from './sections/site-detail-view'
+import { TABLES } from '@/lib/animitas'
 
 interface PageProps {
   params: Promise<{
@@ -15,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = await createClient()
 
   const { data } = await supabase
-    .from('heritage_sites')
+    .from(TABLES.animitas)
     .select('title')
     .eq('slug', slug)
     .single()

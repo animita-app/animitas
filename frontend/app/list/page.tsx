@@ -1,17 +1,17 @@
 'use client'
 import { useMemo, useState } from 'react'
-import { useSpatialContext } from '@/contexts/spatial-context'
-import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
+import { useAnimitas } from '@/contexts/animitas-context'
+import { AnimitaCard } from '@/components/animita/animita-card'
 import { cn } from '@/lib/utils'
 
 type SortOrder = 'newest' | 'oldest' | 'name'
 
 export default function ListPage() {
-  const { filteredData, filters } = useSpatialContext()
+  const { animitas, selectedComunas } = useAnimitas()
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
 
   const sortedSites = useMemo(() => {
-    const sites = [...filteredData]
+    const sites = [...animitas]
     switch (sortOrder) {
       case 'oldest':
         return sites.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
@@ -21,15 +21,15 @@ export default function ListPage() {
       default:
         return sites.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     }
-  }, [filteredData, sortOrder])
+  }, [animitas, sortOrder])
 
   const gridKey = useMemo(() => {
     const parts = [
-      (filters.city_region || []).join(','),
+      selectedComunas.join(','),
       sortOrder
     ].filter(Boolean)
     return parts.join('-') || 'all'
-  }, [filters.city_region, sortOrder])
+  }, [selectedComunas, sortOrder])
 
   return (
     <div className="min-h-svh w-full bg-background py-20">
@@ -58,7 +58,7 @@ export default function ListPage() {
                     animationDelay: `${Math.min(index * 40, 400)}ms`
                   }}
                 >
-                  <HeritageSiteCard site={site} />
+                  <AnimitaCard site={site} />
                 </div>
               ))}
             </div>

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { heritageSitePayloadSchema } from "@/lib/validators/heritage-site";
+import { animitaPayloadSchema } from "@/lib/validators/animita";
 import { slugify } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { TABLES } from '@/lib/animitas'
 
-type HeritageSiteRow = {
+type AnimitaRow = {
   id: string;
   slug: string;
 };
@@ -18,7 +19,7 @@ async function ensureUniqueSlug(
 
   while (true) {
     const { data, error } = await supabase
-      .from("heritage_sites")
+      .from(TABLES.animitas)
       .select("slug")
       .eq("slug", candidate)
       .maybeSingle();
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const parsed = heritageSitePayloadSchema.safeParse(json);
+  const parsed = animitaPayloadSchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Datos inválidos", issues: parsed.error.flatten() },
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
   };
 
   let { data, error } = await supabase
-    .from("heritage_sites")
+    .from(TABLES.animitas)
     .insert(payload)
     .select("id, slug")
     .single();
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
   for (let retry = 0; error?.code === "23505" && retry < 3; retry++) {
     slug = `${baseSlug}-${Math.random().toString(36).slice(2, 6)}`;
     ({ data, error } = await supabase
-      .from("heritage_sites")
+      .from(TABLES.animitas)
       .insert({ ...payload, slug })
       .select("id, slug")
       .single());

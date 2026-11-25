@@ -3,7 +3,7 @@
 import { animitaHref } from '@/lib/routes'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { HeritageSite } from '@/types/heritage'
+import { Animita } from '@/types/animita'
 import { MapMarker } from '../map-marker'
 import { Button } from '@/components/ui/button'
 import { ArrowUpRight } from 'lucide-react'
@@ -19,9 +19,9 @@ export interface MarkerLayerProps {
   onSiteClick?: (id: string, feature: mapboxgl.MapboxGeoJSONFeature) => void
   sourceId?: string
   currentZoom: number
-  visibleSites: HeritageSite[]
-  selectedSite: HeritageSite | null
-  onSiteSelect?: (site: HeritageSite | null) => void
+  visibleSites: Animita[]
+  selectedSite: Animita | null
+  onSiteSelect?: (site: Animita | null) => void
 }
 
 const CLUSTER_CONFIG = {

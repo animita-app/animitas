@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
-import { HeritageSite } from '@/types/heritage'
+import { Animita } from '@/types/animita'
 
 interface UseVisibleSitesProps {
   map: mapboxgl.Map | null
   isMapReady: boolean
   currentZoom: number
   zoomThreshold: number
-  filteredData: HeritageSite[]
+  animitas: Animita[]
   maxVisibleSites?: number
 }
 
@@ -16,10 +16,10 @@ export function useVisibleSites({
   isMapReady,
   currentZoom,
   zoomThreshold,
-  filteredData,
+  animitas,
   maxVisibleSites = 20
 }: UseVisibleSitesProps) {
-  const [visibleSites, setVisibleSites] = useState<HeritageSite[]>([])
+  const [visibleSites, setVisibleSites] = useState<Animita[]>([])
 
   useEffect(() => {
     if (!map || !isMapReady) return
@@ -39,8 +39,8 @@ export function useVisibleSites({
         const features = map.queryRenderedFeatures({ layers: layersToQuery })
         const visibleIds = new Set(features.map(f => f.properties?.id).filter(Boolean))
 
-        const sites = filteredData
-          .filter((s: HeritageSite) => visibleIds.has(s.id))
+        const sites = animitas
+          .filter((s: Animita) => visibleIds.has(s.id))
           .slice(0, maxVisibleSites)
 
         setVisibleSites(sites)
@@ -57,7 +57,7 @@ export function useVisibleSites({
       map.off('moveend', updateVisible)
       map.off('zoomend', updateVisible)
     }
-  }, [isMapReady, filteredData, map, zoomThreshold, maxVisibleSites])
+  }, [isMapReady, animitas, map, zoomThreshold, maxVisibleSites])
 
   return visibleSites
 }

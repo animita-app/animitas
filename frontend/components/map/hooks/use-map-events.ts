@@ -9,7 +9,7 @@ interface UseMapEventsProps {
 }
 
 export function useMapEvents({ map }: UseMapEventsProps) {
-  const focusHeritageSite = useCallback(
+  const focusAnimita = useCallback(
     (
       coordinates: [number, number],
       options?: { instant?: boolean },
@@ -84,5 +84,5 @@ export function useMapEvents({ map }: UseMapEventsProps) {
     }
   }, [map]);
 
-  return { focusHeritageSite, resetView };
+  return { focusAnimita, resetView };
 }

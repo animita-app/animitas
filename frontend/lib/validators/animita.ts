@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const ANIMITA_NAME_MIN = 3;
 
-export const heritageSitePayloadSchema = z.object({
+export const animitaPayloadSchema = z.object({
   name: z.string().trim().min(ANIMITA_NAME_MIN, "Escribe al menos 3 letras").max(120, "Usa 120 letras o menos"),
   story: z.string().trim().max(10000).optional().default(""),
   isPublic: z.boolean().default(true),
@@ -15,4 +15,4 @@ export const heritageSitePayloadSchema = z.object({
   images: z.array(z.string().url()).max(5).optional(),
 });
 
-export type HeritageSitePayload = z.infer<typeof heritageSitePayloadSchema>;
+export type AnimitaPayload = z.infer<typeof animitaPayloadSchema>;

@@ -31,8 +31,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { createClient } from "@/lib/supabase/client"
-import { HeritageSite } from "@/types/heritage"
+import { Animita } from "@/types/animita"
 import { useUser } from "@/contexts/user-context"
+import { TABLES } from "@/lib/animitas"
 
 const MAX_PHOTOS = 5
 
@@ -75,7 +76,7 @@ function SortableImageItem({ id, url, onRemove }: { id: string; url: string; onR
 }
 
 interface ImageGalleryEditorProps {
-  site: HeritageSite
+  site: Animita
   children: React.ReactNode
   images: string[]
   onImagesSaved: (images: string[]) => void
@@ -141,7 +142,7 @@ export function ImageGalleryEditorWrapper({ site, children, images, onImagesSave
         return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
       }))
 
-      const { error } = await supabase.from('heritage_sites').update({ images: urls }).eq('id', site.id)
+      const { error } = await supabase.from(TABLES.animitas).update({ images: urls }).eq('id', site.id)
       if (error) throw error
 
       onImagesSaved(urls)

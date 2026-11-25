@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
+import { TABLES } from "@/lib/animitas"
 
 const PAGE_SIZE = 5
 
@@ -127,7 +128,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
     async function fetchComments() {
       const supabase = createClient()
       const { data } = await supabase
-        .from('heritage_site_comments')
+        .from(TABLES.comments)
         .select('id, content, created_at, user_id, user_profiles!user_id(display_name, image)')
         .eq('site_id', siteId)
         .order('created_at', { ascending: false })
@@ -167,7 +168,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
 
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('heritage_site_comments')
+      .from(TABLES.comments)
       .insert({ site_id: siteId, user_id: currentUser.id, content: trimmed })
       .select('id, created_at')
       .single()
@@ -184,7 +185,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
 
   const deleteComment = async (id: string) => {
     const supabase = createClient()
-    const { error } = await supabase.from('heritage_site_comments').delete().eq('id', id)
+    const { error } = await supabase.from(TABLES.comments).delete().eq('id', id)
     if (error) {
       toast.error("No se pudo eliminar el comentario", { description: error.message })
       return

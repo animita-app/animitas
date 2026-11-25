@@ -12,7 +12,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { animitaHref } from "@/lib/routes"
-import { ANIMITA_NAME_MIN } from "@/lib/validators/heritage-site"
+import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
 
 const MAX_PHOTOS = 5
@@ -91,7 +91,7 @@ export function AddForm({ onCancel }: AddFormProps) {
         return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
       }))
 
-      const res = await fetch('/api/heritage-sites', {
+      const res = await fetch('/api/animitas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, story, isPublic: true, location, images }),

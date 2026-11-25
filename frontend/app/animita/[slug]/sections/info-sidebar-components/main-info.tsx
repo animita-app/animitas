@@ -1,14 +1,15 @@
 "use client"
 
 import React from "react"
-import { HeritageSite } from "@/types/heritage"
+import { Animita } from "@/types/animita"
 import { InlineEdit } from "@/components/ui/inline-edit"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { ROLES } from "@/types/roles"
+import { TABLES } from "@/lib/animitas"
 
 interface MainInfoProps {
-  site: HeritageSite
+  site: Animita
 }
 
 export function MainInfo({ site }: MainInfoProps) {
@@ -18,7 +19,7 @@ export function MainInfo({ site }: MainInfoProps) {
   const saveField = async (field: 'title' | 'story', value: string) => {
     const supabase = createClient()
     const { error } = await supabase
-      .from('heritage_sites')
+      .from(TABLES.animitas)
       .update({ [field]: value, updated_at: new Date().toISOString() })
       .eq('id', site.id)
     if (error) throw error

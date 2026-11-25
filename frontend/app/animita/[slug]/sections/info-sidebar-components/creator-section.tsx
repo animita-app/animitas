@@ -1,13 +1,13 @@
 import React from "react"
 import { Navigation } from "lucide-react"
-import { HeritageSite } from "@/types/heritage"
+import { Animita } from "@/types/animita"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { directionsUrl } from "@/lib/location"
 import { InfoBlock } from "./info-block"
 
 interface CreatorSectionProps {
-  site: HeritageSite
+  site: Animita
 }
 
 export function CreatorSection({ site }: CreatorSectionProps) {

@@ -1,10 +1,10 @@
 "use client"
 
-import { HeritageSite } from "@/types/heritage"
+import { Animita } from "@/types/animita"
 import { Scroller } from "@/components/ui/scroller"
 import { AnimitaDetails } from "./animita-details"
 
-export function InfoSidebar({ site }: { site: HeritageSite }) {
+export function InfoSidebar({ site }: { site: Animita }) {
   return (
     <aside className="w-full md:max-w-md flex flex-col bg-background-weak md:min-h-svh md:flex-1 md:min-h-0">
       <Scroller className="flex-1">

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import { POST } from '@/app/api/heritage-sites/route'
+import { POST } from '@/app/api/animitas/route'
 import { createClient } from '@/lib/supabase/server'
 
 type SupabaseMockOptions = {
@@ -91,7 +91,7 @@ function buildSupabaseMock(options: SupabaseMockOptions = {}) {
 }
 
 function createRequest(body: any) {
-  return new Request('http://localhost/api/heritage-sites', {
+  return new Request('http://localhost/api/animitas', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ function createRequest(body: any) {
   })
 }
 
-describe('POST /api/heritage-sites', () => {
+describe('POST /api/animitas', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })

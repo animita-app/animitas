@@ -1,8 +1,8 @@
-import { heritageSitePayloadSchema } from '@/lib/validators/heritage-site'
+import { animitaPayloadSchema } from '@/lib/validators/animita'
 
-describe('heritageSitePayloadSchema', () => {
+describe('animitaPayloadSchema', () => {
   it('accepts a valid payload', () => {
-    const result = heritageSitePayloadSchema.safeParse({
+    const result = animitaPayloadSchema.safeParse({
       name: 'Animita de Prueba',
       story: 'Historia suficientemente larga para pasar la validación.',
       isPublic: true,
@@ -18,7 +18,7 @@ describe('heritageSitePayloadSchema', () => {
   })
 
   it('rejects payloads sin ubicación', () => {
-    const result = heritageSitePayloadSchema.safeParse({
+    const result = animitaPayloadSchema.safeParse({
       name: 'Animita sin ubicación',
       story: 'Historia válida',
       isPublic: true,
@@ -29,7 +29,7 @@ describe('heritageSitePayloadSchema', () => {
   })
 
   it('accepts an animita without a story', () => {
-    const result = heritageSitePayloadSchema.safeParse({
+    const result = animitaPayloadSchema.safeParse({
       name: 'Juanito',
       location: { lat: -33.45, lng: -70.66 }
     })
@@ -38,7 +38,7 @@ describe('heritageSitePayloadSchema', () => {
   })
 
   it('explains in Spanish when the name is too short', () => {
-    const result = heritageSitePayloadSchema.safeParse({
+    const result = animitaPayloadSchema.safeParse({
       name: 'Jo',
       location: { lat: -33.45, lng: -70.66 }
     })

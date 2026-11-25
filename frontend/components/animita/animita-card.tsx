@@ -5,13 +5,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, ArrowRight } from "lucide-react"
 import Image from "next/image"
 import { Button } from "../ui/button"
-import { ProgressiveBlur } from "../ui/progressive-blur"
+import { ProgressiveBlur } from "@/components/ui/progressive-blur"
 
-interface HeritageSiteCardProps {
-  site: any // Replace with HeritageSite type if available
+interface AnimitaCardProps {
+  site: any // Replace with Animita type if available
 }
 
-export function HeritageSiteCard({ site }: HeritageSiteCardProps) {
+export function AnimitaCard({ site }: AnimitaCardProps) {
   const imageUrl = site.images && site.images[0]
 
   return (

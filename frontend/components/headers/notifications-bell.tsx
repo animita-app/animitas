@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
 import { animitaHref } from '@/lib/routes'
+import { TABLES } from '@/lib/animitas'
 
 interface NotificationData {
   id: string
@@ -39,7 +40,7 @@ export function NotificationsBell() {
     async function fetchNotifications() {
       const supabase = createClient()
       const { data: mySites } = await supabase
-        .from('heritage_sites')
+        .from(TABLES.animitas)
         .select('id')
         .eq('creator_id', userId)
 
@@ -49,7 +50,7 @@ export function NotificationsBell() {
       }
 
       const { data: comments } = await supabase
-        .from('heritage_site_comments')
+        .from(TABLES.comments)
         .select('id, content, created_at, user_id, heritage_sites(title, slug), user_profiles!user_id(display_name)')
         .in('site_id', mySites.map(s => s.id))
         .neq('user_id', userId)

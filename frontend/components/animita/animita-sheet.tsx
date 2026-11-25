@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { HeritageSite } from "@/types/heritage"
+import { Animita } from "@/types/animita"
 import { useIsMobileOverlay } from "@/hooks/use-mobile"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
@@ -12,7 +12,7 @@ import { AnimitaDetails } from "@/app/animita/[slug]/sections/animita-details"
 
 const SNAP_POINTS = [0.55, 1]
 
-function Photos({ site }: { site: HeritageSite }) {
+function Photos({ site }: { site: Animita }) {
   if (!site.images?.length) return null
   return (
     <Carousel className="bg-black aspect-video">
@@ -27,7 +27,7 @@ function Photos({ site }: { site: HeritageSite }) {
   )
 }
 
-export function AnimitaSheet({ site }: { site: HeritageSite }) {
+export function AnimitaSheet({ site }: { site: Animita }) {
   const router = useRouter()
   const isMobile = useIsMobileOverlay()
   const [snap, setSnap] = useState<number | string | null>(SNAP_POINTS[0])

@@ -11,7 +11,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
+import { AnimitaCard } from '@/components/animita/animita-card'
+import { TABLES } from '@/lib/animitas'
 
 interface ProfileData {
   id: string
@@ -101,7 +102,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
       const supabase = createClient()
       const [sitesRes, routesRes] = await Promise.all([
         supabase
-          .from('heritage_sites')
+          .from(TABLES.animitas)
           .select('id, slug, title, images')
           .eq('creator_id', profile!.id)
           .order('created_at', { ascending: false }),
@@ -199,7 +200,7 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
           ) : sites.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {sites.map((s) => (
-                <HeritageSiteCard key={s.id} site={s} />
+                <AnimitaCard key={s.id} site={s} />
               ))}
             </div>
           ) : (

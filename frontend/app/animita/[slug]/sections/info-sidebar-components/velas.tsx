@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
+import { TABLES } from "@/lib/animitas"
 
 const VELA = "🕯️"
 
@@ -34,7 +35,7 @@ export function Velas({ siteId }: VelasProps) {
     async function fetchVelas() {
       const supabase = createClient()
       const { data } = await supabase
-        .from('heritage_site_reactions')
+        .from(TABLES.velas)
         .select('user_id')
         .eq('site_id', siteId)
       if (cancelled) return
@@ -58,8 +59,8 @@ export function Velas({ siteId }: VelasProps) {
 
     const supabase = createClient()
     const { error } = wasLit
-      ? await supabase.from('heritage_site_reactions').delete().eq('site_id', siteId).eq('user_id', currentUser.id)
-      : await supabase.from('heritage_site_reactions').insert({ site_id: siteId, user_id: currentUser.id, emoji: VELA })
+      ? await supabase.from(TABLES.velas).delete().eq('site_id', siteId).eq('user_id', currentUser.id)
+      : await supabase.from(TABLES.velas).insert({ site_id: siteId, user_id: currentUser.id, emoji: VELA })
 
     if (error) {
       setIsLit(wasLit)
