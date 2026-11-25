@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
-import { TruckTransition } from '@/components/truck-transition'
+import { PageArrive } from '@/components/page-arrive'
 
 export function Providers({
   children,
@@ -23,7 +23,7 @@ export function Providers({
             {children}
           </div>
         )}
-        <TruckTransition />
+        <PageArrive />
       </AnimitasProvider>
     </UserProvider>
   )

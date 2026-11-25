@@ -306,43 +306,41 @@
   .shelf-item:hover .shelf-label, .shelf-item:focus-visible .shelf-label { scale: 1; }
 }
 
-/* A real candle burning: the photo breathes and its light flickers unevenly on the paper. */
-@keyframes candle-breathe {
-  0%, 100% { filter: brightness(1) saturate(1); }
-  21% { filter: brightness(1.08) saturate(1.05); }
-  47% { filter: brightness(0.94); }
-  68% { filter: brightness(1.12) saturate(1.1); }
-  83% { filter: brightness(0.98); }
+/* A real white candle and a drawn flame that flickers: it leans and stretches unevenly, its core
+   steady, and its light on the paper breathes with it. Unlit, only the wick is left. */
+@keyframes flame-flicker {
+  0%, 100% { scale: 1 1; rotate: 0deg; }
+  14% { scale: 0.94 1.06; rotate: -2deg; }
+  31% { scale: 1.04 0.95; rotate: 1.5deg; }
+  47% { scale: 0.97 1.1; rotate: -1deg; }
+  63% { scale: 1.03 0.97; rotate: 2.5deg; }
+  81% { scale: 0.95 1.04; rotate: -1.5deg; }
 }
-@keyframes candle-light {
-  0%, 100% { opacity: 0.55; scale: 1; }
-  33% { opacity: 0.38; scale: 0.94; }
-  58% { opacity: 0.66; scale: 1.05; }
-  79% { opacity: 0.46; scale: 0.97; }
+@keyframes flame-glow {
+  0%, 100% { opacity: 0.6; scale: 1; }
+  33% { opacity: 0.42; scale: 0.93; }
+  58% { opacity: 0.72; scale: 1.06; }
+  79% { opacity: 0.5; scale: 0.97; }
 }
-.candle-light { animation: candle-light 1.9s ease-in-out infinite; }
-.candle-body { transition: filter 300ms ease-out; }
-.candle[data-lit="true"] .candle-body { animation: candle-breathe 2.6s ease-in-out infinite; }
-.candle[data-lit="false"] .candle-body { filter: grayscale(1) brightness(0.85) contrast(0.9); }
-.candle-glow { transition: opacity 300ms ease-out; }
-.candle[data-lit="false"] .candle-glow { opacity: 0; animation: none; }
+.flame { transform-origin: 50% 92%; transition: opacity 250ms ease-out, scale 300ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.flame-glow { transition: opacity 300ms ease-out; }
+.candle[data-lit="true"] .flame { animation: flame-flicker 1.6s ease-in-out infinite; }
+.candle[data-lit="true"] .flame-glow { animation: flame-glow 2.1s ease-in-out infinite; }
+.candle[data-lit="false"] .flame { opacity: 0; scale: 0.3; }
+.candle[data-lit="false"] .flame-glow { opacity: 0; }
+.candle[data-lit="false"] .candle-body { filter: brightness(0.92) saturate(0.6); }
 
 /* A candle you can light: reaching for it, it grows from its middle and catches the flame. */
 .candle-toggle {
   transition: scale 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.candle-toggle:hover, .candle-toggle:focus-visible { scale: 1.15; }
-.candle-toggle:hover .candle-body, .candle-toggle:focus-visible .candle-body {
-  filter: none;
-  animation: candle-breathe 2.6s ease-in-out infinite;
-}
-.candle-toggle:hover .candle-glow, .candle-toggle:focus-visible .candle-glow {
-  opacity: 1;
-  animation: candle-light 1.9s ease-in-out infinite;
-}
+.candle-toggle:hover, .candle-toggle:focus-visible { scale: 1.12; }
+.candle-toggle:hover .flame, .candle-toggle:focus-visible .flame { opacity: 1; scale: 1; animation: flame-flicker 1.6s ease-in-out infinite; }
+.candle-toggle:hover .flame-glow, .candle-toggle:focus-visible .flame-glow { opacity: 1; animation: flame-glow 2.1s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .candle-toggle { transition: none; }
   .candle-toggle:hover, .candle-toggle:focus-visible { scale: 1; }
+  .flame, .flame-glow { animation: none !important; }
 }
 
 /* Chilean road signs, as the MOP signage manual paints them: flat reflective green for destinations,
@@ -557,7 +555,7 @@
   box-shadow: inset 0 0 0 6px var(--color-neutral-light-2), inset 0 0 18px 10px rgb(28 24 20 / 0.45);
 }
 @media (prefers-reduced-motion: reduce) {
-  .candle-burning, .candle-light, .developing { animation: none; }
+  .developing { animation: none; }
 }
 
 /* Burned edges of an old print, over a photo's container. */

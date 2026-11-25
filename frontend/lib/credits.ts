@@ -20,7 +20,7 @@ export interface Credit {
 // Every object photo in the interface is cut from these Wikimedia Commons files and keeps its license.
 // CC BY-SA asks for the author, the license and a link: they're listed at /creditos, cited in APA 7.
 export const OBJECT_CREDITS: Credit[] = [
-  { object: 'Vela', author: '3268zauber', year: '2009', title: 'Einzelnes Opferlicht', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Einzelnes_Opferlicht.JPG', license: 'CC BY-SA 3.0' },
+  { object: 'Vela', author: 'AndyTheMonster', year: '2012', title: 'Pillar candles 09', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Pillar_candles_09.jpg', license: 'CC BY-SA 3.0' },
   { object: 'Animitas', author: 'LBM1948', year: '2013', title: 'Puerto Natales, animitas 3', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Puerto_Natales,_animitas_3.jpg', license: 'CC BY-SA 4.0' },
   { object: 'Llave', author: 'noy-nac', year: '2017', title: 'Skeleton key (Yale & Towne)', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Skeleton_key_(Yale_%26_Towne).png', license: 'CC BY-SA 4.0' },
   { object: 'Chinche', author: 'Bin im Garten', year: '2013', title: 'Pin for a pinboard 2013 PD', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Pin_for_a_pinboard_2013_PD.jpg', license: 'CC BY-SA 3.0' },

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { playTruckPass } from '@/lib/truck-sound'
 
 // The part of the app a path belongs to. Opening an animita's sheet over the map isn't a change of
 // place, so animitas don't count.
@@ -12,8 +11,8 @@ function section(pathname: string) {
   return first || 'map'
 }
 
-// Changing section is a drive down the road: you hear a truck go by while the new page fades in.
-export function TruckTransition() {
+// Changing section, the new page shows through a sheet of paper that lifts away.
+export function PageArrive() {
   const pathname = usePathname()
   const previous = useRef(pathname)
   const [pass, setPass] = useState(0)
@@ -24,7 +23,6 @@ export function TruckTransition() {
     const to = section(pathname)
     previous.current = pathname
     if (from === to || from === 'animita' || to === 'animita') return
-    playTruckPass()
     setPass(n => n + 1)
     setPassing(true)
   }, [pathname])
