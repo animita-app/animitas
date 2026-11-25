@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
+import { SheetProvider } from '@/contexts/sheet-context'
 import { PageArrive } from '@/components/page-arrive'
 
 export function Providers({
@@ -16,6 +17,7 @@ export function Providers({
   return (
     <UserProvider>
       <AnimitasProvider>
+        <SheetProvider>
         {isAuthPage ? (
           children
         ) : (
@@ -24,6 +26,7 @@ export function Providers({
           </div>
         )}
         <PageArrive />
+        </SheetProvider>
       </AnimitasProvider>
     </UserProvider>
   )

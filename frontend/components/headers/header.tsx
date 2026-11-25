@@ -5,6 +5,7 @@ import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
 import { ShelfObject } from '@/components/shelf-object'
 import { RoadSignSearch } from '@/components/search/road-sign-search'
 import { useUser } from '@/contexts/user-context'
+import { useSheetOpen } from '@/contexts/sheet-context'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
 import { MainHeaderPanel } from './main-header-panel'
@@ -13,7 +14,8 @@ export function Header() {
   const { currentUser, isLoading } = useUser()
   const pathname = usePathname()
   const modalSegment = useSelectedLayoutSegment('modal')
-  const isAnimitaSheet = modalSegment?.startsWith('(.)animita') ?? false
+  const sheetOpen = useSheetOpen()
+  const isAnimitaSheet = sheetOpen || (modalSegment?.includes('animita') ?? false)
 
   if (pathname.startsWith('/animita') && !isAnimitaSheet) return null
   // Adding an animita on its own page is a full-screen form with its own Cancelar; nothing else on top.

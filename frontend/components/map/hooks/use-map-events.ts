@@ -19,7 +19,12 @@ export function useMapEvents({ map }: UseMapEventsProps) {
         return;
       }
 
-      const padding = { top: 0, bottom: 0, left: 0, right: 0 };
+      // The animita's sheet covers part of the map (the bottom half on a phone, the right side on a wide
+      // screen), so it's centered in what stays visible.
+      const phone = window.innerWidth < 640;
+      const padding = phone
+        ? { top: 72, bottom: Math.round(window.innerHeight * 0.55), left: 0, right: 0 }
+        : { top: 0, bottom: 0, left: 0, right: Math.min(512, window.innerWidth * 0.4) };
 
       map.resize();
 

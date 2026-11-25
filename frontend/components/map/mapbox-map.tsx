@@ -110,6 +110,17 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
     }
   }, [map, isMapReady, pathname, router])
 
+  // An animita opened any way (search, list, a link) brings the map to it, not only a click on its point.
+  useEffect(() => {
+    if (!isMapReady) return
+    const slug = pathname.match(/^\/animita\/([^/]+)/)?.[1]
+    if (!slug) return
+    const site = animitas.find(a => a.slug === decodeURIComponent(slug))
+    if (!site) return
+    selectAnimita(site)
+    focusAnimita([site.location.lng, site.location.lat])
+  }, [pathname, isMapReady, animitas, selectAnimita, focusAnimita])
+
   const handleMarkerClick = (id: string) => {
     const site = animitas.find((s: Animita) => s.id === id)
     if (!site) return

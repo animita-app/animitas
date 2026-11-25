@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Animita } from "@/types/animita"
 import { animitaName } from "@/lib/animitas"
 import { useIsMobileOverlay } from "@/hooks/use-mobile"
+import { useMarkSheetOpen } from "@/contexts/sheet-context"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
 import { LoosePrints } from "@/components/animita/loose-prints"
@@ -15,6 +16,7 @@ const SNAP_POINTS = [0.55, 1]
 export function AnimitaSheet({ site }: { site: Animita }) {
   const router = useRouter()
   const isMobile = useIsMobileOverlay()
+  useMarkSheetOpen()
   const [snap, setSnap] = useState<number | string | null>(SNAP_POINTS[0])
 
   const close = (open: boolean) => {
