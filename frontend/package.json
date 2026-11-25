@@ -1,7 +1,8 @@
 {
-  "name": "animitas-mapper-frontend",
+  "name": "animitas-frontend",
   "version": "1.0.0",
-  "description": "Frontend web application for Animitas Mapper",
+  "description": "Web app for Animitas, a collaborative map of Chile's animitas",
+  "author": "Joaquín Stephens and Felipe Mandiola",
   "private": true,
   "scripts": {
     "dev": "next dev",

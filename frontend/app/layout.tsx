@@ -70,10 +70,10 @@ export const metadata: Metadata = {
   },
   description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
   keywords: ['animitas', 'Chile', 'memoria', 'mapa'],
-  authors: [{
-    name: 'Felipe Mandiola',
-    url: 'https://felipemandiola.com'
-  }],
+  authors: [
+    { name: 'Joaquín Stephens' },
+    { name: 'Felipe Mandiola', url: 'https://felipemandiola.com' },
+  ],
   openGraph: {
     title: 'Animitas',
     description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
