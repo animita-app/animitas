@@ -434,6 +434,29 @@
   box-shadow: 0 1px 0 rgb(28 24 20 / 0.12), 0 8px 16px -10px rgb(28 24 20 / 0.45);
 }
 
+/* Ballpoint writing: the pen's blue, a hand's letters where the device has one, and ink soaked a little
+   into the paper. */
+.pen-ink {
+  color: var(--color-pen);
+  font-family: "Bradley Hand", "Segoe Print", "Marker Felt", "Comic Sans MS", cursive;
+  font-weight: 700;
+  text-shadow: 0 0 1px color-mix(in oklab, var(--color-pen) 55%, transparent);
+}
+.pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.6px color-mix(in oklab, var(--color-pen) 60%, transparent)); }
+
+/* An entry in a list written in pen: reaching for it underlines it by hand. */
+.pen-item {
+  text-decoration-style: wavy;
+  text-decoration-color: var(--color-pen);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+}
+/* Only the one reached for: the ink's text-shadow would otherwise draw a faint copy under every entry. */
+.pen-item[data-highlighted] { text-decoration-line: underline; }
+
+/* An object whose menu is open drops its name, so the label doesn't sit under the menu. */
+.shelf-item[aria-expanded="true"] .shelf-label { opacity: 0; }
+
 /* A blob of red sealing wax pressed onto a letter: new recuerdos are waiting. */
 .wax-seal {
   background:

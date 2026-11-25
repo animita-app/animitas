@@ -1,7 +1,6 @@
 "use client"
 
 import Image from "next/image"
-import type React from "react"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -13,9 +12,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { CutoutText } from '@/components/cutout-text'
+import { PenLoop } from '@/components/pen'
 import { useUser } from '@/contexts/user-context'
-import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { animitaHref } from '@/lib/routes'
 import { TABLES } from '@/lib/animitas'
@@ -73,43 +72,36 @@ export function NotificationsBell({ open, onOpenChange }: { open?: boolean; onOp
 
   if (!currentUser) return null
 
+  const count = notifications.length
+
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            {/* An old letter, like the ones left at an animita, sealed in wax when a recuerdo is new. */}
-            <button
-              type="button"
-              aria-label={notifications.length ? `Recuerdos nuevos (${notifications.length})` : "Recuerdos"}
-              className="relative flex size-11 items-center justify-center rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-expanded:scale-110 motion-reduce:transition-none"
-            >
-              <Image src="/cutouts/envelope.png" alt="" width={240} height={138} draggable={false} className="h-7 w-auto -rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]" />
-              {notifications.length > 0 && <span aria-hidden className="wax-seal absolute top-2.5 right-1.5 size-3.5 rotate-12" />}
-            </button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Recuerdos</TooltipContent>
-      </Tooltip>
+      <div className="shelf shelf-top">
+        <DropdownMenuTrigger asChild>
+          {/* An old letter; the number of new recuerdos is circled next to it in pen. */}
+          <button
+            type="button"
+            aria-label={count ? `Recuerdos nuevos (${count})` : "Recuerdos"}
+            style={{ transformOrigin: '100% 0' }}
+            className="shelf-item relative flex h-11 items-center gap-0.5 rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <span className="shelf-label pointer-events-none absolute left-1/2 top-1/2 z-10 size-0">
+              <CutoutText text="recuerdos" height={20} orbit={{ radius: 64, angle: 120, clockwise: false }} />
+            </span>
+            <Image src="/cutouts/envelope.png" alt="" width={240} height={138} draggable={false} className="h-7 w-auto -rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]" />
+            {count > 0 && <PenLoop className="-ml-2 -mt-5 size-7 text-sm">{count > 9 ? '9+' : count}</PenLoop>}
+          </button>
+        </DropdownMenuTrigger>
+      </div>
 
-      {/* Recuerdos left on your animitas, as loose notes dealt out under the letter. */}
-      <DropdownMenuContent align="end" sideOffset={4} className="scroll-fade flex max-h-(--radix-dropdown-menu-content-available-height) w-80 flex-col gap-3 bg-transparent p-3 shadow-none">
-        <DropdownMenuLabel className="sr-only">Recuerdos en tus animitas</DropdownMenuLabel>
-        {notifications.length === 0 ? (
-          <p className="paper-slip plate-deal rotate-1 px-4 py-3 text-pretty text-sm text-text-weak">
-            Cuando alguien deje un recuerdo en tus animitas, va a llegar acá.
-          </p>
+      {/* One note, the recuerdos copied onto it. */}
+      <DropdownMenuContent align="end" sideOffset={4} className="paper-slip scroll-fade flex max-h-(--radix-dropdown-menu-content-available-height) w-80 -rotate-1 flex-col gap-4 rounded-none bg-transparent px-5 py-4">
+        <DropdownMenuLabel className="pen-ink p-0 text-lg">{count ? 'Te dejaron recuerdos' : 'Todavía nada'}</DropdownMenuLabel>
+        {count === 0 ? (
+          <p className="text-pretty text-sm text-text-weak">Cuando alguien deje un recuerdo en tus animitas, va a llegar acá.</p>
         ) : (
-          notifications.map((item, i) => (
-            <DropdownMenuItem
-              asChild
-              key={item.id}
-              style={{ '--i': i } as React.CSSProperties}
-              className={cn(
-                "paper-slip plate-deal flex-col items-start gap-1 rounded-none px-4 py-3 transition-[translate,rotate] duration-150 data-[highlighted]:bg-transparent data-[highlighted]:rotate-0 data-[highlighted]:-translate-x-1",
-                i % 2 ? "rotate-1" : "-rotate-[0.6deg]"
-              )}
-            >
+          notifications.map(item => (
+            <DropdownMenuItem asChild key={item.id} className="pen-item flex-col items-start gap-0.5 rounded-none p-0 data-[highlighted]:bg-transparent">
               <Link href={item.href}>
                 <span className="text-pretty text-sm text-text-strong">{item.title}</span>
                 <span className="text-pretty text-sm text-text">{item.description}</span>
