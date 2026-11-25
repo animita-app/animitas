@@ -1,0 +1,36 @@
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { getAnimita } from '@/lib/animitas-server'
+import { animitaName } from '@/lib/animitas'
+import { isDemoServer } from '@/lib/demo/server'
+import { DemoAnimita } from '@/components/animita/demo-animita'
+import { SiteDetailView } from './sections/site-detail-view'
+
+interface PageProps {
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params
+  const animita = await getAnimita(slug)
+  if (!animita) return { title: 'Animita no encontrada' }
+
+  return {
+    title: animitaName(animita.title),
+    description: animita.story?.slice(0, 160) || `La historia de la animita de ${animita.title}.`,
+  }
+}
+
+export default async function SiteDetailPage({ params }: PageProps) {
+  const { slug } = await params
+  const site = await getAnimita(slug)
+
+  if (!site) {
+    if (await isDemoServer()) return <DemoAnimita slug={slug} as="page" />
+    notFound()
+  }
+
+  return <SiteDetailView key={site.id} site={site} />
+}

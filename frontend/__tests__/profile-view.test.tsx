@@ -1,0 +1,61 @@
+import { render, screen } from "@testing-library/react";
+
+let currentUser: { id: string } | null = null;
+const order = jest.fn();
+jest.mock("@/contexts/user-context", () => ({ useUser: () => ({ currentUser, setUser: jest.fn() }) }));
+jest.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ from: () => ({ select: () => ({ eq: () => ({ order }) }) }) }),
+}));
+jest.mock("@/hooks/use-new-recuerdos", () => ({ useNewRecuerdos: () => [] }));
+jest.mock("@/lib/demo/flag", () => ({ isDemo: () => false }));
+jest.mock("sonner", () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
+
+import { ProfileView } from "@/app/profile/[username]/profile-view";
+
+const profile = { id: "ana", display_name: "Ana", username: "ana", image: null, role: "default" };
+
+describe("ProfileView", () => {
+  beforeEach(() => order.mockResolvedValue({ data: [] }));
+
+  it("invites you to add your first animita on your own profile", async () => {
+    currentUser = { id: "ana" };
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByText("Todavía no añades animitas")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Añadir" })).toHaveAttribute("href", "/add");
+    expect(screen.getByRole("button", { name: /tu foto/ })).toBeInTheDocument();
+  });
+
+  it("shows someone else's empty profile without actions", async () => {
+    currentUser = { id: "beto" };
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByText("Todavía no añade animitas")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Añadir" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tu foto/ })).not.toBeInTheDocument();
+  });
+
+  it("does not show a Rutas tab", async () => {
+    currentUser = null;
+    render(<ProfileView profile={profile} />);
+    await screen.findByText("Todavía no añade animitas");
+    expect(screen.queryByText("Rutas")).not.toBeInTheDocument();
+  });
+
+  it("only lists animitas that have a place, since the others have no page to open", async () => {
+    currentUser = null;
+    order.mockResolvedValue({
+      data: [
+        { id: "1", slug: "con-lugar", title: "Con lugar", images: null, lat: -33.4, lng: -70.6 },
+        { id: "2", slug: "sin-lugar", title: "Sin lugar", images: null, location: null },
+      ],
+    });
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByRole("link", { name: "Con lugar" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sin lugar" })).not.toBeInTheDocument();
+  });
+
+  it("makes your own name the page heading, read as the name", async () => {
+    currentUser = { id: "ana" };
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByRole("heading", { level: 1, name: /^Ana/ })).toBeInTheDocument();
+  });
+});

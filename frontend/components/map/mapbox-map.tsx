@@ -1,455 +1,196 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { Loader2, MousePointer2 } from 'lucide-react'
-import { useSpatialContext } from '@/contexts/spatial-context'
-import { useRouter } from 'next/navigation'
-import { useMapInitialization, CHILE_BOUNDS } from './hooks/use-map-initialization'
-import { useActiveArea } from './hooks/use-active-area'
-import { useOverpassData } from './hooks/use-overpass-data'
-import { useLayerManagement } from './hooks/use-layer-management'
+import { animitaHref } from '@/lib/routes'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
+import type mapboxgl from 'mapbox-gl'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAnimitas } from '@/contexts/animitas-context'
+import { useMapInitialization } from './hooks/use-map-initialization'
 import { useMapEvents } from './hooks/use-map-events'
-import { useHeritageSiteSelection } from '@/hooks/use-heritage-site-selection'
+import { useAnimitaSelection } from '@/hooks/use-animita-selection'
 import { useVisibleSites } from '@/hooks/use-visible-sites'
-import { HeritageSiteProperty, GISOperation } from '@/components/map/types'
-import { searchLocation } from '@/lib/mapbox'
-import { MapMarker } from './map-marker'
 import { MarkerLayer } from './layers/marker-layer'
-import { COLORS } from '@/lib/map-style'
-import { Legend } from './legend'
-import { LayerDetail } from './layers/layer-detail'
-import { Button } from '@/components/ui/button'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { Drawer, DrawerContentFloating, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { cn } from '@/lib/utils'
+import { MapStatus } from './map-status'
+import { Animita } from '@/types/animita'
+import { RetornoSign } from '@/components/road-signs'
+import { areaBounds } from '@/lib/area'
+import { CutoutText } from '@/components/cutout-text'
 
-import { HeritageSite } from '@/types/heritage'
-import { useUser } from '@/contexts/user-context'
-import { ROLES } from '@/types/roles'
+const HIGH_ZOOM_THRESHOLD = 10
 
 interface MapboxMapProps {
   accessToken: string
   style?: string
-  focusedHeritageSiteId?: string | null
-  isModal?: boolean
-  onAnalysisRequested?: (data: any) => void
-  onHeritageSiteSelect?: (site: HeritageSite | null) => void
-  selectedHeritageSite?: HeritageSite | null
 }
 
-export default function MapboxMap({
-  accessToken,
-  style,
-  focusedHeritageSiteId,
-  onAnalysisRequested,
-  onHeritageSiteSelect,
-  selectedHeritageSite: propSelectedHeritageSite
-}: MapboxMapProps) {
-  // Constants
-  const HIGH_ZOOM_THRESHOLD = 10
-
-  // Spatial Context
-  // @ts-ignore
-  // @ts-ignore
-  const { activeArea, activeAreaLabel, clearActiveArea, setSyntheticSites, filteredData, showResearchPanel, mapResetToken } = useSpatialContext()
-
-  // Map Initialization
+export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const { animitas, mapTarget, clearMapTarget, status, reload, resetToken, area } = useAnimitas()
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
-  const isMobile = useIsMobile()
+  const { selectedAnimita, selectAnimita } = useAnimitaSelection()
+  const { focusAnimita, resetView } = useMapEvents({ map: map.current })
 
-  // Heritage Site Selection
-  const { selectedHeritageSite, handleHeritageSiteSelect } = useHeritageSiteSelection({
-    onHeritageSiteSelect,
-    selectedHeritageSite: propSelectedHeritageSite
-  })
+  const [currentZoom, setCurrentZoom] = useState(0)
+  // Away from the starting view of all of Chile: the retorno sign shows to bring it back.
+  const [away, setAway] = useState(false)
 
-  // UI State
-  const [showProfileMarkers, setShowProfileMarkers] = useState(false)
-  const [activeProperties, setActiveProperties] = useState<HeritageSiteProperty[]>(['death_cause'])
-  const [searchSuggestions, setSearchSuggestions] = useState<any[]>([])
-  const [currentZoom, setCurrentZoom] = useState<number>(0)
-
-  const [isSearching, setIsSearching] = useState(false)
-  const [hasMoved, setHasMoved] = useState(false)
-
-  const { role, researchMode } = useUser()
-  const isDefault = role === ROLES.DEFAULT
-
-  // Force research layers OFF if researchMode is disabled
   useEffect(() => {
-    if (!researchMode) {
-      setActiveLayers(prev => {
-        const reset: Record<string, boolean> = { ...prev }
-        Object.keys(reset).forEach(key => {
-          if (key !== 'animitas' && key !== 'grutas') {
-            reset[key] = false
-          }
-        })
-        return reset
-      })
+    const instance = map.current
+    if (!instance || !isMapReady) return
+    // Away once zoomed in or dragged off: comparing only the zoom missed a map pushed to one side.
+    const home = instance.getCenter()
+    const check = () => {
+      const c = instance.getCenter()
+      const moved = Math.abs(c.lng - home.lng) > 1.5 || Math.abs(c.lat - home.lat) > 1.5
+      setAway(moved || instance.getZoom() > instance.getMinZoom() + 0.4)
     }
-  }, [researchMode])
+    instance.on('moveend', check)
+    check()
+    return () => { instance.off('moveend', check) }
+  }, [map, isMapReady])
 
-
-  // Track Visible Sites at High Zoom
   const visibleSites = useVisibleSites({
     map: map.current,
     isMapReady,
     currentZoom,
     zoomThreshold: HIGH_ZOOM_THRESHOLD,
-    filteredData,
+    animitas,
     maxVisibleSites: 20
   })
 
-  // Sync focusedHeritageSiteId prop with selection
   useEffect(() => {
-    if (focusedHeritageSiteId && filteredData.length > 0) {
-      const site = filteredData.find((s: HeritageSite) => s.id === focusedHeritageSiteId)
-      if (site) {
-        handleHeritageSiteSelect(site)
-      }
-    }
-  }, [focusedHeritageSiteId, filteredData, handleHeritageSiteSelect])
+    const instance = map.current
+    if (!instance || !isMapReady) return
 
-  // Track Zoom Level & User Movement
-  const initialViewState = useRef<{ zoom: number, center: { lng: number, lat: number } } | null>(null)
-
-  useEffect(() => {
-    if (!map.current || !isMapReady) return
-
-    // Capture initial state
-    if (!initialViewState.current) {
-      const center = map.current.getCenter()
-      initialViewState.current = {
-        zoom: map.current.getZoom(),
-        center: { lng: center.lng, lat: center.lat }
-      }
-    }
-
-    const updateZoom = () => setCurrentZoom(map.current!.getZoom())
-
-    const checkMovement = () => {
-      if (!initialViewState.current) return
-
-      const currentZoom = map.current!.getZoom()
-      const currentCenter = map.current!.getCenter()
-
-      const isZoomSame = Math.abs(currentZoom - initialViewState.current.zoom) < 0.5
-      const isCenterSame = Math.abs(currentCenter.lng - initialViewState.current.center.lng) < 0.1 &&
-        Math.abs(currentCenter.lat - initialViewState.current.center.lat) < 0.1
-
-      setHasMoved(!isZoomSame || !isCenterSame)
-    }
-
-    map.current.on('zoom', updateZoom)
-    map.current.on('moveend', checkMovement)
-    // Also check on zoomend since moveend might not fire for pure pinch-zoom sometimes? Usually it does.
-
+    const updateZoom = () => setCurrentZoom(instance.getZoom())
+    instance.on('zoom', updateZoom)
     updateZoom()
 
     return () => {
-      map.current?.off('zoom', updateZoom)
-      map.current?.off('moveend', checkMovement)
+      instance.off('zoom', updateZoom)
     }
-  }, [isMapReady])
+  }, [map, isMapReady])
 
   useEffect(() => {
-    if (mapResetToken > 0 && map.current && isMapReady) {
-      handleResetView()
+    const instance = map.current
+    if (!mapTarget || !instance || !isMapReady) return
+    if (mapTarget.bbox) {
+      const [minLng, minLat, maxLng, maxLat] = mapTarget.bbox
+      instance.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 48, essential: true })
+    } else if (mapTarget.center) {
+      instance.flyTo({ center: mapTarget.center, zoom: 14, essential: true })
     }
-  }, [mapResetToken, isMapReady])
+    // Spent once flown, so coming back to the map later starts from all of Chile again.
+    clearMapTarget()
+  }, [map, mapTarget, isMapReady, clearMapTarget])
 
+  // Closing an animita's sheet lets go of it on the map too.
+  useEffect(() => {
+    if (!pathname.startsWith('/animita/')) selectAnimita(null)
+  }, [pathname, selectAnimita])
 
-
-  // 2. Active Layers State (kept here as it's shared between Overpass and LayerManagement)
-  const [activeLayers, setActiveLayers] = useState<Record<string, boolean>>({
-    // Transporte
-    highways: false,
-    urban_streets: false,
-    traffic_lights: false,
-    critical_points: false,
-
-    // Servicios
-    hospitals: false,
-    cemeteries: false,
-    police: false,
-    fire_station: false,
-
-    // Sociabilidad
-    churches: false,
-    schools: false,
-    universities: false,
-    bars: false,
-
-    animitas: true,
-    grutas: true
-  })
-
-  // 3. Loaded Layers State
-  const [loadedLayers, setLoadedLayers] = useState<Set<string>>(new Set())
-
-  // 4. Layer Management
-  const {
-    layers,
-    elements,
-    selectedLayer,
-    setSelectedLayer,
-    handleLayerVisibilityChange,
-    handleLayerUpdate,
-    handleLayerSelect
-  } = useLayerManagement({ map: map.current, setActiveLayers })
-
-  // 5. Active Area Handling
-  useActiveArea({ map: map.current, isMapReady, activeArea })
-
-  // 6. Overpass Data Fetching
-  const { isLoading } = useOverpassData({
-    map: map.current,
-    activeLayers,
-    loadedLayers,
-    setLoadedLayers
-  })
-
-  // 7. Map Events (Zoom, Focus)
-  // 7. Map Events (Zoom, Focus)
-  const router = useRouter()
-  const { focusHeritageSite, resetView } = useMapEvents({
-    map: map.current,
-    isMapReady,
-    focusedHeritageSiteId: selectedHeritageSite?.id || null,
-
-    // onHeritageSiteClick is now handled by HeritageMarkerLayer
-    onLayerClick: (layerId, feature) => {
-      // Find the layer object
-      const layer = layers.find(l => l.id === layerId)
-      if (layer) {
-        handleLayerSelect(layer)
-      }
+  // Going back to the map closes the open sheet: a click on empty map or the start of a drag. Clicks on an
+  // animita or a cluster are theirs to handle.
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isMapReady || !pathname.startsWith('/animita/')) return
+    const inkLayers = ['clusters', 'memorials-inner'].filter(id => instance.getLayer(id))
+    const close = () => router.back()
+    const onClick = (e: mapboxgl.MapMouseEvent) => {
+      if (instance.queryRenderedFeatures(e.point, { layers: inkLayers }).length) return
+      close()
     }
-  })
+    const onDrag = (e: { originalEvent?: Event }) => { if (e.originalEvent) close() }
+    instance.on('click', onClick)
+    instance.on('dragstart', onDrag)
+    return () => {
+      instance.off('click', onClick)
+      instance.off('dragstart', onDrag)
+    }
+  }, [map, isMapReady, pathname, router])
 
-  // Handlers
+  // The chosen area, outlined in the same ballpoint as the marks, and framed.
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isMapReady) return
+    // Only a real outline is drawn; a place's box would read as a strange rectangle on the map.
+    const data = area && !area.rough ? { type: 'Feature' as const, properties: {}, geometry: area.geometry } : { type: 'FeatureCollection' as const, features: [] }
+    const source = instance.getSource('area') as mapboxgl.GeoJSONSource | undefined
+    if (source) source.setData(data as any)
+    else {
+      instance.addSource('area', { type: 'geojson', data: data as any })
+      // Under the marks, so the outline never covers an animita.
+      const below = instance.getLayer('clusters') ? 'clusters' : undefined
+      instance.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': '#2c3f8c', 'fill-opacity': 0.04 } }, below)
+      instance.addLayer({ id: 'area-line', type: 'line', source: 'area', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#2c3f8c', 'line-width': 2, 'line-opacity': 0.75, 'line-blur': 0.6 } }, below)
+    }
+    if (area) {
+      const [w, s, e, n] = areaBounds(area.geometry)
+      instance.fitBounds([[w, s], [e, n]], { padding: { top: 120, bottom: 160, left: 48, right: 48 }, duration: 900, essential: true })
+    }
+  }, [area, map, isMapReady])
+
+  // An animita opened any way (search, list, a link) brings the map to it, not only a click on its point.
+  useEffect(() => {
+    if (!isMapReady) return
+    const slug = pathname.match(/^\/animita\/([^/]+)/)?.[1]
+    if (!slug) return
+    const site = animitas.find(a => a.slug === decodeURIComponent(slug))
+    if (!site) return
+    selectAnimita(site)
+    focusAnimita([site.location.lng, site.location.lat])
+  }, [pathname, isMapReady, animitas, selectAnimita, focusAnimita])
+
   const handleMarkerClick = (id: string) => {
-    const site = filteredData.find((s: HeritageSite) => s.id === id)
+    const site = animitas.find((s: Animita) => s.id === id)
     if (!site) return
 
-    // Always select and focus, let user click card to navigate
-    handleHeritageSiteSelect(site)
-    focusHeritageSite(
-      site.id,
-      [site.location.lng, site.location.lat],
-      { shouldNavigate: false, instant: false }
-    )
-
-    // Navigate to detail page
-    const kind = (site as any).kind || 'animita'
-    const slug = site.slug || site.id
-    router.push(`/${kind.toLowerCase()}/${slug}`)
-
-    setHasMoved(true)
+    selectAnimita(site)
+    focusAnimita([site.location.lng, site.location.lat])
+    const href = animitaHref(site.slug || site.id)
+    // With a sheet already open, swap it so closing returns to the map instead of the previous animita.
+    if (pathname.startsWith('/animita/')) router.replace(href)
+    else router.push(href)
   }
 
-  // Handlers
-  const handleProfileToggle = () => setShowProfileMarkers(prev => !prev)
-
-  const handlePropertyToggle = (property: HeritageSiteProperty, visible: boolean) => {
-    if (visible) {
-      setActiveProperties(prev => [...prev, property])
-    } else {
-      setActiveProperties(prev => prev.filter(p => p !== property))
-    }
-  }
-
-  const handleGISOperationSelect = (operation: GISOperation) => {
-    // GIS Operation logic
-  }
-
-  const handleElementRemove = (id: string) => {
-    // Implement element removal logic if needed, or pass to layer management
-  }
-
-  const handleCloseLayerDetail = () => {
-    setSelectedLayer(null)
-  }
-
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      setSearchSuggestions([])
-      return
-    }
-
-    // 1. Search Local Data (Heritage Sites)
-    const localResults = filteredData
-      .filter((site: HeritageSite) =>
-        site.title.toLowerCase().includes(query.toLowerCase())
-      )
-      .map((site: HeritageSite) => ({
-        id: site.id,
-        title: site.title,
-        type: 'local',
-        center: [site.location.lng, site.location.lat],
-        geometry: { type: 'Point', coordinates: [site.location.lng, site.location.lat] }
-      }))
-
-    // 2. Search Mapbox
-    const mapboxResults = await searchLocation(query, accessToken)
-
-    const filteredMapboxResults = mapboxResults.filter((result: any) => {
-      const isBoundary = result.place_type.some((t: string) =>
-        ['region', 'district', 'place', 'locality', 'neighborhood'].includes(t)
-      )
-      const isMotorway = /autopista|ruta|camino|carretera|corredor|vía|costanera|peaje|tunel/i.test(result.text)
-
-      return isBoundary || isMotorway
-    })
-
-    setSearchSuggestions([...localResults, ...filteredMapboxResults])
-  }
-
-  const handleSelectResult = (location: any) => {
-    if (!map.current) return
-
-    // If result has a bounding box, fit to it
-    if (location.bbox) {
-      map.current.fitBounds(
-        [
-          [location.bbox[0], location.bbox[1]], // sw
-          [location.bbox[2], location.bbox[3]]  // ne
-        ],
-        { padding: 50, essential: true }
-      )
-    } else {
-      // Otherwise fly to center
-      const [lng, lat] = location.center
-      map.current.flyTo({
-        center: [lng, lat],
-        zoom: 14,
-        essential: true
-      })
-    }
-    setSearchSuggestions([])
-    setHasMoved(true)
-  }
-
-  const handleResetView = () => {
-    resetView()
-    setHasMoved(false)
-  }
-
-  const handleExport = (format: string, scope?: 'viewport' | 'all') => {
-    // Export logic
-  }
-  const handleGenerateSynthetic = () => {
-    setSyntheticSites([]) // Mock implementation
-  }
+  useEffect(() => {
+    if (resetToken > 0 && isMapReady) resetView()
+  }, [resetToken, isMapReady, resetView])
 
   return (
-    <div className="relative w-full h-full pointer-events-auto">
-      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
+    <div className="relative size-full">
+      <div ref={mapContainer} className="absolute inset-0" />
+
+      <MapStatus status={status} count={animitas.length} onRetry={reload} area={area?.label} />
+
+      {/* Above the shelf's paper fade, which sits over the map, so it can live in the corner. */}
+      {away && !pathname.startsWith('/animita/') && createPortal(
+        <button
+          type="button"
+          onClick={resetView}
+          aria-label="Ver todo Chile"
+          className="group fixed right-4 bottom-28 z-60 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in fade-in zoom-in-90 hover:scale-110 hover:-rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none md:right-8 md:bottom-8"
+        >
+          <RetornoSign className="size-14" />
+          <span className="pointer-events-none absolute right-full top-1/2 mr-3 w-max -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <CutoutText text="retorno" height={18} />
+          </span>
+        </button>
+      , document.body)}
 
       <MarkerLayer
         map={map.current}
         isMapReady={isMapReady}
-        data={filteredData}
+        data={animitas}
         onSiteClick={handleMarkerClick}
         currentZoom={currentZoom}
         visibleSites={visibleSites}
-        selectedSite={selectedHeritageSite}
-        onSiteSelect={handleHeritageSiteSelect}
+        selectedSite={selectedAnimita}
+        onSiteSelect={selectAnimita}
       />
 
-      {(isLoading || isSearching) && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-muted/60 animate-pulse pointer-events-none">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
-
-      {hasMoved && (
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute bottom-8 md:bottom-4 right-4 z-10 shadow-xs"
-          onClick={handleResetView}
-          title="Restablecer Vista"
-        >
-          <MousePointer2 className="size-4 rotate-90 stroke-[0.5px] fill-white" />
-        </Button>
-      )}
-
-      {!isMobile && showResearchPanel && (
-        <div className="absolute inset-4 z-10 pt-12 pointer-events-none animate-in fade-in duration-150 flex items-start gap-4">
-          <div className="pointer-events-auto flex-shrink-0">
-            <Legend
-              layers={layers}
-              elements={elements}
-              selectedLayerId={selectedLayer?.id}
-              onLayerClick={handleLayerSelect}
-              onToggleVisibility={handleLayerVisibilityChange}
-            />
-          </div>
-          {selectedLayer && (
-            <div className="pointer-events-auto ml-auto flex-shrink-0">
-              <LayerDetail
-                selectedLayer={selectedLayer}
-                onClose={handleCloseLayerDetail}
-                onUpdateLayer={handleLayerUpdate}
-                activeProperties={activeProperties}
-                onPropertyToggle={handlePropertyToggle}
-                onGISOperationSelect={handleGISOperationSelect}
-                onElementRemove={handleElementRemove}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {isMobile && (
-        <Drawer
-          snapPoints={[0.06, 1]}
-          activeSnapPoint={0.06}
-          setActiveSnapPoint={() => {}}
-          open={true}
-          modal={false}
-          onOpenChange={() => {}}
-        >
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Detalle de Capa</DrawerTitle>
-            <DrawerDescription>Detalle de Capa</DrawerDescription>
-          </DrawerHeader>
-          <DrawerContentFloating
-            className="w-screen"
-            onHandleClick={() => {}}
-            showOverlay={false}
-          >
-            <div className="flex-1 justify-between overflow-y-auto w-full px-0 pb-0 space-y-4">
-              <Legend
-                layers={layers}
-                elements={elements}
-                selectedLayerId={selectedLayer?.id}
-                onLayerClick={(l) => {
-                  handleLayerSelect(l)
-                }}
-                onToggleVisibility={handleLayerVisibilityChange}
-                className="w-full h-auto border-none shadow-none p-0 !bg-transparent"
-              />
-              {selectedLayer && (
-                <LayerDetail
-                  selectedLayer={selectedLayer}
-                  onClose={() => {
-                    handleCloseLayerDetail()
-                  }}
-                  onUpdateLayer={handleLayerUpdate}
-                  activeProperties={activeProperties}
-                  onPropertyToggle={handlePropertyToggle}
-                  onGISOperationSelect={handleGISOperationSelect}
-                  onElementRemove={handleElementRemove}
-                  className="ml-auto w-full h-auto border-none shadow-none static slide-in-from-right-0 animate-none p-0 !bg-transparent"
-                />
-              )}
-            </div>
-          </DrawerContentFloating>
-        </Drawer>
-      )}
     </div>
   )
 }

@@ -1,126 +1,34 @@
 "use client"
 
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuGroup,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
-  DropdownMenuPortal,
-} from "@/components/ui/dropdown-menu"
-import { useUser } from '@/contexts/user-context'
-import { useSpatialContext } from '@/contexts/spatial-context'
-import { ROLES } from '@/types/roles'
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import Image from 'next/image'
+import { PenLoop, RedPenDot } from '@/components/pen'
+import { useUser } from '@/contexts/user-context'
+import { useNewRecuerdos } from '@/hooks/use-new-recuerdos'
 
-import { NotificationsBell } from './notifications-bell'
-
+// You: your initial circled in pen (or your photo as a small print), with a red pen dot when someone left a
+// recuerdo on your animitas. It opens your page, where your recuerdos and the way out are.
 export function UserDropdown() {
-  const { role, setRole, currentUser, setUser, researchMode, setResearchMode, isEditor, isSuperadmin } = useUser()
-  const { showResearchPanel, setShowResearchPanel } = useSpatialContext()
-
-  const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    window.location.reload()
-  }
-
+  const { currentUser } = useUser()
+  const recuerdos = useNewRecuerdos()
   if (!currentUser) return null
+  const count = recuerdos.length
 
   return (
-    <div className="flex items-center gap-2">
-      <NotificationsBell />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Avatar>
-            <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-            <AvatarFallback>{currentUser?.username?.[0].toUpperCase()}</AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuGroup>
-            <DropdownMenuItem asChild>
-              <Link href={`/@${currentUser.username}`}>
-                Perfil
-              </Link>
-            </DropdownMenuItem>
-            {isSuperadmin && (
-              <DropdownMenuItem asChild>
-                <Link href="/admin" className="justify-between w-full">
-                  Panel Admin
-                </Link>
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Configuración</DropdownMenuSubTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuSubContent>
-                  <DropdownMenuCheckboxItem
-                    checked={role === ROLES.DEFAULT}
-                    onCheckedChange={() => {
-                      setRole(ROLES.DEFAULT)
-                      window.location.reload()
-                    }}
-                  >
-                    Visitante (Default)
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={role === ROLES.EDITOR}
-                    onCheckedChange={() => {
-                      setRole(ROLES.EDITOR)
-                      window.location.reload()
-                    }}
-                  >
-                    Editor
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={role === ROLES.SUPERADMIN}
-                    onCheckedChange={() => {
-                      setRole(ROLES.SUPERADMIN)
-                      window.location.reload()
-                    }}
-                  >
-                    Superadmin
-                  </DropdownMenuCheckboxItem>
-
-                </DropdownMenuSubContent>
-              </DropdownMenuPortal>
-            </DropdownMenuSub>
-          </DropdownMenuGroup>
-
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              className="flex items-center justify-between outline-none cursor-pointer"
-              onSelect={(e) => {
-                e.preventDefault()
-                setShowResearchPanel(!showResearchPanel)
-              }}
-            >
-              Investigación
-              <Switch
-                checked={showResearchPanel}
-                onCheckedChange={setShowResearchPanel}
-              />
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem onClick={handleLogout}>
-            Cerrar sesión
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <Link
+      href={`/@${currentUser.username}`}
+      aria-label={count ? `Tu perfil, ${count} ${count === 1 ? 'recuerdo nuevo' : 'recuerdos nuevos'}` : 'Tu perfil'}
+      className="pen-redraw relative flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+    >
+      {currentUser.avatarUrl ? (
+        <span className="print-frame block size-10 rotate-3 p-1 pb-2">
+          <Image src={currentUser.avatarUrl} alt="" width={64} height={64} className="size-full object-cover" />
+        </span>
+      ) : (
+        <PenLoop className="size-10 text-xl">{(currentUser.name || currentUser.username || 'v')[0].toUpperCase()}</PenLoop>
+      )}
+      {/* Centered on the circle's line, up and to the right (its 45° point), as if marked over it. */}
+      {count > 0 && <RedPenDot className="absolute size-3.5 rotate-12" style={{ left: 25, top: 5 }} />}
+    </Link>
   )
 }

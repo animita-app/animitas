@@ -2,9 +2,12 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { CutoutText } from "@/components/cutout-text"
 
 interface StepLayoutProps {
-  title: React.ReactNode
+  // Read by screen readers; the eye gets `cutout`, the same words glued from print.
+  title: string
+  cutout?: string
   description?: React.ReactNode
   children: React.ReactNode
   actions: React.ReactNode
@@ -13,36 +16,25 @@ interface StepLayoutProps {
   className?: string
 }
 
-export function StepLayout({ title, description, children, actions, stepIndex, totalSteps, className }: StepLayoutProps) {
+export function StepLayout({ title, cutout, description, children, actions, stepIndex, totalSteps, className }: StepLayoutProps) {
   const showStepper = stepIndex !== undefined && totalSteps !== undefined
 
   return (
-    <div className={cn("w-full space-y-4", className)}>
-      <div className="space-y-0.5 text-center pb-1.5">
-        <h2 className="text-xl font-medium tracking-tight text-text-strong">{title}</h2>
-        {description && <p className="text-sm text-text-weak">{description}</p>}
+    <div className={cn("flex w-full flex-col items-center gap-5", className)}>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <h2 className="sr-only">{title}</h2>
+        <CutoutText text={cutout ?? title} height={34} arc={24} className="min-h-12" />
+        {description && <p className="text-pretty text-sm text-text-weak">{description}</p>}
       </div>
 
-      {children}
+      <div className="flex w-full flex-col gap-3">{children}</div>
 
-      <div className="flex flex-col gap-2 pt-2">{actions}</div>
+      <div className="flex flex-col items-center gap-2">{actions}</div>
 
       {showStepper && (
-        <div className="flex items-center justify-center gap-1.5 pt-2">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                i === stepIndex
-                  ? "w-6 bg-accent"
-                  : i < stepIndex
-                    ? "w-3 bg-accent/25"
-                    : "w-3 bg-background-weaker"
-              )}
-            />
-          ))}
-        </div>
+        <p className="text-xs text-text-weaker">
+          <span className="sr-only">Paso </span>{stepIndex + 1} de {totalSteps}
+        </p>
       )}
     </div>
   )

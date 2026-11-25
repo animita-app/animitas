@@ -75,6 +75,13 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return ['santuarios', 'funerales', 'animitas'].map(kind => ({
+      source: `/${kind}/:slug`,
+      destination: '/animita/:slug',
+      permanent: true,
+    }));
+  },
   async rewrites() {
     return [
       {

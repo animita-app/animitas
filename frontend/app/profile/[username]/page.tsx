@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileView } from './profile-view'
+import { DEMO_USER } from '@/lib/demo/flag'
+import { isDemoServer } from '@/lib/demo/server'
 
 interface PageProps {
   params: Promise<{ username: string }>
@@ -33,5 +36,10 @@ export default async function ProfilePage({ params }: PageProps) {
     .eq('username', username)
     .single()
 
-  return <ProfileView profile={profile} username={username} />
+  if (!profile && (await isDemoServer()) && username === DEMO_USER.username) {
+    return <ProfileView key={DEMO_USER.id} profile={DEMO_USER} />
+  }
+  if (!profile) notFound()
+
+  return <ProfileView key={profile.id} profile={profile} />
 }

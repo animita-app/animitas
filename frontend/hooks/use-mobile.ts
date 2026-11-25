@@ -20,26 +20,20 @@ export function useIsMobile() {
   return !!isMobile;
 }
 
-export function useMobileScrollThreshold() {
-  const isMobile = useIsMobile();
-  const [isOverThreshold, setIsOverThreshold] = React.useState(false);
+// For client-only overlays (sheets, modals) that must not render the desktop
+// variant first on a phone. Undefined until the first client render.
+export function useIsMobileOverlay() {
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(() =>
+    typeof window === "undefined" ? undefined : window.innerWidth < MOBILE_BREAKPOINT
+  );
 
   React.useEffect(() => {
-    if (!isMobile) {
-      setIsOverThreshold(false);
-      return;
-    }
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const onChange = () => setIsMobile(mql.matches);
+    onChange();
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
 
-    const checkScroll = () => {
-      // Threshold is the viewport width (square gallery height)
-      setIsOverThreshold(window.scrollY >= window.innerWidth - 56*2);
-    };
-
-    window.addEventListener("scroll", checkScroll, { passive: true });
-    checkScroll();
-
-    return () => window.removeEventListener("scroll", checkScroll);
-  }, [isMobile]);
-
-  return isOverThreshold;
+  return isMobile;
 }

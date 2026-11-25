@@ -1,74 +1,42 @@
 'use client'
-import { useMemo, useState } from 'react'
-import { useSpatialContext } from '@/contexts/spatial-context'
-import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
-import { cn } from '@/lib/utils'
+import { useMemo } from 'react'
+import { useAnimitas } from '@/contexts/animitas-context'
+import { AnimitaCard } from '@/components/animita/animita-card'
+import { EmptyState } from '@/components/empty-state'
+import { DevelopingPhoto } from '@/components/loaders'
+import { ComunaFilter } from '@/components/comuna-filter'
 
-type SortOrder = 'newest' | 'oldest' | 'name'
+// Loose prints with room between them, so each one reads as its own photo on the table.
+const GRID = 'grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-x-8'
 
 export default function ListPage() {
-  const { filteredData, filters } = useSpatialContext()
-  const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
+  const { animitas, status } = useAnimitas()
 
-  const sortedSites = useMemo(() => {
-    const sites = [...filteredData]
-    switch (sortOrder) {
-      case 'oldest':
-        return sites.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime())
-      case 'name':
-        return sites.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
-      case 'newest':
-      default:
-        return sites.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-    }
-  }, [filteredData, sortOrder])
-
-  const gridKey = useMemo(() => {
-    const parts = [
-      (filters.category || []).join(','),
-      (filters.kind || []).join(','),
-      (filters.city_region || []).join(','),
-      sortOrder
-    ].filter(Boolean)
-    return parts.join('-') || 'all'
-  }, [filters.category, filters.kind, filters.city_region, sortOrder])
+  const sortedSites = useMemo(
+    () => [...animitas].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()),
+    [animitas]
+  )
 
   return (
-    <div className="min-h-svh w-full bg-background py-20">
-      <div className="px-4 mx-auto">
-        {sortedSites.length > 0 ? (
+    <div className="min-h-svh w-full bg-background pt-20 pb-40">
+      <h1 className="sr-only">Animitas</h1>
+      <div className="mx-auto space-y-10 px-6 md:px-10">
+        <ComunaFilter />
+        {status === 'loading' ? (
+          <div role="status" className={GRID}>
+            <span className="sr-only">Cargando animitas</span>
+            {Array.from({ length: 8 }).map((_, i) => <DevelopingPhoto key={i} />)}
+          </div>
+        ) : sortedSites.length > 0 ? (
           <>
-            <div className="sr-only mb-6">
-              <p className="text-sm text-text-weak">
-                {sortedSites.length} {sortedSites.length === 1 ? 'sitio' : 'sitios'} encontrado{sortedSites.length === 1 ? '' : 's'}
-              </p>
-            </div>
+            <p className="sr-only">{sortedSites.length} {sortedSites.length === 1 ? 'animita' : 'animitas'}</p>
 
-            <div
-              key={gridKey}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2"
-            >
-              {sortedSites.map((site, index) => (
-                <div
-                  key={site.id}
-                  className={cn(
-                    "animate-in fade-in zoom-in-95 [animation-fill-mode:both]",
-                    // "group-hover:scale-[97%] hover:scale-100",
-                    "transition-all duration-200 ease-out-expo"
-                  )}
-                  style={{
-                    animationDelay: `${Math.min(index * 40, 400)}ms`
-                  }}
-                >
-                  <HeritageSiteCard site={site} />
-                </div>
-              ))}
+            <div className={GRID}>
+              {sortedSites.map((site) => <AnimitaCard key={site.id} site={site} />)}
             </div>
           </>
         ) : (
-          <div className="py-16 text-center">
-            <p className="text-text-weak">No hay sitios que coincidan con los filtros seleccionados.</p>
-          </div>
+          <EmptyState title="No hay animitas en esas comunas" cutout="nada por acá" description="Prueba con otra comuna o limpia el filtro." />
         )}
       </div>
     </div>

@@ -1,5 +1,4 @@
-import type { Metadata } from 'next'
-import Script from 'next/script'
+import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import './globals.css'
@@ -8,18 +7,21 @@ import { Providers } from './providers'
 import { cn } from '@/lib/utils'
 import { Toaster } from '@/components/ui/sonner'
 import { Header } from '@/components/headers/header'
+import { StippleFilter } from '@/components/ui/stipple-filter'
 
 
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist-sans',
   display: 'swap',
+  adjustFontFallback: false,
 })
 
 const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-geist-mono',
   display: 'swap',
+  adjustFontFallback: false,
 })
 
 const ibmPlexMono = localFont({
@@ -49,28 +51,41 @@ const ibmPlexMono = localFont({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#efe9dd',
+}
+
 export const metadata: Metadata = {
+  applicationName: '[ÁNIMA]',
+  appleWebApp: {
+    capable: true,
+    title: '[ÁNIMA]',
+    statusBarStyle: 'default',
+  },
   title: {
-    template: '%s – [ÁNIMA]',
+    template: '%s [ÁNIMA]',
     default: '[ÁNIMA]',
   },
-  description: 'Infraestructura para el patrimonio y la memoria del territorio.',
-  keywords: ['animitas', 'Chile', 'patrimonio cultural intangible', 'GIS', 'cartografía crítica'],
-  authors: [{
-    name: 'Felipe Mandiola',
-    url: 'https://felipemandiola.com'
-  }],
+  description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
+  keywords: ['animitas', 'Chile', 'memoria', 'mapa'],
+  authors: [
+    { name: 'Joaquín Stephens' },
+    { name: 'Felipe Mandiola', url: 'https://felipemandiola.com' },
+  ],
   openGraph: {
-    title: 'Animitas',
-    description: 'Memoriales digitales interactivos de animitas chilenas',
+    title: '[ÁNIMA]',
+    description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
     type: 'website',
     locale: 'es_CL',
-    siteName: 'Animitas',
+    siteName: '[ÁNIMA]',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Animitas',
-    description: 'Memoriales digitales interactivos',
+    title: '[ÁNIMA]',
+    description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
   },
 }
 
@@ -83,10 +98,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
-      <head>
-        <Script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async />
-      </head>
       <body className="overflow-x-hidden w-full min-h-svh">
+        <StippleFilter />
         <Providers>
           <Header />
           {children}

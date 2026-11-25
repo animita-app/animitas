@@ -1,16 +1,24 @@
 "use client"
 
-import { useRef, useState, useEffect } from 'react'
-import { Camera, Loader2, Route } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { InlineEdit } from '@/components/ui/inline-edit'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DevelopingPhoto } from '@/components/loaders'
+import { Spinner } from '@/components/ui/spinner'
+import { EmptyState } from '@/components/empty-state'
+import { CutoutText } from '@/components/cutout-text'
+import { PenLoop, RedPenCount } from '@/components/pen'
+import { AnimitaCard } from '@/components/animita/animita-card'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
-import { HeritageSiteCard } from '@/components/cards/heritage-site-card'
+import { toAnimita, TABLES } from '@/lib/animitas'
+import type { Animita } from '@/types/animita'
+import { useNewRecuerdos } from '@/hooks/use-new-recuerdos'
+import { isDemo } from '@/lib/demo/flag'
+import { uploadAvatar } from '@/lib/photos'
 
 interface ProfileData {
   id: string
@@ -20,231 +28,159 @@ interface ProfileData {
   role: string
 }
 
-interface ProfileViewProps {
-  profile: ProfileData | null
-  username: string
-}
-
-export function ProfileView({ profile, username }: ProfileViewProps) {
+export function ProfileView({ profile }: { profile: ProfileData }) {
   const { currentUser, setUser } = useUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [imageUrl, setImageUrl] = useState(profile.image)
+  const [animitas, setAnimitas] = useState<Animita[] | null>(null)
+  const isOwnProfile = currentUser?.id === profile.id
+  const recuerdos = useNewRecuerdos()
+  const [demo, setDemo] = useState(false)
+  useEffect(() => setDemo(isDemo()), [])
 
-  const [imageUrl, setImageUrl] = useState(profile?.image || null)
-  const isOwnProfile = profile && currentUser?.username?.toLowerCase() === username.toLowerCase()
-  const isElevated = profile?.role === 'editor' || profile?.role === 'superadmin'
+  const signOut = async () => {
+    await createClient().auth.signOut()
+    window.location.href = '/map'
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    setAnimitas(null)
+    createClient()
+      .from(TABLES.animitas)
+      .select('*')
+      .eq('creator_id', profile.id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        // Same rule as the map and the list: an animita without a place has no page, so no card leads to a 404.
+        if (!cancelled) setAnimitas((data ?? []).map(toAnimita).filter((a): a is Animita => a !== null))
+      })
+    return () => { cancelled = true }
+  }, [profile.id])
 
   const saveDisplayName = async (value: string) => {
-    if (!profile) throw new Error('Profile not found')
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ display_name: value })
-      .eq('id', profile.id)
+    const { error } = await createClient().from(TABLES.profiles).update({ display_name: value }).eq('id', profile.id)
     if (error) throw error
     if (currentUser) setUser({ ...currentUser, name: value })
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!profile) return
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
-
     setUploading(true)
-    const supabase = createClient()
-    const path = `users/${profile.id}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('base')
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (uploadError) {
-      toast.error('Error al subir la foto')
-      setUploading(false)
-      return
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('base').getPublicUrl(path)
-    const publicUrlWithBust = `${publicUrl}?t=${Date.now()}`
-
-    const { error: updateError } = await supabase
-      .from('user_profiles')
-      .update({ image: publicUrlWithBust })
-      .eq('id', profile.id)
-
-    if (updateError) {
-      toast.error('Error al guardar la foto')
-      setUploading(false)
-      return
-    }
-
-    if (currentUser) setUser({ ...currentUser, avatarUrl: publicUrlWithBust })
-    setImageUrl(publicUrlWithBust)
-    toast.success('Foto actualizada')
-    setUploading(false)
-  }
-
-  const roleLabel = profile?.role === 'superadmin'
-    ? 'Superadmin'
-    : profile?.role === 'editor'
-      ? 'Editor'
-      : null
-
-  const [sites, setSites] = useState<any[]>([])
-  const [routes, setRoutes] = useState<any[]>([])
-  const [tabLoading, setTabLoading] = useState(true)
-
-  useEffect(() => {
-    if (!profile) return
-    async function fetchUserContent() {
+    try {
       const supabase = createClient()
-      const [sitesRes, routesRes] = await Promise.all([
-        supabase
-          .from('heritage_sites')
-          .select('id, slug, title, images, heritage_kinds!kind_id(slug)')
-          .eq('creator_id', profile!.id)
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('site_routes')
-          .select('id, title, description, site_route_items(count)')
-          .eq('creator_id', profile!.id)
-          .order('created_at', { ascending: false }),
-      ])
-      if (sitesRes.data) setSites(sitesRes.data)
-      if (routesRes.data) setRoutes(routesRes.data)
-      setTabLoading(false)
+      const url = await uploadAvatar(supabase, profile.id, file)
+      const { error } = await supabase.from(TABLES.profiles).update({ image: url }).eq('id', profile.id)
+      if (error) throw error
+      setImageUrl(url)
+      if (currentUser) setUser({ ...currentUser, avatarUrl: url })
+      toast.success('Foto actualizada')
+    } catch (err: any) {
+      toast.error('No se pudo cambiar la foto', { description: err?.message })
+    } finally {
+      setUploading(false)
     }
-    fetchUserContent()
-  }, [profile?.id])
-
-  if (!profile) {
-    return (
-      <div className="flex min-h-svh items-center justify-center text-text-weak text-sm">
-        Perfil no encontrado.
-      </div>
-    )
   }
 
   return (
-    <div className="flex w-full flex-col items-center bg-background">
-      <div className="flex flex-col items-center gap-6 text-center px-6 pt-16">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div
-              className="relative group size-24"
-              onClick={() => isOwnProfile && !uploading && fileInputRef.current?.click()}
-            >
-              <Avatar className="size-24">
-                <AvatarImage src={imageUrl || undefined} alt={profile.display_name} />
-                <AvatarFallback className="text-4xl font-normal">
-                  {profile.username?.[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {isOwnProfile && (
-                <div className={`absolute inset-0 rounded-full bg-black/40 transition-opacity flex items-center justify-center cursor-pointer ${uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                  {uploading ? <Loader2 className="text-white animate-spin" /> : <Camera className="text-white" />}
-                </div>
-              )}
-            </div>
-          </TooltipTrigger>
-          {isOwnProfile && <TooltipContent sideOffset={8}>Cambiar foto</TooltipContent>}
-        </Tooltip>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 pt-20 pb-40 md:pt-12">
+      <header className="flex flex-col items-center gap-4 text-center">
+        {/* An instant print of you, the same kind as the add form's. Your own is the button to change it;
+            without a photo it shows your initial circled in pen, as in the corner. */}
+        {(() => {
+          const print = (
+            <span className="print-frame block -rotate-2 p-1.5 pb-5 transition-[rotate,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-0 group-hover:scale-105 motion-reduce:transition-none">
+              <span className="relative flex size-32 items-center justify-center overflow-hidden bg-background-weak">
+                {imageUrl ? (
+                  <Image src={imageUrl} alt="" fill sizes="128px" className="object-cover" />
+                ) : (
+                  <PenLoop className="size-20 text-4xl">{profile.display_name?.[0]?.toUpperCase() ?? '?'}</PenLoop>
+                )}
+                {uploading && <span className="absolute inset-0 flex items-center justify-center bg-background/70"><Spinner /></span>}
+              </span>
+            </span>
+          )
+          return isOwnProfile ? (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                aria-label={imageUrl ? 'Cambiar tu foto' : 'Poner tu foto'}
+                className="group pen-redraw rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              >
+                {print}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </>
+          ) : print
+        })()}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <div className="flex flex-col items-center gap-1">
+          <h1 className="text-balance text-2xl font-medium text-text-strong">
+            {isOwnProfile ? (
+              <InlineEdit value={profile.display_name} onSave={saveDisplayName} label="Tu nombre" placeholder="Tu nombre" inline />
+            ) : (
+              profile.display_name
+            )}
+          </h1>
+          <p className="text-sm text-text-weak">@{profile.username}</p>
+        </div>
+      </header>
 
-        <div className="flex items-center gap-2">
-          {isOwnProfile ? (
-            <InlineEdit
-              value={profile.display_name}
-              onSave={saveDisplayName}
-              placeholder="Tu nombre"
-              className="text-2xl font-semibold text-text-strong text-center tracking-tight"
-            />
+      <section aria-labelledby="profile-animitas" className="space-y-4">
+        <h2 id="profile-animitas" className="sr-only">
+          Animitas{animitas && animitas.length > 0 ? ` (${animitas.length})` : ''}
+        </h2>
+        <CutoutText text={animitas && animitas.length > 0 ? `animitas ${animitas.length}` : 'animitas'} height={24} />
+
+        {animitas === null ? (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
+            {[1, 2, 3].map(i => <DevelopingPhoto key={i} />)}
+          </div>
+        ) : animitas.length > 0 ? (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3">
+            {animitas.map(a => {
+              const left = isOwnProfile ? recuerdos.filter(r => r.slug === a.slug) : []
+              return (
+                <AnimitaCard
+                  key={a.id}
+                  site={a}
+                  badge={left.length > 0 ? <RedPenCount count={left.length} className="size-10 text-xl" /> : undefined}
+                  badgeLabel={left.length === 1 ? 'un recuerdo nuevo' : left.length > 1 ? `${left.length} recuerdos nuevos` : undefined}
+                />
+              )
+            })}
+          </div>
+        ) : (
+          <EmptyState
+            title={isOwnProfile ? 'Todavía no añades animitas' : 'Todavía no añade animitas'}
+            cutout="todavía nada"
+            description={isOwnProfile ? 'Cuando pases por una, sácale una foto y súmala al mapa.' : undefined}
+            action={isOwnProfile ? (
+              <Button asChild variant="sign" size="lg" className="-rotate-1">
+                <Link href="/add">Añadir</Link>
+              </Button>
+            ) : undefined}
+          />
+        )}
+      </section>
+
+      {isOwnProfile && (
+        // Plain link in demo mode: it goes through the server to drop the demo cookie.
+        <div className="flex justify-center pt-8">
+          {demo ? (
+            <Button asChild variant="link" className="h-auto p-0 text-text-weak">
+              <a href="/demo?salir">Salir del demo</a>
+            </Button>
           ) : (
-            <h1 className="text-2xl font-semibold text-text-strong tracking-tight">{profile.display_name}</h1>
-          )}
-          {isElevated && (
-            <Badge variant="secondary" className="text-xs font-semibold uppercase tracking-wide shrink-0">
-              {profile.role === 'superadmin' ? 'Admin' : 'Editor'}
-            </Badge>
+            <Button variant="link" className="h-auto p-0 text-text-weak" onClick={signOut}>Cerrar sesión</Button>
           )}
         </div>
-
-        <p className="select-none -mt-3 text-base text-text-weak">
-          @{profile.username}
-          {roleLabel && <><span className="mx-2">·</span>{roleLabel}</>}
-        </p>
-      </div>
-
-      <Tabs defaultValue="sites" className="w-full px-4 mt-8">
-        <TabsList className="border-b-0">
-          <TabsTrigger value="sites" className="!text-base">Sitios</TabsTrigger>
-          <TabsTrigger value="routes" className="!text-base">Rutas</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sites">
-          {tabLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="aspect-square rounded-lg bg-background-weaker animate-pulse" />
-              ))}
-            </div>
-          ) : sites.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {sites.map((s) => {
-                const kindSlug = (s as any).heritage_kinds?.slug || 'animita'
-                return (
-                  <HeritageSiteCard
-                    key={s.id}
-                    site={{ ...s, kind: kindSlug }}
-                  />
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-sm text-text-weak">
-              {isOwnProfile ? 'Aún no has creado sitios.' : 'Sin sitios publicados.'}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="routes">
-          {tabLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-16 rounded-lg bg-background-weaker animate-pulse" />
-              ))}
-            </div>
-          ) : routes.length > 0 ? (
-            <div className="space-y-3">
-              {routes.map((r) => {
-                const itemCount = (r as any).site_route_items?.[0]?.count || 0
-                return (
-                  <div key={r.id} className="flex items-center gap-3 rounded-lg border border-border-weak p-3 hover:border-border transition-colors">
-                    <div className="size-10 rounded-md bg-background-weaker flex items-center justify-center shrink-0">
-                      <Route className="text-text-weak" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-text-strong truncate">{r.title}</p>
-                      <p className="text-xs text-text-weak">{itemCount} {itemCount === 1 ? 'sitio' : 'sitios'}</p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-sm text-text-weak">
-              {isOwnProfile ? 'Aún no has creado rutas.' : 'Sin rutas creadas.'}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+      )}
+    </main>
   )
 }

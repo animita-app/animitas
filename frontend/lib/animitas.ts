@@ -1,0 +1,57 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Animita } from '@/types/animita'
+import { normalizeLocation } from '@/lib/location'
+
+// The tables keep the names from when the project covered every kind of heritage site.
+export const TABLES = {
+  animitas: 'heritage_sites',
+  velas: 'heritage_site_reactions',
+  comments: 'heritage_site_comments',
+  profiles: 'user_profiles',
+} as const
+
+export function toAnimita(row: any): Animita | null {
+  const location = normalizeLocation(row.location) ?? normalizeLocation(row)
+  if (!location) return null
+  return {
+    ...row,
+    location,
+    created_by: {
+      id: row.user_profiles?.id || row.creator_id || '',
+      name: row.user_profiles?.display_name || 'Anónimo',
+    },
+  }
+}
+
+export async function listAnimitas(supabase: SupabaseClient): Promise<Animita[]> {
+  const { data, error } = await supabase.from(TABLES.animitas).select('*').eq('status', 'published')
+  if (error) throw error
+  return (data ?? []).map(toAnimita).filter((a): a is Animita => a !== null)
+}
+
+export async function findAnimita(supabase: SupabaseClient, slug: string): Promise<Animita | null> {
+  const { data } = await supabase
+    .from(TABLES.animitas)
+    .select('*, user_profiles!creator_id(id, display_name)')
+    .eq('slug', slug)
+    .maybeSingle()
+  return data ? toAnimita(data) : null
+}
+
+export function canEditAnimita(user: { id: string } | null, isEditor: boolean, animita: Pick<Animita, 'creator_id'>) {
+  return !!user && (isEditor || user.id === animita.creator_id)
+}
+
+const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+// What someone types in the search narrows the map and the list as they type, accents or not.
+export function matchesQuery(animita: Pick<Animita, 'title' | 'address' | 'city_region'>, query: string) {
+  const q = fold(query.trim())
+  if (q.length < 2) return true
+  return [animita.title, animita.address, animita.city_region].some(field => field && fold(field).includes(q))
+}
+
+// How an animita is named in titles. Many are already called "Animita de …", so the prefix isn't doubled.
+export function animitaName(title: string) {
+  return /^animita\b/i.test(title.trim()) ? title.trim() : `Animita de ${title.trim()}`
+}

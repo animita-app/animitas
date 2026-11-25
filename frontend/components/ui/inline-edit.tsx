@@ -1,359 +1,118 @@
 "use client"
 
-import { useState, useCallback, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { ChevronDown } from 'lucide-react'
-
-export interface InlineEditOption {
+interface InlineEditProps {
   value: string
+  onSave: (value: string) => Promise<void>
+  type?: 'text' | 'textarea'
   label: string
-}
-
-interface InlineEditBaseProps {
-  className?: string
   placeholder?: string
-  disabled?: boolean
-  successMessage?: string
-  onEditingChange?: (editing: boolean) => void
-  externalCancelToken?: number
-  externalConfirmToken?: number
-  deferredSave?: boolean
+  className?: string
   inline?: boolean
 }
 
-interface InlineEditTextProps extends InlineEditBaseProps {
-  type?: 'text' | 'textarea'
-  value: string
-  onSave: (value: string) => Promise<void>
-}
-
-interface InlineEditSelectProps extends InlineEditBaseProps {
-  type: 'select'
-  options: InlineEditOption[]
-  value: string
-  onSave: (value: string) => Promise<void>
-}
-
-interface InlineEditMultiSelectProps extends InlineEditBaseProps {
-  type: 'multiselect'
-  options: InlineEditOption[]
-  value: string[]
-  onSave: (value: string[]) => Promise<void>
-}
-
-type InlineEditProps =
-  | InlineEditTextProps
-  | InlineEditSelectProps
-  | InlineEditMultiSelectProps
-
-export function InlineEdit(props: InlineEditProps) {
-  const {
-    className, placeholder, disabled = false,
-    successMessage = 'Cambios guardados',
-    onEditingChange, externalCancelToken, externalConfirmToken,
-  } = props
-
+export function InlineEdit({ value, onSave, type = 'text', label, placeholder, className, inline = false }: InlineEditProps) {
+  const [saved, setSaved] = useState(value)
+  const [draft, setDraft] = useState(value)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [localValue, setLocalValue] = useState<string | string[]>(props.value)
-  const [draft, setDraft] = useState<string | string[]>(props.value)
-  const [deferredValue, setDeferredValue] = useState<string | string[] | undefined>(undefined)
 
-  const startEdit = () => {
-    if (disabled) return
-    setDraft(deferredValue !== undefined ? deferredValue : localValue)
-    setEditing(true)
+  useEffect(() => {
+    setSaved(value)
+    setDraft(value)
+  }, [value])
+
+  const cancel = () => {
+    setDraft(saved)
+    setEditing(false)
   }
 
-  const cancel = useCallback(() => {
-    const wasDirty = deferredValue !== undefined
-    if (wasDirty) {
-      setLocalValue(props.value)
-      setDraft(props.value)
-      setDeferredValue(undefined)
-    } else {
-      setDraft(localValue)
-    }
-    setEditing(false)
-    onEditingChange?.(false)
-  }, [deferredValue, localValue, props.value, onEditingChange])
-
-  const save = useCallback(async (valueToSave?: string | string[], forceCommit = false) => {
-    const raw = valueToSave ?? draft
-    const val = typeof raw === 'string' ? raw.trim() : raw
-
-    if (!forceCommit && props.deferredSave) {
-      if (JSON.stringify(raw) !== JSON.stringify(localValue)) {
-        setDeferredValue(raw)
-        setLocalValue(raw)
-        onEditingChange?.(true)
-        try {
-          if (props.type === 'multiselect') {
-            await (props as InlineEditMultiSelectProps).onSave(raw as string[])
-          } else {
-            await (props as InlineEditTextProps | InlineEditSelectProps).onSave(raw as string)
-          }
-        } catch (err) {
-          toast.error('Error staging changes')
-        }
-      }
+  const save = async () => {
+    const next = draft.trim()
+    if (next === saved.trim()) {
       setEditing(false)
-      onEditingChange?.(false)
-      return
-    }
-
-    if (!forceCommit && JSON.stringify(val) === JSON.stringify(localValue)) {
-      setEditing(false)
-      onEditingChange?.(false)
       return
     }
     setSaving(true)
     try {
-      if (props.type === 'multiselect') {
-        await (props as InlineEditMultiSelectProps).onSave(val as string[])
-      } else {
-        await (props as InlineEditTextProps | InlineEditSelectProps).onSave(val as string)
-      }
-      setLocalValue(val)
-      setDeferredValue(undefined)
-      if (!props.deferredSave) {
-        toast.success(successMessage)
-      }
-    } catch {
-      toast.error('Error al guardar')
-      setDraft(localValue)
+      await onSave(next)
+      setSaved(next)
+      setEditing(false)
+    } catch (err: any) {
+      toast.error('No se pudo guardar', { description: err?.message })
     } finally {
       setSaving(false)
-      setEditing(false)
-      if (!props.deferredSave) {
-        onEditingChange?.(false)
-      }
     }
-  }, [draft, localValue, props, successMessage, onEditingChange])
+  }
 
-  useEffect(() => {
-    if (externalCancelToken) {
-      if (editing || deferredValue !== undefined) cancel()
+  if (editing) {
+    const shared = {
+      value: draft,
+      'aria-label': label,
+      placeholder,
+      disabled: saving,
+      autoFocus: true,
+      onBlur: save,
+      className: cn('w-full bg-transparent p-0 border-0 outline-none caret-accent', className),
     }
-  }, [externalCancelToken, editing, deferredValue, cancel])
-
-  useEffect(() => {
-    if (externalConfirmToken) {
-      if (editing) {
-        save(draft, true)
-      } else if (deferredValue !== undefined) {
-        save(deferredValue, true)
-      } else {
-        onEditingChange?.(false)
-      }
-    }
-  }, [externalConfirmToken, editing, draft, deferredValue, save, onEditingChange])
-
-  if (props.type === 'multiselect') {
-    const multiProps = props as InlineEditMultiSelectProps
-    const current = localValue as string[]
-    return (
-      <Popover>
-        <PopoverTrigger
-          disabled={disabled}
-          className={cn('flex items-center gap-1 text-left', !disabled && 'cursor-pointer', className)}
-        >
-          {current.length
-            ? current.map((v) => multiProps.options.find((o) => o.value === v)?.label ?? v).join(', ')
-            : <span className="opacity-50">{placeholder}</span>
+    return type === 'textarea' ? (
+      <textarea
+        {...shared}
+        rows={1}
+        onChange={(e) => {
+          setDraft(e.target.value)
+          e.target.style.height = 'auto'
+          e.target.style.height = `${e.target.scrollHeight}px`
+        }}
+        ref={(el) => {
+          if (el) {
+            el.style.height = 'auto'
+            el.style.height = `${el.scrollHeight}px`
           }
-          {!disabled && <ChevronDown className="opacity-40 shrink-0" />}
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-1" align="start">
-          {multiProps.options.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={async () => {
-                const next = current.includes(opt.value)
-                  ? current.filter((v) => v !== opt.value)
-                  : [...current, opt.value]
-
-                if (props.deferredSave) {
-                  setDeferredValue(next)
-                  setLocalValue(next)
-                  onEditingChange?.(true)
-                  return
-                }
-
-                setLocalValue(next)
-                setSaving(true)
-                try {
-                  await multiProps.onSave(next)
-                  if (!props.deferredSave) {
-                    toast.success(successMessage)
-                  }
-                } catch {
-                  toast.error('Error al guardar')
-                  setLocalValue(current)
-                } finally {
-                  setSaving(false)
-                }
-              }}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors hover:bg-background-weak',
-                current.includes(opt.value) && 'font-medium text-text-strong'
-              )}
-            >
-              <span className={cn(
-                'size-3.5 rounded-sm border border-border flex items-center justify-center shrink-0',
-                current.includes(opt.value) && 'bg-accent border-accent'
-              )}>
-                {current.includes(opt.value) && (
-                  <svg viewBox="0 0 10 8" className="size-2.5 stroke-white fill-none stroke-2">
-                    <polyline points="1,4 4,7 9,1" />
-                  </svg>
-                )}
-              </span>
-              {opt.label}
-            </button>
-          ))}
-        </PopoverContent>
-      </Popover>
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') cancel()
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) save()
+        }}
+        className={cn(shared.className, 'resize-none overflow-hidden whitespace-pre-line')}
+      />
+    ) : (
+      <input
+        {...shared}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); save() }
+          if (e.key === 'Escape') cancel()
+        }}
+      />
     )
   }
 
-  if (props.type === 'select') {
-    const selectProps = props as InlineEditSelectProps
-    if (editing) {
-      return (
-        <Select
-          value={draft as string}
-          onValueChange={async (val) => {
-            if (props.deferredSave) {
-              setDeferredValue(val)
-              setLocalValue(val)
-              setEditing(false)
-              onEditingChange?.(true)
-              return
-            }
-
-            setSaving(true)
-            try {
-              await selectProps.onSave(val)
-              setLocalValue(val)
-              if (!props.deferredSave) {
-                toast.success(successMessage)
-              }
-            } catch {
-              toast.error('Error al guardar')
-            } finally {
-              setSaving(false)
-              setEditing(false)
-              if (!props.deferredSave) {
-                onEditingChange?.(false)
-              }
-            }
-          }}
-          onOpenChange={(open) => { if (!open) { setEditing(false); if (!props.deferredSave) onEditingChange?.(false) } }}
-          defaultOpen
-        >
-          <SelectTrigger className={cn('h-auto', className)}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {selectProps.options.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )
-    }
-    return (
-      <div onClick={startEdit} className={cn(!disabled && 'cursor-pointer', className)}>
-        {selectProps.options.find((o) => o.value === localValue)?.label
-          ?? <span className="opacity-50">{placeholder}</span>}
-      </div>
-    )
-  }
-
-  if (props.type === 'textarea') {
-    if (editing) {
-      return (
-        <textarea
-          value={draft as string}
-          onChange={(e) => {
-            const val = e.target.value
-            setDraft(val)
-            if (props.deferredSave) {
-              if (val !== localValue) onEditingChange?.(true)
-              else if (deferredValue === undefined) onEditingChange?.(false)
-            }
-            e.target.style.height = 'auto'
-            e.target.style.height = e.target.scrollHeight + 'px'
-          }}
-          onBlur={() => save()}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') cancel()
-            if (e.key === 'Enter' && e.ctrlKey) save()
-          }}
-          ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px' } }}
-          className={cn('w-full resize-none overflow-hidden bg-transparent p-0 border-0 outline-none focus:ring-0 caret-accent whitespace-pre-line', className)}
-          placeholder={placeholder}
-          disabled={saving}
-          autoFocus
-          rows={1}
-        />
-      )
-    }
-    return (
-      <div
-        onClick={startEdit}
-        className={cn('whitespace-pre-line', !disabled && 'cursor-text', className)}
-      >
-        {(localValue as string) || <span className="opacity-50">{placeholder}</span>}
-      </div>
-    )
-  }
-
-  const isInline = props.inline || false
-
+  const Tag = inline ? 'span' : 'div'
   return (
-    <span className={cn('min-h-[1lh]', isInline ? 'inline' : 'block', className)}>
-      {editing ? (
-        <input
-          value={draft as string}
-          onChange={(e) => {
-            const val = e.target.value
-            setDraft(val)
-            if (props.deferredSave) {
-              if (val !== localValue) onEditingChange?.(true)
-              else if (deferredValue === undefined) onEditingChange?.(false)
-            }
-          }}
-          onBlur={() => save()}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); save() }
-            if (e.key === 'Escape') cancel()
-          }}
-          className={cn('w-full bg-transparent p-0 border-0 focus:ring-0 focus:outline-0 caret-accent', className)}
-          placeholder={placeholder}
-          disabled={saving}
-          autoFocus
-        />
-      ) : (
-        <span onClick={startEdit} className={cn(!disabled && 'cursor-text', isInline ? 'inline' : 'block')}>
-          {(localValue as string) || <span className="opacity-50">{placeholder}</span>}
-        </span>
+    <Tag
+      role="button"
+      tabIndex={0}
+      onClick={() => setEditing(true)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          setEditing(true)
+        }
+      }}
+      className={cn(
+        'cursor-text rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        type === 'textarea' && 'whitespace-pre-line',
+        inline ? 'inline' : 'block',
+        className
       )}
-    </span>
+    >
+      {saved || <span className="text-text-weak">{placeholder}</span>}
+      {/* The text it shows stays its name, so a heading still reads as the name; the action comes after. */}
+      <span className="sr-only">, editar {label.toLowerCase()}</span>
+    </Tag>
   )
 }

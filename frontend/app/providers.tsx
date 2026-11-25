@@ -1,8 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { SpatialProvider } from '@/contexts/spatial-context'
+import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
+import { SheetProvider } from '@/contexts/sheet-context'
+import { PageArrive } from '@/components/page-arrive'
 
 export function Providers({
   children,
@@ -14,15 +16,18 @@ export function Providers({
 
   return (
     <UserProvider>
-      <SpatialProvider>
+      <AnimitasProvider>
+        <SheetProvider>
         {isAuthPage ? (
           children
         ) : (
-          <div className="min-h-screen w-screen relative bg-background">
+          <div className="min-h-svh w-full relative bg-background">
             {children}
           </div>
         )}
-      </SpatialProvider>
+        <PageArrive />
+        </SheetProvider>
+      </AnimitasProvider>
     </UserProvider>
   )
 }

@@ -23,7 +23,6 @@ export async function GET(request: Request) {
           await supabase.from('user_profiles').insert({
             id: user.id,
             display_name: displayName,
-            role: 'default'
           })
           return NextResponse.redirect(`${origin}/auth?onboarding=true`)
         }

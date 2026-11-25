@@ -27,7 +27,7 @@
     "react-native",
     "expo"
   ],
-  "author": "Animitas Mapper Team",
+  "author": "Joaquín Stephens and Felipe Mandiola",
   "license": "Apache-2.0",
   "dependencies": {
     "expo": "~49.0.15",

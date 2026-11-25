@@ -1,57 +1,43 @@
 "use client"
 
-import * as React from "react"
-import { useRef, useState, useEffect } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { MapPin, X, Plus } from "lucide-react"
+import { ImagePlus } from "lucide-react"
+import Image from "next/image"
+import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Spinner } from "@/components/ui/spinner"
-import { StoryHighlights, Highlight, HighlightCategory } from "@/components/ui/story-highlights"
-import { LocationSelector, type Location } from "@/components/search/location-selector"
-import { TwoLevelCombobox, type TwoLevelCategory } from "@/components/ui/two-level-combobox"
-import { createClient } from "@/lib/supabase/client"
-import { useUser } from "@/contexts/user-context"
-import { useHeritageTaxonomy } from "@/hooks/use-heritage-taxonomy"
-import { useLocationSearch } from "@/hooks/use-location-search"
 import { cn } from "@/lib/utils"
+import { CutoutText } from "@/components/cutout-text"
+import { CurveSign } from "@/components/road-signs"
+import { TrashCan } from "@/components/trash-can"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Spinner } from "@/components/ui/spinner"
+import { createClient } from "@/lib/supabase/client"
+import { isDemo } from "@/lib/demo/flag"
+import { TABLES } from "@/lib/animitas"
+import { slugify } from "@/lib/utils"
+import { useUser } from "@/contexts/user-context"
+import { animitaHref } from "@/lib/routes"
+import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
+import { LocationPicker, type PickedLocation } from "./location-picker"
+import { uploadAnimitaPhoto } from "@/lib/photos"
+import { useDragToTrash } from "./use-drag-to-trash"
 
-const KIND_TITLE_PLACEHOLDERS: Record<string, string> = {
-  santuarios: "¿A quién recordamos?",
-  funerales: "¿Cómo se llama este lugar de memoria?",
-}
 
-function truncateAddress(address: string): string {
-  const parts = address.split(',')
-  if (parts.length > 2) {
-    return `${parts[0]}, ${parts[1]}`
-  }
-  return address
-}
+const MAX_PHOTOS = 5
 
-const KEYWORDS: Record<HighlightCategory, string[]> = {
-  patrimonial: ["accidente", "tránsito", "choque", "curva", "ruta", "camino", "feria", "trabajo", "gruta", "fallec", "muerte"],
-  spiritual: ["velas", "rosarios", "protección", "fortaleza", "acompaña", "presencia", "promesas", "ofrendas", "milagro", "fe"],
-  memory: ["familia", "vecinos", "recuerdan", "memoria", "amabilidad", "solidaridad", "comunidad", "ayudar"],
-}
+type Field = "photos" | "location" | "name"
+type Errors = Partial<Record<Field, string>>
 
-function detectHighlights(text: string): Highlight[] {
-  const found = new Set<string>()
-  const highlights: Highlight[] = []
-  const lower = text.toLowerCase()
-  Object.entries(KEYWORDS).forEach(([category, words]) => {
-    words.forEach(word => {
-      if (lower.includes(word) && !found.has(word)) {
-        found.add(word)
-        highlights.push({ text: word, category: category as HighlightCategory })
-      }
-    })
-  })
-  return highlights
+export function validateAnimita({ photos, location, name }: { photos: File[]; location: PickedLocation | null; name: string }): Errors {
+  const errors: Errors = {}
+  if (photos.length === 0) errors.photos = "Añade al menos una foto"
+  if (!location) errors.location = "Mueve el mapa hasta dejar el pin sobre la animita"
+  if (name.trim().length < ANIMITA_NAME_MIN) errors.name = "Escribe su nombre, al menos 3 letras"
+  return errors
 }
 
 interface AddFormProps {
@@ -61,45 +47,45 @@ interface AddFormProps {
 export function AddForm({ onCancel }: AddFormProps) {
   const router = useRouter()
   const { currentUser } = useUser()
-  const { categories, kinds } = useHeritageTaxonomy()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const ids = useId()
+  const galleryRef = useRef<HTMLInputElement>(null)
+  const nameRef = useRef<HTMLInputElement>(null)
+  const sectionRefs = useRef<Partial<Record<Field, HTMLElement | null>>>({})
 
-  const [category, setCategory] = useState("usos-sociales-rituales-festivos")
-  const [kind, setKind] = useState("santuarios")
-  const [title, setTitle] = useState("")
-  const [story, setStory] = useState("")
   const [photos, setPhotos] = useState<File[]>([])
-  const [location, setLocation] = useState<Location[]>([])
-  const [isScanning, setIsScanning] = useState(false)
-  const [scannedHighlights, setScannedHighlights] = useState<Highlight[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [location, setLocation] = useState<PickedLocation | null>(null)
+  const [name, setName] = useState("")
+  const [story, setStory] = useState("")
+  const [errors, setErrors] = useState<Errors>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [categoryComboOpen, setCategoryComboOpen] = useState(false)
-
-  const { isLoading: isSearchingLocation, searchResults: locationResults, handleSearch: handleLocationSearch } = useLocationSearch()
-
-  const categoryId = categories.find(c => c.slug === category)?.id
-  const kindsForCategory = categoryId ? kinds.filter(k => k.category_id === categoryId) : kinds
-
-  const comboCategories = React.useMemo<TwoLevelCategory[]>(() =>
-    categories.map(cat => ({
-      key: cat.id,
-      label: cat.name,
-      items: kinds.filter(k => k.category_id === cat.id).map(k => ({
-        value: k.slug,
-        label: k.name
-      }))
-    })),
-    [categories, kinds]
-  )
 
   useEffect(() => {
-    if (kindsForCategory.length > 0 && !kindsForCategory.some(k => k.slug === kind)) {
-      setKind(kindsForCategory[0].slug)
+    const urls = photos.map(file => URL.createObjectURL(file))
+    setPreviews(urls)
+    return () => urls.forEach(url => URL.revokeObjectURL(url))
+  }, [photos])
+
+  const addPhotos = (files: FileList | null) => {
+    const list = Array.from(files ?? [])
+    if (photos.length + list.length > MAX_PHOTOS) {
+      setErrors(prev => ({ ...prev, photos: `Puedes subir hasta ${MAX_PHOTOS} fotos` }))
+      return
     }
-  }, [category, kindsForCategory])
+    setPhotos(prev => [...prev, ...list])
+    setErrors(prev => ({ ...prev, photos: undefined }))
+  }
 
-  const canSubmit = title.trim().length > 0 && photos.length >= 1 && location.length > 0 && !isScanning && !isSubmitting
-
+  // Throwing a photo away can be undone, so it happens at once.
+  const removePhoto = useCallback((index: number) => {
+    const removed = photos[index]
+    if (!removed) return
+    setPhotos(prev => prev.filter((_, i) => i !== index))
+    toast("Foto botada", {
+      action: { label: "Deshacer", onClick: () => setPhotos(prev => [...prev.slice(0, index), removed, ...prev.slice(index)]) },
+    })
+  }, [photos])
+  const { trashRef, drag, overTrash, handlers } = useDragToTrash(removePhoto)
 
   const handleCancel = () => {
     if (onCancel) onCancel()
@@ -107,232 +93,210 @@ export function AddForm({ onCancel }: AddFormProps) {
   }
 
   const handleSubmit = async () => {
-    if (location.length === 0) { toast.error("La ubicación es obligatoria"); return }
-    if (photos.length === 0) { toast.error("Agrega al menos una foto"); return }
-
-    setIsScanning(true)
-    setScannedHighlights([])
-
-    let extractedInsights: any = {}
-
-    try {
-      toast.loading("Extrayendo insights...", { id: "scanning" })
-
-      const insightRes = await fetch('/api/extract-insights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ story, title })
-      })
-      const { insights } = await insightRes.json()
-      extractedInsights = insights
-
-      const highlightsList: Array<{ text: string; type: 'section' | 'value' }> = []
-
-      if (insights?.memorial?.death_cause) {
-        highlightsList.push({ text: `Causa: ${insights.memorial.death_cause}`, type: 'value' })
-      }
-      if (insights?.memorial?.social_roles?.length) {
-        highlightsList.push({ text: `Roles: ${insights.memorial.social_roles.join(', ')}`, type: 'value' })
-      }
-      if (insights?.spiritual?.rituals_mentioned?.length) {
-        highlightsList.push({ text: `Rituales: ${insights.spiritual.rituals_mentioned.join(', ')}`, type: 'value' })
-      }
-      if (insights?.patrimonial?.form) {
-        highlightsList.push({ text: `Forma: ${insights.patrimonial.form}`, type: 'value' })
-      }
-
-      toast.dismiss("scanning")
-
-      for (let i = 0; i < highlightsList.length; i++) {
-        await new Promise(r => setTimeout(r, 300))
-        setScannedHighlights(prev => [...prev, { text: highlightsList[i].text, category: 'patrimonial' as const }])
-      }
-
-      await new Promise(r => setTimeout(r, 600))
-    } catch (err) {
-      toast.dismiss("scanning")
-      toast.error("No se pudo extraer insights, continuando sin ellos...", { duration: 2000 })
-      await new Promise(r => setTimeout(r, 1000))
+    const found = validateAnimita({ photos, location, name })
+    setErrors(found)
+    const first = (["photos", "location", "name"] as Field[]).find(f => found[f])
+    if (first) {
+      if (first === "name") nameRef.current?.focus()
+      else sectionRefs.current[first]?.scrollIntoView({ behavior: "smooth", block: "center" })
+      return
     }
 
-    setIsScanning(false)
     setIsSubmitting(true)
-
     try {
       const supabase = createClient()
-      const imageUrls: string[] = []
+      const images = await Promise.all(photos.map(file => uploadAnimitaPhoto(supabase, currentUser!.id, file)))
 
-      toast.loading("Subiendo fotos...", { id: "uploading" })
-      const urls = await Promise.all(photos.map(async (file) => {
-        const ext = file.name.split('.').pop()
-        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-        const { error } = await supabase.storage.from('base').upload(path, file)
-        if (error) throw new Error(`Error subiendo ${file.name}`)
-        return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
-      }))
-      imageUrls.push(...urls)
-      toast.dismiss("uploading")
-
-      const res = await fetch('/api/heritage-sites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: title,
-          story,
-          isPublic: true,
-          kind,
-          location: location[0],
-          images: imageUrls,
-          categories: [category],
-          insights: extractedInsights
+      let data: { slug: string }
+      if (isDemo()) {
+        // Demo mode keeps the new animita in this browser instead of posting it.
+        const { data: row, error } = await supabase
+          .from(TABLES.animitas)
+          .insert({
+            title: name.trim(),
+            story,
+            slug: `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`,
+            location: { type: 'Point', coordinates: [location!.lng, location!.lat] },
+            address: location!.address ?? null,
+            city_region: location!.cityRegion ?? null,
+            images,
+          })
+          .select('slug')
+          .single()
+        if (error || !row) throw new Error(error?.message || 'Error al guardar')
+        data = row
+      } else {
+        const res = await fetch('/api/animitas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, story, isPublic: true, location, images }),
         })
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Error al crear la animita')
+        data = await res.json()
+        if (!res.ok) throw new Error((data as any)?.error || 'Error al guardar')
+      }
 
-      toast.success("¡Animita registrada!")
-      router.push(`/animita/${data.slug}`)
+      toast.success(`Añadiste la animita de ${name.trim()}`)
+      router.push(animitaHref(data.slug))
     } catch (err: any) {
-      toast.error(err.message || "Error al crear la animita")
+      toast.error("No se pudo publicar la animita", {
+        description: err?.message,
+        action: { label: "Reintentar", onClick: handleSubmit },
+      })
       setIsSubmitting(false)
     }
   }
 
+  const errorId = (field: Field) => `${ids}-${field}-error`
+
   return (
-    <div className="w-full flex flex-col h-full">
-      {/* Header */}
-      <div className="relative flex items-center justify-between p-2 border-b border-border-weak shrink-0">
-        <Button variant="ghost" size="icon" className="opacity-0 ml-auto text-text-weak" onClick={handleCancel}>
-          <X />
-        </Button>
-        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-text-strong">Crea una entrada</span>
-      </div>
+    <div className="flex min-h-svh w-full flex-col md:min-h-0">
+      {/* The way back is the curve sign in the corner, as on an animita's page; the form needs no title of
+          its own, so everything fits on one screen. */}
+      <h1 className="sr-only">Añadir animita</h1>
+      <button
+        type="button"
+        onClick={handleCancel}
+        disabled={isSubmitting}
+        aria-label="Volver sin publicar"
+        className="fixed top-3 left-3 z-30 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-rotate-6 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+      >
+        <CurveSign className="size-11" />
+      </button>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="flex gap-3 px-4 pt-6">
-          {/* <Avatar className="size-8 shrink-0 mt-0.5">
-            <AvatarImage src={currentUser?.avatarUrl} />
-            <AvatarFallback>{currentUser?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
-          </Avatar> */}
-
-          <div className="-ml-1.5 flex-1 flex flex-col gap-1 pb-4">
-            {/* Photo thumbnails */}
-            <div className="ml-3 grid grid-cols-3 gap-1.5 pb-4 pt-0 shrink-0">
-              {photos.map((file, i) => (
-                <div key={i} className="relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={URL.createObjectURL(file)} alt="" className="object-cover w-full h-full" />
+      <div className="flex-1">
+        <div className="grid gap-6 px-5 pt-16 pb-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 md:pt-10">
+          {/* The photos come first: on a wide screen they get their own column, the rest sits beside them. */}
+          <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2 md:sticky md:top-10 md:self-start">
+            <h2 id={`${ids}-photos`} className="text-sm text-text">Fotos</h2>
+            <ul className={cn("grid gap-3", previews.length ? "grid-cols-3 md:grid-cols-2" : "grid-cols-1")}>
+              {previews.map((src, i) => {
+                const lifted = drag?.index === i
+                return (
+                  <li
+                    key={src}
+                    tabIndex={0}
+                    aria-label={`Foto ${i + 1}. Arrástrala al basurero o presiona Suprimir para botarla`}
+                    onKeyDown={e => { if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); removePhoto(i) } }}
+                    {...handlers(i)}
+                    className={cn(
+                      "print-frame relative cursor-grab touch-none select-none p-1 pb-3 outline-none transition-opacity focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                      i % 2 ? "rotate-1" : "-rotate-1",
+                      lifted && "opacity-25"
+                    )}
+                  >
+                    <Image src={src} alt="" width={240} height={240} unoptimized draggable={false} className="pointer-events-none aspect-square w-full object-cover" />
+                  </li>
+                )
+              })}
+              {photos.length < MAX_PHOTOS && (
+                // An empty instant print waiting for its photo: pressing it picks one.
+                // With no photos yet it's the big first thing to do; once there are some it's one more slot.
+                <li className={cn(previews.length % 2 ? "-rotate-1" : "rotate-1", !previews.length && "w-32 md:mx-auto md:w-full md:max-w-60")}>
                   <button
                     type="button"
-                    onClick={() => setPhotos(prev => prev.filter((_, idx) => idx !== i))}
-                    className="cursor-pointer absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => galleryRef.current?.click()}
+                    aria-describedby={errors.photos ? errorId("photos") : undefined}
+                    className={cn(
+                      "print-frame group flex w-full flex-col p-1 pb-3 outline-none transition-[rotate,scale] duration-200 hover:scale-[1.03] hover:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none",
+                      errors.photos && "ring-[3px] ring-destructive/30"
+                    )}
                   >
-                    <X className="size-4" />
+                    {/* A blank print, white on white: only a faint edge tells the picture area from the frame. */}
+                    <span className="flex aspect-square w-full items-center justify-center bg-background-weak text-text-weak shadow-[inset_0_0_0_1px_rgb(28_24_20_/_0.06)]">
+                      {/* Fade the whole icon, never its color: an alpha color darkens where its strokes cross. */}
+                      <ImagePlus aria-hidden className="opacity-60 transition-opacity group-hover:opacity-100" />
+                    </span>
+                    <span className="pt-1.5 text-xs text-text-weak">{previews.length ? "Otra foto" : "Elegir fotos"}</span>
                   </button>
-                </div>
-              ))}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center justify-center hover:brightness-95 cursor-pointer relative aspect-square rounded-md overflow-hidden bg-background-weak border border-border-weak group"
-              >
-                <Plus className="size-10 stroke-[1.5px] !text-text-weaker/70" />
-              </button>
-            </div>
+                </li>
+              )}
+            </ul>
+            {errors.photos && <p id={errorId("photos")} className="text-sm text-destructive">{errors.photos}</p>}
+            <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = "" }} />
+          </section>
 
-            {/* Category and Kind selector */}
-            <div className="ml-2 mb-2 shrink-0">
-              <TwoLevelCombobox
-                trigger={
-                  <div className="md:h-[26px] min-w-40 *:h-[26px] w-fit md:bg-accent/10 md:rounded-full cursor-pointer">
-                    <Badge
-                      variant="secondary"
-                      className="text-sm min-w-24 rounded-full gap-0.5 bg-accent text-white"
-                    >
-                      {categories.find(c => c.slug === category)?.name}
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="text-sm mt-1.5 md:mt-0 pl-1.5 rounded-full gap-0.5 md:bg-transparent text-accent"
-                    >
-                      {kinds.find(k => k.slug === kind)?.name}
-                    </Badge>
-                  </div>
-                }
-                open={categoryComboOpen}
-                onOpenChange={setCategoryComboOpen}
-                categories={comboCategories}
-                selectedValues={[kind]}
-                onToggle={(value) => {
-                  setKind(value)
-                  const selectedCat = comboCategories.find(c => c.items.some(i => i.value === value))
-                  if (selectedCat) {
-                    setCategory(categories.find(c => c.id === selectedCat.key)?.slug || category)
-                  }
-                  setCategoryComboOpen(false)
-                }}
-                contentWidth="w-[calc(100vw-2rem)] md:w-80"
-              />
-            </div>
-
-            <Input
-              autoFocus
-              placeholder={KIND_TITLE_PLACEHOLDERS[kind] || "¿Cómo se llama este lugar?"}
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              className="text-lg md:text-lg font-semibold bg-transparent border-none shadow-none resize-none focus-visible:ring-0 shrink-0"
+          <div className="flex flex-col gap-6">
+          <section ref={el => { sectionRefs.current.location = el }} aria-labelledby={`${ids}-location`} className="space-y-2">
+            <h2 id={`${ids}-location`} className="text-sm text-text">Dónde está</h2>
+            <LocationPicker
+              value={location}
+              onChange={(next) => {
+                setLocation(next)
+                setErrors(prev => ({ ...prev, location: undefined }))
+              }}
+              invalid={!!errors.location}
+              describedBy={errors.location ? errorId("location") : undefined}
             />
+            {errors.location && <p id={errorId("location")} className="text-sm text-destructive">{errors.location}</p>}
+          </section>
 
-            {isScanning ? (
-              <div className="text-sm text-text p-1">
-                <StoryHighlights text={story} highlights={scannedHighlights} />
-              </div>
-            ) : (
-              <Textarea
-                placeholder="¿Cuál es su historia?"
-                value={story}
-                onChange={e => setStory(e.target.value)}
-                className="bg-transparent border-none shadow-none resize-none focus-visible:ring-0"
-              />
-            )}
+          <div className="space-y-2">
+            <Label htmlFor={`${ids}-name`}>A quién recordamos</Label>
+            <Input
+              ref={nameRef}
+              id={`${ids}-name`}
+              value={name}
+              onChange={e => {
+                setName(e.target.value)
+                if (errors.name) setErrors(prev => ({ ...prev, name: undefined }))
+              }}
+              placeholder="Nombre de la animita"
+              autoComplete="off"
+              aria-invalid={!!errors.name}
+              aria-describedby={errors.name ? errorId("name") : undefined}
+              variant="paper"
+              className="rotate-[0.4deg]"
+            />
+            {errors.name && <p id={errorId("name")} className="text-sm text-destructive">{errors.name}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor={`${ids}-story`}>Su historia (opcional)</Label>
+            <Textarea
+              id={`${ids}-story`}
+              value={story}
+              onChange={e => setStory(e.target.value)}
+              placeholder="Lo que sabes de ella, quién la cuida, desde cuándo está"
+              rows={3}
+              variant="paper"
+              className="min-h-24 -rotate-[0.4deg]"
+            />
+          </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom toolbar */}
-      <div className="border-t border-border-weak p-3 flex items-center gap-2 shrink-0">
-        <LocationSelector
-          value={location}
-          onChange={setLocation}
-          onSearch={handleLocationSearch}
-          searchResults={locationResults}
-          isLoading={isSearchingLocation}
-        />
+      {drag && previews[drag.index] && createPortal(
+        <div
+          aria-hidden
+          style={{ left: drag.left, top: drag.top, width: drag.width }}
+          className={cn(
+            "print-frame pointer-events-none fixed z-100 rotate-3 scale-105 p-1 pb-3 shadow-2xl transition-[scale,opacity] duration-150",
+            overTrash && "scale-75 opacity-70"
+          )}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={previews[drag.index]} alt="" className="aspect-square w-full object-cover" />
+        </div>,
+        document.body
+      )}
 
-        <div className="ml-auto">
-          <Button
-            size="sm"
-            disabled={!canSubmit || isSubmitting}
-            onClick={handleSubmit}
-            className="px-4"
-          >
-            {isSubmitting ? <Spinner /> : "Publicar"}
-          </Button>
+      {/* Floats at the bottom over a paper fade. While a photo is lifted, the trash takes its place. */}
+      <div className="sticky bottom-0 z-20 shrink-0 bg-background px-5 pt-2 pb-safe before:pointer-events-none before:absolute before:inset-x-0 before:-top-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent">
+        <div className="flex min-h-20 items-end justify-center pb-4">
+          {drag ? (
+            <div ref={trashRef} className="flex flex-col items-center gap-1">
+              <CutoutText text="bótala aquí" height={22} arc={16} />
+              <TrashCan open={overTrash} />
+            </div>
+          ) : (
+            <Button type="button" variant="sign" size="lg" className="w-full max-w-xs rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting && <Spinner />}
+              {isSubmitting ? "Publicando…" : "Publicar"}
+            </Button>
+          )}
         </div>
       </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || [])
-          if (photos.length + files.length > 5) { toast.error("Máximo 5 fotos"); return }
-          setPhotos(prev => [...prev, ...files])
-        }}
-      />
     </div>
   )
 }
