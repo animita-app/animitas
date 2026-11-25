@@ -19,7 +19,10 @@ export function Header() {
   // Adding an animita on its own page is a full-screen form with its own Cancelar; nothing else on top.
   if (pathname === '/add' && !modalSegment) return null
 
+  // The shelf (map, añadir, animitas) is the way around, so it stays on every page that has the header:
+  // the profile and credits too, not only the map and the list.
   const isMapRoute = isAnimitaSheet || ['/', '/map', '/list', '/add', '/auth'].includes(pathname)
+  const showShelf = isMapRoute || pathname.startsWith('/@') || pathname.startsWith('/profile') || pathname === '/creditos'
 
   return (
     <header className={cn(
@@ -29,7 +32,7 @@ export function Header() {
       <div className="flex items-start justify-between p-4 w-full pointer-events-none [&>*]:pointer-events-auto">
         <RoadSignSearch />
 
-        {isMapRoute && (
+        {showShelf && (
           <div className="pointer-events-none! fixed inset-x-0 bottom-safe isolate flex justify-center before:pointer-events-none before:absolute before:inset-x-0 before:-top-20 before:-bottom-8 before:-z-10 before:bg-linear-to-t before:from-background before:via-background/85 before:to-transparent">
             <MainHeaderPanel />
           </div>

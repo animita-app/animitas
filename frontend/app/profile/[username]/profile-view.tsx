@@ -10,6 +10,7 @@ import { DevelopingPhoto } from '@/components/loaders'
 import { Spinner } from '@/components/ui/spinner'
 import { EmptyState } from '@/components/empty-state'
 import { CutoutText } from '@/components/cutout-text'
+import { PenLoop } from '@/components/pen'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
@@ -87,18 +88,18 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-6 pt-24 pb-40">
       <header className="flex flex-col items-center gap-4 text-center">
-        {/* An instant print of you. Your own is the button to change it; without a photo it waits unexposed,
-            your initial cut out on it. */}
+        {/* An instant print of you, the same kind as the add form's. Your own is the button to change it;
+            without a photo it shows your initial circled in pen, as in the corner. */}
         {(() => {
           const print = (
-            <span className="print-frame photo-vignette block -rotate-2 p-2 pb-6 transition-[rotate,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-0 group-hover:scale-105 motion-reduce:transition-none">
-              <span className="relative flex size-32 items-center justify-center overflow-hidden bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)]">
+            <span className="print-frame block -rotate-2 p-1.5 pb-5 transition-[rotate,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-0 group-hover:scale-105 motion-reduce:transition-none">
+              <span className="relative flex size-32 items-center justify-center overflow-hidden bg-background-weak">
                 {imageUrl ? (
                   <Image src={imageUrl} alt="" fill sizes="128px" className="object-cover" />
                 ) : (
-                  <CutoutText text={profile.display_name?.[0] ?? '?'} height={44} />
+                  <PenLoop className="size-20 text-4xl">{profile.display_name?.[0]?.toUpperCase() ?? '?'}</PenLoop>
                 )}
-                {uploading && <span className="absolute inset-0 flex items-center justify-center bg-text-strong/50 text-text-inverted"><Spinner /></span>}
+                {uploading && <span className="absolute inset-0 flex items-center justify-center bg-background/70"><Spinner /></span>}
               </span>
             </span>
           )
@@ -109,7 +110,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
                 aria-label={imageUrl ? 'Cambiar tu foto' : 'Poner tu foto'}
-                className="group rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                className="group pen-redraw rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
                 {print}
               </button>
