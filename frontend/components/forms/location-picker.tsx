@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { reverseGeocode } from "@/lib/mapbox"
 import { cn } from "@/lib/utils"
+import { applyPaperStyle } from "@/components/map/paper-style"
 
 export interface PickedLocation {
   lat: number
@@ -78,6 +79,7 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
       pitchWithRotate: false,
     })
     map.touchZoomRotate.disableRotation()
+    map.on("load", () => applyPaperStyle(map))
     map.on("moveend", (e) => {
       if (!(e as any).originalEvent) return
       const { lng, lat } = map.getCenter()

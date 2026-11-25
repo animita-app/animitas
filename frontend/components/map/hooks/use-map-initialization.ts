@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
+import { applyPaperStyle } from '../paper-style'
 
 export const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-75.6, -56.0],
@@ -37,6 +38,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
 
     map.current.on('load', () => {
       const mapInstance = map.current!
+      applyPaperStyle(mapInstance)
       setIsMapReady(true)
       mapInstance.touchZoomRotate.disableRotation()
       mapInstance.fitBounds(CHILE_BOUNDS, { padding: { top: 96, bottom: 48, left: 64, right: 64 }, duration: 0 })

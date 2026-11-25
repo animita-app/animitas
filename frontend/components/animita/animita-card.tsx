@@ -14,7 +14,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
       href={animitaHref(site.slug)}
       className="group flex flex-col gap-2 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
     >
-      <div className="relative aspect-square overflow-hidden rounded-md bg-background-weak">
+      <div className="photo-vignette aspect-square overflow-hidden rounded-md bg-background-weak">
         {imageUrl && (
           <Image
             src={imageUrl}

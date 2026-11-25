@@ -17,18 +17,18 @@
   --color-black: #000000;
 
   /* Neutral Light */
-  --color-neutral-light-1: #FCFCFC;
-  --color-neutral-light-2: #F7F7F7;
-  --color-neutral-light-3: #F2F2F2;
-  --color-neutral-light-4: #E8E8E8;
-  --color-neutral-light-5: #E2E2E2;
-  --color-neutral-light-6: #D9D9D9;
-  --color-neutral-light-7: #CFCECC;
-  --color-neutral-light-8: #BBBBBB;
-  --color-neutral-light-9: #8D8B8C;
-  --color-neutral-light-10: #777677;
-  --color-neutral-light-11: #656364;
-  --color-neutral-light-12: #201E1F;
+  --color-neutral-light-1: #EFE9DD;
+  --color-neutral-light-2: #EAE3D5;
+  --color-neutral-light-3: #E4DCCC;
+  --color-neutral-light-4: #DAD1BF;
+  --color-neutral-light-5: #D3C9B6;
+  --color-neutral-light-6: #C8BDA8;
+  --color-neutral-light-7: #BCB09A;
+  --color-neutral-light-8: #A69A84;
+  --color-neutral-light-9: #857A69;
+  --color-neutral-light-10: #736859;
+  --color-neutral-light-11: #5F5548;
+  --color-neutral-light-12: #221D18;
 
   /* Neutral Dark */
   --color-neutral-dark-1: #141110;
@@ -65,7 +65,7 @@
   --color-text: var(--color-neutral-light-11);
   --color-text-weak: var(--color-neutral-light-9);
   --color-text-weaker: var(--color-neutral-light-10);
-  --color-text-strong: black;
+  --color-text-strong: #1C1814;
   --color-text-inverted: var(--color-neutral-light-1);
   --color-border: var(--color-neutral-light-7);
   --color-border-weak: var(--color-neutral-light-5);
@@ -243,6 +243,20 @@
 
 @utility bottom-safe {
   bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Burned edges of an old print, over a photo's container. */
+@utility photo-vignette {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(ellipse at center, transparent 55%, color-mix(in oklab, var(--color-text-strong) 45%, transparent) 130%);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-text-strong) 12%, transparent);
+  }
 }
 
 @utility popup-motion {
