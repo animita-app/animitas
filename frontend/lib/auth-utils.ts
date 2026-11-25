@@ -22,33 +22,3 @@ export function clearAuthCookies() {
     }
   })
 }
-
-export function addClearCacheButton() {
-  const existing = document.getElementById("clear-auth-cache-btn")
-  if (existing) return
-
-  const btn = document.createElement("button")
-  btn.id = "clear-auth-cache-btn"
-  btn.textContent = "🔄 Clear Cache"
-  btn.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 8px 12px;
-    background: #00e;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    z-index: 9999;
-    opacity: 0.7;
-  `
-
-  btn.onclick = () => {
-    clearAuthCookies()
-    location.reload()
-  }
-
-  document.body.appendChild(btn)
-}

@@ -13,12 +13,14 @@ const geist = Geist({
   subsets: ['latin'],
   variable: '--font-geist-sans',
   display: 'swap',
+  adjustFontFallback: false,
 })
 
 const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-geist-mono',
   display: 'swap',
+  adjustFontFallback: false,
 })
 
 const ibmPlexMono = localFont({

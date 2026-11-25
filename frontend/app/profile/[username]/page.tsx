@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ProfileView } from './profile-view'
 
@@ -32,6 +33,8 @@ export default async function ProfilePage({ params }: PageProps) {
     .select('id, display_name, username, image, role')
     .eq('username', username)
     .single()
+
+  if (!profile) notFound()
 
   return <ProfileView profile={profile} username={username} />
 }
