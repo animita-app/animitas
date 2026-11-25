@@ -71,9 +71,9 @@ function Tile({ char, seed, i, size }: { char: string; seed: number; i: number; 
           draggable={false}
           className="absolute left-1/2 block max-w-none"
           style={{
-            width: size * (mark === '\u0303' ? 0.7 : 0.42),
+            width: Math.round(size * (mark === '\u0303' ? 0.7 : 0.42)),
             height: 'auto',
-            top: -size * 0.22,
+            top: -Math.round(size * 0.22),
             translate: mark === '\u0303' ? '-50% 0' : '-10% 0',
             rotate: mark === '\u0303' ? '-4deg' : '-58deg',
           }}
@@ -149,8 +149,9 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
               key={i}
               className="absolute w-max drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
               style={{
-                left: Math.cos(at) * orbit.radius,
-                top: Math.sin(at) * orbit.radius,
+                // Rounded so the server's markup and the browser's agree to the pixel.
+                left: Math.round(Math.cos(at) * orbit.radius * 10) / 10,
+                top: Math.round(Math.sin(at) * orbit.radius * 10) / 10,
                 translate: '-50% -50%',
                 rotate: `${tilt.toFixed(1)}deg`,
                 zIndex: Math.floor(noise(seed, i + 61) * 3),
@@ -181,7 +182,7 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
             style={{
               rotate: `${tilt.toFixed(1)}deg`,
               translate: `0 ${drop.toFixed(1)}px`,
-              marginInline: -height * 0.05,
+              marginInline: -Math.round(height * 0.05),
               zIndex: Math.floor(noise(seed, i + 61) * 3),
             }}
           >

@@ -106,7 +106,7 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
           aria-label="Ver todo Chile"
           className="group absolute right-4 bottom-48 z-10 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in fade-in zoom-in-90 hover:scale-110 hover:-rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none md:right-6"
         >
-          <RetornoSign className="size-11" />
+          <RetornoSign className="size-14" />
           <span className="pointer-events-none absolute right-full top-1/2 mr-3 w-max -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
             <CutoutText text="retorno" height={18} />
           </span>

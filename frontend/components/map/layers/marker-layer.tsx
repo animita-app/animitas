@@ -36,26 +36,55 @@ function shake(pts: Pt[], width: number, rand: () => number): Stroke {
   }
 }
 
-function trace(ctx: CanvasRenderingContext2D, pts: Pt[]) {
-  ctx.beginPath()
-  ctx.moveTo(...pts[0])
-  for (let i = 1; i < pts.length - 1; i++) {
-    const [x, y] = pts[i]
-    const [nx, ny] = pts[i + 1]
-    ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2)
+// The stroke as the pen actually moved: the shaken points smoothed into a dense line.
+function smooth(pts: Pt[]): Pt[] {
+  const out: Pt[] = [pts[0]]
+  let from = pts[0]
+  for (let i = 1; i < pts.length; i++) {
+    const ctrl = pts[i]
+    const to: Pt = i < pts.length - 1 ? [(pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2] : pts[i]
+    for (let k = 1; k <= 8; k++) {
+      const t = k / 8
+      const u = 1 - t
+      out.push([u * u * from[0] + 2 * u * t * ctrl[0] + t * t * to[0], u * u * from[1] + 2 * u * t * ctrl[1] + t * t * to[1]])
+    }
+    from = to
   }
-  ctx.lineTo(...pts[pts.length - 1])
+  return out
 }
 
-function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke) {
+// A ballpoint never runs true: the line wanders a little to each side as the hand moves, and the ink
+// thins and thickens with the pressure. Each version of a mark wanders differently.
+function wander(line: Pt[], width: number, rand: () => number) {
+  const [f1, f2, p1, p2, q1] = [0.09 + rand() * 0.05, 0.23 + rand() * 0.1, rand() * 6.3, rand() * 6.3, rand() * 6.3]
+  let s = 0
+  return line.map(([x, y], i) => {
+    const [px, py] = line[Math.max(i - 1, 0)]
+    const [nx, ny] = line[Math.min(i + 1, line.length - 1)]
+    if (i > 0) s += Math.hypot(x - px, y - py)
+    const len = Math.hypot(nx - px, ny - py) || 1
+    const off = width * 0.42 * (Math.sin(s * f1 + p1) * 0.65 + Math.sin(s * f2 + p2) * 0.35)
+    const pressure = 0.78 + 0.32 * (0.5 + 0.5 * Math.sin(s * 0.06 + q1))
+    return { x: x - ((ny - py) / len) * off, y: y + ((nx - px) / len) * off, pressure }
+  })
+}
+
+function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke, rand: () => number) {
+  const line = wander(smooth(pts), width, rand)
   ctx.lineCap = ctx.lineJoin = 'round'
   ctx.strokeStyle = ctx.fillStyle = PEN_INK
-  ctx.globalAlpha = 0.9
-  ctx.lineWidth = width
-  trace(ctx, pts)
-  ctx.stroke()
+  for (let i = 1; i < line.length; i++) {
+    const a = line[i - 1]
+    const b = line[i]
+    ctx.globalAlpha = 0.72 + 0.22 * b.pressure
+    ctx.lineWidth = width * b.pressure
+    ctx.beginPath()
+    ctx.moveTo(a.x, a.y)
+    ctx.lineTo(b.x, b.y)
+    ctx.stroke()
+  }
   ctx.globalAlpha = 0.85
-  ;[pts[0], pts[pts.length - 1]].forEach(([x, y], i) => {
+  ;[line[0], line[line.length - 1]].forEach(({ x, y }, i) => {
     ctx.beginPath()
     ctx.arc(x, y, blobs[i], 0, Math.PI * 2)
     ctx.fill()
@@ -63,19 +92,19 @@ function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke)
   ctx.globalAlpha = 1
 }
 
-// The bleed is drawn a few times, each soaked a little differently: the map eases between them so the
-// ink seems to keep spreading into the paper.
+// The ink soaking into the paper around the line, a little off to one side.
 function drawBleed(ctx: CanvasRenderingContext2D, { pts, width }: Stroke, rand: () => number) {
-  const soak = 0.5 + rand() * 0.7
-  const drift = (): Pt => [(rand() - 0.5) * width * 0.9, (rand() - 0.5) * width * 0.9]
+  const line = wander(smooth(pts), width * 1.6, rand)
+  const soak = 0.5 + rand() * 0.6
   ctx.save()
   ctx.lineCap = ctx.lineJoin = 'round'
   ctx.strokeStyle = PEN_INK
   ctx.filter = `blur(${width * soak}px)`
-  ctx.globalAlpha = 0.26 + rand() * 0.14
+  ctx.globalAlpha = 0.24 + rand() * 0.12
   ctx.lineWidth = width * (1.5 + soak * 0.6)
-  const [dx, dy] = drift()
-  trace(ctx, pts.map(([x, y]): Pt => [x + dx + (rand() - 0.5) * width * 0.5, y + dy + (rand() - 0.5) * width * 0.5]))
+  ctx.beginPath()
+  ctx.moveTo(line[0].x, line[0].y)
+  line.slice(1).forEach(({ x, y }) => ctx.lineTo(x, y))
   ctx.stroke()
   ctx.restore()
 }
@@ -125,23 +154,21 @@ function paint(size: number, draw: (ctx: CanvasRenderingContext2D) => void) {
   return ctx.getImageData(0, 0, size, size)
 }
 
-function crispInk({ size, strokes, dot }: Drawing) {
+// One version of a mark: its bleed underneath and its wandering line on top. The map fades between two
+// versions, so the line seems to shiver and the ink to keep soaking in.
+function inkVersion({ size, strokes, dot, seed }: Drawing, version: string) {
+  const rand = rng(seed * 31 + (version === 'a' ? 5 : 11))
   return paint(size, ctx => {
-    strokes.forEach(st => drawCrisp(ctx, st))
+    strokes.forEach(st => drawBleed(ctx, st, rand))
+    strokes.forEach(st => drawCrisp(ctx, st, rand))
     if (!dot) return
     ctx.fillStyle = PEN_INK
     ctx.globalAlpha = 0.9
     ctx.beginPath()
-    ctx.arc(dot[0], dot[1], dot[2], 0, Math.PI * 2)
+    ctx.arc(dot[0] + (rand() - 0.5) * 0.8, dot[1] + (rand() - 0.5) * 0.8, dot[2], 0, Math.PI * 2)
     ctx.fill()
     ctx.globalAlpha = 1
   })
-}
-
-// Two soaks of the same ink: the map fades between them so the bleed seems to keep spreading.
-function bleedInk({ size, strokes, seed }: Drawing, version: string) {
-  const rand = rng(seed * 31 + (version === 'a' ? 5 : 11))
-  return paint(size, ctx => strokes.forEach(st => drawBleed(ctx, st, rand)))
 }
 
 // A cluster: the count written by hand and circled, like marking a spot on a printed map.
@@ -175,16 +202,14 @@ function penMark(): Drawing {
   return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
-// Image ids: `count-12` and `pen-mark` are the crisp ink, with `-bleed-a` / `-bleed-b` for each soak.
+// Image ids: `count-12-a` / `count-12-b` and `pen-mark-a` / `pen-mark-b`, one per version.
 function drawInk(id: string) {
-  const [, base, bleed] = id.match(/^(count-\d+|pen-mark)(?:-bleed-(a|b))?$/) ?? []
+  const [, base, version] = id.match(/^(count-\d+|pen-mark)-(a|b)$/) ?? []
   if (!base) return null
-  const drawing = base === MARK ? penMark() : circledCount(base.slice(6))
-  return bleed ? bleedInk(drawing, bleed) : crispInk(drawing)
+  return inkVersion(base === MARK ? penMark() : circledCount(base.slice(6)), version)
 }
 
-const COUNT_IMAGE = ['concat', 'count-', ['to-string', ['get', 'point_count']]] as any
-const bleedOf = (image: any, version: string) => ['concat', image, `-bleed-${version}`] as any
+const COUNT_IMAGE = (version: string) => ['concat', 'count-', ['to-string', ['get', 'point_count']], `-${version}`] as any
 
 const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
@@ -283,12 +308,10 @@ export function MarkerLayer({
         paint: { 'icon-opacity': opacity },
       })
     }
-    for (const v of ['a', 'b']) {
-      inkLayer(`clusters-bleed-${v}`, ['has', 'point_count'], bleedOf(COUNT_IMAGE, v), {}, v === 'a' ? 1 : 0)
-      inkLayer(`${sourceId}-bleed-${v}`, POINT_FILTER, `${MARK}-bleed-${v}`, { 'icon-rotate': tilt, 'icon-size': pointSize }, v === 'a' ? 1 : 0)
-    }
-    inkLayer('clusters', ['has', 'point_count'], COUNT_IMAGE)
-    inkLayer(`${sourceId}-inner`, POINT_FILTER, MARK, { 'icon-rotate': tilt, 'icon-size': pointSize })
+    inkLayer('clusters', ['has', 'point_count'], COUNT_IMAGE('a'))
+    inkLayer('clusters-b', ['has', 'point_count'], COUNT_IMAGE('b'), {}, 0)
+    inkLayer(`${sourceId}-inner`, POINT_FILTER, `${MARK}-a`, { 'icon-rotate': tilt, 'icon-size': pointSize })
+    inkLayer(`${sourceId}-inner-b`, POINT_FILTER, `${MARK}-b`, { 'icon-rotate': tilt, 'icon-size': pointSize }, 0)
     setLayersReady(true)
 
     isInitialized.current = true
@@ -304,13 +327,13 @@ export function MarkerLayer({
     }
     map.on('styleimagemissing', onMissing)
     // Layers may have asked for their images before this listener existed; asking again draws them.
-    for (const id of ['clusters', 'clusters-bleed-a', 'clusters-bleed-b', `${sourceId}-inner`, `${sourceId}-bleed-a`, `${sourceId}-bleed-b`]) {
+    const inkLayers = ['clusters', 'clusters-b', `${sourceId}-inner`, `${sourceId}-inner-b`]
+    for (const id of inkLayers) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'icon-image', map.getLayoutProperty(id, 'icon-image'))
     }
-    const bleedLayers = ['clusters', sourceId].flatMap(base => [`${base}-bleed-a`, `${base}-bleed-b`])
     const breathe = () => {
       const w = (1 - Math.cos((performance.now() / INK_CYCLE_MS) * Math.PI * 2)) / 2
-      bleedLayers.forEach((id, k) => {
+      inkLayers.forEach((id, k) => {
         if (map.getLayer(id)) map.setPaintProperty(id, 'icon-opacity', k % 2 ? w : 1 - w)
       })
     }

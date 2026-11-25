@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { CutoutText, preloadCutouts } from '@/components/cutout-text'
 
 // The real candle from the shelf, lit or out. Loading and error states use it instead of spinners.
@@ -32,4 +32,22 @@ export function GluingWord({ text = 'cargando', className }: { text?: string; cl
   // Every cut of these letters is fetched up front, so each new round shows whole.
   useEffect(() => preloadCutouts(text), [text])
   return <CutoutText text={text} height={30} glue className={className} />
+}
+
+// Loading: the page's edges darken like an old photo. Only a wait long enough to notice also gets the
+// word, so a quick load never flashes it.
+const WORD_AFTER_MS = 700
+
+export function LoadingVignette({ text = 'cargando' }: { text?: string }) {
+  const [slow, setSlow] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSlow(true), WORD_AFTER_MS)
+    return () => clearTimeout(timer)
+  }, [])
+  return (
+    <>
+      <span aria-hidden className="vignette vignette-loading pointer-events-none fixed inset-0" />
+      {slow && <GluingWord text={text} className="animate-in fade-in duration-300" />}
+    </>
+  )
 }

@@ -21,14 +21,20 @@ export function CurveSign({ className }: { className?: string }) {
   )
 }
 
-// The blue "retorno" sign of Chilean roads: a U-turn arrow, back to where you started.
+// The yellow warning diamond with a U-turn arrow, as Chilean roads paint it: back to where you started.
 export function RetornoSign({ className }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 100 100" className={cn('drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.4)]', className)}>
-      <rect x="2" y="2" width="96" height="96" rx="9" fill="#0b4c9a" />
-      <rect x="7" y="7" width="86" height="86" rx="6" fill="none" stroke="#f4f1e8" strokeWidth="3.5" />
-      <path d="M64 80 V44 C64 30 56 24 47 24 C38 24 30 30 30 44 V58" fill="none" stroke="#f4f1e8" strokeWidth="9" strokeLinecap="butt" />
-      <path d="M17 54 L30 72 L43 54 Z" fill="#f4f1e8" />
+      <defs>
+        <linearGradient id="retorno-sun" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f2c230" />
+          <stop offset="1" stopColor="#d9a51a" />
+        </linearGradient>
+      </defs>
+      <rect x="15" y="15" width="70" height="70" rx="6" transform="rotate(45 50 50)" fill="#1b1916" />
+      <rect x="19" y="19" width="62" height="62" rx="4" transform="rotate(45 50 50)" fill="url(#retorno-sun)" />
+      <path d="M58 70 V46 C58 37 53 33 46.5 33 C40 33 35 37 35 46 V52" fill="none" stroke="#1b1916" strokeWidth="7" />
+      <path d="M26 50 L35 64 L44 50 Z" fill="#1b1916" />
     </svg>
   )
 }
