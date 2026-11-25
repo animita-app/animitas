@@ -1,24 +1,8 @@
 import { cn } from '@/lib/utils'
 
 // Chilean road signs drawn as objects (sun-faded colors, white border, a soft shadow), used for the
-// interface's few controls: PARE to close and a curve warning to go back. Decorative; the control that
+// interface's few controls: a curve warning to go back. Decorative; the control that
 // holds them carries the accessible name.
-
-export function PareSign({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden viewBox="0 0 100 100" className={cn('drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.4)]', className)}>
-      <defs>
-        <linearGradient id="pare-sun" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#d23b30" />
-          <stop offset="1" stopColor="#a8231d" />
-        </linearGradient>
-      </defs>
-      <polygon points="30,2 70,2 98,30 98,70 70,98 30,98 2,70 2,30" fill="#f4f1e8" />
-      <polygon points="32,7 68,7 93,32 93,68 68,93 32,93 7,68 7,32" fill="url(#pare-sun)" />
-      <text x="50" y="61" textAnchor="middle" fontFamily="'DIN Condensed','Avenir Next Condensed','Arial Narrow',sans-serif" fontWeight="700" fontSize="30" fill="#f4f1e8" letterSpacing="1">PARE</text>
-    </svg>
-  )
-}
 
 export function CurveSign({ className }: { className?: string }) {
   return (
@@ -34,5 +18,13 @@ export function CurveSign({ className }: { className?: string }) {
       <path d="M58 72 V52 C58 42 52 38 44 38 H36" fill="none" stroke="#1b1916" strokeWidth="7" strokeLinecap="square" />
       <path d="M38 28 L26 38 L38 48 Z" fill="#1b1916" />
     </svg>
+  )
+}
+
+// The close control: one X cut from print, always the same one, glued a little crooked.
+export function CutoutClose({ className }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img aria-hidden src="/cutouts/letters/x/0.webp" alt="" width={116} height={112} draggable={false} className={cn('-rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]', className)} />
   )
 }
