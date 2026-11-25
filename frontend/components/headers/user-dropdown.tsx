@@ -15,6 +15,7 @@ import {
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
 import { useNewRecuerdos } from '@/hooks/use-new-recuerdos'
+import { storyExcerpt } from '@/lib/story'
 
 const ITEM = 'pen-underline w-max rounded-none p-0 text-sm text-text-strong data-[highlighted]:bg-transparent'
 
@@ -58,16 +59,19 @@ export function UserDropdown() {
 
       <DropdownMenuContent align="end" sideOffset={8} className="paper-bloom flex w-72 flex-col gap-5 rounded-none px-2 py-2">
         {count > 0 && (
-          <div className="flex flex-col gap-3">
-            <DropdownMenuLabel className="p-0 text-xs font-normal text-text-weak">Te dejaron recuerdos</DropdownMenuLabel>
+          <div className="flex flex-col gap-4">
+            <DropdownMenuLabel className="p-0 text-xs font-normal text-text-weak">Recuerdos en tus animitas</DropdownMenuLabel>
+            {/* The recuerdo itself leads; who left it, where and when follow small. Long ones are cut at a
+                sentence or a word, and open whole on the animita. */}
             {recuerdos.slice(0, 4).map(r => (
-              <DropdownMenuItem asChild key={r.id} className="flex-col items-start gap-0.5 rounded-none p-0 data-[highlighted]:bg-transparent">
+              <DropdownMenuItem asChild key={r.id} className="group flex-col items-start gap-1 rounded-none p-0 data-[highlighted]:bg-transparent">
                 <Link href={r.href}>
-                  <span className="pen-underline text-pretty text-sm text-text-strong">
-                    {r.who} en {r.where}
+                  <span className="text-pretty text-sm text-text transition-colors group-data-[highlighted]:text-text-strong">
+                    “{storyExcerpt(r.text, 110).text}”
                   </span>
-                  <span className="text-pretty text-sm text-text">«{r.text}»</span>
-                  <span className="text-xs text-text-weak">{r.timeAgo}</span>
+                  <span className="text-pretty text-xs text-text-weak">
+                    {r.who} en {r.where}, {r.timeAgo}
+                  </span>
                 </Link>
               </DropdownMenuItem>
             ))}

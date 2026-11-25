@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNowStrict } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
@@ -47,7 +47,8 @@ export function useNewRecuerdos() {
         who: c.user_profiles?.display_name || 'Alguien',
         where: c.heritage_sites?.title || 'tu animita',
         text: c.content,
-        timeAgo: formatDistanceToNow(new Date(c.created_at), { addSuffix: true, locale: es }),
+        // "hace 1 hora", not "hace alrededor de 1 hora".
+        timeAgo: formatDistanceToNowStrict(new Date(c.created_at), { addSuffix: true, locale: es }),
         href: animitaHref(c.heritage_sites?.slug),
       })))
     }
