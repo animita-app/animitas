@@ -6,6 +6,8 @@ jest.mock("@/contexts/user-context", () => ({ useUser: () => ({ currentUser, set
 jest.mock("@/lib/supabase/client", () => ({
   createClient: () => ({ from: () => ({ select: () => ({ eq: () => ({ order }) }) }) }),
 }));
+jest.mock("@/hooks/use-new-recuerdos", () => ({ useNewRecuerdos: () => [] }));
+jest.mock("@/lib/demo/flag", () => ({ isDemo: () => false }));
 jest.mock("sonner", () => ({ toast: { error: jest.fn(), success: jest.fn() } }));
 
 import { ProfileView } from "@/app/profile/[username]/profile-view";
@@ -20,7 +22,7 @@ describe("ProfileView", () => {
     render(<ProfileView profile={profile} />);
     expect(await screen.findByText("Todavía no añades animitas")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Añadir" })).toHaveAttribute("href", "/add");
-    expect(screen.getByRole("button", { name: "Cambiar foto" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tu foto/ })).toBeInTheDocument();
   });
 
   it("shows someone else's empty profile without actions", async () => {
@@ -28,7 +30,7 @@ describe("ProfileView", () => {
     render(<ProfileView profile={profile} />);
     expect(await screen.findByText("Todavía no añade animitas")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Añadir" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Cambiar foto" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /tu foto/ })).not.toBeInTheDocument();
   });
 
   it("does not show a Rutas tab", async () => {

@@ -2,10 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Camera } from 'lucide-react'
+import Image from 'next/image'
 import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { InlineEdit } from '@/components/ui/inline-edit'
 import { DevelopingPhoto } from '@/components/loaders'
@@ -17,6 +15,8 @@ import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
 import { toAnimita, TABLES } from '@/lib/animitas'
 import type { Animita } from '@/types/animita'
+import { useNewRecuerdos } from '@/hooks/use-new-recuerdos'
+import { isDemo } from '@/lib/demo/flag'
 import { uploadAvatar } from '@/lib/photos'
 
 interface ProfileData {
@@ -34,7 +34,14 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   const [imageUrl, setImageUrl] = useState(profile.image)
   const [animitas, setAnimitas] = useState<Animita[] | null>(null)
   const isOwnProfile = currentUser?.id === profile.id
-  const isEditor = profile.role === 'editor' || profile.role === 'superadmin'
+  const recuerdos = useNewRecuerdos()
+  const [demo, setDemo] = useState(false)
+  useEffect(() => setDemo(isDemo()), [])
+
+  const signOut = async () => {
+    await createClient().auth.signOut()
+    window.location.href = '/map'
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -78,42 +85,68 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-20 pb-24">
-      <header className="flex flex-col items-center gap-3 text-center">
-        <div className="print-frame photo-vignette -rotate-2 p-2 pb-6">
-          <Avatar className="size-28 rounded-none">
-            <AvatarImage src={imageUrl || undefined} alt="" className="object-cover" />
-            <AvatarFallback className="rounded-none text-4xl font-normal">{profile.display_name?.[0]?.toUpperCase()}</AvatarFallback>
-          </Avatar>
-        </div>
-        {isOwnProfile && (
-          <>
-            <Button variant="link" className="h-auto p-0 text-text-weak" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-              {uploading ? <Spinner /> : <Camera />}
-              {uploading ? 'Subiendo…' : 'Cambiar foto'}
-            </Button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-          </>
-        )}
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-6 pt-24 pb-40">
+      <header className="flex flex-col items-center gap-4 text-center">
+        {/* An instant print of you. Your own is the button to change it; without a photo it waits unexposed,
+            your initial cut out on it. */}
+        {(() => {
+          const print = (
+            <span className="print-frame photo-vignette block -rotate-2 p-2 pb-6 transition-[rotate,scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-0 group-hover:scale-105 motion-reduce:transition-none">
+              <span className="relative flex size-32 items-center justify-center overflow-hidden bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)]">
+                {imageUrl ? (
+                  <Image src={imageUrl} alt="" fill sizes="128px" className="object-cover" />
+                ) : (
+                  <CutoutText text={profile.display_name?.[0] ?? '?'} height={44} />
+                )}
+                {uploading && <span className="absolute inset-0 flex items-center justify-center bg-text-strong/50 text-text-inverted"><Spinner /></span>}
+              </span>
+            </span>
+          )
+          return isOwnProfile ? (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                aria-label={imageUrl ? 'Cambiar tu foto' : 'Poner tu foto'}
+                className="group rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              >
+                {print}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            </>
+          ) : print
+        })()}
 
-        <div className="flex items-center gap-2">
-          {isOwnProfile ? (
-            <h1 className="text-2xl font-medium text-text-strong text-balance">
-              <InlineEdit
-                value={profile.display_name}
-                onSave={saveDisplayName}
-                label="Tu nombre"
-                placeholder="Tu nombre"
-                inline
-              />
-            </h1>
-          ) : (
-            <h1 className="text-2xl font-medium text-text-strong text-balance">{profile.display_name}</h1>
-          )}
-          {isEditor && <Badge variant="secondary">Editor</Badge>}
+        <div className="flex flex-col items-center gap-1">
+          <h1 className="text-balance text-2xl font-medium text-text-strong">
+            {isOwnProfile ? (
+              <InlineEdit value={profile.display_name} onSave={saveDisplayName} label="Tu nombre" placeholder="Tu nombre" inline />
+            ) : (
+              profile.display_name
+            )}
+          </h1>
+          <p className="text-sm text-text-weak">@{profile.username}</p>
         </div>
-        <p className="text-sm text-text-weak">@{profile.username}</p>
       </header>
+
+      {isOwnProfile && recuerdos.length > 0 && (
+        <section aria-labelledby="profile-recuerdos" className="flex flex-col gap-4">
+          <h2 id="profile-recuerdos" className="text-sm text-text">Recuerdos en tus animitas</h2>
+          <ul className="flex flex-col gap-4">
+            {recuerdos.map(r => (
+              <li key={r.id}>
+                <Link href={r.href} className="group flex flex-col gap-1 rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                  <span className="text-pretty text-base text-text-strong">“{r.text}”</span>
+                  <span className="text-pretty text-sm text-text-weak">
+                    {r.who} en <span className="text-text underline-offset-4 group-hover:underline">{r.where}</span>, {r.timeAgo}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section aria-labelledby="profile-animitas" className="space-y-4">
         <h2 id="profile-animitas" className="sr-only">
@@ -142,6 +175,19 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
           />
         )}
       </section>
+
+      {isOwnProfile && (
+        // Plain link in demo mode: it goes through the server to drop the demo cookie.
+        <div className="flex justify-center pt-8">
+          {demo ? (
+            <Button asChild variant="link" className="h-auto p-0 text-text-weak">
+              <a href="/demo?salir">Salir del demo</a>
+            </Button>
+          ) : (
+            <Button variant="link" className="h-auto p-0 text-text-weak" onClick={signOut}>Cerrar sesión</Button>
+          )}
+        </div>
+      )}
     </main>
   )
 }
