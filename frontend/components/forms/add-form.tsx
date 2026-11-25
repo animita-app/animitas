@@ -150,26 +150,24 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   return (
     <div className="flex min-h-svh w-full flex-col md:min-h-0">
-      {/* The way back is the same curve sign as on an animita's page, so there's no Cancelar to read. */}
-      <div className="flex shrink-0 items-center gap-4 px-4 py-3">
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={isSubmitting}
-          aria-label="Volver sin publicar"
-          className="rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-rotate-6 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
-        >
-          <CurveSign className="size-11" />
-        </button>
-        <h1 className="sr-only">Añadir animita</h1>
-        <CutoutText text="añadir" height={30} arc={20} />
-      </div>
+      {/* The way back is the curve sign in the corner, as on an animita's page; the form needs no title of
+          its own, so everything fits on one screen. */}
+      <h1 className="sr-only">Añadir animita</h1>
+      <button
+        type="button"
+        onClick={handleCancel}
+        disabled={isSubmitting}
+        aria-label="Volver sin publicar"
+        className="fixed top-3 left-3 z-30 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-rotate-6 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+      >
+        <CurveSign className="size-11" />
+      </button>
 
       <div className="flex-1">
-        <div className="space-y-12 px-5 pt-4 pb-16">
+        <div className="space-y-6 px-5 pt-16 pb-6 md:pt-6">
           <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2">
             <h2 id={`${ids}-photos`} className="text-sm text-text">Fotos</h2>
-            <ul className="grid grid-cols-3 gap-3">
+            <ul className="grid grid-cols-4 gap-3 sm:grid-cols-5">
               {previews.map((src, i) => {
                 const lifted = drag?.index === i
                 return (
@@ -256,9 +254,9 @@ export function AddForm({ onCancel }: AddFormProps) {
               value={story}
               onChange={e => setStory(e.target.value)}
               placeholder="Lo que sabes de ella, quién la cuida, desde cuándo está"
-              rows={5}
+              rows={3}
               variant="paper"
-              className="min-h-32 -rotate-[0.4deg]"
+              className="min-h-24 -rotate-[0.4deg]"
             />
           </div>
         </div>
@@ -281,7 +279,7 @@ export function AddForm({ onCancel }: AddFormProps) {
 
       {/* Floats at the bottom over a paper fade. While a photo is lifted, the trash takes its place. */}
       <div className="sticky bottom-0 z-20 shrink-0 bg-background px-5 pt-2 pb-safe before:pointer-events-none before:absolute before:inset-x-0 before:-top-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent">
-        <div className="flex min-h-28 items-end justify-center pb-5">
+        <div className="flex min-h-20 items-end justify-center pb-4">
           {drag ? (
             <div ref={trashRef} className="flex flex-col items-center gap-1">
               <CutoutText text="bótala aquí" height={22} arc={16} />

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function AddPage() {
   return (
     // The whole page scrolls, with room around the form; Publicar stays at the bottom of the screen.
-    <div className="mx-auto min-h-svh w-full max-w-xl md:pt-10">
+    <div className="mx-auto min-h-svh w-full max-w-xl">
       <AddForm />
     </div>
   )
