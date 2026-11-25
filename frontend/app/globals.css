@@ -446,6 +446,8 @@
 }
 .pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen) 70%, transparent)) blur(0.25px); }
 
+/* Red ballpoint for what's new; pen marks inside take its ink. */
+.pen-red-tone { --color-pen: var(--color-pen-red); }
 .pen-red { color: var(--color-pen-red); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen-red) 70%, transparent)) blur(0.25px); }
 
 /* Reaching for a pen mark draws it again, stroke by stroke. */

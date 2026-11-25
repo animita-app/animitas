@@ -8,10 +8,9 @@ export const metadata: Metadata = {
 
 export default function AddPage() {
   return (
-    <div className="flex h-svh w-full justify-center md:items-center md:p-6">
-      <div className="flex h-full w-full max-w-lg flex-col overflow-hidden md:h-4/5">
-        <AddForm />
-      </div>
+    // The whole page scrolls, with room around the form; Publicar stays at the bottom of the screen.
+    <div className="mx-auto min-h-svh w-full max-w-xl md:pt-10">
+      <AddForm />
     </div>
   )
 }
