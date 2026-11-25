@@ -34,6 +34,7 @@ import { createClient } from "@/lib/supabase/client"
 import { Animita } from "@/types/animita"
 import { useUser } from "@/contexts/user-context"
 import { TABLES } from "@/lib/animitas"
+import { uploadAnimitaPhoto } from "@/lib/photos"
 
 const MAX_PHOTOS = 5
 
@@ -133,14 +134,9 @@ export function ImageGalleryEditorWrapper({ site, children, images, onImagesSave
     setIsSaving(true)
     const supabase = createClient()
     try {
-      const urls = await Promise.all(items.map(async (item) => {
-        if (!item.file) return item.url
-        const ext = item.file.name.split('.').pop()
-        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-        const { error } = await supabase.storage.from('base').upload(path, item.file)
-        if (error) throw error
-        return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
-      }))
+      const urls = await Promise.all(items.map(item =>
+        item.file ? uploadAnimitaPhoto(supabase, currentUser!.id, item.file) : item.url
+      ))
 
       const { error } = await supabase.from(TABLES.animitas).update({ images: urls }).eq('id', site.id)
       if (error) throw error

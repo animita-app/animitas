@@ -5,16 +5,15 @@ import { Animita } from "@/types/animita"
 import { InlineEdit } from "@/components/ui/inline-edit"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
-import { ROLES } from "@/types/roles"
-import { TABLES } from "@/lib/animitas"
+import { TABLES, canEditAnimita } from "@/lib/animitas"
 
 interface MainInfoProps {
   site: Animita
 }
 
 export function MainInfo({ site }: MainInfoProps) {
-  const { role, currentUser } = useUser()
-  const canEdit = role === ROLES.EDITOR || role === ROLES.SUPERADMIN || currentUser?.id === site.creator_id
+  const { currentUser, isEditor } = useUser()
+  const canEdit = canEditAnimita(currentUser, isEditor, site)
 
   const saveField = async (field: 'title' | 'story', value: string) => {
     const supabase = createClient()

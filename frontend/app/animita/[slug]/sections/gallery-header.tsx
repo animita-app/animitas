@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { useUser } from '@/contexts/user-context'
+import { canEditAnimita } from '@/lib/animitas'
 import { useMobileScrollThreshold } from '@/hooks/use-mobile'
 
 interface GalleryHeaderProps {
@@ -18,7 +19,7 @@ export function GalleryHeader({ site, onEditGallery }: GalleryHeaderProps) {
   const { currentUser, isEditor } = useUser()
   const isOverThreshold = useMobileScrollThreshold()
   const [hasCopied, setHasCopied] = useState(false)
-  const canEdit = isEditor || currentUser?.id === site.creator_id
+  const canEdit = canEditAnimita(currentUser, isEditor, site)
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href)

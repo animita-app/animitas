@@ -37,3 +37,7 @@ export async function findAnimita(supabase: SupabaseClient, slug: string): Promi
     .maybeSingle()
   return data ? toAnimita(data) : null
 }
+
+export function canEditAnimita(user: { id: string } | null, isEditor: boolean, animita: Pick<Animita, 'creator_id'>) {
+  return !!user && (isEditor || user.id === animita.creator_id)
+}

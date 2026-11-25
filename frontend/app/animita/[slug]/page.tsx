@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { getAnimita } from '@/lib/animitas-server'
 import { SiteDetailView } from './sections/site-detail-view'
-import { TABLES } from '@/lib/animitas'
 
 interface PageProps {
   params: Promise<{
@@ -13,17 +11,12 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-
-  const { data } = await supabase
-    .from(TABLES.animitas)
-    .select('title')
-    .eq('slug', slug)
-    .single()
+  const animita = await getAnimita(slug)
+  if (!animita) return { title: 'Animita no encontrada' }
 
   return {
-    title: data?.title,
-    description: `La historia de la animita ${data?.title}.`,
+    title: `Animita de ${animita.title}`,
+    description: animita.story?.slice(0, 160) || `La historia de la animita de ${animita.title}.`,
   }
 }
 

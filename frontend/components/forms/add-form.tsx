@@ -14,6 +14,7 @@ import { useUser } from "@/contexts/user-context"
 import { animitaHref } from "@/lib/routes"
 import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
+import { uploadAnimitaPhoto } from "@/lib/photos"
 
 const MAX_PHOTOS = 5
 
@@ -83,13 +84,7 @@ export function AddForm({ onCancel }: AddFormProps) {
     setIsSubmitting(true)
     try {
       const supabase = createClient()
-      const images = await Promise.all(photos.map(async (file) => {
-        const ext = file.name.split('.').pop()
-        const path = `users/${currentUser?.id}/animitas/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`
-        const { error } = await supabase.storage.from('base').upload(path, file)
-        if (error) throw new Error(`No se pudo subir ${file.name}`)
-        return supabase.storage.from('base').getPublicUrl(path).data.publicUrl
-      }))
+      const images = await Promise.all(photos.map(file => uploadAnimitaPhoto(supabase, currentUser!.id, file)))
 
       const res = await fetch('/api/animitas', {
         method: 'POST',

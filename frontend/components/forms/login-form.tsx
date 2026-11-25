@@ -13,6 +13,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { Camera } from "lucide-react"
 import { clearAuthCookies } from "@/lib/auth-utils"
 import { StepLayout } from "@/components/forms/atoms/step-layout"
+import { uploadAvatar } from "@/lib/photos"
 
 interface LoginFormProps {
   onSuccess?: () => void
@@ -103,11 +104,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("No user found")
-      const ext = avatarFile.name.split('.').pop()
-      const path = `${user.id}/avatar.${ext}`
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true })
-      if (uploadError) throw uploadError
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const publicUrl = await uploadAvatar(supabase, user.id, avatarFile)
       const { error: saveError } = await supabase.from('user_profiles').upsert({ id: user.id, image: publicUrl })
       if (saveError) throw saveError
       clearTimeout(timeoutId)

@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { TABLES } from '@/lib/animitas'
+import { uploadAvatar } from '@/lib/photos'
 
 interface ProfileData {
   id: string
@@ -54,20 +55,14 @@ export function ProfileView({ profile, username }: ProfileViewProps) {
 
     setUploading(true)
     const supabase = createClient()
-    const path = `users/${profile.id}/avatar`
-
-    const { error: uploadError } = await supabase.storage
-      .from('base')
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (uploadError) {
-      toast.error('Error al subir la foto')
+    let publicUrlWithBust: string
+    try {
+      publicUrlWithBust = await uploadAvatar(supabase, profile.id, file)
+    } catch {
+      toast.error('No se pudo subir la foto')
       setUploading(false)
       return
     }
-
-    const { data: { publicUrl } } = supabase.storage.from('base').getPublicUrl(path)
-    const publicUrlWithBust = `${publicUrl}?t=${Date.now()}`
 
     const { error: updateError } = await supabase
       .from('user_profiles')
