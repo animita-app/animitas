@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Animita } from '@/types/animita'
 import { MapMarker } from '../map-marker'
 import { CutoutText } from '@/components/cutout-text'
+import pack from '@/lib/cutout-letters.json'
 import { cn } from '@/lib/utils'
 
 // Mapbox can't read CSS variables. Stamp-pad blue: the app's accent, a little faded by the paper.
@@ -46,6 +47,49 @@ function stamp(size: number, dot: boolean) {
   return { width: canvas.width, height: canvas.height, data: new Uint8Array(px.buffer) }
 }
 
+// Cluster counts in cut-out digits from the letter pack, composed on a canvas the first time the map
+// asks for a count it has not drawn yet.
+const DIGITS = pack as unknown as Record<string, { dir: string; glyphs: [number, number, number][] }>
+let digitImages: Promise<Record<string, HTMLImageElement[]>> | null = null
+function loadDigits() {
+  digitImages ??= Promise.all(
+    '0123456789'.split('').map(async d => {
+      const set = DIGITS[d]
+      const imgs = await Promise.all(set.glyphs.slice(0, 3).map(([index]) => {
+        const img = new Image()
+        img.src = `/cutouts/letters/${set.dir}/${index}.webp`
+        return img.decode().then(() => img)
+      }))
+      return [d, imgs] as const
+    })
+  ).then(entries => Object.fromEntries(entries))
+  return digitImages
+}
+
+function countImage(count: string, digits: Record<string, HTMLImageElement[]>) {
+  const h = 52
+  const imgs = count.split('').map((d, i) => digits[d][(d.charCodeAt(0) + i + count.length) % digits[d].length])
+  const widths = imgs.map(img => (img.width / img.height) * h)
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.ceil(widths.reduce((a, w) => a + w * 0.86, 0) + 16)
+  canvas.height = h + 16
+  const ctx = canvas.getContext('2d')!
+  ctx.shadowColor = 'rgba(28, 24, 20, 0.45)'
+  ctx.shadowBlur = 3
+  ctx.shadowOffsetY = 2
+  let x = 8
+  imgs.forEach((img, i) => {
+    const w = widths[i]
+    ctx.save()
+    ctx.translate(x + w / 2, 8 + h / 2)
+    ctx.rotate((((count.charCodeAt(i) * 7 + i * 13) % 17) - 8) * 0.012)
+    ctx.drawImage(img, -w / 2, -h / 2, w, h)
+    ctx.restore()
+    x += w * 0.86
+  })
+  return ctx.getImageData(0, 0, canvas.width, canvas.height)
+}
+
 function addStamps(map: mapboxgl.Map) {
   if (!map.hasImage(RING)) map.addImage(RING, stamp(56, false), { pixelRatio: 2 })
   if (!map.hasImage(MARK)) map.addImage(MARK, stamp(28, true), { pixelRatio: 2 })
@@ -63,10 +107,11 @@ export interface MarkerLayerProps {
   onSiteSelect?: (site: Animita | null) => void
 }
 
+// Only nearby animitas group, and only until the map is close enough to tell them apart.
 const CLUSTER_CONFIG = {
   cluster: true,
-  clusterMaxZoom: 20,
-  clusterRadius: 25,
+  clusterMaxZoom: 12,
+  clusterRadius: 18,
 }
 
 const POINT_FILTER = ['!', ['has', 'point_count']] as any
@@ -137,17 +182,10 @@ export function MarkerLayer({
         source: sourceId,
         filter: ['has', 'point_count'],
         layout: {
-          'icon-image': RING,
+          'icon-image': ['concat', 'count-', ['to-string', ['get', 'point_count']]],
           'icon-allow-overlap': true,
-          'icon-rotate': tilt as any,
-          'icon-size': ['step', ['get', 'point_count'], 0.75, 10, 1, 30, 1.3],
-          'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': ['step', ['get', 'point_count'], 13, 10, 15, 30, 18],
-          'text-rotate': tilt as any,
-          'text-allow-overlap': true,
+          'icon-size': ['step', ['get', 'point_count'], 0.8, 10, 1, 30, 1.2],
         },
-        paint: { 'text-color': STAMP_INK, 'text-opacity': 0.85 },
       })
     }
 
@@ -169,6 +207,28 @@ export function MarkerLayer({
 
     isInitialized.current = true
   }, [map, isMapReady, sourceId])
+
+  // Draws each cluster count the first time the map needs it. Counts asked for before the digits
+  // loaded are drawn by re-laying out the layer once they arrive.
+  useEffect(() => {
+    if (!map || !isMapReady) return
+    let digits: Record<string, HTMLImageElement[]> | null = null
+    let cancelled = false
+    const drawCount = (e: { id: string }) => {
+      if (!digits || !e.id.startsWith('count-') || map.hasImage(e.id)) return
+      map.addImage(e.id, countImage(e.id.slice(6), digits), { pixelRatio: 2 })
+    }
+    map.on('styleimagemissing', drawCount)
+    loadDigits().then(loaded => {
+      if (cancelled) return
+      digits = loaded
+      if (map.getLayer('clusters')) map.setLayoutProperty('clusters', 'icon-image', ['concat', 'count-', ['to-string', ['get', 'point_count']]])
+    })
+    return () => {
+      cancelled = true
+      map.off('styleimagemissing', drawCount)
+    }
+  }, [map, isMapReady])
 
   // 2. Update point data
   useEffect(() => {
