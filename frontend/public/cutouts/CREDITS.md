@@ -12,4 +12,15 @@ Objects cut out of Wikimedia Commons photos with macOS subject lifting and resiz
 
 - `tumbleweed.png`: [Tumbleweed on W Lone Mtn Rd.jpg](https://commons.wikimedia.org/wiki/File:Tumbleweed_on_W_Lone_Mtn_Rd.jpg), CC BY-SA 4.0.
 
+`real/` holds single letters cut with macOS text recognition from: the animitas' own photos (plaques and signs), the Wikimedia Commons photos above, and these public-domain prints:
+  - [Fruit store, WPA poster, ca. 1938.jpg](https://commons.wikimedia.org/wiki/File:Fruit_store,_WPA_poster,_ca._1938.jpg), Public domain
+  - [Occupations related to mathematics, WPA poster, ca. 1938.jpg](https://commons.wikimedia.org/wiki/File:Occupations_related_to_mathematics,_WPA_poster,_ca._1938.jpg), Public domain
+  - [Portada revista Sucesos 1909.jpg](https://commons.wikimedia.org/wiki/File:Portada_revista_Sucesos_1909.jpg), Public domain
+  - [Revista El Peneca.jpg](https://commons.wikimedia.org/wiki/File:Revista_El_Peneca.jpg), Public domain
+  - [Revista Sucesos-año-1916.jpg](https://commons.wikimedia.org/wiki/File:Revista_Sucesos-a%C3%B1o-1916.jpg), Public domain
+  - [Revista Zig-Zag (1913).jpg](https://commons.wikimedia.org/wiki/File:Revista_Zig-Zag_(1913).jpg), Public domain
+  - [See America, WPA poster, ca. 1938.jpg](https://commons.wikimedia.org/wiki/File:See_America,_WPA_poster,_ca._1938.jpg), Public domain
+  - [This is the market, WPA poster, 1937.jpg](https://commons.wikimedia.org/wiki/File:This_is_the_market,_WPA_poster,_1937.jpg), Public domain
+  - [WPA-Work-Pays-America-Poster.jpg](https://commons.wikimedia.org/wiki/File:WPA-Work-Pays-America-Poster.jpg), Public domain
+
 `letters/` is rendered by the project from macOS system typefaces on generated paper textures.
