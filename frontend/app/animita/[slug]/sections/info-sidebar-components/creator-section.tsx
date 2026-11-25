@@ -2,7 +2,6 @@ import React from "react"
 import { Navigation } from "lucide-react"
 import { Animita } from "@/types/animita"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
 import { directionsUrl, shortAddress } from "@/lib/location"
 import { InfoBlock } from "./info-block"
 
@@ -19,12 +18,15 @@ export function CreatorSection({ site }: CreatorSectionProps) {
       {site.location && (
         <InfoBlock label="Dónde está" className="col-span-2">
           {place && <p className="text-sm text-text-strong text-pretty">{place}</p>}
-          <Button variant="outline" size="sm" asChild>
-            <a href={directionsUrl(site.location)} target="_blank" rel="noopener noreferrer">
-              <Navigation />
-              Cómo llegar
-            </a>
-          </Button>
+          <a
+            href={directionsUrl(site.location)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="road-sign road-sign-blue road-sign-text road-sign-action inline-flex -rotate-1 items-center gap-2 px-3 py-1.5"
+          >
+            Cómo llegar
+            <Navigation aria-hidden />
+          </a>
         </InfoBlock>
       )}
 

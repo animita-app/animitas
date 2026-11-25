@@ -206,9 +206,9 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Deja un comentario…"
-            aria-label="Comentario"
-            className="min-h-24 bg-background resize-none text-sm"
+            placeholder="Deja un recuerdo…"
+            aria-label="Recuerdo"
+            className="paper-note min-h-24 -rotate-[0.6deg] resize-none rounded-none border-0 px-4 py-2 text-sm shadow-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
@@ -217,10 +217,15 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
             }}
           />
           <div className="flex justify-end">
-            <Button size="sm" onClick={handleSubmit} disabled={submitting}>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="road-sign road-sign-text road-sign-action inline-flex rotate-1 items-center gap-2 px-3 py-1.5 disabled:opacity-60"
+            >
               {submitting && <Spinner />}
-              {submitting ? 'Publicando…' : 'Comentar'}
-            </Button>
+              {submitting ? 'Dejando…' : 'Dejar recuerdo'}
+            </button>
           </div>
         </div>
       </div>

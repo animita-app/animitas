@@ -24,7 +24,7 @@ function DropdownMenuContent({
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
         className={cn(
-          "font-medium bg-black text-white popup-motion z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border border-neutral-800 p-1 shadow-md",
+          "bg-neutral-light-1 text-text-strong popup-motion z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xs p-1 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_20px_-10px_rgb(28_24_20_/_0.5)]",
           className
         )}
         {...props}
@@ -49,7 +49,7 @@ function DropdownMenuItem({
       data-slot="dropdown-menu-item"
       data-variant={variant}
       className={cn(
-        "font-medium data-[highlighted]:bg-neutral-800 data-[highlighted]:text-white data-[variant=destructive]:text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "data-[highlighted]:bg-background-weaker data-[variant=destructive]:text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -71,7 +71,7 @@ function DropdownMenuSeparator({ className, ...props }: React.ComponentProps<typ
   return (
     <DropdownMenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn("bg-neutral-800 -mx-1 my-1 h-px", className)}
+      className={cn("bg-border-weak -mx-1 my-1 h-px", className)}
       {...props}
     />
   )
