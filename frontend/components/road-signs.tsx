@@ -21,6 +21,18 @@ export function CurveSign({ className }: { className?: string }) {
   )
 }
 
+// The blue "retorno" sign of Chilean roads: a U-turn arrow, back to where you started.
+export function RetornoSign({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 100 100" className={cn('drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.4)]', className)}>
+      <rect x="2" y="2" width="96" height="96" rx="9" fill="#0b4c9a" />
+      <rect x="7" y="7" width="86" height="86" rx="6" fill="none" stroke="#f4f1e8" strokeWidth="3.5" />
+      <path d="M64 80 V44 C64 30 56 24 47 24 C38 24 30 30 30 44 V58" fill="none" stroke="#f4f1e8" strokeWidth="9" strokeLinecap="butt" />
+      <path d="M17 54 L30 72 L43 54 Z" fill="#f4f1e8" />
+    </svg>
+  )
+}
+
 // The close control: one X cut from print, always the same one, glued a little crooked.
 export function CutoutClose({ className }: { className?: string }) {
   return (

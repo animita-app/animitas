@@ -11,6 +11,8 @@ import { useVisibleSites } from '@/hooks/use-visible-sites'
 import { MarkerLayer } from './layers/marker-layer'
 import { MapStatus } from './map-status'
 import { Animita } from '@/types/animita'
+import { RetornoSign } from '@/components/road-signs'
+import { CutoutText } from '@/components/cutout-text'
 
 const HIGH_ZOOM_THRESHOLD = 10
 
@@ -28,6 +30,17 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const { focusAnimita, resetView } = useMapEvents({ map: map.current })
 
   const [currentZoom, setCurrentZoom] = useState(0)
+  // Away from the starting view of all of Chile: the retorno sign shows to bring it back.
+  const [away, setAway] = useState(false)
+
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isMapReady) return
+    const check = () => setAway(instance.getZoom() > instance.getMinZoom() + 0.4)
+    instance.on('moveend', check)
+    check()
+    return () => { instance.off('moveend', check) }
+  }, [map, isMapReady])
 
   const visibleSites = useVisibleSites({
     map: map.current,
@@ -85,6 +98,20 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
       <div ref={mapContainer} className="absolute inset-0" />
 
       <MapStatus status={status} count={animitas.length} onRetry={reload} />
+
+      {away && (
+        <button
+          type="button"
+          onClick={resetView}
+          aria-label="Ver todo Chile"
+          className="group absolute right-4 bottom-48 z-10 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in fade-in zoom-in-90 hover:scale-110 hover:-rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none md:right-6"
+        >
+          <RetornoSign className="size-11" />
+          <span className="pointer-events-none absolute right-full top-1/2 mr-3 w-max -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
+            <CutoutText text="retorno" height={18} />
+          </span>
+        </button>
+      )}
 
       <MarkerLayer
         map={map.current}
