@@ -13,6 +13,7 @@ export const OBJECT_CREDITS: Credit[] = [
   { object: 'Animitas', source: 'Puerto Natales, animitas 3.jpg', url: 'https://commons.wikimedia.org/wiki/File:Puerto_Natales,_animitas_3.jpg', author: 'LBM1948', license: 'CC BY-SA 4.0' },
   { object: 'Llave', source: 'Skeleton key (Yale & Towne).png', url: 'https://commons.wikimedia.org/wiki/File:Skeleton_key_(Yale_%26_Towne).png', author: 'noy-nac', license: 'CC BY-SA 4.0' },
   { object: 'Chinche', source: 'Pin for a pinboard 2013 PD.jpg', url: 'https://commons.wikimedia.org/wiki/File:Pin_for_a_pinboard_2013_PD.jpg', author: 'Bin im Garten', license: 'CC BY-SA 3.0' },
+  { object: 'Carta', source: 'Envelope from Bright Angel.jpg', url: 'https://commons.wikimedia.org/wiki/File:Envelope_from_Bright_Angel.jpg', author: 'MaNZ345', license: 'CC BY-SA 4.0' },
   { object: 'Mapa', source: 'Carte du Chili (par J.N. Bellin)', url: 'https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg', author: 'Jacques-Nicolas Bellin', license: 'Dominio público' },
 ]
 

@@ -1,8 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Bell } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -78,10 +78,11 @@ export function NotificationsBell() {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative text-text-weak" aria-label="Notificaciones">
-              <Bell />
+            {/* An old letter, like the ones left at an animita: someone left a recuerdo on yours. */}
+            <Button variant="ghost" size="icon-lg" className="relative" aria-label="Notificaciones">
+              <Image src="/cutouts/envelope.png" alt="" width={240} height={138} draggable={false} className="h-6 w-auto -rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]" />
               {notifications.length > 0 && (
-                <span className="absolute top-1 right-1.5 size-2.5 bg-accent rounded-full border-2 border-background" />
+                <span className="absolute top-1.5 right-1 size-3 rounded-full bg-destructive shadow-[0_1px_1px_rgb(28_24_20_/_0.4)]" />
               )}
             </Button>
           </DropdownMenuTrigger>
