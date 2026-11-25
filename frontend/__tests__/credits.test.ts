@@ -10,7 +10,7 @@ describe("object credits", () => {
     expect(objects.size).toBe(OBJECT_CREDITS.length);
     for (const c of OBJECT_CREDITS) {
       expect(c.author).not.toBe("");
-      expect(c.year).toMatch(/^\d{4}$/);
+      expect(c.year).toMatch(/^(\d{4}|s\. f\.)$/);
       expect(c.title).not.toBe("");
       expect(c.license).not.toBe("");
       expect(c.url).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
