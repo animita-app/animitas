@@ -93,20 +93,34 @@ function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke,
   ctx.globalAlpha = 1
 }
 
-// The ink soaking into the paper around the line, a little off to one side.
+// Ink creeping into the paper along its fibres: no blur, just fine hairs that leave the line here and
+// there, and the odd spot where the ball skipped and dropped extra ink. Real ballpoint bleed is sparse
+// and crisp, not a glow.
 function drawBleed(ctx: CanvasRenderingContext2D, { pts, width }: Stroke, rand: () => number) {
-  const line = wander(smooth(pts), width * 1.6, rand)
-  const soak = 0.5 + rand() * 0.6
+  const line = wander(smooth(pts), width, rand)
   ctx.save()
-  ctx.lineCap = ctx.lineJoin = 'round'
-  ctx.strokeStyle = PEN_INK
-  ctx.filter = `blur(${width * soak}px)`
-  ctx.globalAlpha = 0.24 + rand() * 0.12
-  ctx.lineWidth = width * (1.5 + soak * 0.6)
-  ctx.beginPath()
-  ctx.moveTo(line[0].x, line[0].y)
-  line.slice(1).forEach(({ x, y }) => ctx.lineTo(x, y))
-  ctx.stroke()
+  ctx.strokeStyle = ctx.fillStyle = PEN_INK
+  ctx.lineCap = 'round'
+  for (let i = 1; i < line.length - 1; i++) {
+    if (rand() > 0.32) continue
+    const { x, y } = line[i]
+    const a = rand() * Math.PI * 2
+    const len = width * (0.6 + rand() * 1.4)
+    ctx.globalAlpha = 0.18 + rand() * 0.22
+    ctx.lineWidth = 0.35 + rand() * 0.35
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len)
+    ctx.stroke()
+  }
+  for (let k = 0; k < 2; k++) {
+    if (rand() > 0.6) continue
+    const { x, y, pressure } = line[Math.floor(rand() * line.length)]
+    ctx.globalAlpha = 0.55
+    ctx.beginPath()
+    ctx.arc(x, y, width * 0.45 * pressure, 0, Math.PI * 2)
+    ctx.fill()
+  }
   ctx.restore()
 }
 

@@ -470,11 +470,11 @@
   font-weight: 700;
   text-shadow: 0 0 1px color-mix(in oklab, var(--color-pen) 55%, transparent);
 }
-.pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen) 70%, transparent)) blur(0.25px); }
+.pen-bleed { color: var(--color-pen); }
 
 /* Red ballpoint for what's new; pen marks inside take its ink. */
 .pen-red-tone { --color-pen: var(--color-pen-red); }
-.pen-red { color: var(--color-pen-red); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen-red) 70%, transparent)) blur(0.25px); }
+.pen-red { color: var(--color-pen-red); }
 
 /* Reaching for a pen mark draws it again, stroke by stroke. */
 @keyframes pen-draw {
