@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { AnimitaCard } from "@/components/animita/animita-card";
 
 describe("AnimitaCard", () => {
@@ -12,5 +12,15 @@ describe("AnimitaCard", () => {
   it("names the link with the title alone when the place is unknown", () => {
     render(<AnimitaCard site={{ slug: "x", title: "Animita sin lugar", images: null }} />);
     expect(screen.getByRole("link", { name: "Animita sin lugar" })).toBeInTheDocument();
+  });
+
+  it("only cuts the letters of the name while someone reaches for the print", () => {
+    const { container } = render(<AnimitaCard site={{ slug: "r", title: "Romualdo", images: null }} />);
+    const link = screen.getByRole("link", { name: "Romualdo" });
+    expect(container.querySelector("[aria-hidden]")).toBeNull();
+    fireEvent.pointerEnter(link);
+    expect(container.querySelector("[aria-hidden]")?.textContent?.toLowerCase()).toBe("romualdo");
+    fireEvent.pointerLeave(link);
+    expect(container.querySelector("[aria-hidden]")).toBeNull();
   });
 });

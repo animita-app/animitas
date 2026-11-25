@@ -1,6 +1,6 @@
 import { animitaHref } from '@/lib/routes'
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAnimitas } from "@/contexts/animitas-context";
 import { searchLocation } from "@/lib/mapbox";
 
@@ -13,12 +13,17 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const { flyTo, animitas } = useAnimitas();
   const router = useRouter();
+  const pathname = usePathname();
   const debounceTimer = useRef<NodeJS.Timeout>();
 
   const resetSearch = useCallback(() => {
+    // A search still waiting on its debounce would come back and reopen the results.
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     setSearchQuery("");
     onSearch?.("");
     setOpen(false);
+    setSearchResults([]);
+    setIsLoading(false);
   }, [onSearch]);
 
   const handleSearch = useCallback((query: string) => {
@@ -28,6 +33,7 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
     if (query.length >= 3) {
+      setIsLoading(true);
       debounceTimer.current = setTimeout(async () => {
         const localResults = animitas.filter((site) =>
           site.title?.toLowerCase().includes(query.toLowerCase()) ||
@@ -66,7 +72,8 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
           }
         }
 
-        const combined = [...localResults, ...mapboxResults];
+        // Animitas first, but never so many that the places (a comuna, a city) drop out of sight.
+        const combined = [...localResults.slice(0, 4), ...mapboxResults];
 
         const seen = new Set<string>();
         const deduplicated = combined.filter((result) => {
@@ -92,13 +99,14 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
   const handleSelect = useCallback((result: any) => {
     if (result.type === "local" && result.properties) {
       router.push(animitaHref(result.properties.slug));
-    } else if (result.bbox) {
-      flyTo({ bbox: result.bbox });
-    } else if (result.center) {
-      flyTo({ center: result.center });
+    } else {
+      if (result.bbox) flyTo({ bbox: result.bbox });
+      else if (result.center) flyTo({ center: result.center });
+      // A place only means something on the map; from any other page, go there and it flies on arrival.
+      if (pathname !== "/map") router.push("/map");
     }
     resetSearch();
-  }, [flyTo, router, resetSearch]);
+  }, [flyTo, router, resetSearch, pathname]);
 
   return {
     searchQuery,

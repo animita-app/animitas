@@ -11,7 +11,7 @@ export function RoadSignSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [value, setValue] = useState('')
   const [active, setActive] = useState(-1)
-  const { open, setOpen, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
+  const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
 
   useEffect(() => setActive(-1), [searchResults])
 
@@ -21,7 +21,10 @@ export function RoadSignSearch() {
     inputRef.current?.blur()
   }
 
-  const results = open ? searchResults.slice(0, 6) : []
+  const results = open ? searchResults : []
+  const searching = value.trim().length >= 3
+  const empty = searching && open && !isLoading && results.length === 0
+  const waiting = searching && isLoading && results.length === 0
 
   return (
     <div className="relative -rotate-1">
@@ -41,6 +44,8 @@ export function RoadSignSearch() {
             setValue(e.target.value)
             handleSearch(e.target.value)
           }}
+          onBlur={() => setOpen(false)}
+          onFocus={() => { if (searchResults.length) setOpen(true) }}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setActive(i => Math.min(i + 1, results.length - 1)) }
             if (e.key === 'ArrowUp') { e.preventDefault(); setActive(i => Math.max(i - 1, -1)) }
@@ -50,6 +55,14 @@ export function RoadSignSearch() {
           className="road-sign-text w-40 bg-transparent outline-none md:w-52"
         />
       </label>
+
+      <p role="status" className={cn('absolute left-0 top-full mt-1.5 w-max', !(empty || waiting) && 'sr-only')}>
+        {empty ? (
+          <span className="road-sign road-sign-text block rotate-[0.4deg] px-3 py-1.5 opacity-80">Sin resultados</span>
+        ) : waiting ? (
+          <span className="road-sign road-sign-text block -rotate-[0.4deg] px-3 py-1.5 opacity-80">Buscando…</span>
+        ) : null}
+      </p>
 
       {results.length > 0 && (
         <ul id={`${id}-results`} role="listbox" aria-label="Resultados" className="absolute left-0 top-full mt-1.5 flex w-max max-w-[calc(100vw-2rem)] flex-col gap-1.5">

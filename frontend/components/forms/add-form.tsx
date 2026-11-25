@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Camera, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { PAPER_FIELD, SIGN_ACTION } from "@/components/object-styles"
 import { CutoutText } from "@/components/cutout-text"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,9 +19,6 @@ import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
 import { uploadAnimitaPhoto } from "@/lib/photos"
 
-// The same objects as the rest of the app: road signs to act, paper notes to write on, loose prints.
-const SIGN = "road-sign road-sign-text road-sign-action inline-flex min-h-10 items-center justify-center gap-2 px-5 py-1.5 disabled:cursor-default disabled:opacity-60"
-const NOTE = "paper-note rounded-none border-0 px-4 text-base shadow-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
 const PRINT = "shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_8px_14px_-10px_rgb(28_24_20_/_0.5)]"
 
 const MAX_PHOTOS = 5
@@ -123,7 +121,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <button type="button" className={cn(SIGN, "rotate-1")} onClick={handleSubmit} disabled={isSubmitting}>
+          <button type="button" className={cn(SIGN_ACTION, "rotate-1")} onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting && <Spinner />}
             {isSubmitting ? "Publicando…" : "Publicar"}
           </button>
@@ -157,8 +155,8 @@ export function AddForm({ onCancel }: AddFormProps) {
             )}
             {photos.length < MAX_PHOTOS && (
               <div className="flex flex-wrap items-center gap-4">
-                <button type="button" className={cn(SIGN, "-rotate-1")} onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
-                  <Camera aria-hidden className="size-4" />
+                <button type="button" className={cn(SIGN_ACTION, "-rotate-1")} onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
+                  <Camera aria-hidden />
                   Tomar foto
                 </button>
                 <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => galleryRef.current?.click()}>
@@ -202,7 +200,7 @@ export function AddForm({ onCancel }: AddFormProps) {
               autoComplete="off"
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? errorId("name") : undefined}
-              className={cn(NOTE, "paper-line h-12 rotate-[0.4deg] aria-invalid:ring-[3px] aria-invalid:ring-destructive/30")}
+              className={cn(PAPER_FIELD, "paper-line h-12 rotate-[0.4deg] aria-invalid:ring-[3px] aria-invalid:ring-destructive/30")}
             />
             {errors.name && <p id={errorId("name")} className="text-sm text-destructive">{errors.name}</p>}
           </div>
@@ -216,7 +214,7 @@ export function AddForm({ onCancel }: AddFormProps) {
               onChange={e => setStory(e.target.value)}
               placeholder="Lo que sabes de ella, quién la cuida, desde cuándo está"
               rows={5}
-              className={cn(NOTE, "min-h-32 -rotate-[0.4deg] resize-none py-0")}
+              className={cn(PAPER_FIELD, "min-h-32 -rotate-[0.4deg] resize-none py-0")}
             />
           </div>
         </div>

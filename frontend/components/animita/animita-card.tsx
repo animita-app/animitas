@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { animitaHref } from '@/lib/routes'
@@ -20,12 +23,21 @@ function tiltFor(slug: string) {
 // A print with no caption: the name is glued on in cut-out letters when you reach for it.
 export function AnimitaCard({ site }: AnimitaCardProps) {
   const imageUrl = site.images?.[0]
+  // Letters are only cut while someone reaches for the print, so a long list doesn't carry hundreds of
+  // hidden tiles. Touch has no hover, so there the name stays on.
+  const [reaching, setReaching] = useState(false)
+  const [touch, setTouch] = useState(false)
+  useEffect(() => setTouch(window.matchMedia?.('(hover: none)').matches ?? false), [])
   const label = site.city_region ? `${site.title}, ${site.city_region}` : site.title
 
   return (
     <Link
       href={animitaHref(site.slug)}
       aria-label={label}
+      onPointerEnter={() => setReaching(true)}
+      onPointerLeave={() => setReaching(false)}
+      onFocus={() => setReaching(true)}
+      onBlur={() => setReaching(false)}
       className={cn(
         'group relative block bg-neutral-light-1 p-1.5 pb-5 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-12px_rgb(28_24_20_/_0.5)] outline-none transition-[rotate,scale] duration-200 ease-out hover:rotate-0 hover:scale-[1.02] focus-visible:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none',
         tiltFor(site.slug)
@@ -42,11 +54,13 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
           />
         )}
       </div>
-      <span className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end justify-center gap-x-2 gap-y-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100">
-        {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
-          <CutoutText key={`${word}-${i}`} text={word} height={18} />
-        ))}
-      </span>
+      {(reaching || touch) && (
+        <span className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end justify-center gap-x-2 gap-y-1">
+          {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
+            <CutoutText key={`${word}-${i}`} text={word} height={18} />
+          ))}
+        </span>
+      )}
     </Link>
   )
 }

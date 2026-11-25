@@ -15,7 +15,8 @@ import { CutoutText } from '@/components/cutout-text'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
-import { TABLES } from '@/lib/animitas'
+import { toAnimita, TABLES } from '@/lib/animitas'
+import type { Animita } from '@/types/animita'
 import { uploadAvatar } from '@/lib/photos'
 
 interface ProfileData {
@@ -26,14 +27,12 @@ interface ProfileData {
   role: string
 }
 
-type AnimitaSummary = { id: string; slug: string; title: string; images: string[] | null; city_region: string | null }
-
 export function ProfileView({ profile }: { profile: ProfileData }) {
   const { currentUser, setUser } = useUser()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [imageUrl, setImageUrl] = useState(profile.image)
-  const [animitas, setAnimitas] = useState<AnimitaSummary[] | null>(null)
+  const [animitas, setAnimitas] = useState<Animita[] | null>(null)
   const isOwnProfile = currentUser?.id === profile.id
   const isEditor = profile.role === 'editor' || profile.role === 'superadmin'
 
@@ -42,11 +41,12 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
     setAnimitas(null)
     createClient()
       .from(TABLES.animitas)
-      .select('id, slug, title, images, city_region')
+      .select('*')
       .eq('creator_id', profile.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => {
-        if (!cancelled) setAnimitas(data ?? [])
+        // Same rule as the map and the list: an animita without a place has no page, so no card leads to a 404.
+        if (!cancelled) setAnimitas((data ?? []).map(toAnimita).filter((a): a is Animita => a !== null))
       })
     return () => { cancelled = true }
   }, [profile.id])
@@ -98,13 +98,15 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
 
         <div className="flex items-center gap-2">
           {isOwnProfile ? (
-            <InlineEdit
-              value={profile.display_name}
-              onSave={saveDisplayName}
-              label="Tu nombre"
-              placeholder="Tu nombre"
-              className="text-2xl font-medium text-text-strong text-center"
-            />
+            <h1 className="text-2xl font-medium text-text-strong text-balance">
+              <InlineEdit
+                value={profile.display_name}
+                onSave={saveDisplayName}
+                label="Tu nombre"
+                placeholder="Tu nombre"
+                inline
+              />
+            </h1>
           ) : (
             <h1 className="text-2xl font-medium text-text-strong text-balance">{profile.display_name}</h1>
           )}

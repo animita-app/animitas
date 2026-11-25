@@ -15,7 +15,7 @@ const SHELF = [
 function Shelf({ pathname }: { pathname: string }) {
   const { requestReset } = useAnimitas()
   return (
-    <div className="shelf flex items-end gap-6 px-6 pb-1 w-max">
+    <div className="shelf pointer-events-auto flex items-end gap-6 px-6 pb-1 w-max">
       {SHELF.map(item => {
         const active = pathname === item.href || (item.href === '/map' && pathname.startsWith('/animita'))
         return (
@@ -23,11 +23,11 @@ function Shelf({ pathname }: { pathname: string }) {
             key={item.href}
             href={item.href}
             onClick={(e) => {
-              // Already on the map: the map object brings the whole country back into view.
-              if (item.href === '/map' && pathname === '/map') {
-                e.preventDefault()
-                requestReset()
-              }
+              // The map object always brings the whole country back into view: in place on the map,
+              // or closing an animita's sheet on the way.
+              if (item.href !== '/map') return
+              if (pathname === '/map') e.preventDefault()
+              if (pathname === '/map' || pathname.startsWith('/animita')) requestReset()
             }}
             aria-label={item.label}
             aria-current={active ? 'page' : undefined}

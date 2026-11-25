@@ -22,7 +22,7 @@ interface MapboxMapProps {
 export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { animitas, mapTarget, status, reload, resetToken } = useAnimitas()
+  const { animitas, mapTarget, clearMapTarget, status, reload, resetToken } = useAnimitas()
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
   const { selectedAnimita, selectAnimita } = useAnimitaSelection()
   const { focusAnimita, resetView } = useMapEvents({ map: map.current })
@@ -60,7 +60,9 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
     } else if (mapTarget.center) {
       instance.flyTo({ center: mapTarget.center, zoom: 14, essential: true })
     }
-  }, [map, mapTarget, isMapReady])
+    // Spent once flown, so coming back to the map later starts from all of Chile again.
+    clearMapTarget()
+  }, [map, mapTarget, isMapReady, clearMapTarget])
 
   const handleMarkerClick = (id: string) => {
     const site = animitas.find((s: Animita) => s.id === id)

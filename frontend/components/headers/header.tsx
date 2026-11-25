@@ -28,7 +28,7 @@ export function Header() {
         <RoadSignSearch />
 
         {isMapRoute && (
-          <div className="fixed inset-x-0 bottom-safe isolate flex justify-center before:pointer-events-none before:absolute before:inset-x-0 before:-top-20 before:-bottom-8 before:-z-10 before:bg-linear-to-t before:from-background before:via-background/85 before:to-transparent">
+          <div className="pointer-events-none! fixed inset-x-0 bottom-safe isolate flex justify-center before:pointer-events-none before:absolute before:inset-x-0 before:-top-20 before:-bottom-8 before:-z-10 before:bg-linear-to-t before:from-background before:via-background/85 before:to-transparent">
             <MainHeaderPanel />
           </div>
         )}

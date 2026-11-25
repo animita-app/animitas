@@ -9,20 +9,20 @@ describe("InlineEdit", () => {
     const onSave = jest.fn(async () => {});
     render(<InlineEdit value="Juanito" label="Nombre" onSave={onSave} />);
 
-    fireEvent.keyDown(screen.getByRole("button", { name: "Editar nombre" }), { key: "Enter" });
+    fireEvent.keyDown(screen.getByRole("button", { name: /editar nombre/i }), { key: "Enter" });
     const input = screen.getByRole("textbox", { name: "Nombre" });
     fireEvent.change(input, { target: { value: "Juanito Pérez " } });
     fireEvent.keyDown(input, { key: "Enter" });
 
     await waitFor(() => expect(onSave).toHaveBeenCalledWith("Juanito Pérez"));
-    expect(await screen.findByRole("button", { name: "Editar nombre" })).toHaveTextContent("Juanito Pérez");
+    expect(await screen.findByRole("button", { name: /^Juanito Pérez\s*,\s*editar nombre$/ })).toBeInTheDocument();
   });
 
   it("keeps the old value and stays open when saving fails", async () => {
     const onSave = jest.fn(async () => { throw new Error("sin conexión"); });
     render(<InlineEdit value="Juanito" label="Nombre" onSave={onSave} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Editar nombre" }));
+    fireEvent.click(screen.getByRole("button", { name: /editar nombre/i }));
     const input = screen.getByRole("textbox", { name: "Nombre" });
     fireEvent.change(input, { target: { value: "Otro" } });
     fireEvent.keyDown(input, { key: "Enter" });
@@ -33,9 +33,9 @@ describe("InlineEdit", () => {
 
   it("Escape discards the draft", () => {
     render(<InlineEdit value="Juanito" label="Nombre" onSave={jest.fn()} />);
-    fireEvent.click(screen.getByRole("button", { name: "Editar nombre" }));
+    fireEvent.click(screen.getByRole("button", { name: /editar nombre/i }));
     fireEvent.change(screen.getByRole("textbox", { name: "Nombre" }), { target: { value: "Otro" } });
     fireEvent.keyDown(screen.getByRole("textbox", { name: "Nombre" }), { key: "Escape" });
-    expect(screen.getByRole("button", { name: "Editar nombre" })).toHaveTextContent("Juanito");
+    expect(screen.getByRole("button", { name: /editar nombre/i })).toHaveTextContent("Juanito");
   });
 });

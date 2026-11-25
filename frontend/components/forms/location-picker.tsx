@@ -9,6 +9,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { reverseGeocode } from "@/lib/mapbox"
 import { shortAddress } from "@/lib/location"
 import { cn } from "@/lib/utils"
+import { SIGN_ACTION } from "@/components/object-styles"
 import { applyPaperStyle } from "@/components/map/paper-style"
 
 export interface PickedLocation {
@@ -119,9 +120,9 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
             type="button"
             onClick={locate}
             disabled={gps === "locating"}
-            className="road-sign road-sign-blue road-sign-text road-sign-action absolute bottom-2 right-2 inline-flex items-center gap-2 px-4 py-1 disabled:opacity-60"
+            className={cn(SIGN_ACTION, "road-sign-blue absolute bottom-2 right-2 min-h-8 px-4 py-1")}
           >
-            {gps === "locating" ? <Spinner /> : <LocateFixed aria-hidden className="size-4" />}
+            {gps === "locating" ? <Spinner /> : <LocateFixed aria-hidden />}
             {gps === "locating" ? "Ubicando…" : "Mi ubicación"}
           </button>
         </div>

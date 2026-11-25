@@ -21,6 +21,7 @@ interface AnimitasContextType {
   setSelectedComunas: (comunas: string[]) => void
   mapTarget: MapTarget | null
   flyTo: (target: MapTarget) => void
+  clearMapTarget: () => void
   resetToken: number
   requestReset: () => void
 }
@@ -62,10 +63,11 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(() => setReloadToken(t => t + 1), [])
   const flyTo = useCallback((target: MapTarget) => setMapTarget({ ...target }), [])
+  const clearMapTarget = useCallback(() => setMapTarget(null), [])
   const requestReset = useCallback(() => setResetToken(t => t + 1), [])
 
   return (
-    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo, resetToken, requestReset }}>
+    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo, clearMapTarget, resetToken, requestReset }}>
       {children}
     </AnimitasContext.Provider>
   )

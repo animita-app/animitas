@@ -37,4 +37,23 @@ describe("ProfileView", () => {
     await screen.findByText("Todavía no añade animitas");
     expect(screen.queryByText("Rutas")).not.toBeInTheDocument();
   });
+
+  it("only lists animitas that have a place, since the others have no page to open", async () => {
+    currentUser = null;
+    order.mockResolvedValue({
+      data: [
+        { id: "1", slug: "con-lugar", title: "Con lugar", images: null, lat: -33.4, lng: -70.6 },
+        { id: "2", slug: "sin-lugar", title: "Sin lugar", images: null, location: null },
+      ],
+    });
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByRole("link", { name: "Con lugar" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Sin lugar" })).not.toBeInTheDocument();
+  });
+
+  it("makes your own name the page heading, read as the name", async () => {
+    currentUser = { id: "ana" };
+    render(<ProfileView profile={profile} />);
+    expect(await screen.findByRole("heading", { level: 1, name: /^Ana/ })).toBeInTheDocument();
+  });
 });

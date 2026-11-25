@@ -96,7 +96,6 @@ export function InlineEdit({ value, onSave, type = 'text', label, placeholder, c
     <Tag
       role="button"
       tabIndex={0}
-      aria-label={`Editar ${label.toLowerCase()}`}
       onClick={() => setEditing(true)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -112,6 +111,8 @@ export function InlineEdit({ value, onSave, type = 'text', label, placeholder, c
       )}
     >
       {saved || <span className="text-text-weak">{placeholder}</span>}
+      {/* The text it shows stays its name, so a heading still reads as the name; the action comes after. */}
+      <span className="sr-only">, editar {label.toLowerCase()}</span>
     </Tag>
   )
 }

@@ -12,6 +12,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Camera } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { PAPER_FIELD, SIGN_ACTION } from "@/components/object-styles"
 import { clearAuthCookies } from "@/lib/auth-utils"
 import { StepLayout } from "@/components/forms/atoms/step-layout"
 import { uploadAvatar } from "@/lib/photos"
@@ -20,9 +21,6 @@ interface LoginFormProps {
   onSuccess?: () => void
 }
 
-// A green road sign to move on, blue for an outside service; what you write goes on a paper note.
-const SIGN = "road-sign road-sign-text road-sign-action inline-flex min-h-10 items-center justify-center gap-2 px-5 py-1.5 disabled:cursor-default disabled:opacity-60"
-const NOTE = "paper-note paper-line h-12 rounded-none border-0 px-4 text-base shadow-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
 
 type Step = 'login' | 'otp' | 'name' | 'username' | 'avatar'
 const ONBOARDING_STEPS: Step[] = ['name', 'username', 'avatar']
@@ -191,7 +189,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         totalSteps={3}
         className="animate-slide-in-right"
         actions={<>
-          <button type="button" className={cn(SIGN, "-rotate-1")} disabled={loading || !avatarFile} onClick={handleSaveAvatar}>
+          <button type="button" className={cn(SIGN_ACTION, "-rotate-1")} disabled={loading || !avatarFile} onClick={handleSaveAvatar}>
             {loadingAction === 'avatar' && <Spinner />}
             {loadingAction === 'avatar' ? "Subiendo…" : "Continuar"}
           </button>
@@ -235,7 +233,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         totalSteps={3}
         className="animate-slide-in-right"
         actions={
-          <button type="submit" form="username-form" className={cn(SIGN, "-rotate-1")} disabled={loading || !username.trim()}>
+          <button type="submit" form="username-form" className={cn(SIGN_ACTION, "-rotate-1")} disabled={loading || !username.trim()}>
             {loadingAction === 'username' && <Spinner />}
             {loadingAction === 'username' ? "Guardando…" : "Continuar"}
           </button>
@@ -250,7 +248,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
             required
             autoFocus
-            className={cn(NOTE, "rotate-[0.5deg]")}
+            className={cn(PAPER_FIELD, "paper-line h-12 rotate-[0.5deg]")}
           />
         </form>
       </StepLayout>
@@ -267,7 +265,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         totalSteps={3}
         className="animate-fade-in"
         actions={
-          <button type="submit" form="name-form" className={cn(SIGN, "rotate-1")} disabled={loading || !fullName.trim()}>
+          <button type="submit" form="name-form" className={cn(SIGN_ACTION, "rotate-1")} disabled={loading || !fullName.trim()}>
             {loadingAction === 'name' && <Spinner />}
             {loadingAction === 'name' ? "Guardando…" : "Continuar"}
           </button>
@@ -275,7 +273,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       >
         <form id="name-form" onSubmit={handleSaveName}>
           <Label htmlFor="fullName" className="sr-only">Nombre completo</Label>
-          <Input id="fullName" placeholder="Tu nombre" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus className={cn(NOTE, "-rotate-[0.5deg]")} />
+          <Input id="fullName" placeholder="Tu nombre" value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus className={cn(PAPER_FIELD, "paper-line h-12 -rotate-[0.5deg]")} />
         </form>
       </StepLayout>
     )
@@ -288,7 +286,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         cutout="revisa tu correo"
         description={<>Escribe el código que llegó a <span className="font-medium text-text-strong">{email}</span></>}
         actions={
-          <button type="submit" form="otp-form" className={cn(SIGN, "-rotate-1")} disabled={loading || otpCode.length !== 6}>
+          <button type="submit" form="otp-form" className={cn(SIGN_ACTION, "-rotate-1")} disabled={loading || otpCode.length !== 6}>
             {loadingAction === 'otp' && <Spinner />}
             {loadingAction === 'otp' ? "Verificando…" : "Verificar"}
           </button>
@@ -322,15 +320,15 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       cutout="entrar"
       description="Para añadir animitas, prender velas y dejar recuerdos."
       actions={
-        <button type="submit" form="login-form" className={cn(SIGN, "rotate-1")} disabled={loading}>
+        <button type="submit" form="login-form" className={cn(SIGN_ACTION, "rotate-1")} disabled={loading}>
           {loadingAction === 'email' && <Spinner />}
           {loadingAction === 'email' ? "Enviando…" : "Continuar"}
         </button>
       }
     >
-      <button type="button" className={cn(SIGN, "road-sign-blue -rotate-1 self-center")} onClick={handleGoogleLogin} disabled={loading}>
+      <button type="button" className={cn(SIGN_ACTION, "road-sign-blue -rotate-1 self-center")} onClick={handleGoogleLogin} disabled={loading}>
         {loadingAction === 'google' ? <Spinner /> : (
-          <svg aria-hidden className="size-4" viewBox="0 0 24 24">
+          <svg aria-hidden viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
             <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
             <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -342,7 +340,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
       <form id="login-form" onSubmit={handleEmailSubmit} className="pt-2">
         <Label htmlFor="email" className="sr-only">Correo electrónico</Label>
-        <Input id="email" type="email" autoComplete="email" placeholder="o tu correo" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn(NOTE, "rotate-[0.4deg]")} />
+        <Input id="email" type="email" autoComplete="email" placeholder="o tu correo" value={email} onChange={(e) => setEmail(e.target.value)} required className={cn(PAPER_FIELD, "paper-line h-12 rotate-[0.4deg]")} />
       </form>
     </StepLayout>
   )
