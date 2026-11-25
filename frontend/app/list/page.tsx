@@ -8,6 +8,9 @@ import { EmptyState } from '@/components/empty-state'
 import { DevelopingPhoto } from '@/components/loaders'
 import { ComunaFilter } from '@/components/comuna-filter'
 
+// Loose prints with room between them, so each one reads as its own photo on the table.
+const GRID = 'grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 xl:gap-x-8'
+
 export default function ListPage() {
   const { animitas, status } = useAnimitas()
 
@@ -18,10 +21,10 @@ export default function ListPage() {
 
   return (
     <div className="min-h-svh w-full bg-background pt-20 pb-40">
-      <div className="px-4 mx-auto space-y-8">
+      <div className="mx-auto space-y-10 px-6 md:px-10">
         <ComunaFilter />
         {status === 'loading' ? (
-          <div role="status" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-6">
+          <div role="status" className={GRID}>
             <span className="sr-only">Cargando animitas</span>
             {Array.from({ length: 8 }).map((_, i) => <DevelopingPhoto key={i} />)}
           </div>
@@ -29,7 +32,7 @@ export default function ListPage() {
           <>
             <p className="sr-only">{sortedSites.length} {sortedSites.length === 1 ? 'animita' : 'animitas'}</p>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 lg:grid-cols-4">
+            <div className={GRID}>
               {sortedSites.map((site) => <AnimitaCard key={site.id} site={site} />)}
             </div>
           </>

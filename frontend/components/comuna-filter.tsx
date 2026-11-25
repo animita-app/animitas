@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAnimitas } from '@/contexts/animitas-context'
+import { cn } from '@/lib/utils'
 
 // The list's only filter. The trigger is the word itself, cut out; chosen comunas replace it.
 export function ComunaFilter() {
@@ -27,13 +28,25 @@ export function ComunaFilter() {
         >
           <CutoutText text={label} height={26} arc={12} />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="max-h-80">
-          {comunas.map(comuna => (
-            <DropdownMenuItem key={comuna} onSelect={(e) => { e.preventDefault(); toggle(comuna) }} className="justify-between gap-6">
-              {comuna}
-              {selectedComunas.includes(comuna) && <CheckCircle2 />}
-            </DropdownMenuItem>
-          ))}
+        {/* Comunas as street plates stacked under the word, like the search results: blue, green once chosen. */}
+        <DropdownMenuContent align="start" className="flex max-h-96 flex-col items-start gap-1.5 bg-transparent p-2 shadow-none">
+          {comunas.map((comuna, i) => {
+            const chosen = selectedComunas.includes(comuna)
+            return (
+              <DropdownMenuItem
+                key={comuna}
+                onSelect={(e) => { e.preventDefault(); toggle(comuna) }}
+                className={cn(
+                  'road-sign road-sign-text w-max gap-3 px-3 py-1.5 text-base transition-[translate] duration-150 data-[highlighted]:translate-x-1',
+                  chosen ? '' : 'road-sign-blue',
+                  i % 2 ? 'rotate-[0.5deg]' : '-rotate-[0.4deg]'
+                )}
+              >
+                {comuna}
+                {chosen && <CheckCircle2 className="text-current" />}
+              </DropdownMenuItem>
+            )
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
       {selectedComunas.length > 0 && (
