@@ -10,8 +10,25 @@ describe("object credits", () => {
     expect(objects.size).toBe(OBJECT_CREDITS.length);
     for (const c of OBJECT_CREDITS) {
       expect(c.author).not.toBe("");
+      expect(c.year).toMatch(/^\d{4}$/);
+      expect(c.title).not.toBe("");
       expect(c.license).not.toBe("");
       expect(c.url).toMatch(/^https:\/\/commons\.wikimedia\.org\/wiki\/File:/);
     }
+  });
+});
+
+describe("credits page", () => {
+  it("is only reachable by its address: nothing in the app links to it", () => {
+    const roots = ["app", "components"].map(d => path.join(__dirname, "..", d));
+    const files: string[] = [];
+    const walk = (dir: string) => fs.readdirSync(dir, { withFileTypes: true }).forEach(e => {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (/\.tsx?$/.test(e.name)) files.push(full);
+    });
+    roots.forEach(walk);
+    const linking = files.filter(f => !/app\/(creditos|sitemap)/.test(f) && /href=["{`'][^"'`]*\/creditos/.test(fs.readFileSync(f, "utf8")));
+    expect(linking).toEqual([]);
   });
 });

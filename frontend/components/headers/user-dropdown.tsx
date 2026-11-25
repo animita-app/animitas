@@ -46,9 +46,6 @@ export function UserDropdown() {
           <DropdownMenuItem asChild>
             <Link href={`/@${currentUser.username}`}>Perfil</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/creditos">Créditos</Link>
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           {demo ? (
             <>

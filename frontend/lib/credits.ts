@@ -1,20 +1,30 @@
+// The people behind [ÁNIMA], in the order the project came to be.
+export const PEOPLE = {
+  authors: ['Joaquín Stephens', 'Felipe Mandiola'],
+  thesis: ['Felipe Mandiola', 'Vicente Pino', 'Manuel Larraín'],
+  advisors: ['Tomás Folsch', 'Luis Valenzuela'],
+}
+
 export interface Credit {
+  // Which object in the interface the photo became.
   object: string
-  source: string
-  url: string
   author: string
+  year: string
+  title: string
+  // APA's bracketed description of the work.
+  kind: 'Fotografía' | 'Mapa'
+  url: string
   license: string
 }
 
 // Every object photo in the interface is cut from these Wikimedia Commons files and keeps its license.
-// CC BY-SA asks for the author, the license and a link, visible to whoever sees the image: /creditos.
+// CC BY-SA asks for the author, the license and a link: they're listed at /creditos, cited in APA 7.
 export const OBJECT_CREDITS: Credit[] = [
-  { object: 'Vela', source: 'Einzelnes Opferlicht.JPG', url: 'https://commons.wikimedia.org/wiki/File:Einzelnes_Opferlicht.JPG', author: '3268zauber', license: 'CC BY-SA 3.0' },
-  { object: 'Animitas', source: 'Puerto Natales, animitas 3.jpg', url: 'https://commons.wikimedia.org/wiki/File:Puerto_Natales,_animitas_3.jpg', author: 'LBM1948', license: 'CC BY-SA 4.0' },
-  { object: 'Llave', source: 'Skeleton key (Yale & Towne).png', url: 'https://commons.wikimedia.org/wiki/File:Skeleton_key_(Yale_%26_Towne).png', author: 'noy-nac', license: 'CC BY-SA 4.0' },
-  { object: 'Chinche', source: 'Pin for a pinboard 2013 PD.jpg', url: 'https://commons.wikimedia.org/wiki/File:Pin_for_a_pinboard_2013_PD.jpg', author: 'Bin im Garten', license: 'CC BY-SA 3.0' },
-  { object: 'Carta', source: 'Envelope from Bright Angel.jpg', url: 'https://commons.wikimedia.org/wiki/File:Envelope_from_Bright_Angel.jpg', author: 'MaNZ345', license: 'CC BY-SA 4.0' },
-  { object: 'Basurero', source: 'Vuilnisemmer.jpg', url: 'https://commons.wikimedia.org/wiki/File:Vuilnisemmer.jpg', author: 'Rasbak', license: 'CC BY-SA 3.0' },
-  { object: 'Mapa', source: 'Carte du Chili (par J.N. Bellin)', url: 'https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg', author: 'Jacques-Nicolas Bellin', license: 'Dominio público' },
+  { object: 'Vela', author: '3268zauber', year: '2009', title: 'Einzelnes Opferlicht', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Einzelnes_Opferlicht.JPG', license: 'CC BY-SA 3.0' },
+  { object: 'Animitas', author: 'LBM1948', year: '2013', title: 'Puerto Natales, animitas 3', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Puerto_Natales,_animitas_3.jpg', license: 'CC BY-SA 4.0' },
+  { object: 'Llave', author: 'noy-nac', year: '2017', title: 'Skeleton key (Yale & Towne)', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Skeleton_key_(Yale_%26_Towne).png', license: 'CC BY-SA 4.0' },
+  { object: 'Chinche', author: 'Bin im Garten', year: '2013', title: 'Pin for a pinboard 2013 PD', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Pin_for_a_pinboard_2013_PD.jpg', license: 'CC BY-SA 3.0' },
+  { object: 'Carta', author: 'MaNZ345', year: '2026', title: 'Envelope from Bright Angel', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Envelope_from_Bright_Angel.jpg', license: 'CC BY-SA 4.0' },
+  { object: 'Basurero', author: 'Rasbak', year: '2009', title: 'Vuilnisemmer', kind: 'Fotografía', url: 'https://commons.wikimedia.org/wiki/File:Vuilnisemmer.jpg', license: 'CC BY-SA 3.0' },
+  { object: 'Mapa', author: 'Bellin, J.-N.', year: '1764', title: 'Carte du Chili', kind: 'Mapa', url: 'https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg', license: 'Dominio público' },
 ]
-
