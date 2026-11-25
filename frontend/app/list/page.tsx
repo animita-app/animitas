@@ -5,6 +5,7 @@ import { AnimitaCard } from '@/components/animita/animita-card'
 import { cn } from '@/lib/utils'
 import { EmptyState } from '@/components/empty-state'
 import { DevelopingPhoto } from '@/components/loaders'
+import { ComunaFilter } from '@/components/comuna-filter'
 
 type SortOrder = 'newest' | 'oldest' | 'name'
 
@@ -34,8 +35,9 @@ export default function ListPage() {
   }, [selectedComunas, sortOrder])
 
   return (
-    <div className="min-h-svh w-full bg-background py-20">
-      <div className="px-4 mx-auto">
+    <div className="min-h-svh w-full bg-background pt-20 pb-40">
+      <div className="px-4 mx-auto space-y-8">
+        <ComunaFilter />
         {status === 'loading' ? (
           <div role="status" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6">
             <span className="sr-only">Cargando animitas</span>

@@ -3,7 +3,7 @@ import { Navigation } from "lucide-react"
 import { Animita } from "@/types/animita"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { directionsUrl } from "@/lib/location"
+import { directionsUrl, shortAddress } from "@/lib/location"
 import { InfoBlock } from "./info-block"
 
 interface CreatorSectionProps {
@@ -12,7 +12,7 @@ interface CreatorSectionProps {
 
 export function CreatorSection({ site }: CreatorSectionProps) {
   const creatorName = site.created_by?.name || 'Anónimo'
-  const place = [site.address, site.city_region].filter(Boolean).join(', ')
+  const place = shortAddress(site.address, site.city_region)
 
   return (
     <div className="grid grid-cols-2 gap-x-6 gap-y-8 items-start">

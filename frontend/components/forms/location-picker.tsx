@@ -7,6 +7,7 @@ import { LocateFixed, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { reverseGeocode } from "@/lib/mapbox"
+import { shortAddress } from "@/lib/location"
 import { cn } from "@/lib/utils"
 import { applyPaperStyle } from "@/components/map/paper-style"
 
@@ -129,7 +130,7 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
         {gps === "denied" && !value
           ? "No pudimos ver tu ubicación. Mueve el mapa hasta dejar el pin sobre la animita."
           : value?.address
-            ? value.address
+            ? shortAddress(value.address)
             : "Mueve el mapa hasta dejar el pin sobre la animita."}
       </p>
     </div>
