@@ -14,6 +14,7 @@ import { MarkerLayer } from './layers/marker-layer'
 import { MapStatus } from './map-status'
 import { Animita } from '@/types/animita'
 import { RetornoSign } from '@/components/road-signs'
+import { areaBounds } from '@/lib/area'
 import { CutoutText } from '@/components/cutout-text'
 
 const HIGH_ZOOM_THRESHOLD = 10
@@ -26,7 +27,7 @@ interface MapboxMapProps {
 export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { animitas, mapTarget, clearMapTarget, status, reload, resetToken } = useAnimitas()
+  const { animitas, mapTarget, clearMapTarget, status, reload, resetToken, area } = useAnimitas()
   const { mapContainer, map, isMapReady } = useMapInitialization({ accessToken, style })
   const { selectedAnimita, selectAnimita } = useAnimitaSelection()
   const { focusAnimita, resetView } = useMapEvents({ map: map.current })
@@ -109,6 +110,26 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
       instance.off('dragstart', onDrag)
     }
   }, [map, isMapReady, pathname, router])
+
+  // The chosen area, outlined in the same ballpoint as the marks, and framed.
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isMapReady) return
+    const data = area ? { type: 'Feature' as const, properties: {}, geometry: area.geometry } : { type: 'FeatureCollection' as const, features: [] }
+    const source = instance.getSource('area') as mapboxgl.GeoJSONSource | undefined
+    if (source) source.setData(data as any)
+    else {
+      instance.addSource('area', { type: 'geojson', data: data as any })
+      // Under the marks, so the outline never covers an animita.
+      const below = instance.getLayer('clusters') ? 'clusters' : undefined
+      instance.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': '#2c3f8c', 'fill-opacity': 0.04 } }, below)
+      instance.addLayer({ id: 'area-line', type: 'line', source: 'area', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#2c3f8c', 'line-width': 2, 'line-opacity': 0.75, 'line-blur': 0.6 } }, below)
+    }
+    if (area) {
+      const [w, s, e, n] = areaBounds(area.geometry)
+      instance.fitBounds([[w, s], [e, n]], { padding: { top: 120, bottom: 160, left: 48, right: 48 }, duration: 900, essential: true })
+    }
+  }, [area, map, isMapReady])
 
   // An animita opened any way (search, list, a link) brings the map to it, not only a click on its point.
   useEffect(() => {

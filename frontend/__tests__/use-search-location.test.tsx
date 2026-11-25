@@ -7,7 +7,9 @@ const animitas = Array.from({ length: 8 }, (_, i) => ({
   id: `a${i}`, slug: `a${i}`, title: `Animita ${i}`, city_region: "Coquimbo", address: "", location: { lat: -30, lng: -71 },
 }));
 jest.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => pathname }));
-jest.mock("@/contexts/animitas-context", () => ({ useAnimitas: () => ({ flyTo, animitas }) }));
+const setArea = jest.fn();
+jest.mock("@/contexts/animitas-context", () => ({ useAnimitas: () => ({ flyTo, animitas, setArea }) }));
+jest.mock("@/lib/area", () => ({ ...jest.requireActual("@/lib/area"), fetchBoundary: jest.fn(async () => null) }));
 jest.mock("@/lib/mapbox", () => ({
   searchLocation: jest.fn(async () => [{ id: "p1", place_name: "Coquimbo, Chile", text: "Coquimbo", center: [-71.3, -29.9] }]),
 }));
@@ -52,5 +54,13 @@ describe("useSearchLocation", () => {
     const { result } = renderHook(() => useSearchLocation());
     act(() => result.current.handleSelect({ type: "mapbox", center: [-71.3, -29.9] }));
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("choosing a comuna narrows to it as an area, instead of only flying there", () => {
+    pathname = "/map";
+    const { result } = renderHook(() => useSearchLocation());
+    act(() => result.current.handleSelect({ type: "mapbox", text: "Vitacura", place_name: "Vitacura, Chile", bbox: [-70.6, -33.4, -70.5, -33.3] }));
+    expect(setArea).toHaveBeenCalledWith(expect.objectContaining({ label: "Vitacura" }));
+    expect(flyTo).not.toHaveBeenCalled();
   });
 });

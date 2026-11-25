@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useSearchLocation } from '@/hooks/use-search-location'
 import { useAnimitas } from '@/contexts/animitas-context'
@@ -12,7 +13,7 @@ export function RoadSignSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [value, setValue] = useState('')
   const [active, setActive] = useState(-1)
-  const { setQuery } = useAnimitas()
+  const { setQuery, area, setArea } = useAnimitas()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation(setQuery)
 
   useEffect(() => setActive(-1), [searchResults])
@@ -41,7 +42,7 @@ export function RoadSignSearch() {
           aria-activedescendant={active >= 0 ? `${id}-result-${active}` : undefined}
           autoComplete="off"
           value={value}
-          placeholder="¿A dónde?"
+          placeholder="Busca una animita o un lugar"
           onChange={(e) => {
             setValue(e.target.value)
             handleSearch(e.target.value)
@@ -54,9 +55,19 @@ export function RoadSignSearch() {
             if (e.key === 'Enter' && results[Math.max(active, 0)]) { e.preventDefault(); choose(results[Math.max(active, 0)]) }
             if (e.key === 'Escape') { setValue(''); resetSearch(); setOpen(false) }
           }}
-          className="road-sign-text w-40 bg-transparent outline-none md:w-52"
+          className="road-sign-text w-52 bg-transparent outline-none md:w-64"
         />
       </label>
+
+      {/* The chosen area, as a street plate hanging under the sign, with an X to take it off. */}
+      {area && results.length === 0 && (
+        <div className="absolute left-2 top-full mt-2 flex w-max rotate-1 items-center gap-2">
+          <span className="road-sign road-sign-blue road-sign-text px-3 py-1">{area.label}</span>
+          <Button variant="link" className="h-auto p-0 text-text-weak" onClick={() => setArea(null)} aria-label={`Quitar el filtro de ${area.label}`}>
+            <X />
+          </Button>
+        </div>
+      )}
 
       <p role="status" className={cn('absolute left-0 top-full mt-1.5 w-max', !empty && 'sr-only')}>
         {empty && <span className="road-sign road-sign-text block rotate-[0.4deg] px-3 py-1.5 opacity-80">Sin resultados</span>}
@@ -80,7 +91,7 @@ export function RoadSignSearch() {
                 active === i && 'translate-x-1'
               )}
             >
-              <span className="text-pretty">{result.type === 'local' ? result.title : (result.text || result.place_name)}</span>
+              <span className="text-pretty">{result.title || result.text || result.place_name}</span>
               <ArrowUpRight aria-hidden className="shrink-0" />
             </li>
           ))}

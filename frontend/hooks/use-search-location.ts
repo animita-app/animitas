@@ -3,15 +3,28 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAnimitas } from "@/contexts/animitas-context";
 import { searchLocation } from "@/lib/mapbox";
+import { bboxPolygon, fetchBoundary } from "@/lib/area";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
+
+const AREA_TYPES = new Set(["region", "district", "place", "locality"]);
+const KIND: Record<string, string> = { region: "región", district: "provincia", place: "comuna", locality: "localidad" };
+
+// How a place reads on its plate: an area says what kind it is; a street says which comuna it's in, so
+// "Recoleta" the comuna and "Recoleta" the street in Pudahuel don't look the same.
+export function placeLabel(feature: { text: string; place_type?: string[]; context?: { id: string; text: string }[] }) {
+  const kind = feature.place_type?.[0] ?? "";
+  if (KIND[kind]) return `${feature.text} (${KIND[kind]})`;
+  const comuna = feature.context?.find(c => c.id.startsWith("place."))?.text;
+  return comuna && comuna !== feature.text ? `${feature.text}, ${comuna}` : feature.text;
+}
 
 export function useSearchLocation(onSearch?: (query: string) => void) {
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const { flyTo, animitas } = useAnimitas();
+  const { flyTo, animitas, setArea } = useAnimitas();
   const router = useRouter();
   const pathname = usePathname();
   const debounceTimer = useRef<NodeJS.Timeout>();
@@ -60,12 +73,13 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
               .slice(0, 3)
               .map((feature: any) => ({
                 id: feature.id,
-                title: feature.place_name,
+                title: placeLabel(feature),
                 place_name: feature.place_name,
                 text: feature.text,
                 type: "mapbox",
                 geometry: feature.geometry,
-                bbox: feature.bbox,
+                // Only places that are areas (a comuna, a city, a region) narrow the map; a street just flies there.
+                bbox: AREA_TYPES.has(feature.place_type?.[0]) ? feature.bbox : undefined,
                 center: feature.center,
               }));
           } catch (error) {
@@ -100,13 +114,20 @@ export function useSearchLocation(onSearch?: (query: string) => void) {
     if (result.type === "local" && result.properties) {
       router.push(animitaHref(result.properties.slug));
     } else {
-      if (result.bbox) flyTo({ bbox: result.bbox });
-      else if (result.center) flyTo({ center: result.center });
+      if (result.bbox) {
+        // A comuna, city or region: it becomes the area the map and the list are narrowed to. The box
+        // shows at once; the real outline replaces it when it arrives, if it's still the chosen place.
+        const label = result.text || result.title || result.place_name
+        setArea({ label, geometry: bboxPolygon(result.bbox) });
+        fetchBoundary(result.place_name || label).then(geometry => {
+          if (geometry) setArea(current => (current?.label === label ? { label, geometry } : current));
+        });
+      } else if (result.center) flyTo({ center: result.center });
       // A place only means something on the map; from any other page, go there and it flies on arrival.
       if (pathname !== "/map") router.push("/map");
     }
     resetSearch();
-  }, [flyTo, router, resetSearch, pathname]);
+  }, [flyTo, router, resetSearch, pathname, setArea]);
 
   return {
     searchQuery,
