@@ -1,6 +1,7 @@
 "use client"
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/contexts/user-context'
@@ -25,13 +26,14 @@ export function Header() {
     )}>
       <div className="bg-transparent flex items-center justify-between p-4 w-full h-14 pointer-events-auto">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-medium active:scale-100 gap-1 [&_svg]:opacity-50 px-2.5 text-text-strong font-ibm-plex-mono slashed-zero">
-            [ÁNIMA]
+          <Link href="/map" className="group flex items-end gap-2 rounded-md font-medium text-text-strong font-ibm-plex-mono slashed-zero outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            <Image src="/cutouts/chapel.png" alt="" width={48} height={84} className="h-10 w-auto drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)] transition-transform duration-200 ease-out group-hover:-rotate-3 motion-reduce:transition-none" />
+            <span className="pb-0.5">[ÁNIMA]</span>
           </Link>
         </div>
 
         {isMapRoute && (
-          <div className="fixed inset-x-0 bottom-safe flex justify-center md:absolute md:inset-x-auto md:bottom-auto md:left-1/2 md:-translate-x-1/2">
+          <div className="fixed inset-x-0 bottom-safe flex justify-center">
             <MainHeaderPanel />
           </div>
         )}

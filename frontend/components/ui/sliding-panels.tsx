@@ -17,7 +17,7 @@ export function SlidingPanels({ activeIndex, widths, children, className }: Slid
 
   return (
     <div
-      className={cn("overflow-clip rounded-full transition-[width] duration-200 ease-out-circ", className)}
+      className={cn("overflow-x-clip transition-[width] duration-200 ease-out-circ", className)}
       style={{ width: currentWidth }}
     >
       <div
