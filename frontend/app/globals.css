@@ -642,6 +642,11 @@
   }
 }
 
+/* The map fades in once it's painted on paper. */
+.mapboxgl-map .mapboxgl-canvas { opacity: 0; transition: opacity 400ms ease-out; }
+.mapboxgl-map.map-shown .mapboxgl-canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .mapboxgl-map .mapboxgl-canvas { transition: none; } }
+
 @layer components {
   .mapboxgl-map {
     font-family: var(--font-sans) !important;

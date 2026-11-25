@@ -201,8 +201,8 @@ export function AddForm({ onCancel }: AddFormProps) {
                       errors.photos && "ring-[3px] ring-destructive/30"
                     )}
                   >
-                    {/* An unexposed print is near black, with the faint sheen of its chemistry. */}
-                    <span className="flex aspect-square w-full items-center justify-center bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] text-text-inverted shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)]">
+                    {/* A blank print, white on white: only a faint edge tells the picture area from the frame. */}
+                    <span className="flex aspect-square w-full items-center justify-center bg-background-weak text-text-weak shadow-[inset_0_0_0_1px_rgb(28_24_20_/_0.06)]">
                       {/* Fade the whole icon, never its color: an alpha color darkens where its strokes cross. */}
                       <ImagePlus aria-hidden className="opacity-60 transition-opacity group-hover:opacity-100" />
                     </span>

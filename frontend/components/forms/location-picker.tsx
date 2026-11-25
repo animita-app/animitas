@@ -83,7 +83,10 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
       scrollZoom: false,
     })
     map.touchZoomRotate.disableRotation()
-    map.on("load", () => applyPaperStyle(map))
+    map.on("load", () => {
+      applyPaperStyle(map)
+      map.once("idle", () => map.getContainer().classList.add("map-shown"))
+    })
     map.on("moveend", (e) => {
       if (!(e as any).originalEvent) return
       const { lng, lat } = map.getCenter()

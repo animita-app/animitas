@@ -29,8 +29,9 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       container: mapContainer.current,
       accessToken,
       style: style || 'mapbox://styles/icarusmind/cmg8sxgbf002y01qwfic65ao7',
-      center: [-71.0, -36.0],
-      zoom: 3,
+      // Starts framed on Chile, so the first paint is already the view instead of a jump into it.
+      bounds: CHILE_BOUNDS,
+      fitBoundsOptions: { padding: CHILE_PADDING },
       pitch: 0, // Ensure map starts flat
       bearing: 0, // Ensure map starts with no rotation
       attributionControl: false,
@@ -43,8 +44,9 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       const mapInstance = map.current!
       applyPaperStyle(mapInstance)
       setIsMapReady(true)
+      // Shown once repainted on paper, so the base style's grays never flash.
+      mapInstance.once('idle', () => mapInstance.getContainer().classList.add('map-shown'))
       mapInstance.touchZoomRotate.disableRotation()
-      mapInstance.fitBounds(CHILE_BOUNDS, { padding: CHILE_PADDING, duration: 0 })
 
       const currentZoom = mapInstance.getZoom()
       const bounds = mapInstance.getBounds()

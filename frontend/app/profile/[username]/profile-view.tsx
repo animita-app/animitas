@@ -86,7 +86,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-6 pt-24 pb-40">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-6 pt-20 pb-40 md:pt-12">
       <header className="flex flex-col items-center gap-4 text-center">
         {/* An instant print of you, the same kind as the add form's. Your own is the button to change it;
             without a photo it shows your initial circled in pen, as in the corner. */}

@@ -44,7 +44,7 @@ export function AnimitaSheet({ site }: { site: Animita }) {
     <Sheet open onOpenChange={close} modal={false}>
       <SheetContent
         side="right"
-        className="gap-0 overflow-y-auto border-0 shadow-none sm:max-w-lg bg-transparent bg-[linear-gradient(to_right,transparent,color-mix(in_oklab,var(--color-background)_92%,transparent)_16%,var(--color-background)_30%)]"
+        className="gap-0 overflow-y-auto border-0 shadow-none sm:max-w-lg bg-transparent bg-[linear-gradient(to_right,transparent,var(--color-background)_3rem)]"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <SheetTitle className="sr-only">{animitaName(site.title)}</SheetTitle>
