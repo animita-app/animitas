@@ -9,7 +9,7 @@ export default function LoginModal() {
   }
 
   return (
-    <ModalWrapper title="Inicia sesión" description="Entra para agregar animitas, prender velas y comentar" showTitle={false}>
+    <ModalWrapper title="Inicia sesión" description="Entra para añadir animitas, prender velas y comentar" showTitle={false}>
       <div className="px-6 pb-8 sm:p-0">
         <LoginForm onSuccess={handleSuccess} />
       </div>

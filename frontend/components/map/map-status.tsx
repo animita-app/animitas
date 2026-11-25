@@ -39,7 +39,7 @@ export function MapStatus({ status, count, onRetry }: MapStatusProps) {
         <div role="status" className="flex flex-col items-center gap-3">
           <Candle lit={false} className="h-14 opacity-70" />
           <CutoutText text="todavía no hay" height={14} />
-          <span className="sr-only">Todavía no hay animitas. Agrega la primera.</span>
+          <span className="sr-only">Todavía no hay animitas. Añade la primera.</span>
         </div>
       )}
     </div>

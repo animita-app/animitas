@@ -30,7 +30,7 @@ export function CreatorSection({ site }: CreatorSectionProps) {
         </InfoBlock>
       )}
 
-      <InfoBlock label="Agregada por">
+      <InfoBlock label="Añadida por">
         <div className="flex items-center gap-2">
           <Avatar className="size-6 shrink-0">
             <AvatarFallback className="text-xs">{creatorName[0]?.toUpperCase() || 'A'}</AvatarFallback>

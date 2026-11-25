@@ -125,12 +125,12 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
           </div>
         ) : (
           <EmptyState
-            title={isOwnProfile ? 'Todavía no agregas animitas' : 'Todavía no agrega animitas'}
+            title={isOwnProfile ? 'Todavía no añades animitas' : 'Todavía no añade animitas'}
             cutout="todavía nada"
             description={isOwnProfile ? 'Cuando pases por una, sácale una foto y súmala al mapa.' : undefined}
             action={isOwnProfile ? (
               <Link href="/add" className="road-sign road-sign-text road-sign-action inline-flex -rotate-1 items-center px-5 py-1.5">
-                Agregar
+                Añadir
               </Link>
             ) : undefined}
           />

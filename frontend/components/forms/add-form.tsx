@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Camera, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { CutoutText } from "@/components/cutout-text"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +18,11 @@ import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
 import { uploadAnimitaPhoto } from "@/lib/photos"
 
+// The same objects as the rest of the app: road signs to act, paper notes to write on, loose prints.
+const SIGN = "road-sign road-sign-text road-sign-action inline-flex min-h-10 items-center justify-center gap-2 px-5 py-1.5 disabled:cursor-default disabled:opacity-60"
+const NOTE = "paper-note rounded-none border-0 px-4 text-base shadow-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+const PRINT = "shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_8px_14px_-10px_rgb(28_24_20_/_0.5)]"
+
 const MAX_PHOTOS = 5
 
 type Field = "photos" | "location" | "name"
@@ -23,7 +30,7 @@ type Errors = Partial<Record<Field, string>>
 
 export function validateAnimita({ photos, location, name }: { photos: File[]; location: PickedLocation | null; name: string }): Errors {
   const errors: Errors = {}
-  if (photos.length === 0) errors.photos = "Agrega al menos una foto"
+  if (photos.length === 0) errors.photos = "Añade al menos una foto"
   if (!location) errors.location = "Mueve el mapa hasta dejar el pin sobre la animita"
   if (name.trim().length < ANIMITA_NAME_MIN) errors.name = "Escribe su nombre, al menos 3 letras"
   return errors
@@ -94,7 +101,7 @@ export function AddForm({ onCancel }: AddFormProps) {
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error || 'Error al guardar')
 
-      toast.success(`Agregaste la animita de ${name.trim()}`)
+      toast.success(`Añadiste la animita de ${name.trim()}`)
       router.push(animitaHref(data.slug))
     } catch (err: any) {
       toast.error("No se pudo publicar la animita", {
@@ -109,29 +116,31 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="flex items-center justify-between gap-4 border-b border-border-weak py-2 pl-4 pr-2 shrink-0">
-        <h1 className="text-base font-medium text-text-strong">Agregar animita</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSubmitting}>
+      <div className="flex shrink-0 items-center justify-between gap-4 py-4 pl-5 pr-16">
+        <h1 className="sr-only">Añadir animita</h1>
+        <CutoutText text="añadir" height={30} arc={20} />
+        <div className="flex items-center gap-4">
+          <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <Button size="sm" onClick={handleSubmit} disabled={isSubmitting}>
+          <button type="button" className={cn(SIGN, "rotate-1")} onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting && <Spinner />}
             {isSubmitting ? "Publicando…" : "Publicar"}
-          </Button>
+          </button>
         </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="space-y-8 p-4 pb-safe">
+        <div className="space-y-8 px-5 pt-2 pb-safe">
           <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2">
-            <h2 id={`${ids}-photos`} className="text-sm font-medium text-text-strong">Fotos</h2>
+            <h2 id={`${ids}-photos`} className="sr-only">Fotos</h2>
+            <CutoutText text="fotos" height={20} />
             {previews.length > 0 && (
-              <ul className="grid grid-cols-3 gap-2">
+              <ul className="grid grid-cols-3 gap-3">
                 {previews.map((src, i) => (
-                  <li key={src} className="relative aspect-square overflow-hidden rounded-md bg-background-weak">
+                  <li key={src} className={cn("relative bg-neutral-light-1 p-1 pb-3", PRINT, i % 2 ? "rotate-1" : "-rotate-1")}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={`Foto ${i + 1}`} className="size-full object-cover" />
+                    <img src={src} alt={`Foto ${i + 1}`} className="aspect-square w-full object-cover" />
                     <Button
                       type="button"
                       size="icon-xs"
@@ -147,12 +156,12 @@ export function AddForm({ onCancel }: AddFormProps) {
               </ul>
             )}
             {photos.length < MAX_PHOTOS && (
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
-                  <Camera />
+              <div className="flex flex-wrap items-center gap-4">
+                <button type="button" className={cn(SIGN, "-rotate-1")} onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
+                  <Camera aria-hidden className="size-4" />
                   Tomar foto
-                </Button>
-                <Button type="button" variant="ghost" onClick={() => galleryRef.current?.click()}>
+                </button>
+                <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => galleryRef.current?.click()}>
                   <ImagePlus />
                   Elegir fotos
                 </Button>
@@ -164,7 +173,8 @@ export function AddForm({ onCancel }: AddFormProps) {
           </section>
 
           <section ref={el => { sectionRefs.current.location = el }} aria-labelledby={`${ids}-location`} className="space-y-2">
-            <h2 id={`${ids}-location`} className="text-sm font-medium text-text-strong">Dónde está</h2>
+            <h2 id={`${ids}-location`} className="sr-only">Dónde está</h2>
+            <CutoutText text="dónde está" height={20} />
             <LocationPicker
               value={location}
               onChange={(next) => {
@@ -178,7 +188,8 @@ export function AddForm({ onCancel }: AddFormProps) {
           </section>
 
           <div className="space-y-2">
-            <Label htmlFor={`${ids}-name`}>A quién recordamos</Label>
+            <Label htmlFor={`${ids}-name`} className="sr-only">A quién recordamos</Label>
+            <CutoutText text="a quién recordamos" height={20} />
             <Input
               ref={nameRef}
               id={`${ids}-name`}
@@ -191,18 +202,21 @@ export function AddForm({ onCancel }: AddFormProps) {
               autoComplete="off"
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? errorId("name") : undefined}
+              className={cn(NOTE, "paper-line h-12 rotate-[0.4deg] aria-invalid:ring-[3px] aria-invalid:ring-destructive/30")}
             />
             {errors.name && <p id={errorId("name")} className="text-sm text-destructive">{errors.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`${ids}-story`}>Su historia (opcional)</Label>
+            <Label htmlFor={`${ids}-story`} className="sr-only">Su historia (opcional)</Label>
+            <CutoutText text="su historia" height={20} />
             <Textarea
               id={`${ids}-story`}
               value={story}
               onChange={e => setStory(e.target.value)}
               placeholder="Lo que sabes de ella, quién la cuida, desde cuándo está"
               rows={5}
+              className={cn(NOTE, "min-h-32 -rotate-[0.4deg] resize-none py-0")}
             />
           </div>
         </div>

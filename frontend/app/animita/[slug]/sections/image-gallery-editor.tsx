@@ -182,7 +182,7 @@ export function ImageGalleryEditorWrapper({ site, children, images, onImagesSave
                 <Button
                   type="button"
                   variant="secondary"
-                  aria-label="Agregar fotos"
+                  aria-label="Añadir fotos"
                   className="aspect-square h-auto"
                   onClick={() => fileInputRef.current?.click()}
                 >

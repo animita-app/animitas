@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
-import { LocateFixed, MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { LocateFixed } from "lucide-react"
+import Image from "next/image"
 import { Spinner } from "@/components/ui/spinner"
 import { reverseGeocode } from "@/lib/mapbox"
 import { shortAddress } from "@/lib/location"
@@ -100,31 +100,31 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
       <div
         data-vaul-no-drag
         className={cn(
-          "relative h-56 overflow-hidden rounded-lg border border-border-weak touch-none",
-          invalid && "border-destructive"
+          "h-56 bg-neutral-light-1 p-1.5 touch-none shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_8px_14px_-10px_rgb(28_24_20_/_0.5)]",
+          invalid && "ring-[3px] ring-destructive/30"
         )}
       >
-        <div
-          ref={containerRef}
-          className="absolute inset-0"
-          role="application"
-          aria-label="Mapa para ubicar la animita. Muévelo hasta dejar el pin sobre ella."
-          aria-describedby={describedBy}
-        />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full text-accent [&_svg]:size-8 [&_svg]:fill-background">
-          <MapPin aria-hidden />
+        {/* Mapbox makes its container position: relative, so the map fills a wrapper instead of being inset. */}
+        <div className="relative size-full overflow-hidden">
+          <div
+            ref={containerRef}
+            className="size-full"
+            role="application"
+            aria-label="Mapa para ubicar la animita. Muévelo hasta dejar el pin sobre ella."
+            aria-describedby={describedBy}
+          />
+          {/* The real pin from the shelf; its point, at the bottom left of the photo, marks the spot. */}
+          <Image src="/cutouts/pin.png" alt="" width={160} height={300} draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-auto -translate-x-1 -translate-y-full drop-shadow-[0_4px_3px_rgb(28_24_20_/_0.4)]" />
+          <button
+            type="button"
+            onClick={locate}
+            disabled={gps === "locating"}
+            className="road-sign road-sign-blue road-sign-text road-sign-action absolute bottom-2 right-2 inline-flex items-center gap-2 px-4 py-1 disabled:opacity-60"
+          >
+            {gps === "locating" ? <Spinner /> : <LocateFixed aria-hidden className="size-4" />}
+            {gps === "locating" ? "Ubicando…" : "Mi ubicación"}
+          </button>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          onClick={locate}
-          disabled={gps === "locating"}
-          className="absolute bottom-2 right-2"
-        >
-          {gps === "locating" ? <Spinner /> : <LocateFixed />}
-          {gps === "locating" ? "Ubicando…" : "Mi ubicación"}
-        </Button>
       </div>
       <p className="text-sm text-text-weak text-pretty" aria-live="polite">
         {gps === "denied" && !value

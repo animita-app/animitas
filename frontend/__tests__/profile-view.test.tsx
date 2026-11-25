@@ -18,23 +18,23 @@ describe("ProfileView", () => {
   it("invites you to add your first animita on your own profile", async () => {
     currentUser = { id: "ana" };
     render(<ProfileView profile={profile} />);
-    expect(await screen.findByText("Todavía no agregas animitas")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Agregar" })).toHaveAttribute("href", "/add");
+    expect(await screen.findByText("Todavía no añades animitas")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Añadir" })).toHaveAttribute("href", "/add");
     expect(screen.getByRole("button", { name: "Cambiar foto" })).toBeInTheDocument();
   });
 
   it("shows someone else's empty profile without actions", async () => {
     currentUser = { id: "beto" };
     render(<ProfileView profile={profile} />);
-    expect(await screen.findByText("Todavía no agrega animitas")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Agregar" })).not.toBeInTheDocument();
+    expect(await screen.findByText("Todavía no añade animitas")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Añadir" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Cambiar foto" })).not.toBeInTheDocument();
   });
 
   it("does not show a Rutas tab", async () => {
     currentUser = null;
     render(<ProfileView profile={profile} />);
-    await screen.findByText("Todavía no agrega animitas");
+    await screen.findByText("Todavía no añade animitas");
     expect(screen.queryByText("Rutas")).not.toBeInTheDocument();
   });
 });

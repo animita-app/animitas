@@ -320,7 +320,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     <StepLayout
       title="Entrar a Animitas"
       cutout="entrar"
-      description="Para agregar animitas, prender velas y dejar recuerdos."
+      description="Para añadir animitas, prender velas y dejar recuerdos."
       actions={
         <button type="submit" form="login-form" className={cn(SIGN, "rotate-1")} disabled={loading}>
           {loadingAction === 'email' && <Spinner />}

@@ -13,7 +13,7 @@ describe("MapStatus", () => {
 
   it("explains an empty map instead of showing nothing", () => {
     render(<MapStatus status="ready" count={0} onRetry={jest.fn()} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Todavía no hay animitas. Agrega la primera.");
+    expect(screen.getByRole("status")).toHaveTextContent("Todavía no hay animitas. Añade la primera.");
   });
 
   it("gets out of the way when there are animitas", () => {

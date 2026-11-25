@@ -17,7 +17,7 @@ describe("validateAnimita", () => {
 
   it("asks for a photo, a place and a name", () => {
     expect(validateAnimita({ photos: [], location: null, name: "" })).toEqual({
-      photos: "Agrega al menos una foto",
+      photos: "Añade al menos una foto",
       location: "Mueve el mapa hasta dejar el pin sobre la animita",
       name: "Escribe su nombre, al menos 3 letras",
     });
@@ -42,7 +42,7 @@ describe("AddForm", () => {
 
     fireEvent.click(publish);
 
-    expect(screen.getByText("Agrega al menos una foto")).toBeInTheDocument();
+    expect(screen.getByText("Añade al menos una foto")).toBeInTheDocument();
     expect(screen.getByText("Escribe su nombre, al menos 3 letras")).toBeInTheDocument();
     expect(global.fetch).not.toHaveBeenCalled();
   });

@@ -329,7 +329,6 @@
 .road-sign {
   --sign: #006b3f;
   --sign-white: #f4f1e8;
-  position: relative;
   color: var(--sign-white);
   background: var(--sign);
   border-radius: 6px;
