@@ -1,6 +1,6 @@
 'use client'
 
-import { Candle, Tumbleweed } from '@/components/loaders'
+import { Candle, GluingWord } from '@/components/loaders'
 import { CutoutText } from '@/components/cutout-text'
 import type { AnimitasStatus } from '@/contexts/animitas-context'
 
@@ -16,8 +16,8 @@ export function MapStatus({ status, count, onRetry }: MapStatusProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
       {status === 'loading' && (
-        <div role="status" className="absolute inset-0">
-          <Tumbleweed />
+        <div role="status">
+          <GluingWord />
           <span className="sr-only">Cargando animitas</span>
         </div>
       )}
@@ -31,7 +31,7 @@ export function MapStatus({ status, count, onRetry }: MapStatusProps) {
             className="group flex flex-col items-center gap-3 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             <Candle lit={false} className="h-16 transition-[scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110 motion-reduce:transition-none" />
-            <CutoutText text="se apagó" height={16} />
+            <CutoutText text="reintentar" height={18} />
           </button>
         </div>
       )}

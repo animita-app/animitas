@@ -83,11 +83,13 @@ interface CutoutTextProps {
   orbit?: { radius: number; angle: number; clockwise?: boolean }
   // Change it to cut a new set of letters, for example every time the label shows.
   reroll?: number
+  // Letters get slapped on one after another and peel off again, over and over: a loader.
+  glue?: boolean
   className?: string
 }
 
 // Decorative: the control it labels always carries the same text as its accessible name.
-export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, className }: CutoutTextProps) {
+export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue = false, className }: CutoutTextProps) {
   // The server cuts a stable set so hydration matches; the browser recuts at random right after.
   const [seed, setSeed] = useState(() => hash(text))
   useEffect(() => {
@@ -143,10 +145,11 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, clas
         return (
           <span
             key={i}
-            className="relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
+            className={cn('relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]', glue && 'cutout-glue')}
             style={{
               rotate: `${tilt.toFixed(1)}deg`,
               translate: `0 ${drop.toFixed(1)}px`,
+              animationDelay: glue ? `${i * 140}ms` : undefined,
               marginInline: -height * 0.05,
               zIndex: Math.floor(noise(seed, i + 61) * 3),
             }}
