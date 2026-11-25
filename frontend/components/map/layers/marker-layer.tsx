@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils'
 // darker. Mapbox can't read CSS variables, so it's written out.
 const PEN_INK = '#2c3f8c'
 const MARK = 'pen-mark'
-const REACH = 'pen-mark-reach'
 
 // A little seeded randomness, so each count is always drawn the same way but no two look alike.
 function rng(seed: number) {
@@ -203,29 +202,21 @@ function penMark(): Drawing {
   return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
-// The mark someone is reaching for: the pen goes round it again, harder, and presses the dot in.
-function penMarkReached(): Drawing {
-  const rand = rng(11)
-  const size = 48
-  const c = size / 2
-  return {
-    size,
-    strokes: [shake(loop(c, c, 15, rand), 2.6, rand), shake(loop(c, c, 13.5, rand), 2.2, rand)],
-    dot: [c + 0.5, c - 0.5, 5.5],
-    seed: 11,
-  }
-}
-
-// Image ids: `count-12-a` and `pen-mark-a`, one per take (a, b, c); `pen-mark-reach` for the hovered one.
+// Image ids: `count-12-a` and `pen-mark-a`, one per take (a, b, c).
 function drawInk(id: string) {
-  if (id === REACH) return inkVersion(penMarkReached(), 'a')
   const [, base, version] = id.match(/^(count-\d+|pen-mark)-(a|b|c)$/) ?? []
   if (!base) return null
   return inkVersion(base === MARK ? penMark() : circledCount(base.slice(6)), version)
 }
 
-const REACH_SIZE = ['interpolate', ['linear'], ['zoom'], 3, 1, 10, 1.45, 14, 2.3, 18, 3.2] as any
-const REACH_PRESSED = ['interpolate', ['linear'], ['zoom'], 3, 0.85, 10, 1.25, 14, 2, 18, 2.8] as any
+// How big a single mark is drawn at a zoom, the same stops as its layer's icon-size, in CSS pixels.
+function markPx(zoom: number) {
+  const stops: [number, number][] = [[3, 0.75], [10, 1.1], [14, 1.8], [18, 2.6]]
+  const [z0, s0] = [...stops].reverse().find(([z]) => z <= zoom) ?? stops[0]
+  const [z1, s1] = stops.find(([z]) => z > zoom) ?? stops[stops.length - 1]
+  const scale = z1 === z0 ? s0 : s0 + ((zoom - z0) / (z1 - z0)) * (s1 - s0)
+  return 20 * scale
+}
 
 const COUNT_IMAGE = (version: string) => ['concat', 'count-', ['to-string', ['get', 'point_count']], `-${version}`] as any
 
@@ -287,6 +278,7 @@ export function MarkerLayer({
 }: MarkerLayerProps) {
   const isInitialized = useRef(false)
   const [layersReady, setLayersReady] = useState(false)
+  const [pressed, setPressed] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(selectedSite?.id || null)
   const [lockedId, setLockedId] = useState<string | null>(selectedSite?.id || null)
   const lockedIdRef = useRef<string | null>(lockedId)
@@ -348,8 +340,6 @@ export function MarkerLayer({
       inkLayer(`clusters${suffix}`, ['has', 'point_count'], COUNT_IMAGE(v), {}, k ? 0 : 1)
       inkLayer(`${sourceId}-inner${suffix}`, POINT_FILTER, `${MARK}-${v}`, { 'icon-rotate': tilt, 'icon-size': pointSize }, k ? 0 : 1)
     })
-    // The point under the pointer, drawn over the others and bigger; it gives a little when pressed.
-    inkLayer(`${sourceId}-reach`, ['==', ['get', 'id'], ''], REACH, { 'icon-size': REACH_SIZE })
     setLayersReady(true)
 
     isInitialized.current = true
@@ -418,12 +408,7 @@ export function MarkerLayer({
       }
     }
 
-    const reach = (id: string) => {
-      if (map.getLayer(`${sourceId}-reach`)) map.setFilter(`${sourceId}-reach`, ['==', ['get', 'id'], id])
-    }
-    const press = (down: boolean) => {
-      if (map.getLayer(`${sourceId}-reach`)) map.setLayoutProperty(`${sourceId}-reach`, 'icon-size', down ? REACH_PRESSED : REACH_SIZE)
-    }
+    const press = (down: boolean) => setPressed(down)
 
     const onPointEnter = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       if (!e.features?.length) return
@@ -431,14 +416,12 @@ export function MarkerLayer({
       if (id) {
         cancelClose()
         setActiveId(id)
-        reach(String(id))
         map.getCanvas().style.cursor = 'pointer'
       }
     }
 
     const onPointLeave = () => {
       scheduleClose()
-      reach('')
       press(false)
       map.getCanvas().style.cursor = ''
     }
@@ -507,6 +490,31 @@ export function MarkerLayer({
             className="z-20"
           >
             <div className="flex flex-col items-center overflow-visible">
+              {/* Reaching for an animita, the pen circles it again: the loop draws itself, and gives a little
+                  under a press. */}
+              {isActive && (
+                <svg
+                  key={`reach-${site.id}`}
+                  aria-hidden
+                  viewBox="0 0 48 48"
+                  style={{ width: markPx(currentZoom) * 1.9, height: markPx(currentZoom) * 1.9 }}
+                  className={cn(
+                    'pen-bleed pen-draw-in pointer-events-none absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 -rotate-12 overflow-visible transition-[scale] duration-150 ease-out',
+                    pressed ? 'scale-90' : 'scale-100'
+                  )}
+                >
+                  <path
+                    className="pen-stroke"
+                    pathLength={1}
+                    d="M30.5 6.8 C19 4.2 7.2 11.6 6.4 23.6 C5.6 35.1 15.8 42.6 26.2 41.4 C36.8 40.2 43.4 31 41.6 20.4 C40.2 12.4 33.6 7.4 24.2 8.6 C21 9 18.6 10 16.8 11.2"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    opacity={0.8}
+                  />
+                </svg>
+              )}
               <div
                 onMouseEnter={cancelClose}
                 onMouseLeave={scheduleClose}

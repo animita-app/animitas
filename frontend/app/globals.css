@@ -75,6 +75,7 @@
   --color-vignette: #b58a5a;
   /* Ballpoint ink on paper; the map's pen marks use the same blue (written out there for Mapbox). */
   --color-pen: #2c3f8c;
+  --color-pen-red: #b3262a;
   --color-popover: rgba(255, 255, 255, 0.1);
 
   /* Legacy support */
@@ -442,17 +443,47 @@
   font-weight: 700;
   text-shadow: 0 0 1px color-mix(in oklab, var(--color-pen) 55%, transparent);
 }
-.pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.6px color-mix(in oklab, var(--color-pen) 60%, transparent)); }
+.pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen) 70%, transparent)) blur(0.25px); }
 
-/* An entry in a list written in pen: reaching for it underlines it by hand. */
-.pen-item {
-  text-decoration-style: wavy;
-  text-decoration-color: var(--color-pen);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 5px;
+.pen-red { color: var(--color-pen-red); filter: drop-shadow(0 0 0.6px color-mix(in oklab, var(--color-pen-red) 60%, transparent)); }
+
+/* Reaching for a pen mark draws it again, stroke by stroke. */
+@keyframes pen-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
 }
-/* Only the one reached for: the ink's text-shadow would otherwise draw a faint copy under every entry. */
-.pen-item[data-highlighted] { text-decoration-line: underline; }
+.pen-redraw .pen-stroke { stroke-dasharray: 1; stroke-dashoffset: 0; }
+/* A pen mark that draws itself as it appears. */
+.pen-draw-in .pen-stroke { stroke-dasharray: 1; animation: pen-draw 550ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+.pen-redraw:hover .pen-stroke,
+.pen-redraw:focus-visible .pen-stroke,
+.pen-redraw[aria-expanded="true"] .pen-stroke { animation: pen-draw 650ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* A menu laid on the page with no box: paper blooms out around it, like the sign in sheet. */
+.paper-bloom {
+  background: var(--color-background);
+  box-shadow: 0 0 36px 28px var(--color-background);
+}
+
+/* An option reached for gets underlined in pen, the line drawn left to right. */
+.pen-underline { position: relative; }
+.pen-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -5px;
+  height: 6px;
+  background: var(--color-pen);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 6' preserveAspectRatio='none'%3E%3Cpath d='M1 4 C20 1.5 40 5 60 3 S90 2 99 3.5' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 320ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pen-underline[data-highlighted]::after,
+[data-highlighted] .pen-underline::after { clip-path: inset(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) {
+  .pen-redraw .pen-stroke, .pen-draw-in .pen-stroke { animation: none !important; }
+  .pen-underline::after { transition: none; }
+}
 
 /* An object whose menu is open drops its name, so the label doesn't sit under the menu. */
 .shelf-item[aria-expanded="true"] .shelf-label { opacity: 0; }
