@@ -21,6 +21,8 @@ interface AnimitasContextType {
   setSelectedComunas: (comunas: string[]) => void
   mapTarget: MapTarget | null
   flyTo: (target: MapTarget) => void
+  resetToken: number
+  requestReset: () => void
 }
 
 const AnimitasContext = createContext<AnimitasContextType | undefined>(undefined)
@@ -31,6 +33,7 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
   const [reloadToken, setReloadToken] = useState(0)
   const [selectedComunas, setSelectedComunas] = useState<string[]>([])
   const [mapTarget, setMapTarget] = useState<MapTarget | null>(null)
+  const [resetToken, setResetToken] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -59,9 +62,10 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(() => setReloadToken(t => t + 1), [])
   const flyTo = useCallback((target: MapTarget) => setMapTarget({ ...target }), [])
+  const requestReset = useCallback(() => setResetToken(t => t + 1), [])
 
   return (
-    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo }}>
+    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo, resetToken, requestReset }}>
       {children}
     </AnimitasContext.Provider>
   )

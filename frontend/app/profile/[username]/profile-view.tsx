@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { InlineEdit } from '@/components/ui/inline-edit'
-import { Skeleton } from '@/components/ui/skeleton'
+import { DevelopingPhoto } from '@/components/loaders'
 import { Spinner } from '@/components/ui/spinner'
 import { EmptyState } from '@/components/empty-state'
 import { AnimitaCard } from '@/components/animita/animita-card'
@@ -117,7 +117,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
 
         {animitas === null ? (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="aspect-square rounded-lg" />)}
+            {[1, 2, 3].map(i => <DevelopingPhoto key={i} className="rounded-md" />)}
           </div>
         ) : animitas.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-2 gap-y-6 sm:grid-cols-3">

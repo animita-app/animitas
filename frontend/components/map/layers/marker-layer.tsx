@@ -5,12 +5,51 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { Animita } from '@/types/animita'
 import { MapMarker } from '../map-marker'
-import { Button } from '@/components/ui/button'
-import { ArrowUpRight } from 'lucide-react'
+import { CutoutText } from '@/components/cutout-text'
 import { cn } from '@/lib/utils'
 
-// Mapbox paint properties can't read CSS variables, so this mirrors --color-accent.
-const ANIMITA_COLOR = '#0000ee'
+// Mapbox can't read CSS variables. Stamp-pad blue: the app's accent, a little faded by the paper.
+const STAMP_INK = '#26318f'
+const RING = 'stamp-ring'
+const MARK = 'stamp-mark'
+
+// Rubber-stamp marks drawn once on a canvas: the ink takes unevenly, with a lighter arc where the stamp
+// rocked and specks where the pad was dry. Vector on purpose, so the map contrasts with the photos.
+function stamp(size: number, dot: boolean) {
+  const ratio = 2
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size * ratio
+  const ctx = canvas.getContext('2d')!
+  const c = (size * ratio) / 2
+  ctx.strokeStyle = ctx.fillStyle = STAMP_INK
+  ctx.lineWidth = 2.6 * ratio
+  ctx.beginPath()
+  ctx.arc(c, c, c - ctx.lineWidth, 0, Math.PI * 2)
+  ctx.stroke()
+  if (dot) {
+    ctx.beginPath()
+    ctx.arc(c, c, c * 0.32, 0, Math.PI * 2)
+    ctx.fill()
+  }
+  const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  const px = image.data
+  const rock = Math.random() * Math.PI * 2
+  for (let i = 0; i < px.length; i += 4) {
+    if (!px[i + 3]) continue
+    const x = (i / 4) % canvas.width - c
+    const y = Math.floor(i / 4 / canvas.width) - c
+    const angle = Math.atan2(y, x)
+    const pressure = 0.62 + 0.38 * Math.cos(angle - rock)
+    const speck = Math.random()
+    px[i + 3] = speck < 0.07 ? 0 : Math.round(px[i + 3] * pressure * (0.7 + 0.3 * speck))
+  }
+  return { width: canvas.width, height: canvas.height, data: new Uint8Array(px.buffer) }
+}
+
+function addStamps(map: mapboxgl.Map) {
+  if (!map.hasImage(RING)) map.addImage(RING, stamp(56, false), { pixelRatio: 2 })
+  if (!map.hasImage(MARK)) map.addImage(MARK, stamp(28, true), { pixelRatio: 2 })
+}
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
@@ -44,6 +83,7 @@ export function MarkerLayer({
   onSiteSelect,
 }: MarkerLayerProps) {
   const isInitialized = useRef(false)
+  const [layersReady, setLayersReady] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(selectedSite?.id || null)
   const [lockedId, setLockedId] = useState<string | null>(selectedSite?.id || null)
   const lockedIdRef = useRef<string | null>(lockedId)
@@ -87,68 +127,45 @@ export function MarkerLayer({
       })
     }
 
+    addStamps(map)
+    const tilt = ['*', ['-', ['%', ['coalesce', ['get', 'point_count'], ['length', ['to-string', ['get', 'title']]]], 9], 4], 4]
+
     if (!map.getLayer('clusters')) {
       map.addLayer({
         id: 'clusters',
-        type: 'circle',
-        source: sourceId,
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': ['step', ['get', 'point_count'], 'transparent', 10, 'transparent', 30, 'transparent'],
-          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
-          'circle-opacity': 0.85,
-          'circle-stroke-color': ANIMITA_COLOR,
-          'circle-stroke-width': 1.5,
-        },
-      })
-    }
-
-    if (!map.getLayer('cluster-count')) {
-      map.addLayer({
-        id: 'cluster-count',
         type: 'symbol',
         source: sourceId,
         filter: ['has', 'point_count'],
         layout: {
+          'icon-image': RING,
+          'icon-allow-overlap': true,
+          'icon-rotate': tilt as any,
+          'icon-size': ['step', ['get', 'point_count'], 0.75, 10, 1, 30, 1.3],
           'text-field': '{point_count_abbreviated}',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 14,
+          'text-size': ['step', ['get', 'point_count'], 13, 10, 15, 30, 18],
+          'text-rotate': tilt as any,
+          'text-allow-overlap': true,
         },
-        paint: { 'text-color': ANIMITA_COLOR },
-      })
-    }
-
-    if (!map.getLayer(`${sourceId}-outer`)) {
-      map.addLayer({
-        id: `${sourceId}-outer`,
-        type: 'circle',
-        source: sourceId,
-        filter: POINT_FILTER,
-        maxzoom: 24,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 8, 6, 18, 12, 24, 18, 32],
-          'circle-color': 'transparent',
-          'circle-opacity': 0.85,
-          'circle-stroke-color': ANIMITA_COLOR,
-          'circle-stroke-width': 1.5,
-        },
+        paint: { 'text-color': STAMP_INK, 'text-opacity': 0.85 },
       })
     }
 
     if (!map.getLayer(`${sourceId}-inner`)) {
       map.addLayer({
         id: `${sourceId}-inner`,
-        type: 'circle',
+        type: 'symbol',
         source: sourceId,
         filter: POINT_FILTER,
-        maxzoom: 24,
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 2.5, 6, 6, 12, 8, 18, 12],
-          'circle-color': ANIMITA_COLOR,
-          'circle-opacity': 0.92,
+        layout: {
+          'icon-image': MARK,
+          'icon-allow-overlap': true,
+          'icon-rotate': tilt as any,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.75, 10, 1, 16, 1.4],
         },
       })
     }
+    setLayersReady(true)
 
     isInitialized.current = true
   }, [map, isMapReady, sourceId])
@@ -173,7 +190,8 @@ export function MarkerLayer({
   useEffect(() => {
     if (!map || !isMapReady) return
 
-    const layersToClick = [`${sourceId}-inner`, `${sourceId}-outer`]
+    if (!layersReady) return
+    const layersToClick = [`${sourceId}-inner`]
 
     const onPointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       e.originalEvent.stopPropagation()
@@ -254,7 +272,7 @@ export function MarkerLayer({
         }
       } catch (_) {}
     }
-  }, [map, isMapReady, onSiteClick, sourceId, cancelClose, scheduleClose])
+  }, [map, isMapReady, layersReady, onSiteClick, sourceId, cancelClose, scheduleClose])
 
   const sitesToRender = currentZoom >= 10 ? visibleSites : (selectedSite ? [selectedSite] : [])
 
@@ -287,19 +305,11 @@ export function MarkerLayer({
                 <Link
                   href={href}
                   prefetch={false}
-                  className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap z-50 flex flex-col items-center gap-1.5"
+                  aria-label={site.title || 'Animita'}
+                  className="absolute left-1/2 -translate-x-1/2 z-50 flex flex-col items-center"
                   style={{ top: `${topValue}px` }}
                 >
-                  <span className="text-base font-medium text-text-strong [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_2px_4px_rgba(0,0,0,0.4)] shadow-xs">
-                    {site.title || 'Animita'}
-                  </span>
-                  <Button
-                    size="sm"
-                    className="sr-only h-6 text-xs px-2.5 rounded-full shadow-md gap-1 pointer-events-none"
-                  >
-                    Ver detalles
-                    <ArrowUpRight />
-                  </Button>
+                  <CutoutText text={site.title || 'animita'} height={13} className="max-w-64 flex-wrap justify-center" />
                 </Link>
               </div>
             </div>

@@ -4,11 +4,12 @@ import { useAnimitas } from '@/contexts/animitas-context'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { cn } from '@/lib/utils'
 import { EmptyState } from '@/components/empty-state'
+import { DevelopingPhoto } from '@/components/loaders'
 
 type SortOrder = 'newest' | 'oldest' | 'name'
 
 export default function ListPage() {
-  const { animitas, selectedComunas } = useAnimitas()
+  const { animitas, selectedComunas, status } = useAnimitas()
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest')
 
   const sortedSites = useMemo(() => {
@@ -35,7 +36,12 @@ export default function ListPage() {
   return (
     <div className="min-h-svh w-full bg-background py-20">
       <div className="px-4 mx-auto">
-        {sortedSites.length > 0 ? (
+        {status === 'loading' ? (
+          <div role="status" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-2 gap-y-6">
+            <span className="sr-only">Cargando animitas</span>
+            {Array.from({ length: 8 }).map((_, i) => <DevelopingPhoto key={i} className="rounded-md" />)}
+          </div>
+        ) : sortedSites.length > 0 ? (
           <>
             <div className="sr-only mb-6">
               <p className="text-sm text-text-weak">

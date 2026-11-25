@@ -17,7 +17,7 @@ export function SlidingPanels({ activeIndex, widths, children, className }: Slid
 
   return (
     <div
-      className={cn("overflow-x-clip transition-[width] duration-200 ease-out-circ", className)}
+      className={cn("transition-[width] duration-200 ease-out-circ", className)}
       style={{ width: currentWidth }}
     >
       <div
@@ -28,7 +28,13 @@ export function SlidingPanels({ activeIndex, widths, children, className }: Slid
         }}
       >
         {children.map((child, i) => (
-          <div key={i} style={{ width: widths[i], flexShrink: 0 }} className="flex items-center">
+          // Panels aren't clipped, so content that grows (a hovered object) never gets cut; the inactive one fades out instead.
+          <div
+            key={i}
+            style={{ width: widths[i], flexShrink: 0 }}
+            inert={i !== activeIndex || undefined}
+            className={cn("flex items-end transition-[opacity,visibility] duration-200", i === activeIndex ? "opacity-100 visible" : "opacity-0 invisible")}
+          >
             {child}
           </div>
         ))}

@@ -6,13 +6,14 @@ describe("MapStatus", () => {
     const onRetry = jest.fn();
     render(<MapStatus status="error" count={0} onRetry={onRetry} />);
     expect(screen.getByRole("alert")).toHaveTextContent("No pudimos cargar las animitas.");
+    expect(screen.queryByText("se apagó")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(onRetry).toHaveBeenCalled();
   });
 
   it("explains an empty map instead of showing nothing", () => {
     render(<MapStatus status="ready" count={0} onRetry={jest.fn()} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Todavía no hay animitas.");
+    expect(screen.getByRole("status")).toHaveTextContent("Todavía no hay animitas. Agrega la primera.");
   });
 
   it("gets out of the way when there are animitas", () => {

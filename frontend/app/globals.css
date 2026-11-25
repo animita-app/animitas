@@ -245,6 +245,88 @@
   bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
+/* Objects on the page. The one you reach for grows a lot and the rest step back, like a dock;
+   its name appears in cut-out letters. With reduced motion only the label and the fade change. */
+.shelf-item {
+  transform-origin: 50% 100%;
+  transition: scale 360ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 360ms cubic-bezier(0.34, 1.56, 0.64, 1), filter 240ms ease-out;
+}
+.shelf-idle {
+  filter: grayscale(0.3) sepia(0.15) opacity(0.92);
+  transition: filter 240ms ease-out;
+}
+.shelf-label {
+  opacity: 0;
+  scale: 0.8;
+  translate: -50% 6px;
+  transition: opacity 160ms ease-out, scale 260ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.shelf:has(> .shelf-item:hover, > .shelf-item:focus-visible) > .shelf-item:not(:hover, :focus-visible) {
+  scale: 0.78;
+  filter: grayscale(0.9) opacity(0.6);
+}
+.shelf > .shelf-item:hover,
+.shelf > .shelf-item:focus-visible {
+  scale: 1.7;
+  translate: 0 -4px;
+  z-index: 1;
+}
+.shelf-item:hover .shelf-idle,
+.shelf-item:focus-visible .shelf-idle {
+  filter: none;
+}
+.shelf-item:hover .shelf-label,
+.shelf-item:focus-visible .shelf-label {
+  opacity: 1;
+  scale: calc(1 / 1.7);
+  translate: -50% 0;
+}
+/* Objects hanging from the top edge grow downward instead. */
+.shelf-top > .shelf-item {
+  transform-origin: 50% 0;
+}
+.shelf-top > .shelf-item:hover,
+.shelf-top > .shelf-item:focus-visible {
+  translate: 0 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf-item, .shelf-label { transition: opacity 160ms ease-out; }
+  .shelf > .shelf-item:hover, .shelf > .shelf-item:focus-visible { scale: 1; translate: 0; }
+  .shelf:has(> .shelf-item:hover, > .shelf-item:focus-visible) > .shelf-item:not(:hover, :focus-visible) { scale: 1; }
+  .shelf-item:hover .shelf-label, .shelf-item:focus-visible .shelf-label { scale: 1; }
+}
+
+/* A real candle burning: the photo breathes and its light flickers unevenly on the paper. */
+@keyframes candle-breathe {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  21% { filter: brightness(1.08) saturate(1.05); }
+  47% { filter: brightness(0.94); }
+  68% { filter: brightness(1.12) saturate(1.1); }
+  83% { filter: brightness(0.98); }
+}
+@keyframes candle-light {
+  0%, 100% { opacity: 0.55; scale: 1; }
+  33% { opacity: 0.38; scale: 0.94; }
+  58% { opacity: 0.66; scale: 1.05; }
+  79% { opacity: 0.46; scale: 0.97; }
+}
+.candle-burning { animation: candle-breathe 2.6s ease-in-out infinite; }
+.candle-light { animation: candle-light 1.9s ease-in-out infinite; }
+.candle-out { filter: grayscale(1) brightness(0.85) contrast(0.9); }
+
+/* An instant photo developing: brown murk slowly clearing to paper. */
+@keyframes develop {
+  0%, 100% { background-color: #3a2c22; }
+  50% { background-color: #8a7560; }
+}
+.developing {
+  animation: develop 2.4s ease-in-out infinite;
+  box-shadow: inset 0 0 0 6px var(--color-neutral-light-2), inset 0 0 18px 10px rgb(28 24 20 / 0.45);
+}
+@media (prefers-reduced-motion: reduce) {
+  .candle-burning, .candle-light, .developing { animation: none; }
+}
+
 /* Burned edges of an old print, over a photo's container. */
 @utility photo-vignette {
   position: relative;

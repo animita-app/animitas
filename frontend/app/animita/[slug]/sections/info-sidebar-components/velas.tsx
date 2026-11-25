@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Flame } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Candle } from "@/components/loaders"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
@@ -70,7 +70,7 @@ export function Velas({ siteId }: VelasProps) {
   }
 
   if (loading) {
-    return <Skeleton className="h-9 w-36" />
+    return <Candle className="h-9" />
   }
 
   return (

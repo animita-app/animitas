@@ -1,9 +1,8 @@
 "use client"
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { ShelfObject } from '@/components/shelf-object'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
@@ -24,11 +23,10 @@ export function Header() {
       isMapRoute ? "fixed" : "sticky",
       "top-0 left-0 right-0 z-50 pointer-events-none w-full",
     )}>
-      <div className="bg-transparent flex items-center justify-between p-4 w-full h-14 pointer-events-auto">
-        <div className="flex items-center gap-6">
-          <Link href="/map" className="group flex items-end gap-2 rounded-md font-medium text-text-strong font-ibm-plex-mono slashed-zero outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            <Image src="/cutouts/chapel.png" alt="" width={48} height={84} className="h-10 w-auto drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)] transition-transform duration-200 ease-out group-hover:-rotate-3 motion-reduce:transition-none" />
-            <span className="pb-0.5">[ÁNIMA]</span>
+      <div className="flex items-start justify-between p-4 w-full pointer-events-none [&>*]:pointer-events-auto">
+        <div className="shelf shelf-top">
+          <Link href="/map" aria-label="Ánima, ir al mapa" className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            <ShelfObject src="/cutouts/chapel.png" label="ánima" size="h-12" active labelSide="bottom" />
           </Link>
         </div>
 
@@ -44,11 +42,11 @@ export function Header() {
           ) : currentUser ? (
             <UserDropdown />
           ) : (
-            <Button size="sm" asChild>
-              <Link href="/auth">
-                Únete
+            <div className="shelf shelf-top">
+              <Link href="/auth" aria-label="Entrar" className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                <ShelfObject src="/cutouts/key.png" label="entrar" size="h-7 -rotate-12" active labelSide="bottom" />
               </Link>
-            </Button>
+            </div>
           )}
         </div>
       </div>

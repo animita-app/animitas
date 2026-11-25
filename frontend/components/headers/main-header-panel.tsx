@@ -2,125 +2,70 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { usePathname, useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { ShelfObject } from '@/components/shelf-object'
 import { useAnimitas } from '@/contexts/animitas-context'
 import { useSearchLocation } from '@/hooks/use-search-location'
-import { FilterChip } from '@/components/ui/filter-chip'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Search as SearchIcon } from 'lucide-react'
 import { SearchInput } from '@/components/search/search-input'
 import Link from 'next/link'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SlidingPanels } from '@/components/ui/sliding-panels'
 
-const FALLBACK_TABS_WIDTH = 264
+const FALLBACK_TABS_WIDTH = 280
 
-// Real objects cut out of the animitas' own photos stand on the bar like offerings on a shelf.
+// Real objects stand on the page like offerings at an animita. No labels until you reach for one.
 const SHELF = [
-  { href: '/map', src: '/cutouts/street-sign.png', label: 'Mapa' },
-  { href: '/list', src: '/cutouts/shrine.png', label: 'Lista' },
-  { href: '/add', src: '/cutouts/flag.png', label: 'Agregar' },
+  { href: '/map', src: '/cutouts/map.png', label: 'Mapa', size: 'h-14' },
+  { href: '/list', src: '/cutouts/shrines.png', label: 'Lista', size: 'h-14' },
+  { href: '/add', src: '/cutouts/candle.png', label: 'Agregar', size: 'h-12' },
 ]
 
-function ShelfItem({ href, src, label, active, onNavigate }: { href: string; src: string; label: string; active: boolean; onNavigate: () => void }) {
+function Shelf({ setSearchActive, pathname }: { setSearchActive: (active: boolean) => void; pathname: string }) {
+  const { requestReset } = useAnimitas()
   return (
-    <Link
-      href={href}
-      onClick={onNavigate}
-      aria-current={active ? 'page' : undefined}
-      className="group flex w-16 flex-col items-center gap-1 rounded-lg pb-1 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-    >
-      <Image
-        src={src}
-        alt=""
-        width={96}
-        height={96}
-        className={cn(
-          '-mt-6 h-12 w-auto object-contain drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.35)] transition-[translate,filter] duration-200 ease-out group-hover:-translate-y-1 group-active:translate-y-0 motion-reduce:transition-none',
-          active ? '-translate-y-1' : '[filter:grayscale(0.7)_sepia(0.2)_opacity(0.8)] group-hover:[filter:none]'
-        )}
-      />
-      <span className={cn('text-xs', active ? 'font-medium text-text-strong' : 'text-text-weak')}>{label}</span>
-    </Link>
-  )
-}
-
-function TabsPanelContent({ setSearchActive, pathname }: { setSearchActive: (active: boolean) => void; pathname: string }) {
-  return (
-    <div className="flex items-end gap-1 w-max">
-      {SHELF.map(item => (
-        <ShelfItem
-          key={item.href}
-          {...item}
-          active={pathname === item.href || (item.href === '/map' && pathname.startsWith('/animita'))}
-          onNavigate={() => setSearchActive(false)}
-        />
-      ))}
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button size="icon-sm" variant="ghost" aria-label="Buscar" className="mb-3 text-muted-foreground" onClick={() => setSearchActive(true)}>
-            <SearchIcon />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Buscar</TooltipContent>
-      </Tooltip>
+    <div className="shelf flex items-end gap-6 px-6 pb-1 w-max">
+      {SHELF.map(item => {
+        const active = pathname === item.href || (item.href === '/map' && pathname.startsWith('/animita'))
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={(e) => {
+              setSearchActive(false)
+              // Already on the map: the map object brings the whole country back into view.
+              if (item.href === '/map' && pathname === '/map') {
+                e.preventDefault()
+                requestReset()
+              }
+            }}
+            aria-label={item.label}
+            aria-current={active ? 'page' : undefined}
+            className="shelf-item relative flex flex-col items-center rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <ShelfObject {...item} active={active} />
+          </Link>
+        )
+      })}
+      <button
+        type="button"
+        aria-label="Buscar"
+        onClick={() => setSearchActive(true)}
+        className="shelf-item relative flex flex-col items-center rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        <ShelfObject src="/cutouts/magnifier.png" label="Buscar" size="h-10" />
+      </button>
     </div>
   )
 }
 
-interface ListViewContentProps {
-  comunas: string[]
-  selected: string[]
-  onSelect: (comunas: string[]) => void
-  onBackClick: () => void
-}
-
-function ListViewContent({ comunas, selected, onSelect, onBackClick }: ListViewContentProps) {
-  return (
-    <>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon-sm" aria-label="Volver al mapa" onClick={onBackClick} className="rounded-full text-muted-foreground">
-            <ArrowLeft />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Volver al mapa</TooltipContent>
-      </Tooltip>
-      <FilterChip defaultLabel="Comuna" options={comunas.map(c => ({ value: c, label: c }))} value={selected} onSelect={onSelect} />
-      {selected.length > 0 && (
-        <Button variant="ghost" size="sm" onClick={() => onSelect([])} className="rounded-full text-muted-foreground">
-          Limpiar
-        </Button>
-      )}
-    </>
-  )
-}
-
-
 export function MainHeaderPanel() {
   const pathname = usePathname()
-  const router = useRouter()
   const isMobile = useIsMobile()
   const SEARCH_WIDTH = isMobile ? 280 : 320
   const tabsMeasureRef = useRef<HTMLDivElement>(null)
   const [tabsWidth, setTabsWidth] = useState(FALLBACK_TABS_WIDTH)
   const [searchActive, setSearchActive] = useState(false)
   const [inputValue, setInputValue] = useState('')
-
-  const handleBackClick = () => {
-    if ('startViewTransition' in document) {
-      (document as any).startViewTransition(() => {
-        router.push('/map')
-        setSearchActive(false)
-      })
-    } else {
-      router.push('/map')
-      setSearchActive(false)
-    }
-  }
 
   useEffect(() => {
     if (!searchActive) {
@@ -138,29 +83,21 @@ export function MainHeaderPanel() {
     return () => observer.disconnect()
   }, [])
 
-  const isListView = pathname === '/list'
-  const { comunas, selectedComunas, setSelectedComunas } = useAnimitas()
   const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
 
   return (
     <nav
       aria-label="Navegación principal"
-      className="relative inline-flex items-end gap-1 rounded-xl border border-border-weak bg-background/85 px-1.5 pt-1 backdrop-blur-sm shadow-[0_1px_0_rgb(255_255_255_/_0.6)_inset,0_8px_24px_-12px_rgb(28_24_20_/_0.35)] has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50"
+      className={cn(
+        'relative inline-flex items-end rounded-full transition-colors duration-200',
+        searchActive && 'border border-border-weak bg-background/90 backdrop-blur-sm has-[input:focus-visible]:ring-[3px] has-[input:focus-visible]:ring-ring/50'
+      )}
     >
       <div ref={tabsMeasureRef} aria-hidden inert className="absolute invisible pointer-events-none">
-        <TabsPanelContent setSearchActive={() => {}} pathname={pathname} />
+        <Shelf setSearchActive={() => {}} pathname={pathname} />
       </div>
-      {isListView && (
-        <ListViewContent
-          comunas={comunas}
-          selected={selectedComunas}
-          onSelect={setSelectedComunas}
-          onBackClick={handleBackClick}
-        />
-      )}
-      {!isListView && (
-        <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[tabsWidth, SEARCH_WIDTH]}>
-          <TabsPanelContent setSearchActive={setSearchActive} pathname={pathname} />
+      <SlidingPanels activeIndex={searchActive ? 1 : 0} widths={[tabsWidth, SEARCH_WIDTH]}>
+          <Shelf setSearchActive={setSearchActive} pathname={pathname} />
           <SearchInput
             panelWidth={SEARCH_WIDTH}
             inputValue={inputValue}
@@ -175,8 +112,7 @@ export function MainHeaderPanel() {
             onClose={() => setSearchActive(false)}
             autoFocus={searchActive}
           />
-        </SlidingPanels>
-      )}
+      </SlidingPanels>
     </nav>
   )
 }
