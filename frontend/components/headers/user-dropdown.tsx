@@ -9,7 +9,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useUser } from '@/contexts/user-context'
@@ -34,6 +33,7 @@ export function UserDropdown() {
 
   if (!currentUser) return null
   const count = recuerdos.length
+  const latest = recuerdos[0]
 
   return (
     <DropdownMenu>
@@ -52,30 +52,23 @@ export function UserDropdown() {
           ) : (
             <PenLoop className="size-10 text-xl">{(currentUser.name || currentUser.username || 'v')[0].toUpperCase()}</PenLoop>
           )}
-          {/* Sits on the circle's line, up and to the right, as if marked over it. */}
-          {count > 0 && <RedPenDot className="absolute -top-0.5 right-0 size-4 rotate-12" />}
+          {/* Centered on the circle's line, up and to the right (its 45° point), as if marked over it. */}
+          {count > 0 && <RedPenDot className="absolute size-3.5 rotate-12" style={{ left: 25, top: 5 }} />}
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" sideOffset={8} className="paper-bloom flex w-72 flex-col gap-5 rounded-none px-2 py-2">
-        {count > 0 && (
-          <div className="flex flex-col gap-4">
-            <DropdownMenuLabel className="p-0 text-xs font-normal text-text-weak">Recuerdos en tus animitas</DropdownMenuLabel>
-            {/* The recuerdo itself leads; who left it, where and when follow small. Long ones are cut at a
-                sentence or a word, and open whole on the animita. */}
-            {recuerdos.slice(0, 4).map(r => (
-              <DropdownMenuItem asChild key={r.id} className="group flex-col items-start gap-1 rounded-none p-0 data-[highlighted]:bg-transparent">
-                <Link href={r.href}>
-                  <span className="text-pretty text-sm text-text transition-colors group-data-[highlighted]:text-text-strong">
-                    “{storyExcerpt(r.text, 110).text}”
-                  </span>
-                  <span className="text-pretty text-xs text-text-weak">
-                    {r.who} en {r.where}, {r.timeAgo}
-                  </span>
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </div>
+      <DropdownMenuContent align="end" sideOffset={8} className="paper-bloom flex w-64 flex-col gap-5 rounded-none px-2 py-2">
+        {/* Only the newest recuerdo, short: the menu is a glance, the animita has the rest. */}
+        {latest && (
+          <DropdownMenuItem asChild className="group flex-col items-start gap-1 rounded-none p-0 data-[highlighted]:bg-transparent">
+            <Link href={latest.href}>
+              <span className="text-xs text-text-weak">{count === 1 ? 'Un recuerdo nuevo' : `${count} recuerdos nuevos`}</span>
+              <span className="text-pretty text-sm text-text transition-colors group-data-[highlighted]:text-text-strong">
+                “{storyExcerpt(latest.text, 70).text}”
+              </span>
+              <span className="text-xs text-text-weak">{latest.who}, {latest.timeAgo}</span>
+            </Link>
+          </DropdownMenuItem>
         )}
 
         <div className="flex flex-col gap-3">
@@ -83,17 +76,10 @@ export function UserDropdown() {
             <Link href={`/@${currentUser.username}`}>Tu perfil</Link>
           </DropdownMenuItem>
           {demo ? (
-            <>
-              {/* The only sign of demo mode, so nothing floats over the pages. Plain links: they go through
-                  the server to change the demo cookie. */}
-              <DropdownMenuItem asChild className={ITEM}>
-                <a href="/demo?reiniciar">Reiniciar demo</a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className={ITEM}>
-                <a href="/demo?salir">Salir del demo</a>
-              </DropdownMenuItem>
-              <DropdownMenuLabel className="p-0 text-xs font-normal text-text-weak">Estás en modo demo</DropdownMenuLabel>
-            </>
+            // Plain links: they go through the server to change the demo cookie.
+            <DropdownMenuItem asChild className={ITEM}>
+              <a href="/demo?salir">Salir del demo</a>
+            </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onSelect={handleLogout} className={ITEM}>
               Cerrar sesión

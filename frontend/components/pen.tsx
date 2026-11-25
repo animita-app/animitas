@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
 // Ballpoint marks drawn in the interface, the same pen that circles the animitas on the map.
@@ -26,9 +26,9 @@ export function PenLoop({ children, className }: { children?: ReactNode; classNa
 
 // A dot scribbled in red ballpoint: something new is waiting. Same hand as the blue circles: a quick
 // tangle of strokes that fills the dot unevenly, the ink soaking at the edges.
-export function RedPenDot({ className }: { className?: string }) {
+export function RedPenDot({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg aria-hidden viewBox="0 0 20 20" className={cn('pen-red overflow-visible', className)}>
+    <svg aria-hidden viewBox="0 0 20 20" style={style} className={cn('pen-red overflow-visible', className)}>
       <path
         d="M5.2 10.6 C4.6 6.4 9.8 3.6 13.6 5.8 C16.6 7.6 16.4 12.6 12.8 14.6 C9.4 16.4 5.4 14.2 5.8 10.8 C6.2 7.8 10.4 6.6 12.6 8.6 C14.4 10.2 13 13.4 10.4 13.4 C8.4 13.4 7.6 11.2 9.2 10 C10.4 9.2 11.8 10.2 11 11.2"
         fill="none"
