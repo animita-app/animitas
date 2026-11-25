@@ -152,10 +152,8 @@ export function AddForm({ onCancel }: AddFormProps) {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="space-y-8 px-5 pt-2 pb-safe">
           <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2">
-            <h2 id={`${ids}-photos`} className="sr-only">Fotos</h2>
-            <CutoutText text="fotos" height={20} />
-            {previews.length > 0 && (
-              <ul className="grid grid-cols-3 gap-3">
+            <h2 id={`${ids}-photos`} className="text-sm text-text">Fotos</h2>
+            <ul className="grid grid-cols-3 gap-3">
                 {previews.map((src, i) => (
                   <li key={src} className={cn("print-frame relative p-1 pb-3", i % 2 ? "rotate-1" : "-rotate-1")}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -172,19 +170,32 @@ export function AddForm({ onCancel }: AddFormProps) {
                     </Button>
                   </li>
                 ))}
-              </ul>
-            )}
+              {photos.length < MAX_PHOTOS && (
+                // An empty instant print waiting for its photo: pressing it picks one.
+                <li className={cn(previews.length % 2 ? "-rotate-1" : "rotate-1")}>
+                  <button
+                    type="button"
+                    onClick={() => galleryRef.current?.click()}
+                    aria-describedby={errors.photos ? errorId("photos") : undefined}
+                    className={cn(
+                      "print-frame group flex w-full flex-col p-1 pb-3 outline-none transition-[rotate,scale] duration-200 hover:scale-[1.03] hover:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none",
+                      errors.photos && "ring-[3px] ring-destructive/30"
+                    )}
+                  >
+                    {/* An unexposed print is near black, with the faint sheen of its chemistry. */}
+                    <span className="flex aspect-square w-full items-center justify-center bg-text-strong/85 bg-[radial-gradient(circle_at_30%_25%,rgb(255_255_255_/_0.12),transparent_55%)] text-text-inverted/60 shadow-[inset_0_0_14px_rgb(0_0_0_/_0.5)] transition-colors group-hover:text-text-inverted">
+                      <ImagePlus aria-hidden />
+                    </span>
+                    <span className="pt-1.5 text-xs text-text-weak">{previews.length ? "Otra foto" : "Elegir fotos"}</span>
+                  </button>
+                </li>
+              )}
+            </ul>
             {photos.length < MAX_PHOTOS && (
-              <div className="flex flex-wrap items-center gap-4">
-                <Button type="button" variant="sign" size="lg" className="-rotate-1" onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
-                  <Camera aria-hidden />
-                  Tomar foto
-                </Button>
-                <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => galleryRef.current?.click()}>
-                  <ImagePlus />
-                  Elegir fotos
-                </Button>
-              </div>
+              <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => cameraRef.current?.click()}>
+                <Camera />
+                Tomar foto
+              </Button>
             )}
             {errors.photos && <p id={errorId("photos")} className="text-sm text-destructive">{errors.photos}</p>}
             <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = "" }} />
@@ -192,8 +203,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           </section>
 
           <section ref={el => { sectionRefs.current.location = el }} aria-labelledby={`${ids}-location`} className="space-y-2">
-            <h2 id={`${ids}-location`} className="sr-only">Dónde está</h2>
-            <CutoutText text="dónde está" height={20} />
+            <h2 id={`${ids}-location`} className="text-sm text-text">Dónde está</h2>
             <LocationPicker
               value={location}
               onChange={(next) => {
@@ -207,8 +217,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           </section>
 
           <div className="space-y-2">
-            <Label htmlFor={`${ids}-name`} className="sr-only">A quién recordamos</Label>
-            <CutoutText text="a quién recordamos" height={20} />
+            <Label htmlFor={`${ids}-name`}>A quién recordamos</Label>
             <Input
               ref={nameRef}
               id={`${ids}-name`}
@@ -228,8 +237,7 @@ export function AddForm({ onCancel }: AddFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`${ids}-story`} className="sr-only">Su historia (opcional)</Label>
-            <CutoutText text="su historia" height={20} />
+            <Label htmlFor={`${ids}-story`}>Su historia (opcional)</Label>
             <Textarea
               id={`${ids}-story`}
               value={story}
