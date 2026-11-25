@@ -1,5 +1,7 @@
 'use client'
 import { useMemo } from 'react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { useAnimitas } from '@/contexts/animitas-context'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { EmptyState } from '@/components/empty-state'
@@ -34,6 +36,9 @@ export default function ListPage() {
         ) : (
           <EmptyState title="No hay animitas en esas comunas" cutout="nada por acá" description="Prueba con otra comuna o limpia el filtro." />
         )}
+        <Button asChild variant="link" className="h-auto p-0 text-xs text-text-weaker">
+          <Link href="/creditos">Créditos de las fotos</Link>
+        </Button>
       </div>
     </div>
   )
