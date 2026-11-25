@@ -1,7 +1,8 @@
 'use client'
 
+import Image from 'next/image'
 import { CutoutText } from '@/components/cutout-text'
-import { PenCross } from '@/components/road-signs'
+import { CurveSign } from '@/components/road-signs'
 
 // "No entrar": the red disc with a white bar that closes a street to traffic in Chile.
 function NoEntrar() {
@@ -14,20 +15,31 @@ function NoEntrar() {
   )
 }
 
-// A strip of masking tape holding the sheet down, with an X scrawled on it: peel it to close.
+// The red pin that holds the sheet to the page: pulling it out closes it.
+function Pin() {
+  return <Image src="/cutouts/pin-red.png" alt="" width={160} height={300} className="h-12 w-auto rotate-12 drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.35)]" />
+}
+
+// A strip of plain masking tape across the corner, the word cut out on it.
 function Tape() {
   return (
-    <span aria-hidden className="relative block h-7 w-16 rotate-12 bg-[#e9dcb8]/90 shadow-[0_1px_2px_rgb(28_24_20_/_0.25)] [clip-path:polygon(3%_8%,97%_0%,100%_92%,0%_100%)]">
-      <PenCross className="absolute inset-0 m-auto size-5" />
+    <span aria-hidden className="flex h-8 w-24 rotate-12 items-center justify-center bg-background-weaker shadow-[0_1px_2px_rgb(28_24_20_/_0.25)] [clip-path:polygon(3%_8%,97%_0%,100%_92%,0%_100%)]">
+      <CutoutText text="cerrar" height={14} />
     </span>
   )
 }
 
+// The same X from the letter pack, a single cut, like the other words of the app.
+function CutX() {
+  return <CutoutText text="x" height={30} />
+}
+
 const OPTIONS = [
-  { key: 'no-entrar', name: 'Señal "No entrar"', why: 'Señal chilena real de calle cerrada; se entiende como "no sigas".', mark: <NoEntrar /> },
-  { key: 'cerrar', name: 'Palabra recortada', why: 'Igual que los nombres de la repisa: dice lo que hace.', mark: <CutoutText text="cerrar" height={20} /> },
-  { key: 'cinta', name: 'Cinta de papel', why: 'La hoja está pegada con cinta; la despegas para cerrarla.', mark: <Tape /> },
-  { key: 'lapiz', name: 'X de lápiz pasta (hoy)', why: 'El mismo lápiz de los círculos del mapa.', mark: <PenCross className="size-8" /> },
+  { key: 'no-entrar', name: 'Señal "No entrar"', why: 'Señal chilena real de calle cerrada; sigue los letreros de la app.', mark: <NoEntrar /> },
+  { key: 'curva', name: 'Señal de curva (como volver)', why: 'La misma señal que ya usamos para volver: una sola forma de salir.', mark: <CurveSign className="size-11" /> },
+  { key: 'chinche', name: 'La chinche roja', why: 'La hoja está clavada; sacas la chinche para soltarla.', mark: <Pin /> },
+  { key: 'cinta', name: 'Cinta con "cerrar"', why: 'La hoja está pegada; despegas la cinta. Dice lo que hace.', mark: <Tape /> },
+  { key: 'x', name: 'X recortada de revista', why: 'Una sola letra del pack, como los nombres.', mark: <CutX /> },
 ]
 
 export function CloseOptions() {
