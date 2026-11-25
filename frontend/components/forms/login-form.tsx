@@ -315,7 +315,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <StepLayout
-      title="Entrar a Animitas"
+      title="Entrar a [ÁNIMA]"
       cutout="entrar"
       description="Para añadir animitas, prender velas y dejar recuerdos."
       actions={

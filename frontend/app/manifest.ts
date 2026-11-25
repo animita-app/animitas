@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Animitas',
-    short_name: 'Animitas',
+    name: '[ÁNIMA]',
+    short_name: '[ÁNIMA]',
     description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
     lang: 'es-CL',
     start_url: '/map',

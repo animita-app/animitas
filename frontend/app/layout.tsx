@@ -59,14 +59,14 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  applicationName: 'Animitas',
+  applicationName: '[ÁNIMA]',
   appleWebApp: {
     capable: true,
-    title: 'Animitas',
+    title: '[ÁNIMA]',
     statusBarStyle: 'default',
   },
   title: {
-    template: '%s – [ÁNIMA]',
+    template: '%s [ÁNIMA]',
     default: '[ÁNIMA]',
   },
   description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
@@ -76,15 +76,15 @@ export const metadata: Metadata = {
     { name: 'Felipe Mandiola', url: 'https://felipemandiola.com' },
   ],
   openGraph: {
-    title: 'Animitas',
+    title: '[ÁNIMA]',
     description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
     type: 'website',
     locale: 'es_CL',
-    siteName: 'Animitas',
+    siteName: '[ÁNIMA]',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Animitas',
+    title: '[ÁNIMA]',
     description: 'Un mapa colaborativo de las animitas de Chile y sus historias.',
   },
 }
