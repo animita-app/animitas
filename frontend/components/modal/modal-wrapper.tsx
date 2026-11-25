@@ -27,7 +27,7 @@ export function ModalWrapper({ children, title, description, className, showTitl
   if (isMobile) {
     return (
       <Drawer open onOpenChange={onOpenChange} repositionInputs={false}>
-        <DrawerContent className="overflow-hidden">
+        <DrawerContent className="overflow-hidden border-0 data-[vaul-drawer-direction=bottom]:rounded-none data-[vaul-drawer-direction=bottom]:border-0 bg-transparent bg-[linear-gradient(to_bottom,transparent,var(--color-background)_12%)]">
           <DrawerTitle className={showTitle ? "px-4 text-2xl font-medium" : "sr-only"}>{title}</DrawerTitle>
           <DrawerDescription className="sr-only">{description}</DrawerDescription>
           <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
@@ -38,7 +38,8 @@ export function ModalWrapper({ children, title, description, className, showTitl
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto", className)}>
+      {/* Paper with no edge: the same color blooms outward, so it reads as a lit patch on the map, not a box. */}
+      <DialogContent className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto rounded-none border-0 px-8 py-10 shadow-[0_0_48px_40px_var(--color-background)]", className)}>
         <DialogHeader className={showTitle ? "" : "sr-only"}>
           <DialogTitle className={showTitle ? "text-2xl font-medium" : undefined}>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
