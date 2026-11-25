@@ -1,34 +1,52 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { animitaHref } from '@/lib/routes'
+import { CutoutText } from '@/components/cutout-text'
+import { cn } from '@/lib/utils'
 
 interface AnimitaCardProps {
   site: { slug: string; title: string; images: string[] | null; city_region?: string | null }
 }
 
+// Loose prints never land square on the table.
+const TILTS = ['-rotate-1', 'rotate-1', '-rotate-2', 'rotate-[0.5deg]', 'rotate-2', '-rotate-[0.5deg]']
+
+function tiltFor(slug: string) {
+  let h = 0
+  for (const c of slug) h = (h * 31 + c.charCodeAt(0)) % 997
+  return TILTS[h % TILTS.length]
+}
+
+// A print with no caption: the name is glued on in cut-out letters when you reach for it.
 export function AnimitaCard({ site }: AnimitaCardProps) {
   const imageUrl = site.images?.[0]
+  const label = site.city_region ? `${site.title}, ${site.city_region}` : site.title
 
   return (
     <Link
       href={animitaHref(site.slug)}
-      className="group flex flex-col gap-2 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      aria-label={label}
+      className={cn(
+        'group relative block bg-neutral-light-1 p-1.5 pb-5 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-12px_rgb(28_24_20_/_0.5)] outline-none transition-[rotate,scale] duration-200 ease-out hover:rotate-0 hover:scale-[1.02] focus-visible:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none',
+        tiltFor(site.slug)
+      )}
     >
-      <div className="photo-vignette aspect-square overflow-hidden rounded-md bg-background-weak">
+      <div className="photo-vignette relative aspect-square overflow-hidden bg-background-weak">
         {imageUrl && (
           <Image
             src={imageUrl}
             alt=""
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover [filter:url(#stipple)] group-hover:[filter:none] group-focus-visible:[filter:none]"
           />
         )}
       </div>
-      <div>
-        <h3 className="text-sm font-medium text-text-strong text-pretty">{site.title}</h3>
-        {site.city_region && <p className="text-sm text-text-weak">{site.city_region}</p>}
-      </div>
+      <span className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end justify-center gap-x-2 gap-y-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 [@media(hover:none)]:opacity-100">
+        {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
+          <CutoutText key={`${word}-${i}`} text={word} height={18} />
+        ))}
+      </span>
     </Link>
   )
 }
