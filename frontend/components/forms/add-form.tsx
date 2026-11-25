@@ -164,10 +164,11 @@ export function AddForm({ onCancel }: AddFormProps) {
       </button>
 
       <div className="flex-1">
-        <div className="space-y-6 px-5 pt-16 pb-6 md:pt-6">
-          <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2">
+        <div className="grid gap-6 px-5 pt-16 pb-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10 md:pt-10">
+          {/* The photos come first: on a wide screen they get their own column, the rest sits beside them. */}
+          <section ref={el => { sectionRefs.current.photos = el }} aria-labelledby={`${ids}-photos`} className="space-y-2 md:sticky md:top-10 md:self-start">
             <h2 id={`${ids}-photos`} className="text-sm text-text">Fotos</h2>
-            <ul className="grid grid-cols-4 gap-3 sm:grid-cols-5">
+            <ul className={cn("grid gap-3", previews.length ? "grid-cols-3 md:grid-cols-2" : "grid-cols-1")}>
               {previews.map((src, i) => {
                 const lifted = drag?.index === i
                 return (
@@ -189,7 +190,8 @@ export function AddForm({ onCancel }: AddFormProps) {
               })}
               {photos.length < MAX_PHOTOS && (
                 // An empty instant print waiting for its photo: pressing it picks one.
-                <li className={cn(previews.length % 2 ? "-rotate-1" : "rotate-1")}>
+                // With no photos yet it's the big first thing to do; once there are some it's one more slot.
+                <li className={cn(previews.length % 2 ? "-rotate-1" : "rotate-1", !previews.length && "w-32 md:mx-auto md:w-full md:max-w-60")}>
                   <button
                     type="button"
                     onClick={() => galleryRef.current?.click()}
@@ -213,6 +215,7 @@ export function AddForm({ onCancel }: AddFormProps) {
             <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { addPhotos(e.target.files); e.target.value = "" }} />
           </section>
 
+          <div className="flex flex-col gap-6">
           <section ref={el => { sectionRefs.current.location = el }} aria-labelledby={`${ids}-location`} className="space-y-2">
             <h2 id={`${ids}-location`} className="text-sm text-text">Dónde está</h2>
             <LocationPicker
@@ -258,6 +261,7 @@ export function AddForm({ onCancel }: AddFormProps) {
               variant="paper"
               className="min-h-24 -rotate-[0.4deg]"
             />
+          </div>
           </div>
         </div>
       </div>

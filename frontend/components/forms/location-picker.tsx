@@ -131,7 +131,10 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
           </Button>
         </div>
       </div>
-      <p className="text-sm text-text-weak text-pretty" aria-live="polite">
+      {/* Where the pin landed reads as a fact, in the regular text color with the pin beside it; until
+          then, the instruction stays quiet. */}
+      <p className={cn("flex items-start gap-2 text-pretty text-sm", value?.address ? "text-text-strong" : "text-text-weak")} aria-live="polite">
+        {value?.address && <Image src="/cutouts/pin-red.png" alt="" width={160} height={300} draggable={false} className="mt-0.5 h-4 w-auto shrink-0" />}
         {gps === "denied" && !value
           ? "No pudimos ver tu ubicación. Mueve el mapa hasta dejar el pin sobre la animita."
           : value?.address
