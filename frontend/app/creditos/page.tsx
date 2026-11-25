@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { CutoutText } from '@/components/cutout-text'
-import { LETTER_SOURCES, OBJECT_CREDITS } from '@/lib/credits'
+import { OBJECT_CREDITS } from '@/lib/credits'
 
 export const metadata: Metadata = {
   title: 'Créditos',
-  description: 'De dónde salen las fotos de objetos y las letras recortadas.',
+  description: 'De dónde salen las fotos de los objetos.',
 }
 
 const LINK = 'text-text-strong underline decoration-border underline-offset-4 hover:decoration-text-strong'
@@ -33,17 +33,6 @@ export default function CreditsPage() {
         </ul>
       </section>
 
-      <section aria-labelledby="credits-letters" className="flex flex-col gap-3">
-        <h2 id="credits-letters" className="text-sm font-medium text-text-strong">Letras recortadas</h2>
-        <p className="text-pretty text-sm text-text-weak">
-          De placas y letreros de las mismas animitas, y de revistas y afiches de dominio público:
-        </p>
-        <ul className="flex flex-col gap-2 text-sm">
-          {LETTER_SOURCES.map(c => (
-            <li key={c.url}><a href={c.url} target="_blank" rel="noreferrer" className={LINK}>{c.source}</a></li>
-          ))}
-        </ul>
-      </section>
     </main>
   )
 }

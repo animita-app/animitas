@@ -258,7 +258,6 @@
 .shelf-label {
   opacity: 0;
   scale: 0.8;
-  translate: -50% 6px;
   transition: opacity 160ms ease-out, scale 260ms cubic-bezier(0.34, 1.56, 0.64, 1), translate 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .shelf:has(> .shelf-item:hover, > .shelf-item:focus-visible) > .shelf-item:not(:hover, :focus-visible) {
@@ -279,14 +278,12 @@
 .shelf-item:focus-visible .shelf-label {
   opacity: 1;
   scale: calc(1 / 1.7);
-  translate: -50% 0;
 }
 /* Touch screens have no hover: the object for the current page keeps its name showing. */
 @media (hover: none) {
   .shelf > .shelf-item[aria-current="page"] .shelf-label {
     opacity: 1;
     scale: 0.8;
-    translate: -50% 0;
   }
 }
 

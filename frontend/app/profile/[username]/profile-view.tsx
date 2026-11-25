@@ -11,6 +11,7 @@ import { InlineEdit } from '@/components/ui/inline-edit'
 import { DevelopingPhoto } from '@/components/loaders'
 import { Spinner } from '@/components/ui/spinner'
 import { EmptyState } from '@/components/empty-state'
+import { CutoutText } from '@/components/cutout-text'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
@@ -79,13 +80,15 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-20 pb-24">
       <header className="flex flex-col items-center gap-3 text-center">
-        <Avatar className="size-24">
-          <AvatarImage src={imageUrl || undefined} alt="" />
-          <AvatarFallback className="text-4xl font-normal">{profile.display_name?.[0]?.toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <div className="photo-vignette -rotate-2 bg-neutral-light-1 p-2 pb-6 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-10px_rgb(28_24_20_/_0.5)]">
+          <Avatar className="size-28 rounded-none">
+            <AvatarImage src={imageUrl || undefined} alt="" className="object-cover" />
+            <AvatarFallback className="rounded-none text-4xl font-normal">{profile.display_name?.[0]?.toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </div>
         {isOwnProfile && (
           <>
-            <Button variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+            <Button variant="link" className="h-auto p-0 text-text-weak" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
               {uploading ? <Spinner /> : <Camera />}
               {uploading ? 'Subiendo…' : 'Cambiar foto'}
             </Button>
@@ -111,16 +114,17 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
       </header>
 
       <section aria-labelledby="profile-animitas" className="space-y-4">
-        <h2 id="profile-animitas" className="text-base font-medium text-text-strong">
+        <h2 id="profile-animitas" className="sr-only">
           Animitas{animitas && animitas.length > 0 ? ` (${animitas.length})` : ''}
         </h2>
+        <CutoutText text={animitas && animitas.length > 0 ? `animitas ${animitas.length}` : 'animitas'} height={24} />
 
         {animitas === null ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {[1, 2, 3].map(i => <DevelopingPhoto key={i} className="rounded-md" />)}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
+            {[1, 2, 3].map(i => <DevelopingPhoto key={i} />)}
           </div>
         ) : animitas.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-2 gap-y-6 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
             {animitas.map(a => <AnimitaCard key={a.id} site={a} />)}
           </div>
         ) : (

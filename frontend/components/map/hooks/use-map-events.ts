@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { CHILE_BOUNDS } from "./use-map-initialization";
+import { CHILE_BOUNDS, CHILE_PADDING } from "./use-map-initialization";
 
 const PROFILE_ZOOM_THRESHOLD = 12;
 const TARGET_ZOOM = 17;
@@ -65,9 +65,7 @@ export function useMapEvents({ map }: UseMapEventsProps) {
       return;
     }
 
-    const camera = map.cameraForBounds(CHILE_BOUNDS, {
-      padding: { top: 48, bottom: 48, left: 48, right: 48 },
-    });
+    const camera = map.cameraForBounds(CHILE_BOUNDS, { padding: CHILE_PADDING });
 
     if (camera) {
       map.flyTo({
@@ -77,7 +75,7 @@ export function useMapEvents({ map }: UseMapEventsProps) {
       });
     } else {
       map.fitBounds(CHILE_BOUNDS, {
-        padding: 64,
+        padding: CHILE_PADDING,
         essential: true,
         duration: 2000,
       });

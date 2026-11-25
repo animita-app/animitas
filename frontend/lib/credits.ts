@@ -17,10 +17,3 @@ export const OBJECT_CREDITS: Credit[] = [
   { object: 'Mapa', source: 'Carte du Chili (par J.N. Bellin)', url: 'https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg', author: 'Jacques-Nicolas Bellin', license: 'Dominio público' },
 ]
 
-export const LETTER_SOURCES: Pick<Credit, 'source' | 'url'>[] = [
-  { source: 'Revista Sucesos, 1909', url: 'https://commons.wikimedia.org/wiki/File:Portada_revista_Sucesos_1909.jpg' },
-  { source: 'Revista Sucesos, 1916', url: 'https://commons.wikimedia.org/wiki/File:Revista_Sucesos-a%C3%B1o-1916.jpg' },
-  { source: 'Revista Zig-Zag, 1913', url: 'https://commons.wikimedia.org/wiki/File:Revista_Zig-Zag_(1913).jpg' },
-  { source: 'Revista El Peneca', url: 'https://commons.wikimedia.org/wiki/File:Revista_El_Peneca.jpg' },
-  { source: 'Afiches de la WPA, 1937 y 1938', url: 'https://commons.wikimedia.org/wiki/File:See_America,_WPA_poster,_ca._1938.jpg' },
-]

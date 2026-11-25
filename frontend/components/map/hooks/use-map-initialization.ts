@@ -7,6 +7,9 @@ export const CHILE_BOUNDS: mapboxgl.LngLatBoundsLike = [
   [-66.4, -17.5]
 ]
 
+// Room for the road sign on top and the shelf of objects below, so the whole country sits between them.
+export const CHILE_PADDING = { top: 96, bottom: 128, left: 48, right: 48 }
+
 interface UseMapInitializationProps {
   accessToken: string
   style?: string
@@ -41,7 +44,7 @@ export function useMapInitialization({ accessToken, style }: UseMapInitializatio
       applyPaperStyle(mapInstance)
       setIsMapReady(true)
       mapInstance.touchZoomRotate.disableRotation()
-      mapInstance.fitBounds(CHILE_BOUNDS, { padding: { top: 96, bottom: 48, left: 64, right: 64 }, duration: 0 })
+      mapInstance.fitBounds(CHILE_BOUNDS, { padding: CHILE_PADDING, duration: 0 })
 
       const currentZoom = mapInstance.getZoom()
       const bounds = mapInstance.getBounds()

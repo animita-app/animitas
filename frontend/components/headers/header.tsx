@@ -41,7 +41,7 @@ export function Header() {
           ) : (
             <div className="shelf shelf-top">
               <Link href="/auth" aria-label="Entrar" className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                <ShelfObject src="/cutouts/key.png" label="entrar" size="h-7 -rotate-12" active labelSide="bottom" />
+                <ShelfObject src="/cutouts/key.png" label="entrar" size="h-7 -rotate-12" active orbit={{ radius: 84, angle: 130, clockwise: false }} />
               </Link>
             </div>
           )}
