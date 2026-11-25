@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { useAnimitas } from '@/contexts/animitas-context'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { cn } from '@/lib/utils'
+import { EmptyState } from '@/components/empty-state'
 
 type SortOrder = 'newest' | 'oldest' | 'name'
 
@@ -64,9 +65,7 @@ export default function ListPage() {
             </div>
           </>
         ) : (
-          <div className="py-16 text-center">
-            <p className="text-text-weak">No hay animitas con esos filtros.</p>
-          </div>
+          <EmptyState title="No hay animitas en esas comunas" description="Prueba con otra comuna o limpia el filtro." />
         )}
       </div>
     </div>

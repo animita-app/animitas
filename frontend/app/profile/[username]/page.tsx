@@ -36,5 +36,5 @@ export default async function ProfilePage({ params }: PageProps) {
 
   if (!profile) notFound()
 
-  return <ProfileView profile={profile} username={username} />
+  return <ProfileView key={profile.id} profile={profile} />
 }
