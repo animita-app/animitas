@@ -12,9 +12,11 @@ interface ModalWrapperProps {
   description: string
   className?: string
   showTitle?: boolean
+  // For forms that carry their own way back (the curve sign), so there aren't two ways to close.
+  showCloseButton?: boolean
 }
 
-export function ModalWrapper({ children, title, description, className, showTitle = true }: ModalWrapperProps) {
+export function ModalWrapper({ children, title, description, className, showTitle = true, showCloseButton = true }: ModalWrapperProps) {
   const router = useRouter()
   const isMobile = useIsMobileOverlay()
 
@@ -39,7 +41,7 @@ export function ModalWrapper({ children, title, description, className, showTitl
   return (
     <Dialog open onOpenChange={onOpenChange}>
       {/* No paper of its own: it sits on the overlay's sheet, so there is no box and no lighter patch. */}
-      <DialogContent className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto rounded-none border-0 bg-transparent px-8 py-10 shadow-none", className)}>
+      <DialogContent showCloseButton={showCloseButton} className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto rounded-none border-0 bg-transparent px-8 py-10 shadow-none", className)}>
         <DialogHeader className={showTitle ? "" : "sr-only"}>
           <DialogTitle className={showTitle ? "text-2xl font-medium" : undefined}>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

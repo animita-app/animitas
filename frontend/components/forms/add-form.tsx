@@ -9,6 +9,8 @@ import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { CutoutText } from "@/components/cutout-text"
+import { CurveSign } from "@/components/road-signs"
+import { TrashCan } from "@/components/trash-can"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -148,7 +150,17 @@ export function AddForm({ onCancel }: AddFormProps) {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="shrink-0 px-5 py-4">
+      {/* The way back is the same curve sign as on an animita's page, so there's no Cancelar to read. */}
+      <div className="flex shrink-0 items-center gap-4 px-4 py-3">
+        <button
+          type="button"
+          onClick={handleCancel}
+          disabled={isSubmitting}
+          aria-label="Volver sin publicar"
+          className="rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:-rotate-6 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+        >
+          <CurveSign className="size-11" />
+        </button>
         <h1 className="sr-only">Añadir animita</h1>
         <CutoutText text="añadir" height={30} arc={20} />
       </div>
@@ -268,30 +280,18 @@ export function AddForm({ onCancel }: AddFormProps) {
       )}
 
       {/* Floats at the bottom over a paper fade. While a photo is lifted, the trash takes its place. */}
-      <div className="relative shrink-0 px-5 pt-3 pb-safe before:pointer-events-none before:absolute before:inset-x-0 before:-top-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent">
-        <div className="flex min-h-20 items-center justify-end gap-4 pb-4">
+      <div className="relative shrink-0 px-5 pt-2 pb-safe before:pointer-events-none before:absolute before:inset-x-0 before:-top-10 before:h-10 before:bg-linear-to-t before:from-background before:to-transparent">
+        <div className="flex min-h-28 items-end justify-center pb-5">
           {drag ? (
-            <div ref={trashRef} className="flex flex-1 items-end justify-center gap-3">
-              <CutoutText text="bótala aquí" height={20} />
-              <Image
-                src="/cutouts/trash.png"
-                alt=""
-                width={198}
-                height={200}
-                draggable={false}
-                className={cn("h-16 w-auto drop-shadow-[0_4px_4px_rgb(28_24_20_/_0.35)] transition-[scale,rotate] duration-200", overTrash && "scale-115 -rotate-3")}
-              />
+            <div ref={trashRef} className="flex flex-col items-center gap-1">
+              <CutoutText text="bótala aquí" height={22} arc={16} />
+              <TrashCan open={overTrash} />
             </div>
           ) : (
-            <>
-              <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              <Button type="button" variant="sign" size="lg" className="rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting && <Spinner />}
-                {isSubmitting ? "Publicando…" : "Publicar"}
-              </Button>
-            </>
+            <Button type="button" variant="sign" size="lg" className="w-full max-w-xs rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting && <Spinner />}
+              {isSubmitting ? "Publicando…" : "Publicar"}
+            </Button>
           )}
         </div>
       </div>

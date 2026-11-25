@@ -11,6 +11,7 @@ export default function AddModal() {
       title="Añadir animita"
       description="Sube una foto, márcala en el mapa y cuenta a quién recuerda"
       showTitle={false}
+      showCloseButton={false}
       className="p-0 gap-0 sm:!max-w-lg h-4/5 flex flex-col overflow-hidden"
     >
       <AddForm onCancel={() => router.back()} />
