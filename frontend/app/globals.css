@@ -323,30 +323,32 @@
 .candle-light { animation: candle-light 1.9s ease-in-out infinite; }
 .candle-out { filter: grayscale(1) brightness(0.85) contrast(0.9); }
 
-/* Chilean road signs: green for places, blue for services, white border inset from the edge, a little
-   weathered by the sun. These are object colors, like the photos, not interface tokens. */
+/* Chilean road signs, as the MOP signage manual paints them: flat reflective green for destinations,
+   blue for services, white letters and a white border inset from the edge. Object colors, like the
+   photos, not interface tokens; only colors a real sign has. */
 .road-sign {
-  --sign: #00653a;
+  --sign: #006b3f;
+  --sign-white: #f4f1e8;
   position: relative;
-  color: #f4f1e8;
-  background:
-    radial-gradient(120% 80% at 20% 0%, rgb(255 255 255 / 0.14), transparent 60%),
-    var(--sign);
+  color: var(--sign-white);
+  background: var(--sign);
   border-radius: 6px;
   box-shadow:
-    inset 0 0 0 2px var(--sign),
-    inset 0 0 0 4px #f4f1e8,
+    inset 0 0 0 3px var(--sign),
+    inset 0 0 0 5px var(--sign-white),
     0 1px 0 rgb(28 24 20 / 0.35),
     0 6px 12px -6px rgb(28 24 20 / 0.45);
 }
-.road-sign-blue { --sign: #12408f; }
+.road-sign-blue { --sign: #0b4c9a; }
 .road-sign-text {
   font-family: "DIN Condensed", "Avenir Next Condensed", "Arial Narrow", var(--font-sans);
   font-weight: 600;
   font-size: 1.125rem;
   letter-spacing: 0.01em;
 }
-.road-sign:focus-within { outline: 3px solid rgb(240 168 67 / 0.6); outline-offset: 2px; }
+.road-sign ::selection { background: var(--sign-white); color: var(--sign); }
+.road-sign input::placeholder { color: var(--sign-white); opacity: 0.75; }
+.road-sign:has(input:focus-visible) { outline: 2px solid var(--color-text-strong); outline-offset: 3px; }
 
 /* A sign you can press: it gives a little, like a plate on a post. */
 .road-sign-action {
@@ -355,7 +357,7 @@
 }
 .road-sign-action:hover { translate: 0 -1px; }
 .road-sign-action:active { scale: 0.97; }
-.road-sign-action:focus-visible { outline: 3px solid rgb(240 168 67 / 0.6); outline-offset: 2px; }
+.road-sign-action:focus-visible { outline: 2px solid var(--color-text-strong); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
   .road-sign-action { transition: none; }
   .road-sign-action:hover { translate: 0; }

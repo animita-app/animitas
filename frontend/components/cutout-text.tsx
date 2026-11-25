@@ -53,18 +53,34 @@ export function CutoutText({ text, height = 22, arc = 0, className }: CutoutText
   const seed = hash(text)
   const letters = Array.from(text.toLowerCase())
   const n = letters.length
+  // Letters sit on a circle whose arc length is the word's width, so the ends fall away like a frown
+  // hugging the top of the object. Each letter tilts with the curve and overlaps its neighbor a little.
+  const radians = (arc * Math.PI) / 180
+  const radius = radians > 0 ? (n * height * 0.72) / radians : 0
   return (
     <span aria-hidden className={cn('inline-flex shrink-0 items-end whitespace-nowrap', className)}>
       {letters.map((char, i) => {
-        if (char === ' ') return <span key={i} style={{ width: height * 0.4 }} />
+        if (char === ' ') return <span key={i} style={{ width: height * 0.35 }} />
         const glyph = glyphFor(char, seed, i)
         if (!glyph) return null
         const t = n > 1 ? i / (n - 1) - 0.5 : 0
-        const angle = t * arc + (noise(seed, i) - 0.5) * 16
-        const lift = Math.cos((t * arc * Math.PI) / 180) * height * (arc / 90) - (noise(seed, i + 7) - 0.5) * height * 0.4
-        const size = height * (0.85 + noise(seed, i + 3) * 0.4)
+        const theta = t * radians
+        const drop = radius * (1 - Math.cos(theta))
+        const jitter = (noise(seed, i + 7) - 0.5) * height * 0.15
+        const angle = (theta * 180) / Math.PI + (noise(seed, i) - 0.5) * 8
+        const size = height * (0.9 + noise(seed, i + 3) * 0.35)
         return (
-          <span key={i} className="mx-px shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.55)]" style={{ rotate: `${angle.toFixed(1)}deg`, translate: `0 ${(-lift).toFixed(1)}px` }}>
+          <span
+            key={i}
+            className="relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.7)]"
+            style={{
+              rotate: `${angle.toFixed(1)}deg`,
+              translate: `0 ${(drop + jitter).toFixed(1)}px`,
+              // A sliver like an "i" would vanish under its neighbors, so it sits on top and keeps its room.
+              marginInline: glyph.ratio < 0.4 ? 1 : -height * 0.06,
+              zIndex: glyph.ratio < 0.4 ? 3 : i % 2 ? 2 : 1,
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={glyph.src}
@@ -72,7 +88,7 @@ export function CutoutText({ text, height = 22, arc = 0, className }: CutoutText
               width={Math.round(size * glyph.ratio)}
               height={Math.round(size)}
               draggable={false}
-              className="block"
+              className="block contrast-125 saturate-125"
               style={{ clipPath: scissorCut(seed, i) }}
             />
           </span>

@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils'
 export function ShelfObject({ src, label, size, active, labelSide = 'top' }: { src: string; label: string; size: string; active?: boolean; labelSide?: 'top' | 'bottom' }) {
   return (
     <>
-      <span className={cn('shelf-label pointer-events-none absolute left-1/2 -translate-x-1/2', labelSide === 'top' ? 'bottom-full mb-1 origin-bottom' : 'top-full mt-1 origin-top')}>
-        <CutoutText text={label} height={24} arc={38} />
+      <span className={cn('shelf-label pointer-events-none absolute left-1/2 w-max -translate-x-1/2', labelSide === 'top' ? 'bottom-full -mb-2 origin-bottom' : 'top-full mt-1 origin-top')}>
+        <CutoutText text={label} height={24} arc={labelSide === 'top' ? 80 : 0} />
       </span>
       <Image
         src={src}
