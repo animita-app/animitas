@@ -35,7 +35,7 @@ export function ComunaFilter() {
           </Button>
         </DropdownMenuTrigger>
         {/* Comunas as street plates stacked under the word, like the search results: blue, green once chosen. */}
-        <DropdownMenuContent align="start" className="scroll-fade flex max-h-(--radix-dropdown-menu-content-available-height) flex-col items-start gap-1.5 bg-transparent px-3 py-2 shadow-none">
+        <DropdownMenuContent align="start" className="scroll-fade flex max-h-[min(var(--radix-dropdown-menu-content-available-height),28rem)] flex-col items-start gap-1.5 bg-transparent px-3 py-2 shadow-none">
           {comunas.map((comuna, i) => {
             const chosen = selectedComunas.includes(comuna)
             return (

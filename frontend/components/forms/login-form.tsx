@@ -206,7 +206,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               setAvatarFile(file)
               setAvatarPreview(URL.createObjectURL(file))
             }} className="sr-only" />
-            <div className="photo-vignette flex size-28 rotate-2 items-center justify-center bg-neutral-light-1 p-2 pb-6 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-10px_rgb(28_24_20_/_0.5)] transition-[rotate] duration-200 group-hover:rotate-0 motion-reduce:transition-none">
+            <div className="photo-vignette flex size-28 rotate-2 items-center justify-center print-frame p-2 pb-6 transition-[rotate] duration-200 group-hover:rotate-0 motion-reduce:transition-none">
               {avatarPreview ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img src={avatarPreview} alt="" className="size-full object-cover" />
@@ -315,8 +315,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <StepLayout
-      title="Entrar a [ÁNIMA]"
-      cutout="entrar"
+      title="Inicia sesión en [ÁNIMA]"
+      cutout="inicia sesión"
       description="Para añadir animitas, prender velas y dejar recuerdos."
       actions={
         <Button type="submit" form="login-form" variant="sign" size="lg" className="rotate-1" disabled={loading}>

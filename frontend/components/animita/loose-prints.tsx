@@ -19,11 +19,11 @@ export function LoosePrints({ site, className }: { site: Animita; className?: st
   const hidden = rest.length - shown.length
   return (
     <div className={cn('relative px-8 pt-10 pb-6', className)}>
-      <div className="photo-vignette relative aspect-4/3 w-3/4 -rotate-1 overflow-hidden bg-neutral-light-1 shadow-lg">
+      <div className="print-frame relative aspect-4/3 w-3/4 -rotate-1 p-2"><div className="photo-vignette relative size-full overflow-hidden">
         <Image src={first} alt={`Animita de ${site.title}`} fill sizes="(max-width: 768px) 75vw, 360px" className="object-cover [filter:url(#stipple)]" priority />
-      </div>
+      </div></div>
       {shown.map((src, i) => (
-        <div key={src} className={cn('photo-vignette absolute aspect-4/3 w-1/3 overflow-hidden border-4 border-neutral-light-1 shadow-md', SMALL[i])}>
+        <div key={src} className={cn('photo-vignette print-frame absolute aspect-4/3 w-1/3 overflow-hidden p-1.5', SMALL[i])}>
           <Image src={src} alt={`Foto ${i + 2} de ${images.length}`} fill sizes="160px" className="object-cover [filter:url(#stipple)]" />
         </div>
       ))}
@@ -50,7 +50,7 @@ export function PrintWall({ site, className }: { site: Animita; className?: stri
         // An instant print: a white frame, wider at the bottom where you'd write on it.
         <li
           key={src}
-          className={cn('bg-neutral-light-1 p-2 pb-10 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_12px_20px_-12px_rgb(28_24_20_/_0.55)]', i === 0 && 'col-span-2 p-3 pb-14', WALL_TILTS[i % WALL_TILTS.length])}
+          className={cn('print-frame p-2 pb-10', i === 0 && 'col-span-2 p-3 pb-14', WALL_TILTS[i % WALL_TILTS.length])}
         >
           <div className={cn('photo-vignette relative overflow-hidden', i === 0 ? 'aspect-4/3' : 'aspect-square')}>
             <Image

@@ -39,7 +39,7 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
       onFocus={() => setReaching(true)}
       onBlur={() => setReaching(false)}
       className={cn(
-        'group relative block bg-neutral-light-1 p-1.5 pb-5 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-12px_rgb(28_24_20_/_0.5)] outline-none transition-[rotate,scale] duration-200 ease-out hover:rotate-0 hover:scale-[1.02] focus-visible:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none',
+        'print-frame group relative block p-1.5 pb-5 outline-none transition-[rotate,scale] duration-200 ease-out hover:rotate-0 hover:scale-[1.02] focus-visible:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none',
         tiltFor(site.slug)
       )}
     >

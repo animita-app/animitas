@@ -18,7 +18,6 @@ import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
 import { LocationPicker, type PickedLocation } from "./location-picker"
 import { uploadAnimitaPhoto } from "@/lib/photos"
 
-const PRINT = "shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_8px_14px_-10px_rgb(28_24_20_/_0.5)]"
 
 const MAX_PHOTOS = 5
 
@@ -135,7 +134,7 @@ export function AddForm({ onCancel }: AddFormProps) {
             {previews.length > 0 && (
               <ul className="grid grid-cols-3 gap-3">
                 {previews.map((src, i) => (
-                  <li key={src} className={cn("relative bg-neutral-light-1 p-1 pb-3", PRINT, i % 2 ? "rotate-1" : "-rotate-1")}>
+                  <li key={src} className={cn("print-frame relative p-1 pb-3", i % 2 ? "rotate-1" : "-rotate-1")}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Foto ${i + 1}`} className="aspect-square w-full object-cover" />
                     <Button

@@ -101,7 +101,7 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
       <div
         data-vaul-no-drag
         className={cn(
-          "h-56 bg-neutral-light-1 p-1.5 touch-none shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_8px_14px_-10px_rgb(28_24_20_/_0.5)]",
+          "print-frame h-56 p-1.5 touch-none",
           invalid && "ring-[3px] ring-destructive/30"
         )}
       >

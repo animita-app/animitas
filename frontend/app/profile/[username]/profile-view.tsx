@@ -80,7 +80,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-20 pb-24">
       <header className="flex flex-col items-center gap-3 text-center">
-        <div className="photo-vignette -rotate-2 bg-neutral-light-1 p-2 pb-6 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_10px_18px_-10px_rgb(28_24_20_/_0.5)]">
+        <div className="print-frame photo-vignette -rotate-2 p-2 pb-6">
           <Avatar className="size-28 rounded-none">
             <AvatarImage src={imageUrl || undefined} alt="" className="object-cover" />
             <AvatarFallback className="rounded-none text-4xl font-normal">{profile.display_name?.[0]?.toUpperCase()}</AvatarFallback>
