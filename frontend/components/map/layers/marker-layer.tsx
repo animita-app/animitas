@@ -77,7 +77,7 @@ function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke,
   for (let i = 1; i < line.length; i++) {
     const a = line[i - 1]
     const b = line[i]
-    ctx.globalAlpha = 0.72 + 0.22 * b.pressure
+    ctx.globalAlpha = 0.6 + 0.24 * b.pressure
     ctx.lineWidth = width * b.pressure
     ctx.beginPath()
     ctx.moveTo(a.x, a.y)
@@ -93,20 +93,21 @@ function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke,
   ctx.globalAlpha = 1
 }
 
-// Where the ball dropped extra ink: the odd small blot on the line. Crisp, no blur and no hairs.
+// The ink soaking into the paper around the line, a little off to one side. Marks are drawn at INK_RES,
+// and canvas blur ignores the transform, so the blur is scaled up to look the same at any density.
 function drawBleed(ctx: CanvasRenderingContext2D, { pts, width }: Stroke, rand: () => number) {
-  const line = wander(smooth(pts), width, rand)
+  const line = wander(smooth(pts), width * 1.6, rand)
+  const soak = 0.5 + rand() * 0.6
   ctx.save()
-  ctx.strokeStyle = ctx.fillStyle = PEN_INK
-  ctx.lineCap = 'round'
-  for (let k = 0; k < 2; k++) {
-    if (rand() > 0.6) continue
-    const { x, y, pressure } = line[Math.floor(rand() * line.length)]
-    ctx.globalAlpha = 0.55
-    ctx.beginPath()
-    ctx.arc(x, y, width * 0.32 * pressure, 0, Math.PI * 2)
-    ctx.fill()
-  }
+  ctx.lineCap = ctx.lineJoin = 'round'
+  ctx.strokeStyle = PEN_INK
+  ctx.filter = `blur(${width * soak * INK_RES}px)`
+  ctx.globalAlpha = 0.24 + rand() * 0.12
+  ctx.lineWidth = width * (1.5 + soak * 0.6)
+  ctx.beginPath()
+  ctx.moveTo(line[0].x, line[0].y)
+  line.slice(1).forEach(({ x, y }) => ctx.lineTo(x, y))
+  ctx.stroke()
   ctx.restore()
 }
 
@@ -186,8 +187,7 @@ function circledCount(count: string): Drawing {
   const size = Math.ceil((r + 10) * 2)
   const c = size / 2
   const tilt = (rand() - 0.5) * 0.18
-  // Line widths in drawing units, at half a CSS pixel each: about 2px on screen, like the account circle.
-  const ring = shake(loop(c, c, r, rand), 4.2, rand)
+  const ring = shake(loop(c, c, r, rand), 2.4, rand)
   const digits = count.split('').map((d, i) => {
     const x0 = -textW / 2 + i * (digitW + 3)
     const pts = DIGIT_STROKES[d].map(([x, y]): Pt => {
@@ -195,7 +195,7 @@ function circledCount(count: string): Drawing {
       const py = -digitH / 2 + (y / 16) * digitH + (rand() - 0.5) * 2
       return [c + px * Math.cos(tilt) - py * Math.sin(tilt), c + px * Math.sin(tilt) + py * Math.cos(tilt)]
     })
-    return shake(pts, 4.4, rand)
+    return shake(pts, 2.6, rand)
   })
   return { size, strokes: [ring, ...digits], seed }
 }
@@ -204,7 +204,7 @@ function circledCount(count: string): Drawing {
 function penMark(): Drawing {
   const rand = rng(7)
   const size = 40
-  return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 3.8, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4.5], seed: 7 }
+  return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
 // Image ids: `count-12-a` and `pen-mark-a`, one per take (a, b, c).
