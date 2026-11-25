@@ -73,7 +73,7 @@ export default function ListPage() {
             </div>
           </>
         ) : (
-          <EmptyState title="No hay animitas en esas comunas" description="Prueba con otra comuna o limpia el filtro." />
+          <EmptyState title="No hay animitas en esas comunas" cutout="nada por acá" description="Prueba con otra comuna o limpia el filtro." />
         )}
       </div>
     </div>

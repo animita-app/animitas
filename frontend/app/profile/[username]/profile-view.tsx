@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Camera, Plus } from 'lucide-react'
+import { Camera } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -126,11 +126,12 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
         ) : (
           <EmptyState
             title={isOwnProfile ? 'Todavía no agregas animitas' : 'Todavía no agrega animitas'}
+            cutout="todavía nada"
             description={isOwnProfile ? 'Cuando pases por una, sácale una foto y súmala al mapa.' : undefined}
             action={isOwnProfile ? (
-              <Button asChild>
-                <Link href="/add"><Plus />Agregar</Link>
-              </Button>
+              <Link href="/add" className="road-sign road-sign-text road-sign-action inline-flex -rotate-1 items-center px-5 py-1.5">
+                Agregar
+              </Link>
             ) : undefined}
           />
         )}
