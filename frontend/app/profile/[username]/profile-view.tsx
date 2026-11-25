@@ -98,6 +98,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
             <InlineEdit
               value={profile.display_name}
               onSave={saveDisplayName}
+              label="Tu nombre"
               placeholder="Tu nombre"
               className="text-2xl font-medium text-text-strong text-center"
             />

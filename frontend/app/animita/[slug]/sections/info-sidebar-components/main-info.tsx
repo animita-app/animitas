@@ -32,8 +32,9 @@ export function MainInfo({ site }: MainInfoProps) {
           <InlineEdit
             value={site.title}
             onSave={(val) => saveField('title', val)}
+            label="Nombre"
             placeholder="Nombre"
-            className="inline text-inherit !mb-0"
+            className="text-inherit"
             inline
           />
         ) : (
@@ -46,6 +47,7 @@ export function MainInfo({ site }: MainInfoProps) {
           type="textarea"
           value={site.story ?? ''}
           onSave={(val) => saveField('story', val)}
+          label="Historia"
           placeholder="Cuenta su historia"
           className="mt-4 text-sm leading-relaxed text-text-strong"
         />
