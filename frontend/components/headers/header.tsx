@@ -14,7 +14,7 @@ export function Header() {
   const modalSegment = useSelectedLayoutSegment('modal')
   const isAnimitaSheet = modalSegment?.startsWith('(.)animita') ?? false
 
-  if (pathname.startsWith('/animita') && !isAnimitaSheet) return null
+  if ((pathname.startsWith('/animita') && !isAnimitaSheet) || pathname.startsWith('/explore')) return null
 
   const isMapRoute = isAnimitaSheet || ['/', '/map', '/list', '/add', '/auth'].includes(pathname)
 
