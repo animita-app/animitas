@@ -80,71 +80,6 @@ function drawBleed(ctx: CanvasRenderingContext2D, { pts, width }: Stroke, rand: 
   ctx.restore()
 }
 
-const BLEED_FRAMES = 4
-
-// A pen drawing the map can animate: the crisp ink stays put and the bleed under it slowly morphs.
-// Every channel is the same blue, so composing is only adding alpha.
-class InkImage {
-  width: number
-  height: number
-  data: Uint8Array
-  private crisp: Uint8ClampedArray
-  private bleeds: Uint8ClampedArray[]
-  private phase: number
-  private frame = -1
-
-  constructor(size: number, draw: (ctx: CanvasRenderingContext2D) => Stroke[], dots: (ctx: CanvasRenderingContext2D) => void, seed: number) {
-    this.width = this.height = size
-    const layer = (paint: (ctx: CanvasRenderingContext2D) => void) => {
-      const { ctx } = canvasFor(size)
-      paint(ctx)
-      return ctx.getImageData(0, 0, size, size).data
-    }
-    let strokes: Stroke[] = []
-    this.crisp = layer(ctx => { strokes = draw(ctx); strokes.forEach(st => drawCrisp(ctx, st)); dots(ctx) })
-    const rand = rng(seed * 31 + 5)
-    this.bleeds = Array.from({ length: BLEED_FRAMES }, () => layer(ctx => strokes.forEach(st => drawBleed(ctx, st, rand))))
-    this.phase = rand() * BLEED_FRAMES
-    this.data = new Uint8Array(size * size * 4)
-    this.compose(this.phase)
-  }
-
-  private compose(t: number) {
-    const k = Math.floor(t) % BLEED_FRAMES
-    const a = this.bleeds[k]
-    const b = this.bleeds[(k + 1) % BLEED_FRAMES]
-    const f = t - Math.floor(t)
-    const w = f * f * (3 - 2 * f)
-    const [r, g, bl] = [1, 3, 5].map(i => parseInt(PEN_INK.slice(i, i + 2), 16))
-    const out = this.data
-    for (let i = 0; i < out.length; i += 4) {
-      const ca = this.crisp[i + 3] / 255
-      const ba = (a[i + 3] * (1 - w) + b[i + 3] * w) / 255
-      out[i] = r
-      out[i + 1] = g
-      out[i + 2] = bl
-      out[i + 3] = Math.round((ca + ba * (1 - ca)) * 255)
-    }
-  }
-
-  // Called by the map before it paints; only recomposes when the bleed has moved on a step.
-  render() {
-    if (stillInk()) return false
-    const t = performance.now() / INK_CYCLE_MS * BLEED_FRAMES + this.phase
-    const frame = Math.floor(t * 20)
-    if (frame === this.frame) return false
-    this.frame = frame
-    this.compose(t)
-    return true
-  }
-}
-
-const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-
-// One full round of the bleed's slow breathing, and how often the map repaints to show it.
-const INK_CYCLE_MS = 9000
-const INK_TICK_MS = 120
-
 // A loop drawn freehand: it starts somewhere, goes round a bit more than once and doesn't meet itself.
 function loop(cx: number, cy: number, r: number, rand: () => number): Pt[] {
   const start = rand() * Math.PI * 2
@@ -181,8 +116,36 @@ function canvasFor(size: number) {
   return { canvas, ctx: canvas.getContext('2d')! }
 }
 
+// A pen drawing kept as its strokes, so the crisp ink and each version of the bleed line up exactly.
+interface Drawing { size: number; strokes: Stroke[]; dot?: [number, number, number]; seed: number }
+
+function paint(size: number, draw: (ctx: CanvasRenderingContext2D) => void) {
+  const { ctx } = canvasFor(size)
+  draw(ctx)
+  return ctx.getImageData(0, 0, size, size)
+}
+
+function crispInk({ size, strokes, dot }: Drawing) {
+  return paint(size, ctx => {
+    strokes.forEach(st => drawCrisp(ctx, st))
+    if (!dot) return
+    ctx.fillStyle = PEN_INK
+    ctx.globalAlpha = 0.9
+    ctx.beginPath()
+    ctx.arc(dot[0], dot[1], dot[2], 0, Math.PI * 2)
+    ctx.fill()
+    ctx.globalAlpha = 1
+  })
+}
+
+// Two soaks of the same ink: the map fades between them so the bleed seems to keep spreading.
+function bleedInk({ size, strokes, seed }: Drawing, version: string) {
+  const rand = rng(seed * 31 + (version === 'a' ? 5 : 11))
+  return paint(size, ctx => strokes.forEach(st => drawBleed(ctx, st, rand)))
+}
+
 // A cluster: the count written by hand and circled, like marking a spot on a printed map.
-function circledCount(count: string) {
+function circledCount(count: string): Drawing {
   const seed = Number(count) * 97 + 13
   const rand = rng(seed)
   const digitH = 26
@@ -202,27 +165,33 @@ function circledCount(count: string) {
     })
     return shake(pts, 2.6, rand)
   })
-  return new InkImage(size, () => [ring, ...digits], () => {}, seed)
+  return { size, strokes: [ring, ...digits], seed }
 }
 
 // A single animita: a small loop with a dot pressed in its middle.
-function penMark() {
+function penMark(): Drawing {
   const rand = rng(7)
   const size = 40
-  const ring = shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)
-  return new InkImage(size, () => [ring], ctx => {
-    ctx.fillStyle = PEN_INK
-    ctx.globalAlpha = 0.9
-    ctx.beginPath()
-    ctx.arc(size / 2 + 0.5, size / 2 - 0.5, 4, 0, Math.PI * 2)
-    ctx.fill()
-    ctx.globalAlpha = 1
-  }, 7)
+  return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
-function addMarks(map: mapboxgl.Map) {
-  if (!map.hasImage(MARK)) map.addImage(MARK, penMark(), { pixelRatio: 2 })
+// Image ids: `count-12` and `pen-mark` are the crisp ink, with `-bleed-a` / `-bleed-b` for each soak.
+function drawInk(id: string) {
+  const [, base, bleed] = id.match(/^(count-\d+|pen-mark)(?:-bleed-(a|b))?$/) ?? []
+  if (!base) return null
+  const drawing = base === MARK ? penMark() : circledCount(base.slice(6))
+  return bleed ? bleedInk(drawing, bleed) : crispInk(drawing)
 }
+
+const COUNT_IMAGE = ['concat', 'count-', ['to-string', ['get', 'point_count']]] as any
+const bleedOf = (image: any, version: string) => ['concat', image, `-bleed-${version}`] as any
+
+const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+
+// One full breath of the bleed, and how often its fade is stepped. Only paint opacity changes, which
+// the map redraws without laying anything out again.
+const INK_CYCLE_MS = 7000
+const INK_TICK_MS = 120
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
@@ -301,58 +270,56 @@ export function MarkerLayer({
       })
     }
 
-    addMarks(map)
     const tilt = ['*', ['-', ['%', ['coalesce', ['get', 'point_count'], ['length', ['to-string', ['get', 'title']]]], 9], 4], 4]
-
-    if (!map.getLayer('clusters')) {
+    const pointSize = ['interpolate', ['linear'], ['zoom'], 3, 0.75, 10, 1, 16, 1.4] as any
+    const inkLayer = (id: string, filter: any, image: any, extra: Record<string, any> = {}, opacity = 1) => {
+      if (map.getLayer(id)) return
       map.addLayer({
-        id: 'clusters',
+        id,
         type: 'symbol',
         source: sourceId,
-        filter: ['has', 'point_count'],
-        layout: {
-          'icon-image': ['concat', 'count-', ['to-string', ['get', 'point_count']]],
-          'icon-allow-overlap': true,
-          'icon-size': 1,
-        },
+        filter,
+        layout: { 'icon-image': image, 'icon-allow-overlap': true, 'icon-ignore-placement': true, ...extra },
+        paint: { 'icon-opacity': opacity },
       })
     }
-
-    if (!map.getLayer(`${sourceId}-inner`)) {
-      map.addLayer({
-        id: `${sourceId}-inner`,
-        type: 'symbol',
-        source: sourceId,
-        filter: POINT_FILTER,
-        layout: {
-          'icon-image': MARK,
-          'icon-allow-overlap': true,
-          'icon-rotate': tilt as any,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 0.75, 10, 1, 16, 1.4],
-        },
-      })
+    for (const v of ['a', 'b']) {
+      inkLayer(`clusters-bleed-${v}`, ['has', 'point_count'], bleedOf(COUNT_IMAGE, v), {}, v === 'a' ? 1 : 0)
+      inkLayer(`${sourceId}-bleed-${v}`, POINT_FILTER, `${MARK}-bleed-${v}`, { 'icon-rotate': tilt, 'icon-size': pointSize }, v === 'a' ? 1 : 0)
     }
+    inkLayer('clusters', ['has', 'point_count'], COUNT_IMAGE)
+    inkLayer(`${sourceId}-inner`, POINT_FILTER, MARK, { 'icon-rotate': tilt, 'icon-size': pointSize })
     setLayersReady(true)
 
     isInitialized.current = true
   }, [map, isMapReady, sourceId])
 
-  // Draws each cluster count, by hand, the first time the map needs it.
+  // Draws each pen mark, by hand, the first time the map needs it, and lets its bleed breathe.
   useEffect(() => {
     if (!map || !isMapReady) return
-    const drawCount = (e: { id: string }) => {
-      if (!e.id.startsWith('count-') || map.hasImage(e.id)) return
-      map.addImage(e.id, circledCount(e.id.slice(6)), { pixelRatio: 2 })
+    const onMissing = (e: { id: string }) => {
+      if (map.hasImage(e.id)) return
+      const image = drawInk(e.id)
+      if (image) map.addImage(e.id, image, { pixelRatio: 2 })
     }
-    map.on('styleimagemissing', drawCount)
-    // The bleed only moves when the map repaints; a slow tick keeps it breathing without running the
-    // map at full frame rate. With reduced motion the ink stays still.
-    const tick = stillInk() ? undefined : setInterval(() => map.triggerRepaint(), INK_TICK_MS)
+    map.on('styleimagemissing', onMissing)
+    // Layers may have asked for their images before this listener existed; asking again draws them.
+    for (const id of ['clusters', 'clusters-bleed-a', 'clusters-bleed-b', `${sourceId}-inner`, `${sourceId}-bleed-a`, `${sourceId}-bleed-b`]) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'icon-image', map.getLayoutProperty(id, 'icon-image'))
+    }
+    const bleedLayers = ['clusters', sourceId].flatMap(base => [`${base}-bleed-a`, `${base}-bleed-b`])
+    const breathe = () => {
+      const w = (1 - Math.cos((performance.now() / INK_CYCLE_MS) * Math.PI * 2)) / 2
+      bleedLayers.forEach((id, k) => {
+        if (map.getLayer(id)) map.setPaintProperty(id, 'icon-opacity', k % 2 ? w : 1 - w)
+      })
+    }
+    const tick = stillInk() ? undefined : setInterval(breathe, INK_TICK_MS)
     return () => {
-      map.off('styleimagemissing', drawCount)
+      map.off('styleimagemissing', onMissing)
       if (tick) clearInterval(tick)
     }
-  }, [map, isMapReady])
+  }, [map, isMapReady, sourceId])
 
   // 2. Update point data
   useEffect(() => {

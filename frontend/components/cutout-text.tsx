@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 import pack from '@/lib/cutout-letters.json'
@@ -34,10 +34,21 @@ export function preloadCutouts(text: string) {
   }
 }
 
+// Slivers (a stretched condensed A, a thin r) read as a stripe of paper, not a letter. Letters that are
+// narrow by nature keep theirs.
+const NARROW_BY_NATURE = new Set(['i', 'j', 'l', 'f', 't', 'r', '1', '!', 'dash'])
+const MIN_RATIO = 0.55
+
+function readable(key: string, glyphs: Glyph[]) {
+  if (NARROW_BY_NATURE.has(key)) return glyphs.filter(([, w, h]) => w / h >= 0.3)
+  const wide = glyphs.filter(([, w, h]) => w / h >= MIN_RATIO)
+  return wide.length ? wide : glyphs
+}
+
 function cut(key: string, seed: number, i: number) {
   const set = PACK[key]
   if (!set?.glyphs.length) return null
-  const [index, w, h] = pick(set.glyphs, seed, i)
+  const [index, w, h] = pick(readable(key, set.glyphs), seed, i)
   return { src: `/cutouts/letters/${set.dir}/${index}.webp`, ratio: w / h }
 }
 
@@ -72,39 +83,24 @@ function Tile({ char, seed, i, size }: { char: string; seed: number; i: number; 
   )
 }
 
-// The loader's rhythm: slap the letters on one by one until the word is whole, let it be read, peel it
-// all off together and cut a new set. With reduced motion the word just stays.
-const GLUE_STEP = 150
-const GLUE_HOLD = 1400
-const GLUE_PEEL = 350
+// The loader: the word is always whole and readable, and one letter after another is torn off and a
+// new one slapped in its place, round and round. With reduced motion the word just stays.
+const RECUT_STEP = 220
 
-function useGluing(active: boolean, n: number, recut: () => void) {
-  const [glued, setGlued] = useState(active ? 0 : n)
-  const recutRef = useRef(recut)
-  recutRef.current = recut
+function useRecutting(active: boolean, n: number) {
+  const [cuts, setCuts] = useState<number[]>(() => Array(n).fill(0))
   useEffect(() => {
-    if (!active) return
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setGlued(n)
-      return
-    }
-    let timer: ReturnType<typeof setTimeout>
-    let count = 0
-    const tick = () => {
-      if (count < n) {
-        count += 1
-        setGlued(count)
-        timer = setTimeout(tick, count === n ? GLUE_HOLD : GLUE_STEP)
-      } else {
-        count = 0
-        setGlued(0)
-        timer = setTimeout(() => { recutRef.current(); tick() }, GLUE_PEEL)
-      }
-    }
-    timer = setTimeout(tick, GLUE_STEP)
-    return () => clearTimeout(timer)
+    setCuts(Array(n).fill(0))
+    if (!active || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    let i = 0
+    const timer = setInterval(() => {
+      const at = i % n
+      setCuts(prev => prev.map((c, k) => (k === at ? c + 1 : c)))
+      i += 1
+    }, RECUT_STEP)
+    return () => clearInterval(timer)
   }, [active, n])
-  return glued
+  return cuts
 }
 
 interface CutoutTextProps {
@@ -118,7 +114,7 @@ interface CutoutTextProps {
   orbit?: { radius: number; angle: number; clockwise?: boolean }
   // Change it to cut a new set of letters, for example every time the label shows.
   reroll?: number
-  // Letters get slapped on one after another and peel off again, over and over: a loader.
+  // A loader: the word stays whole while its letters are recut one after another.
   glue?: boolean
   className?: string
 }
@@ -133,7 +129,7 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
 
   const letters = Array.from(text.toLowerCase())
   const n = letters.length
-  const glued = useGluing(glue, n, () => setSeed(Math.floor(Math.random() * 1e6)))
+  const cuts = useRecutting(glue, n)
   const sizeOf = (i: number) => height * (0.78 + noise(seed, i + 3) * 0.32)
 
   if (orbit) {
@@ -180,9 +176,8 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
         const tilt = (theta * 180) / Math.PI + (noise(seed, i) - 0.5) * 12
         return (
           <span
-            key={i}
-            className={cn('relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]', glue && 'cutout-glue')}
-            data-glued={glue ? i < glued : undefined}
+            key={`${i}-${cuts[i] ?? 0}`}
+            className={cn('relative shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]', glue && cuts[i] > 0 && 'cutout-slap')}
             style={{
               rotate: `${tilt.toFixed(1)}deg`,
               translate: `0 ${drop.toFixed(1)}px`,
@@ -190,7 +185,7 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
               zIndex: Math.floor(noise(seed, i + 61) * 3),
             }}
           >
-            <Tile char={char} seed={seed} i={i} size={sizeOf(i)} />
+            <Tile char={char} seed={seed + (cuts[i] ?? 0) * 7919} i={i} size={sizeOf(i)} />
           </span>
         )
       })}

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 type Orbit = { radius: number; angle: number; clockwise?: boolean }
 
 // Over an object standing on the bottom edge, the name arcs across its top like a frown.
-const OVER: Orbit = { radius: 76, angle: 270 }
+const OVER: Orbit = { radius: 84, angle: 270 }
 
 // A real object standing on the page. Its name only shows, in cut-out letters glued around it, when you
 // reach for it, and every time it is cut anew. Goes inside a `.shelf-item` link or button, which carries
@@ -23,7 +23,7 @@ export function ShelfObject({ src, label, size, active, orbit = OVER }: { src: s
         <span className="absolute size-48 rounded-full bg-[radial-gradient(closest-side,var(--color-background)_50%,transparent)]" style={{ left: Math.cos(mid) * orbit.radius, top: Math.sin(mid) * orbit.radius, translate: '-50% -50%' }} />
       </span>
       <span className="shelf-label pointer-events-none absolute left-1/2 top-1/2 z-10 size-0">
-        <CutoutText text={label} height={22} orbit={orbit} reroll={reroll} />
+        <CutoutText text={label} height={26} orbit={orbit} reroll={reroll} />
       </span>
       <Image
         src={src}

@@ -35,17 +35,18 @@ describe("CutoutText as a loader", () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
 
-  it("glues the whole word before any letter peels off, then starts over", () => {
+  it("keeps the whole word readable while its letters are recut one by one", () => {
     const { act } = require("react");
     const { container } = render(<CutoutText text="cargando" glue />);
-    const glued = () => container.querySelectorAll('[data-glued="true"]').length;
-    const seen: number[] = [];
-    for (let t = 0; t < 4000; t += 50) {
-      act(() => { jest.advanceTimersByTime(50); });
-      seen.push(glued());
+    const srcs = () => glyphs(container);
+    const before = srcs();
+    expect(before).toHaveLength(8);
+    let changed = 0;
+    for (let t = 0; t < 2000; t += 100) {
+      act(() => { jest.advanceTimersByTime(100); });
+      expect(srcs()).toHaveLength(8);
+      changed = srcs().filter((src, i) => src !== before[i]).length;
     }
-    const firstPeel = seen.findIndex((n, i) => i > 0 && n < seen[i - 1]);
-    expect(Math.max(...seen.slice(0, firstPeel))).toBe(8);
-    expect(seen.slice(firstPeel).some(n => n === 8)).toBe(true);
+    expect(changed).toBeGreaterThan(0);
   });
 });
