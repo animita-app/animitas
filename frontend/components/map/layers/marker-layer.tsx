@@ -326,8 +326,6 @@ export function MarkerLayer({
         paint: { 'icon-opacity': opacity, 'icon-opacity-transition': { duration: 0, delay: 0 } },
       })
     }
-    // The point under the pointer: the same mark drawn again on top, a little bigger and darker.
-    inkLayer(`${sourceId}-reach`, ['==', ['get', 'id'], ''], `${MARK}-a`, { 'icon-size': ['interpolate', ['linear'], ['zoom'], 3, 1, 10, 1.45, 14, 2.3, 18, 3.2], 'icon-rotate': tilt })
     INK_VERSIONS.forEach((v, k) => {
       const suffix = k ? `-${v}` : ''
       inkLayer(`clusters${suffix}`, ['has', 'point_count'], COUNT_IMAGE(v), {}, k ? 0 : 1)
@@ -401,11 +399,19 @@ export function MarkerLayer({
       }
     }
 
-    const reachLayer = `${sourceId}-reach`
-    const reach = (id: string) => { if (map.getLayer(reachLayer)) map.setFilter(reachLayer, ['==', ['get', 'id'], id]) }
-    const press = (down: boolean) => {
-      if (map.getLayer(reachLayer)) map.setPaintProperty(reachLayer, 'icon-opacity', down ? 0.7 : 1)
-    }
+    // The point under the pointer grows a little in place (one mark, never two); pressing it gives a bit.
+    const markLayers = INK_VERSIONS.map((v, k) => (k ? `${sourceId}-inner-${v}` : `${sourceId}-inner`))
+    let hovered = ''
+    let down = false
+    const sizeFor = () => ['interpolate', ['linear'], ['zoom'],
+      3, ['case', ['==', ['get', 'id'], hovered], down ? 0.85 : 1, 0.75],
+      10, ['case', ['==', ['get', 'id'], hovered], down ? 1.25 : 1.4, 1.1],
+      14, ['case', ['==', ['get', 'id'], hovered], down ? 2 : 2.2, 1.8],
+      18, ['case', ['==', ['get', 'id'], hovered], down ? 2.8 : 3.1, 2.6],
+    ] as any
+    const resize = () => markLayers.forEach(id => { if (map.getLayer(id)) map.setLayoutProperty(id, 'icon-size', sizeFor()) })
+    const reach = (id: string) => { hovered = id; resize() }
+    const press = (isDown: boolean) => { down = isDown; resize() }
 
     const onPointEnter = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
       if (!e.features?.length) return
