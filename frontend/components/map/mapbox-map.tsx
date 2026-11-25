@@ -2,6 +2,7 @@
 
 import { animitaHref } from '@/lib/routes'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAnimitas } from '@/contexts/animitas-context'
 import { useMapInitialization } from './hooks/use-map-initialization'
@@ -77,6 +78,11 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
     clearMapTarget()
   }, [map, mapTarget, isMapReady, clearMapTarget])
 
+  // Closing an animita's sheet lets go of it on the map too.
+  useEffect(() => {
+    if (!pathname.startsWith('/animita/')) selectAnimita(null)
+  }, [pathname, selectAnimita])
+
   const handleMarkerClick = (id: string) => {
     const site = animitas.find((s: Animita) => s.id === id)
     if (!site) return
@@ -99,19 +105,20 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
 
       <MapStatus status={status} count={animitas.length} onRetry={reload} />
 
-      {away && (
+      {/* Above the shelf's paper fade, which sits over the map, so it can live in the corner. */}
+      {away && !pathname.startsWith('/animita/') && createPortal(
         <button
           type="button"
           onClick={resetView}
           aria-label="Ver todo Chile"
-          className="group absolute right-4 bottom-48 z-10 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in fade-in zoom-in-90 hover:scale-110 hover:-rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none md:right-6"
+          className="group fixed right-4 bottom-28 z-60 rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in fade-in zoom-in-90 hover:scale-110 hover:-rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none md:right-8 md:bottom-8"
         >
           <RetornoSign className="size-14" />
           <span className="pointer-events-none absolute right-full top-1/2 mr-3 w-max -translate-y-1/2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
             <CutoutText text="retorno" height={18} />
           </span>
         </button>
-      )}
+      , document.body)}
 
       <MarkerLayer
         map={map.current}

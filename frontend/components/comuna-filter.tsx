@@ -1,7 +1,7 @@
 'use client'
 
-import { CheckCircle2 } from 'lucide-react'
-import { CutoutText } from '@/components/cutout-text'
+import { CheckCircle2, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,22 +11,27 @@ import {
 import { useAnimitas } from '@/contexts/animitas-context'
 import { cn } from '@/lib/utils'
 
-// The list's only filter. The trigger is the word itself, cut out; chosen comunas replace it.
+// The list's only filter: a street plate that names the comunas shown and opens the rest.
 export function ComunaFilter() {
   const { comunas, selectedComunas, setSelectedComunas } = useAnimitas()
-  const label = selectedComunas.length === 0 ? 'comuna' : selectedComunas.length === 1 ? selectedComunas[0] : `${selectedComunas.length} comunas`
+  const label = selectedComunas.length === 1 ? selectedComunas[0] : `${selectedComunas.length} comunas`
 
   const toggle = (comuna: string) =>
     setSelectedComunas(selectedComunas.includes(comuna) ? selectedComunas.filter(c => c !== comuna) : [...selectedComunas, comuna])
 
   return (
-    <div className="flex items-end gap-4">
+    <div className="flex items-center gap-4">
       <DropdownMenu>
-        <DropdownMenuTrigger
-          aria-label={selectedComunas.length ? `Comuna: ${selectedComunas.join(', ')}` : 'Filtrar por comuna'}
-          className="rounded-md outline-none transition-[scale] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
-        >
-          <CutoutText text={label} height={26} arc={12} />
+        {/* A street plate like the search's results, with a chevron so it reads as something that opens. */}
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="sign-service"
+            aria-label={selectedComunas.length ? `Comuna: ${selectedComunas.join(', ')}` : 'Filtrar por comuna'}
+            className="-rotate-1"
+          >
+            {selectedComunas.length === 0 ? 'Todas las comunas' : label}
+            <ChevronDown aria-hidden />
+          </Button>
         </DropdownMenuTrigger>
         {/* Comunas as street plates stacked under the word, like the search results: blue, green once chosen. */}
         <DropdownMenuContent align="start" className="flex max-h-96 flex-col items-start gap-1.5 bg-transparent p-2 shadow-none">
@@ -50,14 +55,9 @@ export function ComunaFilter() {
         </DropdownMenuContent>
       </DropdownMenu>
       {selectedComunas.length > 0 && (
-        <button
-          type="button"
-          onClick={() => setSelectedComunas([])}
-          aria-label="Ver todas las comunas"
-          className="rounded-md opacity-70 outline-none transition-opacity hover:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
-          <CutoutText text="todas" height={18} />
-        </button>
+        <Button variant="link" className="h-auto p-0 text-text-weak" onClick={() => setSelectedComunas([])} aria-label="Ver todas las comunas">
+          Ver todas
+        </Button>
       )}
     </div>
   )

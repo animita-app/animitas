@@ -8,8 +8,9 @@ import { MapMarker } from '../map-marker'
 import { CutoutText } from '@/components/cutout-text'
 import { cn } from '@/lib/utils'
 
-// Mapbox can't read CSS variables. Ballpoint blue, the pen someone circles a place with on a paper map.
-const PEN_INK = '#1f3a8f'
+// The brand blue of [ÁNIMA] (--color-accent), written out because Mapbox can't read CSS variables: the
+// ballpoint someone circles a place with on a paper map.
+const PEN_INK = '#0000ee'
 const MARK = 'pen-mark'
 
 // A little seeded randomness, so each count is always drawn the same way but no two look alike.
@@ -154,10 +155,9 @@ function paint(size: number, draw: (ctx: CanvasRenderingContext2D) => void) {
   return ctx.getImageData(0, 0, size, size)
 }
 
-// One version of a mark: its bleed underneath and its wandering line on top. The map fades between two
-// versions, so the line seems to shiver and the ink to keep soaking in.
+// One take of a mark: its bleed underneath and its wandering line on top. Each take wanders differently.
 function inkVersion({ size, strokes, dot, seed }: Drawing, version: string) {
-  const rand = rng(seed * 31 + (version === 'a' ? 5 : 11))
+  const rand = rng(seed * 31 + 5 + INK_VERSIONS.indexOf(version) * 6)
   return paint(size, ctx => {
     strokes.forEach(st => drawBleed(ctx, st, rand))
     strokes.forEach(st => drawCrisp(ctx, st, rand))
@@ -202,9 +202,9 @@ function penMark(): Drawing {
   return { size, strokes: [shake(loop(size / 2, size / 2, 12, rand), 2.2, rand)], dot: [size / 2 + 0.5, size / 2 - 0.5, 4], seed: 7 }
 }
 
-// Image ids: `count-12-a` / `count-12-b` and `pen-mark-a` / `pen-mark-b`, one per version.
+// Image ids: `count-12-a` and `pen-mark-a`, one per take (a, b, c).
 function drawInk(id: string) {
-  const [, base, version] = id.match(/^(count-\d+|pen-mark)-(a|b)$/) ?? []
+  const [, base, version] = id.match(/^(count-\d+|pen-mark)-(a|b|c)$/) ?? []
   if (!base) return null
   return inkVersion(base === MARK ? penMark() : circledCount(base.slice(6)), version)
 }
@@ -213,10 +213,11 @@ const COUNT_IMAGE = (version: string) => ['concat', 'count-', ['to-string', ['ge
 
 const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
 
-// One full breath of the bleed, and how often its fade is stepped. Only paint opacity changes, which
-// the map redraws without laying anything out again.
-const INK_CYCLE_MS = 7000
-const INK_TICK_MS = 120
+// Only paint opacity changes, which the map redraws without laying anything out again.
+// Line boil, as in hand-drawn animation: a few takes of the same mark swapped on a steady beat, so the
+// pen line never sits still. Swaps are cuts, not fades.
+const INK_VERSIONS = ['a', 'b', 'c']
+const INK_TICK_MS = 160
 
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
@@ -262,10 +263,9 @@ export function MarkerLayer({
   }, [lockedId])
 
   useEffect(() => {
-    if (selectedSite?.id) {
-      setLockedId(selectedSite.id)
-      setActiveId(selectedSite.id)
-    }
+    // Follows the open animita: its name stays while its sheet is open and leaves with it.
+    setLockedId(selectedSite?.id ?? null)
+    setActiveId(selectedSite?.id ?? null)
   }, [selectedSite?.id])
 
   const cancelClose = useCallback(() => {
@@ -296,7 +296,8 @@ export function MarkerLayer({
     }
 
     const tilt = ['*', ['-', ['%', ['coalesce', ['get', 'point_count'], ['length', ['to-string', ['get', 'title']]]], 9], 4], 4]
-    const pointSize = ['interpolate', ['linear'], ['zoom'], 3, 0.75, 10, 1, 16, 1.4] as any
+    // Grows as you get close, so a single animita still reads as a mark on the street.
+    const pointSize = ['interpolate', ['linear'], ['zoom'], 3, 0.75, 10, 1.1, 14, 1.8, 18, 2.6] as any
     const inkLayer = (id: string, filter: any, image: any, extra: Record<string, any> = {}, opacity = 1) => {
       if (map.getLayer(id)) return
       map.addLayer({
@@ -305,19 +306,20 @@ export function MarkerLayer({
         source: sourceId,
         filter,
         layout: { 'icon-image': image, 'icon-allow-overlap': true, 'icon-ignore-placement': true, ...extra },
-        paint: { 'icon-opacity': opacity },
+        paint: { 'icon-opacity': opacity, 'icon-opacity-transition': { duration: 0, delay: 0 } },
       })
     }
-    inkLayer('clusters', ['has', 'point_count'], COUNT_IMAGE('a'))
-    inkLayer('clusters-b', ['has', 'point_count'], COUNT_IMAGE('b'), {}, 0)
-    inkLayer(`${sourceId}-inner`, POINT_FILTER, `${MARK}-a`, { 'icon-rotate': tilt, 'icon-size': pointSize })
-    inkLayer(`${sourceId}-inner-b`, POINT_FILTER, `${MARK}-b`, { 'icon-rotate': tilt, 'icon-size': pointSize }, 0)
+    INK_VERSIONS.forEach((v, k) => {
+      const suffix = k ? `-${v}` : ''
+      inkLayer(`clusters${suffix}`, ['has', 'point_count'], COUNT_IMAGE(v), {}, k ? 0 : 1)
+      inkLayer(`${sourceId}-inner${suffix}`, POINT_FILTER, `${MARK}-${v}`, { 'icon-rotate': tilt, 'icon-size': pointSize }, k ? 0 : 1)
+    })
     setLayersReady(true)
 
     isInitialized.current = true
   }, [map, isMapReady, sourceId])
 
-  // Draws each pen mark, by hand, the first time the map needs it, and lets its bleed breathe.
+  // Draws each pen mark, by hand, the first time the map needs it, and keeps its line boiling.
   useEffect(() => {
     if (!map || !isMapReady) return
     const onMissing = (e: { id: string }) => {
@@ -327,17 +329,18 @@ export function MarkerLayer({
     }
     map.on('styleimagemissing', onMissing)
     // Layers may have asked for their images before this listener existed; asking again draws them.
-    const inkLayers = ['clusters', 'clusters-b', `${sourceId}-inner`, `${sourceId}-inner-b`]
-    for (const id of inkLayers) {
+    const takes = INK_VERSIONS.map((v, k) => (k ? [`clusters-${v}`, `${sourceId}-inner-${v}`] : ['clusters', `${sourceId}-inner`]))
+    for (const id of takes.flat()) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'icon-image', map.getLayoutProperty(id, 'icon-image'))
     }
-    const breathe = () => {
-      const w = (1 - Math.cos((performance.now() / INK_CYCLE_MS) * Math.PI * 2)) / 2
-      inkLayers.forEach((id, k) => {
-        if (map.getLayer(id)) map.setPaintProperty(id, 'icon-opacity', k % 2 ? w : 1 - w)
-      })
+    let shown = 0
+    const boil = () => {
+      shown = (shown + 1) % takes.length
+      takes.forEach((ids, k) => ids.forEach(id => {
+        if (map.getLayer(id)) map.setPaintProperty(id, 'icon-opacity', k === shown ? 1 : 0)
+      }))
     }
-    const tick = stillInk() ? undefined : setInterval(breathe, INK_TICK_MS)
+    const tick = stillInk() ? undefined : setInterval(boil, INK_TICK_MS)
     return () => {
       map.off('styleimagemissing', onMissing)
       if (tick) clearInterval(tick)

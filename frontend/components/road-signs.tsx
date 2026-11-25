@@ -39,10 +39,21 @@ export function RetornoSign({ className }: { className?: string }) {
   )
 }
 
-// The close control: one X cut from print, always the same one, glued a little crooked.
-export function CutoutClose({ className }: { className?: string }) {
+// The close control: the round "fin de restricción" sign, white with black diagonal bands, that tells a
+// driver a zone is over. Here it ends whatever is open.
+export function FinSign({ className }: { className?: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img aria-hidden src="/cutouts/letters/x/0.webp" alt="" width={116} height={112} draggable={false} className={cn('-rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]', className)} />
+    <svg aria-hidden viewBox="0 0 100 100" className={cn('drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.4)]', className)}>
+      <defs>
+        <clipPath id="fin-face"><circle cx="50" cy="50" r="40" /></clipPath>
+      </defs>
+      <circle cx="50" cy="50" r="47" fill="#f4f1e8" />
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#1b1916" strokeWidth="2.5" />
+      <g clipPath="url(#fin-face)" stroke="#1b1916" strokeWidth="5">
+        <line x1="12" y1="78" x2="78" y2="12" />
+        <line x1="22" y1="88" x2="88" y2="22" />
+        <line x1="2" y1="68" x2="68" y2="2" />
+      </g>
+    </svg>
   )
 }

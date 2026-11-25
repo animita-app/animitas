@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { CutoutText } from "@/components/cutout-text"
 import { Candle } from "@/components/loaders"
-import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
 import { TABLES } from "@/lib/animitas"
@@ -68,28 +67,36 @@ export function Velas({ siteId }: VelasProps) {
     }
   }
 
-  if (loading) {
-    return <Candle className="h-9" />
-  }
+  const status = count === 0 ? "Nadie ha prendido una vela" : count === 1 ? "1 vela prendida" : `${count.toLocaleString("es-CL")} velas prendidas`
+  const invite = isLit ? "La tuya está prendida" : count === 0 ? "Sé la primera persona" : "Prende la tuya"
 
+  // The candle is the button; the count and an invitation sit beside it, on the same left edge as the
+  // rest of the sheet.
   return (
-    <div className="shelf flex items-end gap-4">
+    <div className="shelf flex items-center gap-4">
       <button
         type="button"
         onClick={toggle}
+        disabled={loading}
         aria-pressed={isLit}
         aria-label={isLit ? "Apagar tu vela" : "Prender una vela"}
-        className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="shelf-item relative -ml-1 flex shrink-0 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <span className="shelf-label pointer-events-none absolute bottom-full left-1/2 mb-1 origin-bottom -translate-x-1/2">
           <CutoutText text={isLit ? "apagar" : "prender"} height={22} arc={30} />
         </span>
-        <Candle lit={isLit} className="h-16" />
+        <Candle lit={isLit} className="h-14" />
       </button>
-      {count > 0 && <CutoutText text={count.toLocaleString("es-CL")} height={26} className="mb-2" />}
-      <p className="sr-only" aria-live="polite">
-        {count === 0 ? "Nadie ha prendido una vela todavía" : count === 1 ? "1 vela prendida" : `${count.toLocaleString("es-CL")} velas prendidas`}
-      </p>
+      <div className="flex flex-col gap-0.5" aria-live="polite">
+        {loading ? (
+          <span className="text-sm text-text-weak">Contando velas…</span>
+        ) : (
+          <>
+            <span className="text-sm text-text-strong">{status}</span>
+            <span className="text-sm text-text-weak">{invite}</span>
+          </>
+        )}
+      </div>
     </div>
   )
 }

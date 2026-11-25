@@ -38,8 +38,8 @@ export function ModalWrapper({ children, title, description, className, showTitl
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      {/* Paper with no edge: the same color blooms outward, so it reads as a lit patch on the map, not a box. */}
-      <DialogContent className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto rounded-none border-0 px-8 py-10 shadow-[0_0_72px_56px_var(--color-background),0_0_160px_120px_color-mix(in_oklab,var(--color-background)_55%,transparent)]", className)}>
+      {/* No paper of its own: it sits on the overlay's sheet, so there is no box and no lighter patch. */}
+      <DialogContent className={cn("max-h-9/10 sm:!max-w-sm overflow-y-auto rounded-none border-0 bg-transparent px-8 py-10 shadow-none", className)}>
         <DialogHeader className={showTitle ? "" : "sr-only"}>
           <DialogTitle className={showTitle ? "text-2xl font-medium" : undefined}>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
