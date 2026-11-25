@@ -1,5 +1,6 @@
 'use client'
 
+import type React from 'react'
 import { CheckCircle2, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -34,15 +35,16 @@ export function ComunaFilter() {
           </Button>
         </DropdownMenuTrigger>
         {/* Comunas as street plates stacked under the word, like the search results: blue, green once chosen. */}
-        <DropdownMenuContent align="start" className="flex max-h-96 flex-col items-start gap-1.5 bg-transparent p-2 shadow-none">
+        <DropdownMenuContent align="start" className="scroll-fade flex max-h-(--radix-dropdown-menu-content-available-height) flex-col items-start gap-1.5 bg-transparent px-3 py-2 shadow-none">
           {comunas.map((comuna, i) => {
             const chosen = selectedComunas.includes(comuna)
             return (
               <DropdownMenuItem
                 key={comuna}
                 onSelect={(e) => { e.preventDefault(); toggle(comuna) }}
+                style={{ '--i': i } as React.CSSProperties}
                 className={cn(
-                  'road-sign road-sign-text w-max gap-3 px-3 py-1.5 text-base transition-[translate] duration-150 data-[highlighted]:translate-x-1',
+                  'plate-deal road-sign road-sign-text w-max gap-3 px-3 py-1.5 text-base transition-[translate] duration-150 data-[highlighted]:translate-x-1',
                   chosen ? '' : 'road-sign-blue',
                   i % 2 ? 'rotate-[0.5deg]' : '-rotate-[0.4deg]'
                 )}

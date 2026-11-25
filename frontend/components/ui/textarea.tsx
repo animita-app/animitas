@@ -10,7 +10,7 @@ const textareaVariants = cva(
       variant: {
         default: "border border-border-weak bg-muted placeholder:text-muted-foreground focus-visible:border-ring aria-invalid:border-destructive dark:bg-input/30 field-sizing-content min-h-12 rounded-md px-3 py-2 text-base shadow-xs md:text-sm",
         // A ruled note left at the animita (see .paper-note).
-        paper: "paper-note min-h-24 resize-none rounded-none border-0 px-4 py-0 text-base placeholder:text-text-weak",
+        paper: "paper-note paper-ruled min-h-28 resize-none rounded-none border-0 px-4 text-base placeholder:text-text-weak",
       },
     },
     defaultVariants: { variant: "default" },

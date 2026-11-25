@@ -45,24 +45,23 @@ export function PrintWall({ site, className }: { site: Animita; className?: stri
   const images = site.images ?? []
   if (!images.length) return null
   return (
-    <ul className={cn('grid grid-cols-2 gap-5', className)}>
+    <ul className={cn('grid grid-cols-2 gap-6', className)}>
       {images.map((src, i) => (
+        // An instant print: a white frame, wider at the bottom where you'd write on it.
         <li
           key={src}
-          className={cn(
-            'photo-vignette relative overflow-hidden border-[6px] border-neutral-light-1 bg-neutral-light-1 shadow-md',
-            i === 0 ? 'col-span-2 aspect-4/3' : 'aspect-square',
-            WALL_TILTS[i % WALL_TILTS.length]
-          )}
+          className={cn('bg-neutral-light-1 p-2 pb-10 shadow-[0_1px_0_rgb(28_24_20_/_0.12),0_12px_20px_-12px_rgb(28_24_20_/_0.55)]', i === 0 && 'col-span-2 p-3 pb-14', WALL_TILTS[i % WALL_TILTS.length])}
         >
-          <Image
-            src={src}
-            alt={i === 0 ? `Animita de ${site.title}` : `Foto ${i + 1} de ${images.length}`}
-            fill
-            sizes={i === 0 ? '(max-width: 768px) 90vw, 520px' : '(max-width: 768px) 45vw, 260px'}
-            className="object-cover [filter:url(#stipple)] hover:[filter:none]"
-            priority={i === 0}
-          />
+          <div className={cn('photo-vignette relative overflow-hidden', i === 0 ? 'aspect-4/3' : 'aspect-square')}>
+            <Image
+              src={src}
+              alt={i === 0 ? `Animita de ${site.title}` : `Foto ${i + 1} de ${images.length}`}
+              fill
+              sizes={i === 0 ? '(max-width: 768px) 90vw, 520px' : '(max-width: 768px) 45vw, 260px'}
+              className="object-cover [filter:url(#stipple)] hover:[filter:none]"
+              priority={i === 0}
+            />
+          </div>
         </li>
       ))}
     </ul>

@@ -24,10 +24,11 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
 
   return (
     <div className="min-h-svh w-full bg-background">
+      {/* The same pattern as the key: it grows out of its corner and its name falls in an arc toward the page. */}
       <div className="shelf shelf-top fixed top-3 left-3 z-40">
-        <Link href="/map" aria-label="Volver al mapa" className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-          <span className="shelf-label pointer-events-none absolute top-full left-1/2 mt-1 origin-top -translate-x-1/2">
-            <CutoutText text="volver" height={22} arc={20} />
+        <Link href="/map" aria-label="Volver al mapa" style={{ transformOrigin: '0 0' }} className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+          <span className="shelf-label pointer-events-none absolute left-1/2 top-1/2 z-10 size-0">
+            <CutoutText text="volver" height={26} orbit={{ radius: 100, angle: 55, clockwise: false }} />
           </span>
           <CurveSign className="size-12" />
         </Link>

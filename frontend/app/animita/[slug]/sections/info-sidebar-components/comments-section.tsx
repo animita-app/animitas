@@ -197,33 +197,25 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
 
   return (
     <section aria-label="Comentarios" className="space-y-4">
-      <div className="flex items-start gap-3">
-        <Avatar className="size-6 mt-1.5 shrink-0">
-          <AvatarImage src={currentUser?.avatarUrl || undefined} />
-          <AvatarFallback className="text-xs">{currentUser?.name?.[0]}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 space-y-2">
-          <Textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Deja un recuerdo…"
-            aria-label="Recuerdo"
-            variant="paper"
-            className="-rotate-[0.6deg] text-sm"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault()
-                handleSubmit()
-              }
-            }}
-          />
-          <div className="flex justify-end">
-            <Button type="button" variant="sign" onClick={handleSubmit} disabled={submitting} className="rotate-1">
-              {submitting && <Spinner />}
-              {submitting ? 'Dejando…' : 'Dejar recuerdo'}
-            </Button>
-          </div>
-        </div>
+      <div className="flex flex-col gap-3">
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Un recuerdo, una oración, un gracias…"
+          aria-label="Tu recuerdo"
+          variant="paper"
+          className="-rotate-[0.6deg]"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault()
+              handleSubmit()
+            }
+          }}
+        />
+        <Button type="button" variant="sign" onClick={handleSubmit} disabled={submitting} className="self-end rotate-1">
+          {submitting && <Spinner />}
+          {submitting ? 'Dejando…' : 'Dejar'}
+        </Button>
       </div>
 
       {!loading && comments.length > 0 && (
