@@ -1,21 +1,21 @@
 "use client"
 
 import Image from "next/image"
+import type React from "react"
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useUser } from '@/contexts/user-context'
+import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { animitaHref } from '@/lib/routes'
 import { TABLES } from '@/lib/animitas'
@@ -78,35 +78,46 @@ export function NotificationsBell({ open, onOpenChange }: { open?: boolean; onOp
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            {/* An old letter, like the ones left at an animita: someone left a recuerdo on yours. */}
-            <Button variant="ghost" size="icon-lg" className="relative" aria-label="Notificaciones">
-              <Image src="/cutouts/envelope.png" alt="" width={240} height={138} draggable={false} className="h-6 w-auto -rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]" />
-              {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1 size-3 rounded-full bg-destructive shadow-[0_1px_1px_rgb(28_24_20_/_0.4)]" />
-              )}
-            </Button>
+            {/* An old letter, like the ones left at an animita, sealed in wax when a recuerdo is new. */}
+            <button
+              type="button"
+              aria-label={notifications.length ? `Recuerdos nuevos (${notifications.length})` : "Recuerdos"}
+              className="relative flex size-11 items-center justify-center rounded-xs outline-none transition-[scale,rotate] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 hover:rotate-3 focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-expanded:scale-110 motion-reduce:transition-none"
+            >
+              <Image src="/cutouts/envelope.png" alt="" width={240} height={138} draggable={false} className="h-7 w-auto -rotate-6 drop-shadow-[0_2px_2px_rgb(28_24_20_/_0.35)]" />
+              {notifications.length > 0 && <span aria-hidden className="wax-seal absolute top-2.5 right-1.5 size-3.5 rotate-12" />}
+            </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>Notificaciones</TooltipContent>
+        <TooltipContent>Recuerdos</TooltipContent>
       </Tooltip>
 
-      <DropdownMenuContent align="end" sideOffset={4} className="w-72 p-1">
-        <DropdownMenuLabel className="sr-only">Notificaciones</DropdownMenuLabel>
-        <DropdownMenuGroup className="max-h-96 overflow-y-auto">
-          {notifications.length === 0 ? (
-            <p className="p-4 text-sm text-center text-text-weak">Cuando alguien comente tus animitas, lo vas a ver acá.</p>
-          ) : (
-            notifications.map(item => (
-              <DropdownMenuItem asChild key={item.id} className="items-start flex-col gap-1 p-2">
-                <Link href={item.href}>
-                  <span className="font-medium text-text-strong text-pretty">{item.title}</span>
-                  <span className="text-text-weak text-pretty">{item.description}</span>
-                  <span className="text-xs text-text-weaker">{item.timeAgo}</span>
-                </Link>
-              </DropdownMenuItem>
-            ))
-          )}
-        </DropdownMenuGroup>
+      {/* Recuerdos left on your animitas, as loose notes dealt out under the letter. */}
+      <DropdownMenuContent align="end" sideOffset={4} className="scroll-fade flex max-h-(--radix-dropdown-menu-content-available-height) w-80 flex-col gap-3 bg-transparent p-3 shadow-none">
+        <DropdownMenuLabel className="sr-only">Recuerdos en tus animitas</DropdownMenuLabel>
+        {notifications.length === 0 ? (
+          <p className="paper-slip plate-deal rotate-1 px-4 py-3 text-pretty text-sm text-text-weak">
+            Cuando alguien deje un recuerdo en tus animitas, va a llegar acá.
+          </p>
+        ) : (
+          notifications.map((item, i) => (
+            <DropdownMenuItem
+              asChild
+              key={item.id}
+              style={{ '--i': i } as React.CSSProperties}
+              className={cn(
+                "paper-slip plate-deal flex-col items-start gap-1 rounded-none px-4 py-3 transition-[translate,rotate] duration-150 data-[highlighted]:bg-transparent data-[highlighted]:rotate-0 data-[highlighted]:-translate-x-1",
+                i % 2 ? "rotate-1" : "-rotate-[0.6deg]"
+              )}
+            >
+              <Link href={item.href}>
+                <span className="text-pretty text-sm text-text-strong">{item.title}</span>
+                <span className="text-pretty text-sm text-text">{item.description}</span>
+                <span className="text-xs text-text-weak">{item.timeAgo}</span>
+              </Link>
+            </DropdownMenuItem>
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -428,6 +428,21 @@
   .page-arrive { display: none; }
 }
 
+/* A plain slip of fresh paper, for short notes whose text shouldn't sit on rules. */
+.paper-slip {
+  background: var(--paper-fresh);
+  box-shadow: 0 1px 0 rgb(28 24 20 / 0.12), 0 8px 16px -10px rgb(28 24 20 / 0.45);
+}
+
+/* A blob of red sealing wax pressed onto a letter: new recuerdos are waiting. */
+.wax-seal {
+  background:
+    radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.35), transparent 40%),
+    radial-gradient(circle, color-mix(in oklab, var(--color-destructive) 85%, black) 55%, var(--color-destructive) 56%, color-mix(in oklab, var(--color-destructive) 70%, black) 100%);
+  border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%;
+  box-shadow: 0 1px 1px rgb(28 24 20 / 0.45);
+}
+
 /* A one-line slip, for fields: a single rule under the writing instead of the ruled page. */
 .paper-line {
   background:
