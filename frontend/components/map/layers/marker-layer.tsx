@@ -8,9 +8,9 @@ import { MapMarker } from '../map-marker'
 import { CutoutText } from '@/components/cutout-text'
 import { cn } from '@/lib/utils'
 
-// The brand blue of [ÁNIMA] (--color-accent), written out because Mapbox can't read CSS variables: the
-// ballpoint someone circles a place with on a paper map.
-const PEN_INK = '#0000ee'
+// Ballpoint blue: the brand's #00e as real ink looks once it has soaked into paper, a little dull and
+// darker. Mapbox can't read CSS variables, so it's written out.
+const PEN_INK = '#2c3f8c'
 const MARK = 'pen-mark'
 
 // A little seeded randomness, so each count is always drawn the same way but no two look alike.
@@ -77,7 +77,7 @@ function drawCrisp(ctx: CanvasRenderingContext2D, { pts, width, blobs }: Stroke,
   for (let i = 1; i < line.length; i++) {
     const a = line[i - 1]
     const b = line[i]
-    ctx.globalAlpha = 0.72 + 0.22 * b.pressure
+    ctx.globalAlpha = 0.6 + 0.24 * b.pressure
     ctx.lineWidth = width * b.pressure
     ctx.beginPath()
     ctx.moveTo(a.x, a.y)

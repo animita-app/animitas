@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { CutoutText } from "@/components/cutout-text"
 import { Candle } from "@/components/loaders"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/contexts/user-context"
@@ -73,18 +72,15 @@ export function Velas({ siteId }: VelasProps) {
   // The candle is the button; the count and an invitation sit beside it, on the same left edge as the
   // rest of the sheet.
   return (
-    <div className="shelf flex items-center gap-4">
+    <div className="flex items-center gap-4">
       <button
         type="button"
         onClick={toggle}
         disabled={loading}
         aria-pressed={isLit}
         aria-label={isLit ? "Apagar tu vela" : "Prender una vela"}
-        className="shelf-item relative -ml-1 flex shrink-0 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="candle-toggle -ml-1 flex shrink-0 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
-        <span className="shelf-label pointer-events-none absolute bottom-full left-1/2 mb-1 origin-bottom -translate-x-1/2">
-          <CutoutText text={isLit ? "apagar" : "prender"} height={22} arc={30} />
-        </span>
         <Candle lit={isLit} className="h-14" />
       </button>
       <div className="flex flex-col gap-0.5" aria-live="polite">

@@ -317,9 +317,30 @@
   58% { opacity: 0.66; scale: 1.05; }
   79% { opacity: 0.46; scale: 0.97; }
 }
-.candle-burning { animation: candle-breathe 2.6s ease-in-out infinite; }
 .candle-light { animation: candle-light 1.9s ease-in-out infinite; }
-.candle-out { filter: grayscale(1) brightness(0.85) contrast(0.9); }
+.candle-body { transition: filter 300ms ease-out; }
+.candle[data-lit="true"] .candle-body { animation: candle-breathe 2.6s ease-in-out infinite; }
+.candle[data-lit="false"] .candle-body { filter: grayscale(1) brightness(0.85) contrast(0.9); }
+.candle-glow { transition: opacity 300ms ease-out; }
+.candle[data-lit="false"] .candle-glow { opacity: 0; animation: none; }
+
+/* A candle you can light: reaching for it, it grows from its middle and catches the flame. */
+.candle-toggle {
+  transition: scale 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.candle-toggle:hover, .candle-toggle:focus-visible { scale: 1.15; }
+.candle-toggle:hover .candle-body, .candle-toggle:focus-visible .candle-body {
+  filter: none;
+  animation: candle-breathe 2.6s ease-in-out infinite;
+}
+.candle-toggle:hover .candle-glow, .candle-toggle:focus-visible .candle-glow {
+  opacity: 1;
+  animation: candle-light 1.9s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .candle-toggle { transition: none; }
+  .candle-toggle:hover, .candle-toggle:focus-visible { scale: 1; }
+}
 
 /* Chilean road signs, as the MOP signage manual paints them: flat reflective green for destinations,
    blue for services, white letters and a white border inset from the edge. Object colors, like the
@@ -337,8 +358,18 @@
     0 6px 12px -6px rgb(28 24 20 / 0.45);
 }
 .road-sign-blue { --sign: #0b4c9a; }
+/* DIN Condensed carries extra room above its capitals, so sign text sat high on the plate. The same
+   local font with even ascent and descent around the caps centers every sign at once. */
+@font-face {
+  font-family: "Sign DIN";
+  src: local("DIN Condensed Bold"), local("DINCondensed-Bold");
+  font-weight: 600 700;
+  ascent-override: 85%;
+  descent-override: 16%;
+  line-gap-override: 0%;
+}
 .road-sign-text {
-  font-family: "DIN Condensed", "Avenir Next Condensed", "Arial Narrow", var(--font-sans);
+  font-family: "Sign DIN", "DIN Condensed", "Avenir Next Condensed", "Arial Narrow", var(--font-sans);
   font-weight: 600;
   font-size: 1.125rem;
   letter-spacing: 0.01em;

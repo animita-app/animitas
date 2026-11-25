@@ -28,7 +28,7 @@ export function RoadSignSearch() {
 
   return (
     <div className="relative -rotate-1">
-      <label htmlFor={`${id}-input`} className="road-sign flex items-center gap-2 px-5 pt-3.5 pb-2.5">
+      <label htmlFor={`${id}-input`} className="road-sign flex items-center gap-2 px-5 py-3">
         <span className="sr-only">Buscar una animita o un lugar</span>
         <input
           ref={inputRef}

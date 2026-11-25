@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import React from "react"
-import { Navigation } from "lucide-react"
+import { ArrowUpRight } from "lucide-react"
 import { Animita } from "@/types/animita"
 import { directionsUrl, shortAddress } from "@/lib/location"
 import { InfoBlock } from "./info-block"
@@ -24,7 +24,7 @@ export function CreatorSection({ site }: CreatorSectionProps) {
             <Button asChild variant="sign-service" className="-rotate-1">
               <a href={directionsUrl(site.location)} target="_blank" rel="noopener noreferrer">
                 Cómo llegar
-                <Navigation aria-hidden />
+                <ArrowUpRight aria-hidden />
               </a>
             </Button>
           </div>

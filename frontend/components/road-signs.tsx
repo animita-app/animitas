@@ -39,20 +39,23 @@ export function RetornoSign({ className }: { className?: string }) {
   )
 }
 
-// The close control: the round "fin de restricción" sign, white with black diagonal bands, that tells a
-// driver a zone is over. Here it ends whatever is open.
-export function FinSign({ className }: { className?: string }) {
+// The close control. No Chilean sign means "close", so it's a cross scrawled with the same ballpoint
+// that circles the animitas on the map: two strokes that don't quite meet in the middle.
+export function PenCross({ className }: { className?: string }) {
   return (
-    <svg aria-hidden viewBox="0 0 100 100" className={cn('drop-shadow-[0_3px_3px_rgb(28_24_20_/_0.4)]', className)}>
+    <svg aria-hidden viewBox="0 0 40 40" className={cn('overflow-visible', className)}>
       <defs>
-        <clipPath id="fin-face"><circle cx="50" cy="50" r="40" /></clipPath>
+        <filter id="pen-bleed" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="0.9" result="soak" />
+          <feMerge>
+            <feMergeNode in="soak" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
-      <circle cx="50" cy="50" r="47" fill="#f4f1e8" />
-      <circle cx="50" cy="50" r="44" fill="none" stroke="#1b1916" strokeWidth="2.5" />
-      <g clipPath="url(#fin-face)" stroke="#1b1916" strokeWidth="5">
-        <line x1="12" y1="78" x2="78" y2="12" />
-        <line x1="22" y1="88" x2="88" y2="22" />
-        <line x1="2" y1="68" x2="68" y2="2" />
+      <g fill="none" stroke="#2c3f8c" strokeLinecap="round" filter="url(#pen-bleed)" opacity="0.9">
+        <path d="M9.5 8.5 C15 14 20 18.5 24 23 C26.5 26 29 28.5 31.5 31.5" strokeWidth="3" />
+        <path d="M30.5 7.5 C25.5 12.5 21.5 17.5 17.5 21.5 C14 25 11 28.5 8.5 32" strokeWidth="2.6" />
       </g>
     </svg>
   )
