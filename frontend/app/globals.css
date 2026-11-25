@@ -445,7 +445,7 @@
 }
 .pen-bleed { color: var(--color-pen); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen) 70%, transparent)) blur(0.25px); }
 
-.pen-red { color: var(--color-pen-red); filter: drop-shadow(0 0 0.6px color-mix(in oklab, var(--color-pen-red) 60%, transparent)); }
+.pen-red { color: var(--color-pen-red); filter: drop-shadow(0 0 0.8px color-mix(in oklab, var(--color-pen-red) 70%, transparent)) blur(0.25px); }
 
 /* Reaching for a pen mark draws it again, stroke by stroke. */
 @keyframes pen-draw {

@@ -24,18 +24,20 @@ export function PenLoop({ children, className }: { children?: ReactNode; classNa
   )
 }
 
-// A dot scribbled in red ballpoint: something new is waiting.
+// A dot scribbled in red ballpoint: something new is waiting. Same hand as the blue circles: a quick
+// tangle of strokes that fills the dot unevenly, the ink soaking at the edges.
 export function RedPenDot({ className }: { className?: string }) {
   return (
     <svg aria-hidden viewBox="0 0 20 20" className={cn('pen-red overflow-visible', className)}>
       <path
-        d="M6 9.5 C6.5 6 11.5 5 13.8 7.6 C15.8 10 14 14.4 10.2 14.6 C6.8 14.8 5.6 11.6 7.4 9.4 C9 7.6 12.4 8 12.6 10.4 C12.8 12.4 10.4 13.2 9.2 12 C8.4 11.2 9 9.8 10.4 10"
+        d="M5.2 10.6 C4.6 6.4 9.8 3.6 13.6 5.8 C16.6 7.6 16.4 12.6 12.8 14.6 C9.4 16.4 5.4 14.2 5.8 10.8 C6.2 7.8 10.4 6.6 12.6 8.6 C14.4 10.2 13 13.4 10.4 13.4 C8.4 13.4 7.6 11.2 9.2 10 C10.4 9.2 11.8 10.2 11 11.2"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2.6"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      <path d="M7.4 7.6 C9.6 6.8 12.6 7.4 14.2 9.6" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.7" />
     </svg>
   )
 }

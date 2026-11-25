@@ -51,7 +51,8 @@ export function UserDropdown() {
           ) : (
             <PenLoop className="size-10 text-xl">{(currentUser.name || currentUser.username || 'v')[0].toUpperCase()}</PenLoop>
           )}
-          {count > 0 && <RedPenDot className="absolute top-0.5 right-0.5 size-3.5" />}
+          {/* Sits on the circle's line, up and to the right, as if marked over it. */}
+          {count > 0 && <RedPenDot className="absolute -top-0.5 right-0 size-4 rotate-12" />}
         </button>
       </DropdownMenuTrigger>
 
