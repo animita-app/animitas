@@ -1,5 +1,3 @@
-jest.mock("next/og", () => ({ ImageResponse: jest.fn() }));
-
 import manifest from "@/app/manifest";
 
 describe("PWA manifest", () => {

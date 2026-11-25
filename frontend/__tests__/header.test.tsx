@@ -11,6 +11,9 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/contexts/user-context", () => ({
   useUser: () => ({ currentUser: null, isLoading: false }),
 }));
+jest.mock("@/components/search/road-sign-search", () => ({
+  RoadSignSearch: () => <input aria-label="Buscar una animita o un lugar" />,
+}));
 jest.mock("@/components/headers/main-header-panel", () => ({
   MainHeaderPanel: () => <nav aria-label="Navegación principal" />,
 }));
@@ -23,9 +26,10 @@ describe("Header", () => {
     modalSegment = null;
   });
 
-  it("shows the main navigation on the map", () => {
+  it("shows the main navigation and the road-sign search on the map", () => {
     render(<Header />);
     expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Buscar una animita o un lugar" })).toBeInTheDocument();
   });
 
   it("hides on the full animita page", () => {

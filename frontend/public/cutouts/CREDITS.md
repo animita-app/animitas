@@ -11,6 +11,8 @@ Objects cut out of Wikimedia Commons photos with macOS subject lifting and resiz
 - `map.png`: [Carte du Chili - (par J.N. Bellin) - btv1b8596585g.jpg](https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg) by Bellin, Jacques-Nicolas (1703-1772). Cartographe, Public domain, rendered as a folded sheet.
 
 - `tumbleweed.png`: [Tumbleweed on W Lone Mtn Rd.jpg](https://commons.wikimedia.org/wiki/File:Tumbleweed_on_W_Lone_Mtn_Rd.jpg), CC BY-SA 4.0.
+- `pin.png`: [Pin for a pinboard 2013 PD.jpg](https://commons.wikimedia.org/wiki/File:Pin_for_a_pinboard_2013_PD.jpg), CC BY-SA 3.0.
+- `icons/` and `app/icon.png`: the votive candle above, on paper.
 
 `real/` holds single letters cut with macOS text recognition from: the animitas' own photos (plaques and signs), the Wikimedia Commons photos above, and these public-domain prints:
   - [Fruit store, WPA poster, ca. 1938.jpg](https://commons.wikimedia.org/wiki/File:Fruit_store,_WPA_poster,_ca._1938.jpg), Public domain

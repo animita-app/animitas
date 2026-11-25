@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useSelectedLayoutSegment } from 'next/navigation'
 import { ShelfObject } from '@/components/shelf-object'
+import { RoadSignSearch } from '@/components/search/road-sign-search'
 import { useUser } from '@/contexts/user-context'
 import { cn } from '@/lib/utils'
 import { UserDropdown } from './user-dropdown'
@@ -24,11 +25,7 @@ export function Header() {
       "top-0 left-0 right-0 z-50 pointer-events-none w-full",
     )}>
       <div className="flex items-start justify-between p-4 w-full pointer-events-none [&>*]:pointer-events-auto">
-        <div className="shelf shelf-top">
-          <Link href="/map" aria-label="Ánima, ir al mapa" className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            <ShelfObject src="/cutouts/chapel.png" label="ánima" size="h-12" active labelSide="bottom" />
-          </Link>
-        </div>
+        <RoadSignSearch />
 
         {isMapRoute && (
           <div className="fixed inset-x-0 bottom-safe isolate flex justify-center before:pointer-events-none before:absolute before:inset-x-0 before:-top-20 before:-bottom-8 before:-z-10 before:bg-linear-to-t before:from-background before:via-background/85 before:to-transparent">
