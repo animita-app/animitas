@@ -83,7 +83,7 @@ export function Velas({ siteId }: VelasProps) {
       >
         {/* One candle for the shrine: it burns while anyone has lit one there. The text says how many and
             whether yours is among them. */}
-        <Candle lit={count > 0} className="h-14" />
+        <Candle lit={count > 0} seed={siteId} className="h-16" />
       </button>
       <div className="flex flex-col gap-0.5" aria-live="polite">
         {loading ? (
