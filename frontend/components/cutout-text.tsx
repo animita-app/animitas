@@ -51,14 +51,14 @@ function Tile({ char, seed, i, size }: { char: string; seed: number; i: number; 
   return (
     <span className="relative inline-block">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={glyph.src} alt="" draggable={false} width={Math.round(size * glyph.ratio)} height={Math.round(size)} className="block" />
+      <img src={glyph.src} alt="" draggable={false} width={Math.round(size * glyph.ratio)} height={Math.round(size)} className="block max-w-none" />
       {scrap && (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={scrap.src}
           alt=""
           draggable={false}
-          className="absolute left-1/2 block"
+          className="absolute left-1/2 block max-w-none"
           style={{
             width: size * (mark === '\u0303' ? 0.7 : 0.42),
             height: 'auto',
@@ -115,7 +115,7 @@ export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue
           return (
             <span
               key={i}
-              className="absolute drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
+              className="absolute w-max drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
               style={{
                 left: Math.cos(at) * orbit.radius,
                 top: Math.sin(at) * orbit.radius,

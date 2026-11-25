@@ -6,93 +6,136 @@ import Link from 'next/link'
 import { Animita } from '@/types/animita'
 import { MapMarker } from '../map-marker'
 import { CutoutText } from '@/components/cutout-text'
-import pack from '@/lib/cutout-letters.json'
 import { cn } from '@/lib/utils'
 
-// Mapbox can't read CSS variables. Stamp-pad blue: the app's accent, a little faded by the paper.
-const STAMP_INK = '#26318f'
-const RING = 'stamp-ring'
-const MARK = 'stamp-mark'
+// Mapbox can't read CSS variables. Ballpoint blue, the pen someone circles a place with on a paper map.
+const PEN_INK = '#1f3a8f'
+const MARK = 'pen-mark'
 
-// Rubber-stamp marks drawn once on a canvas: the ink takes unevenly, with a lighter arc where the stamp
-// rocked and specks where the pad was dry. Vector on purpose, so the map contrasts with the photos.
-function stamp(size: number, dot: boolean) {
-  const ratio = 2
-  const canvas = document.createElement('canvas')
-  canvas.width = canvas.height = size * ratio
-  const ctx = canvas.getContext('2d')!
-  const c = (size * ratio) / 2
-  ctx.strokeStyle = ctx.fillStyle = STAMP_INK
-  ctx.lineWidth = 2.6 * ratio
-  ctx.beginPath()
-  ctx.arc(c, c, c - ctx.lineWidth, 0, Math.PI * 2)
-  ctx.stroke()
-  if (dot) {
+// A little seeded randomness, so each count is always drawn the same way but no two look alike.
+function rng(seed: number) {
+  let t = seed + 0x6d2b79f5
+  return () => {
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+type Pt = [number, number]
+
+// One ballpoint stroke: a slightly shaky line, a soft bleed under it, and ink pooled where the pen
+// landed and lifted.
+function penStroke(ctx: CanvasRenderingContext2D, pts: Pt[], width: number, rand: () => number) {
+  const shaky = pts.map(([x, y]): Pt => [x + (rand() - 0.5) * width * 0.6, y + (rand() - 0.5) * width * 0.6])
+  const trace = () => {
     ctx.beginPath()
-    ctx.arc(c, c, c * 0.32, 0, Math.PI * 2)
+    ctx.moveTo(...shaky[0])
+    for (let i = 1; i < shaky.length - 1; i++) {
+      const [x, y] = shaky[i]
+      const [nx, ny] = shaky[i + 1]
+      ctx.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2)
+    }
+    ctx.lineTo(...shaky[shaky.length - 1])
+  }
+  ctx.lineCap = ctx.lineJoin = 'round'
+  ctx.strokeStyle = ctx.fillStyle = PEN_INK
+  ctx.save()
+  ctx.filter = `blur(${width * 0.7}px)`
+  ctx.globalAlpha = 0.35
+  ctx.lineWidth = width * 1.8
+  trace()
+  ctx.stroke()
+  ctx.restore()
+  ctx.globalAlpha = 0.9
+  ctx.lineWidth = width
+  trace()
+  ctx.stroke()
+  ctx.globalAlpha = 0.85
+  for (const [x, y] of [shaky[0], shaky[shaky.length - 1]]) {
+    ctx.beginPath()
+    ctx.arc(x, y, width * (0.7 + rand() * 0.4), 0, Math.PI * 2)
     ctx.fill()
   }
-  const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
-  const px = image.data
-  const rock = Math.random() * Math.PI * 2
-  for (let i = 0; i < px.length; i += 4) {
-    if (!px[i + 3]) continue
-    const x = (i / 4) % canvas.width - c
-    const y = Math.floor(i / 4 / canvas.width) - c
-    const angle = Math.atan2(y, x)
-    const pressure = 0.62 + 0.38 * Math.cos(angle - rock)
-    const speck = Math.random()
-    px[i + 3] = speck < 0.07 ? 0 : Math.round(px[i + 3] * pressure * (0.7 + 0.3 * speck))
-  }
-  return { width: canvas.width, height: canvas.height, data: new Uint8Array(px.buffer) }
+  ctx.globalAlpha = 1
 }
 
-// Cluster counts in cut-out digits from the letter pack, composed on a canvas the first time the map
-// asks for a count it has not drawn yet.
-const DIGITS = pack as unknown as Record<string, { dir: string; glyphs: [number, number, number][] }>
-let digitImages: Promise<Record<string, HTMLImageElement[]>> | null = null
-function loadDigits() {
-  digitImages ??= Promise.all(
-    '0123456789'.split('').map(async d => {
-      const set = DIGITS[d]
-      const imgs = await Promise.all(set.glyphs.slice(0, 3).map(([index]) => {
-        const img = new Image()
-        img.src = `/cutouts/letters/${set.dir}/${index}.webp`
-        return img.decode().then(() => img)
-      }))
-      return [d, imgs] as const
-    })
-  ).then(entries => Object.fromEntries(entries))
-  return digitImages
-}
-
-function countImage(count: string, digits: Record<string, HTMLImageElement[]>) {
-  const h = 52
-  const imgs = count.split('').map((d, i) => digits[d][(d.charCodeAt(0) + i + count.length) % digits[d].length])
-  const widths = imgs.map(img => (img.width / img.height) * h)
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.ceil(widths.reduce((a, w) => a + w * 0.86, 0) + 16)
-  canvas.height = h + 16
-  const ctx = canvas.getContext('2d')!
-  ctx.shadowColor = 'rgba(28, 24, 20, 0.45)'
-  ctx.shadowBlur = 3
-  ctx.shadowOffsetY = 2
-  let x = 8
-  imgs.forEach((img, i) => {
-    const w = widths[i]
-    ctx.save()
-    ctx.translate(x + w / 2, 8 + h / 2)
-    ctx.rotate((((count.charCodeAt(i) * 7 + i * 13) % 17) - 8) * 0.012)
-    ctx.drawImage(img, -w / 2, -h / 2, w, h)
-    ctx.restore()
-    x += w * 0.86
+// A loop drawn freehand: it starts somewhere, goes round a bit more than once and doesn't meet itself.
+function loop(cx: number, cy: number, r: number, rand: () => number): Pt[] {
+  const start = rand() * Math.PI * 2
+  const turn = Math.PI * 2 * (1.08 + rand() * 0.22)
+  const squash = 0.9 + rand() * 0.15
+  const steps = 28
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const a = start + (turn * i) / steps
+    const drift = 1 + (i / steps) * (rand() * 0.08 - 0.02)
+    return [cx + Math.cos(a) * r * drift, cy + Math.sin(a) * r * squash * drift] as Pt
   })
+}
+
+// Single-stroke handwritten digits on a 10 × 16 grid.
+const DIGIT_STROKES: Record<string, Pt[]> = {
+  1: [[4.2, 3], [6, 1], [6, 15]],
+  2: [[1, 5], [3, 1.5], [7, 1], [9, 4], [8, 7], [1, 15], [9.5, 14.5]],
+  3: [[1, 3], [5, 1], [8.5, 3], [7.5, 6.5], [4, 7.8], [8.5, 9.5], [9, 13], [5, 15.5], [1, 13.5]],
+  4: [[7, 15], [7, 1], [0.5, 11], [9.5, 11]],
+  5: [[9, 1.2], [2, 1.5], [1.5, 7], [5, 6], [8.5, 8], [9, 12], [5.5, 15.5], [1, 13.5]],
+  6: [[8, 1.5], [4, 3], [1.5, 8], [1.5, 12], [4, 15.3], [7.5, 14.5], [8.8, 11], [6.5, 8], [3, 8.5], [1.5, 11]],
+  7: [[1, 1.5], [9.5, 1], [4.5, 15]],
+  8: [[5, 7.8], [8, 5], [8, 2.5], [5, 1], [2, 2.5], [2, 5], [5, 7.8], [8.8, 11], [8, 14.5], [5, 15.5], [2, 14.5], [1.2, 11], [5, 7.8]],
+  9: [[8.5, 6], [6, 8], [2.5, 7], [1.5, 4], [4, 1], [7.5, 1.5], [8.8, 5], [8, 11], [5, 15.5]],
+  0: Array.from({ length: 19 }, (_, i): Pt => {
+    const a = -Math.PI / 2 - 0.3 + (i / 18) * (Math.PI * 2 + 0.5)
+    return [5 + Math.cos(a) * 4, 8 + Math.sin(a) * 7]
+  }),
+}
+
+function canvasFor(size: number) {
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  return { canvas, ctx: canvas.getContext('2d')! }
+}
+
+// A cluster: the count written by hand and circled, like marking a spot on a printed map.
+function circledCount(count: string) {
+  const rand = rng(Number(count) * 97 + 13)
+  const digitH = 26
+  const digitW = digitH * 0.62
+  const textW = count.length * digitW + (count.length - 1) * 3
+  const r = Math.max(textW, digitH) / 2 + 12 + Math.min(Number(count), 40) * 0.25
+  const size = Math.ceil((r + 10) * 2)
+  const { canvas, ctx } = canvasFor(size)
+  const c = size / 2
+  penStroke(ctx, loop(c, c, r, rand), 2.4, rand)
+  const tilt = (rand() - 0.5) * 0.18
+  ctx.save()
+  ctx.translate(c, c)
+  ctx.rotate(tilt)
+  count.split('').forEach((d, i) => {
+    const x0 = -textW / 2 + i * (digitW + 3)
+    const pts = DIGIT_STROKES[d].map(([x, y]): Pt => [x0 + (x / 10) * digitW, -digitH / 2 + (y / 16) * digitH + (rand() - 0.5) * 2])
+    penStroke(ctx, pts, 2.6, rand)
+  })
+  ctx.restore()
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// A single animita: a small loop with a dot pressed in its middle.
+function penMark() {
+  const rand = rng(7)
+  const size = 40
+  const { canvas, ctx } = canvasFor(size)
+  penStroke(ctx, loop(size / 2, size / 2, 12, rand), 2.2, rand)
+  ctx.fillStyle = PEN_INK
+  ctx.globalAlpha = 0.9
+  ctx.beginPath()
+  ctx.arc(size / 2 + 0.5, size / 2 - 0.5, 4, 0, Math.PI * 2)
+  ctx.fill()
   return ctx.getImageData(0, 0, canvas.width, canvas.height)
 }
 
-function addStamps(map: mapboxgl.Map) {
-  if (!map.hasImage(RING)) map.addImage(RING, stamp(56, false), { pixelRatio: 2 })
-  if (!map.hasImage(MARK)) map.addImage(MARK, stamp(28, true), { pixelRatio: 2 })
+function addMarks(map: mapboxgl.Map) {
+  if (!map.hasImage(MARK)) map.addImage(MARK, penMark(), { pixelRatio: 2 })
 }
 
 export interface MarkerLayerProps {
@@ -111,7 +154,7 @@ export interface MarkerLayerProps {
 const CLUSTER_CONFIG = {
   cluster: true,
   clusterMaxZoom: 12,
-  clusterRadius: 18,
+  clusterRadius: 26,
 }
 
 const POINT_FILTER = ['!', ['has', 'point_count']] as any
@@ -172,7 +215,7 @@ export function MarkerLayer({
       })
     }
 
-    addStamps(map)
+    addMarks(map)
     const tilt = ['*', ['-', ['%', ['coalesce', ['get', 'point_count'], ['length', ['to-string', ['get', 'title']]]], 9], 4], 4]
 
     if (!map.getLayer('clusters')) {
@@ -184,7 +227,7 @@ export function MarkerLayer({
         layout: {
           'icon-image': ['concat', 'count-', ['to-string', ['get', 'point_count']]],
           'icon-allow-overlap': true,
-          'icon-size': ['step', ['get', 'point_count'], 0.8, 10, 1, 30, 1.2],
+          'icon-size': 1,
         },
       })
     }
@@ -208,26 +251,15 @@ export function MarkerLayer({
     isInitialized.current = true
   }, [map, isMapReady, sourceId])
 
-  // Draws each cluster count the first time the map needs it. Counts asked for before the digits
-  // loaded are drawn by re-laying out the layer once they arrive.
+  // Draws each cluster count, by hand, the first time the map needs it.
   useEffect(() => {
     if (!map || !isMapReady) return
-    let digits: Record<string, HTMLImageElement[]> | null = null
-    let cancelled = false
     const drawCount = (e: { id: string }) => {
-      if (!digits || !e.id.startsWith('count-') || map.hasImage(e.id)) return
-      map.addImage(e.id, countImage(e.id.slice(6), digits), { pixelRatio: 2 })
+      if (!e.id.startsWith('count-') || map.hasImage(e.id)) return
+      map.addImage(e.id, circledCount(e.id.slice(6)), { pixelRatio: 2 })
     }
     map.on('styleimagemissing', drawCount)
-    loadDigits().then(loaded => {
-      if (cancelled) return
-      digits = loaded
-      if (map.getLayer('clusters')) map.setLayoutProperty('clusters', 'icon-image', ['concat', 'count-', ['to-string', ['get', 'point_count']]])
-    })
-    return () => {
-      cancelled = true
-      map.off('styleimagemissing', drawCount)
-    }
+    return () => { map.off('styleimagemissing', drawCount) }
   }, [map, isMapReady])
 
   // 2. Update point data
