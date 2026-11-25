@@ -28,53 +28,32 @@ export function MainInfo({ site, compact = false }: MainInfoProps) {
     if (error) throw error
   }
 
-  if (compact) {
-    const { text } = storyExcerpt(site.story)
-    return (
-      <div className="flex flex-col gap-4">
-        <h1 className="sr-only">Animita de {site.title}</h1>
-        <div aria-hidden className="flex flex-col gap-2">
-          <span className="text-sm text-text-weak">Animita de</span>
-          <span className="flex flex-wrap items-end gap-x-5 gap-y-2">
-            {site.title.split(/\s+/).filter(Boolean).map((word, i) => <CutoutText key={`${word}-${i}`} text={word} height={32} />)}
-          </span>
-        </div>
-        {text && <p className="text-pretty text-base leading-relaxed text-text-strong">{text}</p>}
-      </div>
-    )
-  }
+  const { text: excerpt } = storyExcerpt(site.story)
+  const story = compact ? excerpt : site.story ?? ''
 
   return (
-    <div>
-      <h1 className="text-2xl font-medium text-text-strong leading-tight text-balance">
-        <span>Animita de </span>
-        {canEdit ? (
-          <InlineEdit
-            value={site.title}
-            onSave={(val) => saveField('title', val)}
-            label="Nombre"
-            placeholder="Nombre"
-            className="text-inherit"
-            inline
-          />
-        ) : (
-          <span>{site.title}</span>
-        )}
-      </h1>
-
-      {canEdit ? (
+    <div className="flex flex-col gap-4">
+      <h1 className="sr-only">Animita de {site.title}</h1>
+      <div aria-hidden className="flex flex-col gap-2">
+        <span className="text-sm text-text-weak">Animita de</span>
+        <span className="flex flex-wrap items-end gap-x-5 gap-y-2">
+          {site.title.split(/\s+/).filter(Boolean).map((word, i) => <CutoutText key={`${word}-${i}`} text={word} height={compact ? 32 : 40} />)}
+        </span>
+      </div>
+      {!compact && canEdit && (
+        <InlineEdit value={site.title} onSave={(val) => saveField('title', val)} label="Nombre" placeholder="Nombre" className="text-sm text-text-weak" />
+      )}
+      {!compact && canEdit ? (
         <InlineEdit
           type="textarea"
           value={site.story ?? ''}
           onSave={(val) => saveField('story', val)}
           label="Historia"
           placeholder="Cuenta su historia"
-          className="mt-4 text-sm leading-relaxed text-text-strong"
+          className="max-w-prose text-base leading-relaxed text-text-strong"
         />
-      ) : site.story ? (
-        <p className="mt-4 text-sm leading-relaxed text-text-strong whitespace-pre-line text-pretty">
-          {site.story}
-        </p>
+      ) : story ? (
+        <p className="max-w-prose whitespace-pre-line text-pretty text-base leading-relaxed text-text-strong">{story}</p>
       ) : null}
     </div>
   )

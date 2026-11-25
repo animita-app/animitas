@@ -5,7 +5,7 @@ import Link from "next/link"
 import { ImagePlus } from "lucide-react"
 import { CurveSign } from "@/components/road-signs"
 import { CutoutText } from "@/components/cutout-text"
-import { LoosePrints } from "@/components/animita/loose-prints"
+import { PrintWall } from "@/components/animita/loose-prints"
 import { useUser } from "@/contexts/user-context"
 import { canEditAnimita } from "@/lib/animitas"
 import { AnimitaDetails } from "./animita-details"
@@ -33,8 +33,8 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
         </Link>
       </div>
 
-      <main className="mx-auto grid max-w-6xl gap-8 px-4 pt-16 pb-24 md:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] md:gap-12 md:pt-20">
-        <div className="relative md:sticky md:top-16 md:self-start">
+      <main className="mx-auto grid max-w-6xl gap-12 px-6 pt-24 pb-32 md:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] md:gap-16">
+        <div className="relative md:sticky md:top-24 md:self-start">
           <ImageGalleryEditorWrapper
             site={site}
             images={images}
@@ -42,14 +42,14 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
             isOpen={isGalleryEditorOpen}
             onOpenChange={setIsGalleryEditorOpen}
           >
-            <LoosePrints site={{ ...site, images }} className="px-2 md:px-8" />
+            <PrintWall site={{ ...site, images }} />
           </ImageGalleryEditorWrapper>
           {canEdit && (
             <button
               type="button"
               onClick={() => setIsGalleryEditorOpen(true)}
               aria-label="Editar fotos"
-              className="group absolute bottom-0 left-4 flex items-center gap-2 rounded-md text-text-weak outline-none hover:text-text-strong focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              className="group absolute -bottom-10 left-0 flex items-center gap-2 rounded-md text-text-weak outline-none hover:text-text-strong focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
               <ImagePlus />
               <span className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">

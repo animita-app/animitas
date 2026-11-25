@@ -3,6 +3,7 @@
 import { animitaHref } from '@/lib/routes'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import type mapboxgl from 'mapbox-gl'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAnimitas } from '@/contexts/animitas-context'
 import { useMapInitialization } from './hooks/use-map-initialization'
@@ -82,6 +83,26 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   useEffect(() => {
     if (!pathname.startsWith('/animita/')) selectAnimita(null)
   }, [pathname, selectAnimita])
+
+  // Going back to the map closes the open sheet: a click on empty map or the start of a drag. Clicks on an
+  // animita or a cluster are theirs to handle.
+  useEffect(() => {
+    const instance = map.current
+    if (!instance || !isMapReady || !pathname.startsWith('/animita/')) return
+    const inkLayers = ['clusters', 'memorials-inner'].filter(id => instance.getLayer(id))
+    const close = () => router.back()
+    const onClick = (e: mapboxgl.MapMouseEvent) => {
+      if (instance.queryRenderedFeatures(e.point, { layers: inkLayers }).length) return
+      close()
+    }
+    const onDrag = (e: { originalEvent?: Event }) => { if (e.originalEvent) close() }
+    instance.on('click', onClick)
+    instance.on('dragstart', onDrag)
+    return () => {
+      instance.off('click', onClick)
+      instance.off('dragstart', onDrag)
+    }
+  }, [map, isMapReady, pathname, router])
 
   const handleMarkerClick = (id: string) => {
     const site = animitas.find((s: Animita) => s.id === id)

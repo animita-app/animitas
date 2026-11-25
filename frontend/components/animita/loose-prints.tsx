@@ -36,3 +36,35 @@ export function LoosePrints({ site, className }: { site: Animita; className?: st
     </div>
   )
 }
+
+const WALL_TILTS = ['-rotate-2', 'rotate-1', '-rotate-1', 'rotate-2', 'rotate-[0.5deg]', '-rotate-[1.5deg]']
+
+// Every print laid out on the table for the full page: the first one large, the rest in a loose grid,
+// each a little crooked and all of them seen.
+export function PrintWall({ site, className }: { site: Animita; className?: string }) {
+  const images = site.images ?? []
+  if (!images.length) return null
+  return (
+    <ul className={cn('grid grid-cols-2 gap-5', className)}>
+      {images.map((src, i) => (
+        <li
+          key={src}
+          className={cn(
+            'photo-vignette relative overflow-hidden border-[6px] border-neutral-light-1 bg-neutral-light-1 shadow-md',
+            i === 0 ? 'col-span-2 aspect-4/3' : 'aspect-square',
+            WALL_TILTS[i % WALL_TILTS.length]
+          )}
+        >
+          <Image
+            src={src}
+            alt={i === 0 ? `Animita de ${site.title}` : `Foto ${i + 1} de ${images.length}`}
+            fill
+            sizes={i === 0 ? '(max-width: 768px) 90vw, 520px' : '(max-width: 768px) 45vw, 260px'}
+            className="object-cover [filter:url(#stipple)] hover:[filter:none]"
+            priority={i === 0}
+          />
+        </li>
+      ))}
+    </ul>
+  )
+}
