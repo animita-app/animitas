@@ -120,7 +120,7 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
             {[1, 2, 3].map(i => <Skeleton key={i} className="aspect-square rounded-lg" />)}
           </div>
         ) : animitas.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-2 gap-y-6 sm:grid-cols-3">
             {animitas.map(a => <AnimitaCard key={a.id} site={a} />)}
           </div>
         ) : (

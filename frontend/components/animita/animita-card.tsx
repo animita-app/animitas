@@ -1,53 +1,34 @@
+import Link from 'next/link'
+import Image from 'next/image'
 import { animitaHref } from '@/lib/routes'
-import * as React from "react"
-import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, ArrowRight } from "lucide-react"
-import Image from "next/image"
-import { Button } from "../ui/button"
-import { ProgressiveBlur } from "@/components/ui/progressive-blur"
 
 interface AnimitaCardProps {
-  site: any // Replace with Animita type if available
+  site: { slug: string; title: string; images: string[] | null; city_region?: string | null }
 }
 
 export function AnimitaCard({ site }: AnimitaCardProps) {
-  const imageUrl = site.images && site.images[0]
+  const imageUrl = site.images?.[0]
 
   return (
-    <Link href={animitaHref(site.slug)}>
-      <Card className="hover:ring-2 hover:ring-offset-4 hover:ring-accent aspect-square relative group !py-0 overflow-hidden shadow-none transition-all hover:shadow-md bg-background">
-        <CardContent className="translate-y-8 group-hover:translate-y-0 duration-150 ease-out items-start z-20 p-4 flex flex-col gap-2 flex-grow justify-start">
-          <div className="space-y-0 mt-auto">
-            <h3 className="text-lg font-medium text-white text-balance">{site.title}</h3>
-            {(site.city_region || site.address) && (
-              <p className="inline-flex items-center gap-1 text-sm text-white/80">
-                {site.city_region && <span className="shrink-0">{site.city_region}</span>}
-                {/* {site.address && <span className="shrink-0">{site.address}</span>} */}
-              </p>
-            )}
-          </div>
-          <Button
-            variant="link"
-            className="text-white hover:text-white underline !decoration-current/25 gap-1"
-          >
-            Ver detalles
-            <ArrowRight />
-          </Button>
-        </CardContent>
-        <ProgressiveBlur
-          height="75%"
-          className="translate-y-12 group-hover:translate-y-0 duration-150 ease-out"
-        />
-        {/* <div className="z-10 absolute inset-x-0 bottom-0 w-full h-48 bg-gradiento-to-t from-background to-background-weak" /> */}
-        <Image
-          src={imageUrl}
-          alt={site.title}
-          width={1080}
-          height={1080}
-          className="absolute top-0 left-0 h-full w-full object-cover"
+    <Link
+      href={animitaHref(site.slug)}
+      className="group flex flex-col gap-2 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-md bg-background-weak">
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover [filter:url(#stipple)] group-hover:[filter:none] group-focus-visible:[filter:none]"
           />
-      </Card>
+        )}
+      </div>
+      <div>
+        <h3 className="text-sm font-medium text-text-strong text-pretty">{site.title}</h3>
+        {site.city_region && <p className="text-sm text-text-weak">{site.city_region}</p>}
+      </div>
     </Link>
   )
 }

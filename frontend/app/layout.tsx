@@ -7,6 +7,7 @@ import { Providers } from './providers'
 import { cn } from '@/lib/utils'
 import { Toaster } from '@/components/ui/sonner'
 import { Header } from '@/components/headers/header'
+import { StippleFilter } from '@/components/ui/stipple-filter'
 
 
 const geist = Geist({
@@ -98,6 +99,7 @@ export default function RootLayout({
   return (
     <html lang="es" className={cn(geist.variable, geistMono.variable, ibmPlexMono.variable)} data-scroll-behavior="smooth">
       <body className="overflow-x-hidden w-full min-h-svh">
+        <StippleFilter />
         <Providers>
           <Header />
           {children}
