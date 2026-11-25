@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getAnimita } from '@/lib/animitas-server'
+import { animitaName } from '@/lib/animitas'
 import { isDemoServer } from '@/lib/demo/server'
 import { DemoAnimita } from '@/components/animita/demo-animita'
 import { SiteDetailView } from './sections/site-detail-view'
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!animita) return { title: 'Animita no encontrada' }
 
   return {
-    title: `Animita de ${animita.title}`,
+    title: animitaName(animita.title),
     description: animita.story?.slice(0, 160) || `La historia de la animita de ${animita.title}.`,
   }
 }

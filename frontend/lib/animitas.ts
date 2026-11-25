@@ -50,3 +50,8 @@ export function matchesQuery(animita: Pick<Animita, 'title' | 'address' | 'city_
   if (q.length < 2) return true
   return [animita.title, animita.address, animita.city_region].some(field => field && fold(field).includes(q))
 }
+
+// How an animita is named in titles. Many are already called "Animita de …", so the prefix isn't doubled.
+export function animitaName(title: string) {
+  return /^animita\b/i.test(title.trim()) ? title.trim() : `Animita de ${title.trim()}`
+}

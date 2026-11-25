@@ -72,17 +72,17 @@ function CommentItem({ comment, isOwn, onDelete }: CommentItemProps) {
             <>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-xs" aria-label="Eliminar" className="shrink-0 text-text-weak" onClick={() => setDeleteOpen(true)}>
+                  <Button variant="ghost" size="icon-xs" aria-label="Borrar" className="shrink-0 text-text-weak" onClick={() => setDeleteOpen(true)}>
                     <Trash2 />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Eliminar</TooltipContent>
+                <TooltipContent>Borrar</TooltipContent>
               </Tooltip>
 
               <AlertDialog open={deleteOpen} onOpenChange={(open) => !deleting && setDeleteOpen(open)}>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>¿Eliminar tu comentario?</AlertDialogTitle>
+                    <AlertDialogTitle>¿Borrar tu recuerdo?</AlertDialogTitle>
                     <AlertDialogDescription>No se puede recuperar.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -95,7 +95,7 @@ function CommentItem({ comment, isOwn, onDelete }: CommentItemProps) {
                       disabled={deleting}
                     >
                       {deleting && <Spinner />}
-                      {deleting ? "Eliminando…" : "Eliminar comentario"}
+                      {deleting ? "Borrando…" : "Borrar recuerdo"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -176,7 +176,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
     if (error || !data) {
       setComments((prev) => prev.filter((c) => c.id !== optimistic.id))
       setText(trimmed)
-      toast.error("No se pudo publicar el comentario", { description: error?.message })
+      toast.error("No se pudo dejar el recuerdo", { description: error?.message })
     } else {
       setComments((prev) => prev.map((c) => c.id === optimistic.id ? { ...c, id: data.id, created_at: data.created_at } : c))
     }
@@ -187,7 +187,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
     const supabase = createClient()
     const { error } = await supabase.from(TABLES.comments).delete().eq('id', id)
     if (error) {
-      toast.error("No se pudo eliminar el comentario", { description: error.message })
+      toast.error("No se pudo borrar el recuerdo", { description: error.message })
       return
     }
     setComments(prev => prev.filter(c => c.id !== id))
@@ -196,7 +196,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
   const remaining = comments.length - visible
 
   return (
-    <section aria-label="Comentarios" className="space-y-4">
+    <section aria-label="Recuerdos" className="space-y-4">
       <div className="flex flex-col gap-3">
         <Textarea
           value={text}
@@ -236,7 +236,7 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
               className="w-full text-text-weak"
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
             >
-              {remaining === 1 ? 'Ver 1 comentario más' : `Ver ${Math.min(remaining, PAGE_SIZE)} comentarios más`}
+              {remaining === 1 ? 'Ver 1 recuerdo más' : `Ver ${Math.min(remaining, PAGE_SIZE)} recuerdos más`}
             </Button>
           )}
         </div>

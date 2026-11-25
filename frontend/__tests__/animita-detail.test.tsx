@@ -43,8 +43,8 @@ describe("CommentsSection", () => {
     render(<CommentsSection siteId="site-1" />);
 
     await screen.findByText("Que descanse");
-    fireEvent.click(screen.getByRole("button", { name: "Eliminar" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Eliminar comentario" }));
+    fireEvent.click(screen.getByRole("button", { name: "Borrar" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Borrar recuerdo" }));
 
     await waitFor(() => expect(deleteEq).toHaveBeenCalledWith("id", "c1"));
     expect(screen.getByText("Que descanse")).toBeInTheDocument();

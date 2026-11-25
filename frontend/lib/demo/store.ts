@@ -35,6 +35,11 @@ const RECUERDOS = [
   'Le pedí por mi hijo y se cumplió. Vuelvo cada año a darle las gracias.',
   'Alguien le pintó la casita de nuevo. Quedó preciosa.',
   'Que descanses. Nunca falta una vela prendida.',
+  'Paso todos los días en la micro y me persigno.',
+  'Le dejamos un rosario con mi señora para el aniversario.',
+  'Gracias por el favor concedido.',
+  'Hoy estaba llena de remolinos, se veía tan linda con el viento.',
+  'La conocí por mi tata. Ahora la cuido yo.',
 ]
 
 const KEY = (session: string) => `anima-demo:${session}`
@@ -83,17 +88,26 @@ export function seedSite(data: DemoData, siteId: string) {
   if (data.seeded[siteId]) return
   data.seeded[siteId] = true
   const h = hash(siteId)
-  const candles = h % 4 === 0 ? 0 : (h % 17) + 1
+  // A spread of states across animitas: none, one, a handful and many, so every case shows up somewhere.
+  const candles = [0, 1, 3, 7, 14, 28, 61][h % 7]
   for (let i = 0; i < candles; i++) {
-    data.velas.push({ id: `seed-vela-${siteId}-${i}`, site_id: siteId, user_id: NEIGHBOURS[(h + i) % NEIGHBOURS.length].id, emoji: '🕯️', created_at: new Date(Date.now() - (i + 1) * 86400000).toISOString() })
+    const neighbour = NEIGHBOURS[(h + i) % NEIGHBOURS.length]
+    data.velas.push({
+      id: `seed-vela-${siteId}-${i}`,
+      site_id: siteId,
+      // One candle per person: past the named neighbours, unnamed passers-by.
+      user_id: i < NEIGHBOURS.length ? neighbour.id : `seed-vecino-${siteId}-${i}`,
+      emoji: '🕯️',
+      created_at: new Date(Date.now() - (i + 1) * 86400000).toISOString(),
+    })
   }
-  const notes = (h >> 5) % 4
+  const notes = [0, 1, 2, 4, 6, 9][(h >> 4) % 6]
   for (let i = 0; i < notes; i++) {
     data.comments.push({
       id: `seed-recuerdo-${siteId}-${i}`,
       site_id: siteId,
-      user_id: NEIGHBOURS[(h >> (i + 2)) % NEIGHBOURS.length].id,
-      content: RECUERDOS[(h + i * 3) % RECUERDOS.length],
+      user_id: NEIGHBOURS[(h + i * 5) % NEIGHBOURS.length].id,
+      content: RECUERDOS[(h + i * 7) % RECUERDOS.length],
       created_at: new Date(Date.now() - (i * 5 + (h % 9) + 1) * 3600000).toISOString(),
     })
   }
