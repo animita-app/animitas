@@ -28,7 +28,7 @@ export function SiteDetailView({ site }: SiteDetailViewProps) {
       <div className="shelf shelf-top fixed top-3 left-3 z-40">
         <Link href="/map" aria-label="Volver al mapa" style={{ transformOrigin: '0 0' }} className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
           <span className="shelf-label pointer-events-none absolute left-1/2 top-1/2 z-10 size-0">
-            <CutoutText text="volver" height={26} orbit={{ radius: 100, angle: 55, clockwise: false }} />
+            <CutoutText text="volver" height={26} orbit={{ radius: 78, angle: 55, clockwise: false }} />
           </span>
           <CurveSign className="size-12" />
         </Link>

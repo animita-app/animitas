@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
 import type { Animita } from '@/types/animita'
 import { createClient } from '@/lib/supabase/client'
-import { listAnimitas } from '@/lib/animitas'
+import { matchesQuery, listAnimitas } from '@/lib/animitas'
 
 export interface MapTarget {
   center?: [number, number]
@@ -24,6 +24,8 @@ interface AnimitasContextType {
   clearMapTarget: () => void
   resetToken: number
   requestReset: () => void
+  query: string
+  setQuery: (query: string) => void
 }
 
 const AnimitasContext = createContext<AnimitasContextType | undefined>(undefined)
@@ -35,6 +37,7 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
   const [selectedComunas, setSelectedComunas] = useState<string[]>([])
   const [mapTarget, setMapTarget] = useState<MapTarget | null>(null)
   const [resetToken, setResetToken] = useState(0)
+  const [query, setQuery] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -57,8 +60,10 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
   )
 
   const animitas = useMemo(
-    () => selectedComunas.length === 0 ? all : all.filter(a => a.city_region && selectedComunas.includes(a.city_region)),
-    [all, selectedComunas]
+    () => all.filter(a =>
+      (selectedComunas.length === 0 || (a.city_region && selectedComunas.includes(a.city_region))) && matchesQuery(a, query)
+    ),
+    [all, selectedComunas, query]
   )
 
   const reload = useCallback(() => setReloadToken(t => t + 1), [])
@@ -67,7 +72,7 @@ export function AnimitasProvider({ children }: { children: ReactNode }) {
   const requestReset = useCallback(() => setResetToken(t => t + 1), [])
 
   return (
-    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo, clearMapTarget, resetToken, requestReset }}>
+    <AnimitasContext.Provider value={{ animitas, status, reload, comunas, selectedComunas, setSelectedComunas, mapTarget, flyTo, clearMapTarget, resetToken, requestReset, query, setQuery }}>
       {children}
     </AnimitasContext.Provider>
   )

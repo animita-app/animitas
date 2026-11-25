@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSearchLocation } from '@/hooks/use-search-location'
+import { useAnimitas } from '@/contexts/animitas-context'
 
 // A green Chilean road sign you write on. Results stack under it as destination plates, like at a junction.
 export function RoadSignSearch() {
@@ -11,20 +12,21 @@ export function RoadSignSearch() {
   const inputRef = useRef<HTMLInputElement>(null)
   const [value, setValue] = useState('')
   const [active, setActive] = useState(-1)
-  const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation()
+  const { setQuery } = useAnimitas()
+  const { open, setOpen, isLoading, searchResults, handleSearch, handleSelect, resetSearch } = useSearchLocation(setQuery)
 
   useEffect(() => setActive(-1), [searchResults])
 
   const choose = (result: any) => {
     handleSelect(result)
     setValue('')
+    setQuery('')
     inputRef.current?.blur()
   }
 
   const results = open ? searchResults : []
   const searching = value.trim().length >= 3
   const empty = searching && open && !isLoading && results.length === 0
-  const waiting = searching && isLoading && results.length === 0
 
   return (
     <div className="relative -rotate-1">
@@ -56,12 +58,8 @@ export function RoadSignSearch() {
         />
       </label>
 
-      <p role="status" className={cn('absolute left-0 top-full mt-1.5 w-max', !(empty || waiting) && 'sr-only')}>
-        {empty ? (
-          <span className="road-sign road-sign-text block rotate-[0.4deg] px-3 py-1.5 opacity-80">Sin resultados</span>
-        ) : waiting ? (
-          <span className="road-sign road-sign-text block -rotate-[0.4deg] px-3 py-1.5 opacity-80">Buscando…</span>
-        ) : null}
+      <p role="status" className={cn('absolute left-0 top-full mt-1.5 w-max', !empty && 'sr-only')}>
+        {empty && <span className="road-sign road-sign-text block rotate-[0.4deg] px-3 py-1.5 opacity-80">Sin resultados</span>}
       </p>
 
       {results.length > 0 && (

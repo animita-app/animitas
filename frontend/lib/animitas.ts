@@ -41,3 +41,12 @@ export async function findAnimita(supabase: SupabaseClient, slug: string): Promi
 export function canEditAnimita(user: { id: string } | null, isEditor: boolean, animita: Pick<Animita, 'creator_id'>) {
   return !!user && (isEditor || user.id === animita.creator_id)
 }
+
+const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+// What someone types in the search narrows the map and the list as they type, accents or not.
+export function matchesQuery(animita: Pick<Animita, 'title' | 'address' | 'city_region'>, query: string) {
+  const q = fold(query.trim())
+  if (q.length < 2) return true
+  return [animita.title, animita.address, animita.city_region].some(field => field && fold(field).includes(q))
+}

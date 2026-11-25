@@ -9,6 +9,8 @@ jest.mock("@/hooks/use-search-location", () => ({
   useSearchLocation: () => ({ open: true, setOpen: jest.fn(), searchResults: results, handleSearch: jest.fn(), handleSelect, resetSearch: jest.fn() }),
 }));
 
+jest.mock("@/contexts/animitas-context", () => ({ useAnimitas: () => ({ setQuery: jest.fn() }) }));
+
 import { RoadSignSearch } from "@/components/search/road-sign-search";
 
 describe("RoadSignSearch", () => {
