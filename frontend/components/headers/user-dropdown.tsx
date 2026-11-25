@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { isDemo } from '@/lib/demo/flag'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -16,6 +18,8 @@ import { NotificationsBell } from './notifications-bell'
 
 export function UserDropdown() {
   const { currentUser } = useUser()
+  const [demo, setDemo] = useState(false)
+  useEffect(() => setDemo(isDemo()), [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -45,7 +49,19 @@ export function UserDropdown() {
             <Link href="/creditos">Créditos</Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={handleLogout}>Cerrar sesión</DropdownMenuItem>
+          {demo ? (
+            <>
+              {/* Plain links: they go through the server to change the demo cookie. */}
+              <DropdownMenuItem asChild>
+                <a href="/demo?reiniciar">Reiniciar demo</a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="/demo?salir">Salir del demo</a>
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <DropdownMenuItem onSelect={handleLogout}>Cerrar sesión</DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

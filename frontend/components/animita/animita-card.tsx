@@ -55,9 +55,11 @@ export function AnimitaCard({ site }: AnimitaCardProps) {
         )}
       </div>
       {(reaching || touch) && (
-        <span className="pointer-events-none absolute inset-x-2 bottom-2 flex flex-wrap items-end justify-center gap-x-2 gap-y-1">
+        // On touch the name is always there, so it stays small and sits on the print's bottom margin
+        // instead of covering the photo.
+        <span className={cn('pointer-events-none absolute inset-x-2 flex flex-wrap items-end justify-center gap-x-1.5 gap-y-0.5', touch ? 'bottom-1' : 'bottom-2')}>
           {site.title.split(/\s+/).filter(Boolean).map((word, i) => (
-            <CutoutText key={`${word}-${i}`} text={word} height={24} />
+            <CutoutText key={`${word}-${i}`} text={word} height={touch ? 15 : 24} />
           ))}
         </span>
       )}

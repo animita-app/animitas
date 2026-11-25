@@ -16,6 +16,8 @@ export function Header() {
   const isAnimitaSheet = modalSegment?.startsWith('(.)animita') ?? false
 
   if (pathname.startsWith('/animita') && !isAnimitaSheet) return null
+  // Adding an animita on its own page is a full-screen form with its own Cancelar; nothing else on top.
+  if (pathname === '/add' && !modalSegment) return null
 
   const isMapRoute = isAnimitaSheet || ['/', '/map', '/list', '/add', '/auth'].includes(pathname)
 

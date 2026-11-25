@@ -21,6 +21,7 @@ export default function ListPage() {
 
   return (
     <div className="min-h-svh w-full bg-background pt-20 pb-40">
+      <h1 className="sr-only">Animitas</h1>
       <div className="mx-auto space-y-10 px-6 md:px-10">
         <ComunaFilter />
         {status === 'loading' ? (

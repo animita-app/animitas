@@ -12,8 +12,7 @@ function section(pathname: string) {
   return first || 'map'
 }
 
-// Changing section is a drive down the road: a truck goes by, its dust and headlights sweep across the
-// page and you hear it pass. With reduced motion there's only the sound.
+// Changing section is a drive down the road: you hear a truck go by while the new page fades in.
 export function TruckTransition() {
   const pathname = usePathname()
   const previous = useRef(pathname)
@@ -31,5 +30,5 @@ export function TruckTransition() {
   }, [pathname])
 
   if (!passing) return null
-  return <span key={pass} aria-hidden onAnimationEnd={() => setPassing(false)} className="truck-pass pointer-events-none fixed z-70" />
+  return <span key={pass} aria-hidden onAnimationEnd={() => setPassing(false)} className="page-arrive pointer-events-none fixed inset-0 z-70 bg-background" />
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 import pack from '@/lib/cutout-letters.json'
@@ -10,7 +10,7 @@ import pack from '@/lib/cutout-letters.json'
 type Glyph = [index: number, width: number, height: number]
 const PACK = pack as unknown as Record<string, { dir: string; glyphs: Glyph[] }>
 
-let hydrated = false
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 const randomSeed = () => Math.floor(Math.random() * 1e6)
 
 function hash(text: string) {
@@ -124,17 +124,10 @@ interface CutoutTextProps {
 
 // Decorative: the control it labels always carries the same text as its accessible name.
 export function CutoutText({ text, height = 22, arc = 0, orbit, reroll = 0, glue = false, className }: CutoutTextProps) {
-  // The server cuts a stable set so hydration matches and the browser recuts at random right after.
-  // Words that appear once the page is live (a loader, a label on hover) cut at random from the start,
-  // so they don't jump to a new set of letters a frame after showing up.
-  const startedRandom = useRef(hydrated)
-  const [seed, setSeed] = useState(() => (startedRandom.current ? randomSeed() : hash(text)))
-  const mounted = useRef(false)
-  useEffect(() => {
-    hydrated = true
-    const firstRun = !mounted.current
-    mounted.current = true
-    if (firstRun && startedRandom.current) return
+  // The server and the first render cut a stable set, so hydration always matches; the browser recuts
+  // at random before it paints, so a word that shows up late (a loader, a label on hover) never jumps.
+  const [seed, setSeed] = useState(() => hash(text))
+  useIsomorphicLayoutEffect(() => {
     setSeed(randomSeed())
   }, [text, reroll])
 
