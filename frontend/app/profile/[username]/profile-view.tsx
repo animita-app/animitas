@@ -17,6 +17,7 @@ import { createClient } from '@/lib/supabase/client'
 import { toAnimita, TABLES } from '@/lib/animitas'
 import type { Animita } from '@/types/animita'
 import { useNewRecuerdos } from '@/hooks/use-new-recuerdos'
+import { storyExcerpt } from '@/lib/story'
 import { isDemo } from '@/lib/demo/flag'
 import { uploadAvatar } from '@/lib/photos'
 
@@ -131,24 +132,6 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
         </div>
       </header>
 
-      {isOwnProfile && recuerdos.length > 0 && (
-        <section aria-labelledby="profile-recuerdos" className="flex flex-col gap-4">
-          <h2 id="profile-recuerdos" className="text-sm text-text">Recuerdos en tus animitas</h2>
-          <ul className="flex flex-col gap-4">
-            {recuerdos.map(r => (
-              <li key={r.id}>
-                <Link href={r.href} className="group flex flex-col gap-1 rounded-xs outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                  <span className="text-pretty text-base text-text-strong">“{r.text}”</span>
-                  <span className="text-pretty text-sm text-text-weak">
-                    {r.who} en <span className="text-text underline-offset-4 group-hover:underline">{r.where}</span>, {r.timeAgo}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       <section aria-labelledby="profile-animitas" className="space-y-4">
         <h2 id="profile-animitas" className="sr-only">
           Animitas{animitas && animitas.length > 0 ? ` (${animitas.length})` : ''}
@@ -160,8 +143,27 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
             {[1, 2, 3].map(i => <DevelopingPhoto key={i} />)}
           </div>
         ) : animitas.length > 0 ? (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3">
-            {animitas.map(a => <AnimitaCard key={a.id} site={a} />)}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3">
+            {animitas.map(a => {
+              const left = isOwnProfile ? recuerdos.filter(r => r.slug === a.slug) : []
+              return (
+                <div key={a.id} className="relative">
+                  <AnimitaCard site={a} />
+                  {/* The newest recuerdo left here, as a slip tucked under the print's corner. */}
+                  {left[0] && (
+                    <Link
+                      href={left[0].href}
+                      className="paper-slip absolute -right-3 -bottom-4 z-10 flex w-4/5 rotate-3 flex-col gap-0.5 px-3 py-2 outline-none transition-[rotate] duration-200 hover:rotate-0 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
+                    >
+                      <span className="text-pretty text-xs text-text-strong">“{storyExcerpt(left[0].text, 48).text}”</span>
+                      <span className="text-xs text-text-weak">
+                        {left[0].who}{left.length > 1 ? ` y ${left.length - 1} más` : ''}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              )
+            })}
           </div>
         ) : (
           <EmptyState

@@ -10,7 +10,7 @@ import { useAnimitas } from '@/contexts/animitas-context'
 // Real objects stand on the page like offerings at an animita. No labels until you reach for one.
 const SHELF = [
   { href: '/map', src: '/cutouts/map.png', label: 'Mapa', size: 'h-14' },
-  { href: '/add', src: '/cutouts/pin.png', label: 'Añadir', size: 'h-16' },
+  { href: '/add', src: '/cutouts/pin-red.png', label: 'Añadir', size: 'h-16' },
   { href: '/list', src: '/cutouts/shrines.png', label: 'Animitas', size: 'h-14' },
 ]
 

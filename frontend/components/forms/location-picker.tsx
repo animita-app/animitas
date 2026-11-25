@@ -115,7 +115,7 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
             aria-describedby={describedBy}
           />
           {/* The real pin from the shelf; its point, at the bottom left of the photo, marks the spot. */}
-          <Image src="/cutouts/pin.png" alt="" width={160} height={300} draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-auto -translate-x-1 -translate-y-full drop-shadow-[0_4px_3px_rgb(28_24_20_/_0.4)]" />
+          <Image src="/cutouts/pin-red.png" alt="" width={160} height={300} draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-auto -translate-x-1 -translate-y-full drop-shadow-[0_4px_3px_rgb(28_24_20_/_0.4)]" />
           <Button
             type="button"
             variant="sign-service"

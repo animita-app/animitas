@@ -15,6 +15,7 @@ export interface NewRecuerdo {
   text: string
   timeAgo: string
   href: string
+  slug: string
 }
 
 // Recuerdos other people left on the animitas you added, newest first.
@@ -50,6 +51,7 @@ export function useNewRecuerdos() {
         // "hace 1 hora", not "hace alrededor de 1 hora".
         timeAgo: formatDistanceToNowStrict(new Date(c.created_at), { addSuffix: true, locale: es }),
         href: animitaHref(c.heritage_sites?.slug),
+        slug: c.heritage_sites?.slug ?? '',
       })))
     }
 
