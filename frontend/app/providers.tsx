@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
 import { DemoStamp } from '@/components/demo-stamp'
+import { TruckTransition } from '@/components/truck-transition'
 
 export function Providers({
   children,
@@ -24,6 +25,7 @@ export function Providers({
           </div>
         )}
         <DemoStamp />
+        <TruckTransition />
       </AnimitasProvider>
     </UserProvider>
   )
