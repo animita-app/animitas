@@ -9,7 +9,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { reverseGeocode } from "@/lib/mapbox"
 import { shortAddress } from "@/lib/location"
 import { cn } from "@/lib/utils"
-import { SIGN_ACTION } from "@/components/object-styles"
+import { Button } from "@/components/ui/button"
 import { applyPaperStyle } from "@/components/map/paper-style"
 
 export interface PickedLocation {
@@ -116,15 +116,17 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
           />
           {/* The real pin from the shelf; its point, at the bottom left of the photo, marks the spot. */}
           <Image src="/cutouts/pin.png" alt="" width={160} height={300} draggable={false} className="pointer-events-none absolute left-1/2 top-1/2 h-14 w-auto -translate-x-1 -translate-y-full drop-shadow-[0_4px_3px_rgb(28_24_20_/_0.4)]" />
-          <button
+          <Button
             type="button"
+            variant="sign-service"
+            size="sm"
             onClick={locate}
             disabled={gps === "locating"}
-            className={cn(SIGN_ACTION, "road-sign-blue absolute bottom-2 right-2 min-h-8 px-4 py-1")}
+            className="absolute bottom-2 right-2"
           >
             {gps === "locating" ? <Spinner /> : <LocateFixed aria-hidden />}
             {gps === "locating" ? "Ubicando…" : "Mi ubicación"}
-          </button>
+          </Button>
         </div>
       </div>
       <p className="text-sm text-text-weak text-pretty" aria-live="polite">

@@ -1,18 +1,30 @@
 import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+const textareaVariants = cva(
+  "flex w-full transition-[color,box-shadow] outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 disabled:cursor-not-allowed disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "border border-border-weak bg-muted placeholder:text-muted-foreground focus-visible:border-ring aria-invalid:border-destructive dark:bg-input/30 field-sizing-content min-h-12 rounded-md px-3 py-2 text-base shadow-xs md:text-sm",
+        // A ruled note left at the animita (see .paper-note).
+        paper: "paper-note min-h-24 resize-none rounded-none border-0 px-4 py-0 text-base placeholder:text-text-weak",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  }
+)
+
+function Textarea({ className, variant, ...props }: React.ComponentProps<"textarea"> & VariantProps<typeof textareaVariants>) {
   return (
     <textarea
       data-slot="textarea"
-      className={cn(
-        "border border-border-weak bg-muted placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-12 w-full rounded-md px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
-      )}
+      className={cn(textareaVariants({ variant }), className)}
       {...props}
     />
   )
 }
 
-export { Textarea }
+export { Textarea, textareaVariants }

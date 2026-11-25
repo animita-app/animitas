@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { CutoutText } from '@/components/cutout-text'
 import { Tumbleweed } from '@/components/loaders'
 
@@ -8,9 +9,9 @@ export default function NotFound() {
       <h1 className="sr-only">No encontramos esta página</h1>
       <CutoutText text="por aquí no es" height={36} arc={26} />
       <p className="text-pretty text-sm text-text-weak">El enlace está mal escrito o la página ya no existe.</p>
-      <Link href="/map" className="road-sign road-sign-text road-sign-action mt-2 inline-flex -rotate-1 items-center px-5 py-1.5">
-        Ir al mapa
-      </Link>
+      <Button asChild variant="sign" size="lg" className="mt-2 -rotate-1">
+        <Link href="/map">Ir al mapa</Link>
+      </Button>
       <Tumbleweed />
     </main>
   )

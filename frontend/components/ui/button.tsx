@@ -19,6 +19,9 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-background-weaker aria-expanded:bg-background-weaker !shadow-none",
         link: "!px-0 !h-auto !shadow-none text-primary underline-offset-4 hover:underline relative group",
+        // Chilean road signs as buttons: green to move on, blue for an outside service (see .road-sign).
+        sign: "road-sign road-sign-text road-sign-action disabled:opacity-60",
+        "sign-service": "road-sign road-sign-blue road-sign-text road-sign-action disabled:opacity-60",
       },
       size: {
         default: "h-9 px-4 has-[>svg:first-child]:pl-3 has-[>svg:last-child]:pr-3",

@@ -208,7 +208,8 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
             onChange={(e) => setText(e.target.value)}
             placeholder="Deja un recuerdo…"
             aria-label="Recuerdo"
-            className="paper-note min-h-24 -rotate-[0.6deg] resize-none rounded-none border-0 px-4 py-2 text-sm shadow-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            variant="paper"
+            className="-rotate-[0.6deg] text-sm"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
@@ -217,15 +218,10 @@ export function CommentsSection({ siteId }: CommentsSectionProps) {
             }}
           />
           <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="road-sign road-sign-text road-sign-action inline-flex rotate-1 items-center gap-2 px-3 py-1.5 disabled:opacity-60"
-            >
+            <Button type="button" variant="sign" onClick={handleSubmit} disabled={submitting} className="rotate-1">
               {submitting && <Spinner />}
               {submitting ? 'Dejando…' : 'Dejar recuerdo'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

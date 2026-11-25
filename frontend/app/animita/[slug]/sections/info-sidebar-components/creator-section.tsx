@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import React from "react"
 import { Navigation } from "lucide-react"
 import { Animita } from "@/types/animita"
@@ -18,15 +19,12 @@ export function CreatorSection({ site }: CreatorSectionProps) {
       {site.location && (
         <InfoBlock label="Dónde está" className="col-span-2">
           {place && <p className="text-sm text-text-strong text-pretty">{place}</p>}
-          <a
-            href={directionsUrl(site.location)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="road-sign road-sign-blue road-sign-text road-sign-action inline-flex -rotate-1 items-center gap-2 px-3 py-1.5"
-          >
-            Cómo llegar
-            <Navigation aria-hidden />
-          </a>
+          <Button asChild variant="sign-service" className="-rotate-1">
+            <a href={directionsUrl(site.location)} target="_blank" rel="noopener noreferrer">
+              Cómo llegar
+              <Navigation aria-hidden />
+            </a>
+          </Button>
         </InfoBlock>
       )}
 

@@ -6,7 +6,6 @@ import { toast } from "sonner"
 import { Camera, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { PAPER_FIELD, SIGN_ACTION } from "@/components/object-styles"
 import { CutoutText } from "@/components/cutout-text"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -121,10 +120,10 @@ export function AddForm({ onCancel }: AddFormProps) {
           <Button variant="link" className="h-auto p-0 text-text-weak" onClick={handleCancel} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <button type="button" className={cn(SIGN_ACTION, "rotate-1")} onClick={handleSubmit} disabled={isSubmitting}>
+          <Button type="button" variant="sign" size="lg" className="rotate-1" onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting && <Spinner />}
             {isSubmitting ? "Publicando…" : "Publicar"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -155,10 +154,10 @@ export function AddForm({ onCancel }: AddFormProps) {
             )}
             {photos.length < MAX_PHOTOS && (
               <div className="flex flex-wrap items-center gap-4">
-                <button type="button" className={cn(SIGN_ACTION, "-rotate-1")} onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
+                <Button type="button" variant="sign" size="lg" className="-rotate-1" onClick={() => cameraRef.current?.click()} aria-describedby={errors.photos ? errorId("photos") : undefined}>
                   <Camera aria-hidden />
                   Tomar foto
-                </button>
+                </Button>
                 <Button type="button" variant="link" className="h-auto p-0 text-text-weak" onClick={() => galleryRef.current?.click()}>
                   <ImagePlus />
                   Elegir fotos
@@ -200,7 +199,8 @@ export function AddForm({ onCancel }: AddFormProps) {
               autoComplete="off"
               aria-invalid={!!errors.name}
               aria-describedby={errors.name ? errorId("name") : undefined}
-              className={cn(PAPER_FIELD, "paper-line h-12 rotate-[0.4deg] aria-invalid:ring-[3px] aria-invalid:ring-destructive/30")}
+              variant="paper"
+              className="rotate-[0.4deg]"
             />
             {errors.name && <p id={errorId("name")} className="text-sm text-destructive">{errors.name}</p>}
           </div>
@@ -214,7 +214,8 @@ export function AddForm({ onCancel }: AddFormProps) {
               onChange={e => setStory(e.target.value)}
               placeholder="Lo que sabes de ella, quién la cuida, desde cuándo está"
               rows={5}
-              className={cn(PAPER_FIELD, "min-h-32 -rotate-[0.4deg] resize-none py-0")}
+              variant="paper"
+              className="min-h-32 -rotate-[0.4deg]"
             />
           </div>
         </div>

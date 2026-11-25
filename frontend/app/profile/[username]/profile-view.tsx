@@ -135,9 +135,9 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
             cutout="todavía nada"
             description={isOwnProfile ? 'Cuando pases por una, sácale una foto y súmala al mapa.' : undefined}
             action={isOwnProfile ? (
-              <Link href="/add" className="road-sign road-sign-text road-sign-action inline-flex -rotate-1 items-center px-5 py-1.5">
-                Añadir
-              </Link>
+              <Button asChild variant="sign" size="lg" className="-rotate-1">
+                <Link href="/add">Añadir</Link>
+              </Button>
             ) : undefined}
           />
         )}
