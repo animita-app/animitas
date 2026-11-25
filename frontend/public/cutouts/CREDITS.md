@@ -10,4 +10,6 @@ Objects cut out of Wikimedia Commons photos with macOS subject lifting and resiz
 
 - `map.png`: [Carte du Chili - (par J.N. Bellin) - btv1b8596585g.jpg](https://commons.wikimedia.org/wiki/File:Carte_du_Chili_-_(par_J.N._Bellin)_-_btv1b8596585g.jpg) by Bellin, Jacques-Nicolas (1703-1772). Cartographe, Public domain, rendered as a folded sheet.
 
+- `tumbleweed.png`: [Tumbleweed on W Lone Mtn Rd.jpg](https://commons.wikimedia.org/wiki/File:Tumbleweed_on_W_Lone_Mtn_Rd.jpg), CC BY-SA 4.0.
+
 `letters/` is rendered by the project from macOS system typefaces on generated paper textures.

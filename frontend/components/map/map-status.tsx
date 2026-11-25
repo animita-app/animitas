@@ -1,6 +1,6 @@
 'use client'
 
-import { Candle } from '@/components/loaders'
+import { Candle, Tumbleweed } from '@/components/loaders'
 import { CutoutText } from '@/components/cutout-text'
 import type { AnimitasStatus } from '@/contexts/animitas-context'
 
@@ -16,8 +16,8 @@ export function MapStatus({ status, count, onRetry }: MapStatusProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
       {status === 'loading' && (
-        <div role="status" className="flex flex-col items-center">
-          <Candle className="h-16" />
+        <div role="status" className="absolute inset-0">
+          <Tumbleweed />
           <span className="sr-only">Cargando animitas</span>
         </div>
       )}

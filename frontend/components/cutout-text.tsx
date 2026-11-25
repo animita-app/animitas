@@ -38,7 +38,7 @@ export function CutoutText({ text, height = 22, arc = 0, className }: CutoutText
   const letters = Array.from(text.toLowerCase())
   const n = letters.length
   return (
-    <span aria-hidden className={cn('inline-flex items-end', className)}>
+    <span aria-hidden className={cn('inline-flex shrink-0 items-end whitespace-nowrap', className)}>
       {letters.map((char, i) => {
         if (char === ' ') return <span key={i} style={{ width: height * 0.4 }} />
         const variant = variantFor(text, i)
@@ -58,7 +58,7 @@ export function CutoutText({ text, height = 22, arc = 0, className }: CutoutText
             width={Math.round((size * w) / h)}
             height={Math.round(size)}
             draggable={false}
-            className="-mx-0.5 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
+            className="-mx-0.5 shrink-0 drop-shadow-[0_1px_1px_rgb(28_24_20_/_0.5)]"
             style={{ rotate: `${angle.toFixed(1)}deg`, translate: `0 ${(-lift).toFixed(1)}px` }}
           />
         )

@@ -7,23 +7,32 @@ import { Animita } from "@/types/animita"
 import { useIsMobileOverlay } from "@/hooks/use-mobile"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel"
+import { cn } from "@/lib/utils"
 import { AnimitaDetails } from "@/app/animita/[slug]/sections/animita-details"
 
 const SNAP_POINTS = [0.55, 1]
 
+const TILTS = ['-rotate-2', 'rotate-1', '-rotate-1', 'rotate-2']
+
+// Loose prints instead of a framed carousel: the first one large, the rest tucked behind it.
 function Photos({ site }: { site: Animita }) {
   if (!site.images?.length) return null
+  const [first, ...rest] = site.images
   return (
-    <Carousel className="bg-black aspect-video">
-      <CarouselContent className="ml-0 h-full">
-        {site.images.map((src, i) => (
-          <CarouselItem key={src} className="pl-0 relative aspect-video">
-            <Image src={src} alt={`${site.title}, foto ${i + 1}`} fill sizes="(max-width: 768px) 100vw, 448px" className="object-contain" />
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-    </Carousel>
+    <div className="relative px-8 pt-10 pb-4">
+      {rest.slice(0, 3).map((src, i) => (
+        <div
+          key={src}
+          aria-hidden
+          className={cn('photo-vignette absolute top-8 aspect-4/3 w-2/5 overflow-hidden shadow-md', TILTS[(i + 1) % TILTS.length], i === 0 ? 'right-6' : i === 1 ? 'right-14 top-12' : 'right-2 top-16')}
+        >
+          <Image src={src} alt="" fill sizes="180px" className="object-cover [filter:url(#stipple)]" />
+        </div>
+      ))}
+      <div className="photo-vignette relative aspect-4/3 w-4/5 -rotate-1 overflow-hidden shadow-lg">
+        <Image src={first} alt={`Animita de ${site.title}`} fill sizes="(max-width: 768px) 80vw, 360px" className="object-cover [filter:url(#stipple)]" priority />
+      </div>
+    </div>
   )
 }
 
@@ -41,7 +50,7 @@ export function AnimitaSheet({ site }: { site: Animita }) {
   if (isMobile) {
     return (
       <Drawer open onOpenChange={close} snapPoints={SNAP_POINTS} activeSnapPoint={snap} setActiveSnapPoint={setSnap}>
-        <DrawerContent className="pb-safe">
+        <DrawerContent className="pb-safe border-0 bg-transparent bg-[linear-gradient(to_bottom,transparent,var(--color-background)_12%)]">
           <DrawerTitle className="sr-only">Animita de {site.title}</DrawerTitle>
           <DrawerDescription className="sr-only">Su historia, velas y comentarios</DrawerDescription>
           <div className="overflow-y-auto">
@@ -57,11 +66,15 @@ export function AnimitaSheet({ site }: { site: Animita }) {
 
   return (
     <Sheet open onOpenChange={close} modal={false}>
-      <SheetContent side="right" className="gap-0 overflow-y-auto sm:max-w-md bg-background-weak top-16 bottom-4 right-4 h-auto rounded-lg border" onInteractOutside={(e) => e.preventDefault()}>
+      <SheetContent
+        side="right"
+        className="gap-0 overflow-y-auto border-0 shadow-none sm:max-w-lg bg-transparent bg-[linear-gradient(to_right,transparent,color-mix(in_oklab,var(--color-background)_92%,transparent)_16%,var(--color-background)_30%)]"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <SheetTitle className="sr-only">Animita de {site.title}</SheetTitle>
         <SheetDescription className="sr-only">Su historia, velas y comentarios</SheetDescription>
         <Photos site={site} />
-        <div className="p-8">
+        <div className="py-6 pr-10 pl-16">
           <AnimitaDetails site={site} />
         </div>
       </SheetContent>

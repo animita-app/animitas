@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Flame } from "lucide-react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { CutoutText } from "@/components/cutout-text"
 import { Candle } from "@/components/loaders"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -74,25 +73,22 @@ export function Velas({ siteId }: VelasProps) {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant={isLit ? "secondary" : "outline"}
+    <div className="shelf flex items-end gap-4">
+      <button
+        type="button"
         onClick={toggle}
         aria-pressed={isLit}
-        className={cn(isLit && "text-accent")}
+        aria-label={isLit ? "Apagar tu vela" : "Prender una vela"}
+        className="shelf-item relative flex rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
-        <Flame className={cn(isLit && "fill-current")} />
-        <span className="grid text-left">
-          <span inert={isLit || undefined} className={cn("[grid-area:1/1] transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-opacity", isLit && "opacity-0 blur-[4px] scale-90")}>
-            Prender vela
-          </span>
-          <span inert={!isLit || undefined} className={cn("[grid-area:1/1] transition-[opacity,filter,scale] duration-300 ease-[cubic-bezier(0.2,0,0,1)] motion-reduce:transition-opacity", !isLit && "opacity-0 blur-[4px] scale-90")}>
-            Vela prendida
-          </span>
+        <span className="shelf-label pointer-events-none absolute bottom-full left-1/2 mb-1 origin-bottom -translate-x-1/2">
+          <CutoutText text={isLit ? "apagar" : "prender"} height={22} arc={30} />
         </span>
-      </Button>
-      <p className="text-sm text-text-weak" aria-live="polite">
-        {count === 0 ? "Sé la primera persona en prender una" : count === 1 ? "1 vela prendida" : `${count.toLocaleString('es-CL')} velas prendidas`}
+        <Candle lit={isLit} className="h-16" />
+      </button>
+      {count > 0 && <CutoutText text={count.toLocaleString("es-CL")} height={26} className="mb-2" />}
+      <p className="sr-only" aria-live="polite">
+        {count === 0 ? "Nadie ha prendido una vela todavía" : count === 1 ? "1 vela prendida" : `${count.toLocaleString("es-CL")} velas prendidas`}
       </p>
     </div>
   )

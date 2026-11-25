@@ -309,7 +309,11 @@ export function MarkerLayer({
                   className="absolute left-1/2 -translate-x-1/2 z-50 flex flex-col items-center"
                   style={{ top: `${topValue}px` }}
                 >
-                  <CutoutText text={site.title || 'animita'} height={13} className="max-w-64 flex-wrap justify-center" />
+                  <span className="flex w-max max-w-72 flex-wrap justify-center gap-x-2 gap-y-1">
+                    {(site.title || 'animita').split(/\s+/).map((word, i) => (
+                      <CutoutText key={`${word}-${i}`} text={word} height={18} />
+                    ))}
+                  </span>
                 </Link>
               </div>
             </div>
