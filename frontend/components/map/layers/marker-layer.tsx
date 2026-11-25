@@ -219,6 +219,22 @@ const stillInk = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').m
 const INK_VERSIONS = ['a', 'b', 'c']
 const INK_TICK_MS = 700
 
+// Clicking a cluster flies in until it splits. Mapbox deletes `features` from the event as soon as the
+// handler returns, and the expansion zoom arrives later, so everything needed is read up front.
+export function zoomIntoCluster(map: mapboxgl.Map, sourceId: string) {
+  return (e: { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+    const feature = e.features?.[0]
+    if (!feature) return
+    const clusterId = feature.properties?.cluster_id
+    const center = (feature.geometry as GeoJSON.Point).coordinates as [number, number]
+    const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource | undefined
+    source?.getClusterExpansionZoom(clusterId, (err, zoom) => {
+      if (err || zoom == null) return
+      map.flyTo({ center, zoom, speed: 1.2, curve: 1, essential: true, duration: 500 })
+    })
+  }
+}
+
 export interface MarkerLayerProps {
   map: mapboxgl.Map | null
   isMapReady: boolean
@@ -397,22 +413,7 @@ export function MarkerLayer({
       map.getCanvas().style.cursor = ''
     }
 
-    const onClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      if (!e.features?.length) return
-      const clusterId = e.features[0].properties?.cluster_id
-      const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource
-      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err || zoom == null) return
-        map.flyTo({
-          center: (e.features![0].geometry as any).coordinates,
-          zoom,
-          speed: 1.2,
-          curve: 1,
-          essential: true,
-          duration: 500,
-        })
-      })
-    }
+    const onClusterClick = zoomIntoCluster(map, sourceId)
 
     const onClusterEnter = () => { map.getCanvas().style.cursor = 'pointer' }
     const onClusterLeave = () => { map.getCanvas().style.cursor = '' }
