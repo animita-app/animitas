@@ -79,6 +79,8 @@ export function LocationPicker({ value, onChange, invalid, describedBy }: Locati
       attributionControl: false,
       dragRotate: false,
       pitchWithRotate: false,
+      // The page scrolls past this map, so the wheel scrolls the page; zoom is pinch or double click.
+      scrollZoom: false,
     })
     map.touchZoomRotate.disableRotation()
     map.on("load", () => applyPaperStyle(map))

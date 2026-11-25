@@ -438,6 +438,10 @@
 
 /* Ballpoint writing: the pen's blue, a hand's letters where the device has one, and ink soaked a little
    into the paper. */
+.pen-hand {
+  font-family: "Bradley Hand", "Segoe Print", "Marker Felt", "Comic Sans MS", cursive;
+  font-weight: 700;
+}
 .pen-ink {
   color: var(--color-pen);
   font-family: "Bradley Hand", "Segoe Print", "Marker Felt", "Comic Sans MS", cursive;

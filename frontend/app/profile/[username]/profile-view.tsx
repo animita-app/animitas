@@ -10,7 +10,7 @@ import { DevelopingPhoto } from '@/components/loaders'
 import { Spinner } from '@/components/ui/spinner'
 import { EmptyState } from '@/components/empty-state'
 import { CutoutText } from '@/components/cutout-text'
-import { PenLoop } from '@/components/pen'
+import { PenLoop, RedPenCount } from '@/components/pen'
 import { AnimitaCard } from '@/components/animita/animita-card'
 import { useUser } from '@/contexts/user-context'
 import { createClient } from '@/lib/supabase/client'
@@ -154,9 +154,9 @@ export function ProfileView({ profile }: { profile: ProfileData }) {
                     <Link
                       href={left[0].href}
                       aria-label={left.length === 1 ? `Un recuerdo nuevo en ${a.title}` : `${left.length} recuerdos nuevos en ${a.title}`}
-                      className="pen-red-tone pen-redraw absolute -top-4 -right-4 z-10 rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      className="absolute -top-3 -right-3 z-10 rotate-6 rounded-full outline-none transition-[scale] duration-200 hover:scale-110 focus-visible:ring-[3px] focus-visible:ring-ring/50 motion-reduce:transition-none"
                     >
-                      <PenLoop className="size-11 text-xl leading-none">{left.length}</PenLoop>
+                      <RedPenCount count={left.length} className="size-10 text-xl" />
                     </Link>
                   )}
                 </div>

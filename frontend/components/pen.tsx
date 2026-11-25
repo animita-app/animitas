@@ -41,3 +41,28 @@ export function RedPenDot({ className, style }: { className?: string; style?: CS
     </svg>
   )
 }
+
+// A number marked in red ballpoint: the pen scribbles a dense blob and the number is left in the paper's
+// color inside it, so it reads from across the page.
+export function RedPenCount({ count, className }: { count: number; className?: string }) {
+  return (
+    <span className={cn('relative inline-flex items-center justify-center', className)}>
+      <svg aria-hidden viewBox="0 0 40 40" className="pen-red absolute inset-0 size-full overflow-visible">
+        <path
+          d="M20 4.5 C29.5 4 36 11 35.4 20.4 C34.8 29.6 27.6 35.8 18.8 35.2 C10 34.6 4.2 27.6 4.8 19 C5.4 10.8 11.8 5 20 4.5 Z"
+          fill="currentColor"
+        />
+        <path
+          d="M9 13 C14 7 27 6.4 32 13 M7 22 C12 30 27 33 33 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          opacity="0.9"
+        />
+      </svg>
+      {/* Written in the paper's color, so not .pen-ink: its unlayered blue would win over any utility. */}
+      <span className="pen-hand relative text-text-inverted">{count > 9 ? '9+' : count}</span>
+    </span>
+  )
+}
