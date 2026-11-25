@@ -33,7 +33,8 @@ export function MainInfo({ site, compact = false }: MainInfoProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="sr-only">Animita de {site.title}</h1>
+      {/* In the sheet, the sheet's own title already names the animita for screen readers. */}
+      {!compact && <h1 className="sr-only">Animita de {site.title}</h1>}
       <div aria-hidden className="flex flex-col gap-2">
         <span className="text-sm text-text-weak">Animita de</span>
         <span className="flex flex-wrap items-end gap-x-5 gap-y-2">

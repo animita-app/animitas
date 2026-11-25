@@ -14,7 +14,7 @@ const site: any = { id: "1", slug: "maria", title: "María Márquez", story, ima
 describe("AnimitaDetails in the sheet", () => {
   it("tells only the start of the story and sends the rest to the full page", () => {
     render(<AnimitaDetails site={site} compact />);
-    expect(screen.getByRole("heading", { level: 1, name: "Animita de María Márquez" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     expect(screen.getByText(/^Murió en la curva del puente\. La cuidan sus vecinos desde 1987\./)).toBeInTheDocument();
     expect(screen.queryByText(story.trim())).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ver ficha completa" })).toHaveAttribute("href", "/animita/maria");
@@ -24,6 +24,7 @@ describe("AnimitaDetails in the sheet", () => {
   it("keeps the recuerdos and the whole story on the full page", () => {
     render(<AnimitaDetails site={site} />);
     expect(screen.getByText("recuerdos")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Animita de María Márquez" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Ver ficha completa" })).not.toBeInTheDocument();
   });
 });

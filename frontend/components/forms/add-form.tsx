@@ -12,6 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Spinner } from "@/components/ui/spinner"
 import { createClient } from "@/lib/supabase/client"
+import { isDemo } from "@/lib/demo/flag"
+import { TABLES } from "@/lib/animitas"
+import { slugify } from "@/lib/utils"
 import { useUser } from "@/contexts/user-context"
 import { animitaHref } from "@/lib/routes"
 import { ANIMITA_NAME_MIN } from "@/lib/validators/animita"
@@ -89,13 +92,33 @@ export function AddForm({ onCancel }: AddFormProps) {
       const supabase = createClient()
       const images = await Promise.all(photos.map(file => uploadAnimitaPhoto(supabase, currentUser!.id, file)))
 
-      const res = await fetch('/api/animitas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, story, isPublic: true, location, images }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.error || 'Error al guardar')
+      let data: { slug: string }
+      if (isDemo()) {
+        // Demo mode keeps the new animita in this browser instead of posting it.
+        const { data: row, error } = await supabase
+          .from(TABLES.animitas)
+          .insert({
+            title: name.trim(),
+            story,
+            slug: `${slugify(name)}-${Math.random().toString(36).slice(2, 6)}`,
+            location: { type: 'Point', coordinates: [location!.lng, location!.lat] },
+            address: location!.address ?? null,
+            city_region: location!.cityRegion ?? null,
+            images,
+          })
+          .select('slug')
+          .single()
+        if (error || !row) throw new Error(error?.message || 'Error al guardar')
+        data = row
+      } else {
+        const res = await fetch('/api/animitas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, story, isPublic: true, location, images }),
+        })
+        data = await res.json()
+        if (!res.ok) throw new Error((data as any)?.error || 'Error al guardar')
+      }
 
       toast.success(`Añadiste la animita de ${name.trim()}`)
       router.push(animitaHref(data.slug))

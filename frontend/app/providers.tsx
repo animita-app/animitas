@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { AnimitasProvider } from '@/contexts/animitas-context'
 import { UserProvider } from '@/contexts/user-context'
+import { DemoStamp } from '@/components/demo-stamp'
 
 export function Providers({
   children,
@@ -22,6 +23,7 @@ export function Providers({
             {children}
           </div>
         )}
+        <DemoStamp />
       </AnimitasProvider>
     </UserProvider>
   )

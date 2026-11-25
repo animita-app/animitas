@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { DEMO_COOKIE } from '@/lib/demo/flag'
 
 // Routes that require specific roles
 const PROTECTED_ROUTES: { prefix: string; minRole: string }[] = [
@@ -52,7 +53,10 @@ export async function middleware(request: NextRequest) {
   // Check if route requires a specific role
   const protectedRoute = PROTECTED_ROUTES.find(r => pathname.startsWith(r.prefix))
 
-  if (needsAuth || protectedRoute) {
+  // A demo visitor on a dev server counts as signed in; their session lives in the browser.
+  const demo = process.env.NODE_ENV === 'development' && request.cookies.has(DEMO_COOKIE)
+
+  if ((needsAuth || protectedRoute) && !demo) {
     if (!user) {
       // Redirect unauthenticated users to login
       const loginUrl = request.nextUrl.clone()
