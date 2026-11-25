@@ -6,7 +6,10 @@ import { DEMO_COOKIE } from '@/lib/demo/flag'
 export function GET(request: NextRequest) {
   if (process.env.NODE_ENV !== 'development') return new NextResponse(null, { status: 404 })
   const params = request.nextUrl.searchParams
-  const response = NextResponse.redirect(new URL('/map', request.url))
+  // Back to the map at the address the visitor typed (localhost or a LAN IP). Bound to 0.0.0.0, the dev
+  // server reports that as its own host, which would land the visitor on another origin without the cookie.
+  const host = request.headers.get('host') ?? request.nextUrl.host
+  const response = NextResponse.redirect(new URL('/map', `${request.nextUrl.protocol}//${host}`))
   if (params.has('salir')) {
     response.cookies.delete(DEMO_COOKIE)
     return response
