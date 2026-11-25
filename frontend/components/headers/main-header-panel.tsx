@@ -33,7 +33,7 @@ function Shelf({ pathname }: { pathname: string }) {
             }}
             aria-label={item.label}
             aria-current={active ? 'page' : undefined}
-            className="shelf-item relative flex flex-col items-center rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="shelf-item relative flex flex-col items-center outline-none"
           >
             <ShelfObject {...item} active={active} />
           </Link>

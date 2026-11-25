@@ -283,6 +283,18 @@
   opacity: 1;
   scale: calc(1 / 1.7);
 }
+/* Keyboard focus is the same reach as hover (the object grows and says its name) plus a pen line under it,
+   instead of a box around a photo. A mouse click never shows it. */
+.shelf-item:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset-inline: 15%;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-pen);
+}
+
 /* Touch screens have no hover: the object for the current page keeps its name showing. */
 @media (hover: none) {
   .shelf > .shelf-item[aria-current="page"] .shelf-label {

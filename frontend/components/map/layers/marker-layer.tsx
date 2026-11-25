@@ -149,10 +149,14 @@ function canvasFor(size: number) {
 // A pen drawing kept as its strokes, so the crisp ink and each version of the bleed line up exactly.
 interface Drawing { size: number; strokes: Stroke[]; dot?: [number, number, number]; seed: number }
 
+// Marks are drawn at this many pixels per unit, so they stay sharp when the map scales them up close in.
+const INK_RES = 4
+
 function paint(size: number, draw: (ctx: CanvasRenderingContext2D) => void) {
-  const { ctx } = canvasFor(size)
+  const { ctx } = canvasFor(size * INK_RES)
+  ctx.scale(INK_RES, INK_RES)
   draw(ctx)
-  return ctx.getImageData(0, 0, size, size)
+  return ctx.getImageData(0, 0, size * INK_RES, size * INK_RES)
 }
 
 // One take of a mark: its bleed underneath and its wandering line on top. Each take wanders differently.
@@ -342,7 +346,7 @@ export function MarkerLayer({
     const onMissing = (e: { id: string }) => {
       if (map.hasImage(e.id)) return
       const image = drawInk(e.id)
-      if (image) map.addImage(e.id, image, { pixelRatio: 2 })
+      if (image) map.addImage(e.id, image, { pixelRatio: 2 * INK_RES })
     }
     map.on('styleimagemissing', onMissing)
     // Layers may have asked for their images before this listener existed; asking again draws them.

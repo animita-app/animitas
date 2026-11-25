@@ -38,7 +38,13 @@ export default function MapboxMap({ accessToken, style }: MapboxMapProps) {
   useEffect(() => {
     const instance = map.current
     if (!instance || !isMapReady) return
-    const check = () => setAway(instance.getZoom() > instance.getMinZoom() + 0.4)
+    // Away once zoomed in or dragged off: comparing only the zoom missed a map pushed to one side.
+    const home = instance.getCenter()
+    const check = () => {
+      const c = instance.getCenter()
+      const moved = Math.abs(c.lng - home.lng) > 1.5 || Math.abs(c.lat - home.lat) > 1.5
+      setAway(moved || instance.getZoom() > instance.getMinZoom() + 0.4)
+    }
     instance.on('moveend', check)
     check()
     return () => { instance.off('moveend', check) }
